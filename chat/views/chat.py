@@ -10,6 +10,9 @@ from asgiref.sync import async_to_sync
 import json
 import logging
 from datetime import timedelta
+from chat.utils import notify_sidebar_for_chat
+from chat.utils import clear_sidebar_unread
+
 
 from chat.models import (
     CustomUser, Chat, Message, GroupJoinRequest, Follow, Story, StoryView,
@@ -295,6 +298,8 @@ def chat_view(request, chat_id):
     chat = get_object_or_404(Chat, id=chat_id, participants=request.user)
     chat.messages.filter(is_read=False).exclude(
         sender=request.user).update(is_read=True)
+    # 🔥 NEW — clear sidebar badge for this chat
+    clear_sidebar_unread(chat, request.user)
 
     # Update current user's online status
     request.user.last_seen = timezone.now()
@@ -469,6 +474,7 @@ def get_chat_messages(request, chat_id):
             'sender_initials': msg.sender.initials if msg.sender else 'S',
             'timestamp': msg.timestamp.strftime('%H:%M'),
             'timestamp_iso': msg.timestamp.isoformat(),
+            'sender_id': msg.sender_id,
             'message_type': msg.message_type,
             'is_own': msg.sender == request.user if msg.sender else False,
             'is_read': is_read,
@@ -549,6 +555,13 @@ def send_message(request):
         chat.updated_at = timezone.now()
         chat.save()
 
+        # 🔥 NEW — notify sidebar via WebSocket
+        notify_sidebar_for_chat(
+            chat=chat,
+            sender=request.user,
+            last_message_text=message.content
+        )
+
         return JsonResponse({
             'success': True,
             'message': {
@@ -560,6 +573,7 @@ def send_message(request):
                 'sender_initials': message.sender.initials,
                 'timestamp': message.timestamp.strftime('%H:%M'),
                 'timestamp_iso': message.timestamp.isoformat(),
+                'sender_id': message.sender_id,
                 'message_type': message.message_type,
                 'media_url': message.media_url,
                 'media_type': message.media_type,
@@ -1174,6 +1188,10 @@ def mark_message_read(request, message_id):
             user=request.user,
             defaults={'read_at': timezone.now()}
         )
+        # Update is_read flag for the main message object
+        if message.sender != request.user and not message.is_read:
+            message.is_read = True
+            message.save(update_fields=['is_read'])
 
         return JsonResponse({'success': True})
 
@@ -1625,6 +1643,8 @@ def mark_messages_read(request, chat_id):
         if read_receipts:
             MessageRead.objects.bulk_create(
                 read_receipts, ignore_conflicts=True)
+            # Sync the is_read flag on all messages
+            unread_messages.update(is_read=True)
 
         return JsonResponse({
             'success': True,

@@ -6,4 +6,6 @@ websocket_urlpatterns = [
     re_path(r'ws/call/(?P<chat_id>\d+)/$', consumers.CallConsumer.as_asgi()),
     re_path(r'ws/notify/$', consumers.NotifyConsumer.as_asgi()),
     re_path(r'ws/odnix/$', consumers.OdnixGatewayConsumer.as_asgi()),
+
+    re_path(r'ws/sidebar/$', consumers.SidebarConsumer.as_asgi()),
 ]

@@ -1501,7 +1501,7 @@
                     {% endif %}
                     {% if chat.unread_count > 0 and chat.id != active_chat_id %}
                     <span class="unread-badge"
-                        style="position:absolute;top:-6px;right:-6px;background:#ff3b3b;color:#fff;border-radius:50%;min-width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:bold;box-shadow:0 0 0 2px #fff;z-index:2;">{{chat.unread_count }}</span>
+                        style="position:absolute;top:-6px;right:-6px;background:#ff3b3b;color:#fff;border-radius:50%;min-width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:bold;box-shadow:0 0 0 2px #fff;z-index:2;">{{chat.unread_count}}</span>
                     {% endif %}
                 </span>
                 <div class="ig-direct-item-info">
@@ -1640,7 +1640,8 @@
                                 <path d="M12 6v6l4 2"></path>
                             </svg>
                             <span class="ig-viewonce-text">Opened</span>
-                            <span class="ig-viewonce-subtext">{% if message.media_url %}Photo{% else %}Message{%endif%}</span>
+                            <span class="ig-viewonce-subtext">{% if message.media_url %}Photo{% else
+                                %}Message{%endif%}</span>
                         </div>
                         {% elif message.sender == request.user %}
                         {# Sender's own view-once message - show as pending #}
@@ -1670,7 +1671,8 @@
                                     <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                                     <circle cx="12" cy="12" r="3"></circle>
                                 </svg>
-                                <span class="ig-viewonce-text">{% if message.media_url %}Photo{% else %}Message{%endif%}</span>
+                                <span class="ig-viewonce-text">{% if message.media_url %}Photo{% else
+                                    %}Message{%endif%}</span>
                                 <span class="ig-viewonce-subtext">Tap to view</span>
                             </div>
                         </div>
@@ -2192,6 +2194,16 @@
 
     // Mark all messages in this chat as read
     function markMessagesAsRead() {
+        // Try WebSocket first
+        const unreadMsgs = document.querySelectorAll('.ig-message.received:not(.read-receipt-sent)');
+        unreadMsgs.forEach(msg => {
+            const mid = msg.dataset.messageId;
+            if (mid && wsSend({ type: 'message.read', message_id: parseInt(mid) })) {
+                msg.classList.add('read-receipt-sent');
+            }
+        });
+
+        // Also hit HTTP as fallback/sync
         fetch(`/api/chat/${chatId}/mark-read/`, {
             method: 'POST',
             headers: {
@@ -2211,10 +2223,19 @@
     // Poll for read receipt status updates on sent messages
     let readReceiptInterval = null;
     function startReadReceiptPolling() {
+        if (readReceiptInterval) return;
         // Poll every 5 seconds to update read receipts on sent messages
         readReceiptInterval = setInterval(updateReadReceipts, 5000);
         // Also update when window gains focus
         window.addEventListener('focus', updateReadReceipts);
+    }
+
+    function stopReadReceiptPolling() {
+        if (readReceiptInterval) {
+            clearInterval(readReceiptInterval);
+            readReceiptInterval = null;
+        }
+        window.removeEventListener('focus', updateReadReceipts);
     }
 
     // Update read receipt indicators on sent messages
@@ -2269,21 +2290,89 @@
         return csrfToken;
     }
 
-    // Initialize messaging - HTTP polling only for stability and performance
+    // Odnix Proto Client
+    const protoClient = typeof OdnixProtoClient !== 'undefined' ? new OdnixProtoClient() : null;
+
+    // Initialize messaging
     function initMessaging() {
-        startPolling();
-        // WebSocket disabled - causes overhead without ASGI server
+        if (protoClient) {
+            tryWebSocket();
+            // Start polling as fallback - will be disabled if WS succeeds
+            startPolling();
+        } else {
+            console.warn('[Messaging] OdnixProtoClient not found, using HTTP polling only');
+            startPolling();
+        }
     }
 
-    // WebSocket stub - disabled for performance
     function tryWebSocket() {
-        // Disabled - using HTTP polling for reliability
-        useWebSocket = false;
+        if (chatSocket && (chatSocket.readyState === WebSocket.OPEN || chatSocket.readyState === WebSocket.CONNECTING)) return;
+
+        console.log('[WebSocket] Connecting...');
+        const wsScheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
+        const wsUrl = `${wsScheme}://${window.location.host}/ws/chat/${chatId}/`;
+
+        chatSocket = new WebSocket(wsUrl);
+
+        chatSocket.onopen = function () {
+            console.log('[WebSocket] Connected');
+            useWebSocket = true;
+            reconnectAttempts = 0;
+            // Disable polling as we are now on live WS
+            stopPolling();
+            stopReadReceiptPolling();
+            stopBackgroundSignalPolling();
+            // Mark existing messages as read
+            markMessagesAsRead();
+        };
+
+        chatSocket.onmessage = function (e) {
+            try {
+                const data = JSON.parse(e.data);
+                handleSocketMessage(data);
+            } catch (err) {
+                console.error('[WebSocket] Message parsing error:', err);
+            }
+        };
+
+        chatSocket.onclose = function (e) {
+            console.log('[WebSocket] Closed', e.code, e.reason);
+            useWebSocket = false;
+
+            // Re-enable polling on disconnect
+            startPolling();
+            startReadReceiptPolling();
+            startBackgroundSignalPolling();
+
+            if (reconnectAttempts < maxReconnectAttempts) {
+                const delay = reconnectDelay * Math.pow(2, reconnectAttempts);
+                reconnectAttempts++;
+                console.log(`[WebSocket] Attempting reconnect in ${delay}ms...`);
+                setTimeout(tryWebSocket, delay);
+            }
+        };
+
+        chatSocket.onerror = function (err) {
+            console.error('[WebSocket] Connection error:', err);
+        };
     }
 
-    // Stub functions for WebSocket (disabled for performance)
-    function isWSReady() { return false; }
-    function wsSend(data) { return false; }
+    function isWSReady() {
+        return chatSocket && chatSocket.readyState === WebSocket.OPEN;
+    }
+
+    function wsSend(payload) {
+        if (isWSReady()) {
+            try {
+                chatSocket.send(JSON.stringify(payload));
+                return true;
+            } catch (e) {
+                console.error('[WebSocket] Send error:', e);
+                return false;
+            }
+        }
+        return false;
+    }
 
     // Fallback polling for messages - Optimized
     let pollingInterval = null;
@@ -2950,15 +3039,18 @@
             isTyping = true;
             lastTypingUpdate = now;
 
-            // Only use HTTP - simpler and more reliable
-            fetch(`/api/chat/${chatId}/typing/`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': getCSRFToken(),
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                },
-                body: 'is_typing=true'
-            }).catch(() => { });
+            // Try WebSocket first
+            if (!wsSend({ type: 'typing', is_typing: true })) {
+                // Fallback to HTTP
+                fetch(`/api/chat/${chatId}/typing/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCSRFToken(),
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: 'is_typing=true'
+                }).catch(() => { });
+            }
         }
 
         typingTimeout = setTimeout(sendStopTyping, 3000);
@@ -2968,14 +3060,18 @@
         if (!isTyping) return;
         isTyping = false;
 
-        fetch(`/api/chat/${chatId}/typing/`, {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': getCSRFToken(),
-                'Content-Type': 'application/x-www-form-urlencoded'
-            },
-            body: 'is_typing=false'
-        }).catch(() => { });
+        // Try WebSocket first
+        if (!wsSend({ type: 'typing', is_typing: false })) {
+            // Fallback to HTTP
+            fetch(`/api/chat/${chatId}/typing/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCSRFToken(),
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: 'is_typing=false'
+            }).catch(() => { });
+        }
     }
 
     // Start polling for typing status - Optimized
@@ -3835,7 +3931,7 @@
     let p2pBackgroundInterval = null;
 
     function startBackgroundSignalPolling() {
-        if (p2pBackgroundInterval) clearInterval(p2pBackgroundInterval);
+        if (p2pBackgroundInterval) return;
 
         // Poll for incoming P2P signals every 3 seconds
         p2pBackgroundInterval = setInterval(() => {
@@ -3860,6 +3956,13 @@
                 }
             })
             .catch(err => console.error('P2P signal init error:', err));
+    }
+
+    function stopBackgroundSignalPolling() {
+        if (p2pBackgroundInterval) {
+            clearInterval(p2pBackgroundInterval);
+            p2pBackgroundInterval = null;
+        }
     }
 
     function stopP2P() {
@@ -4575,57 +4678,22 @@
         }
     });
 
-    // Sidebar polling for real-time updates (mirrors messages_instagram.html)
-    function updateSidebarChats() {
-        fetch('/chat/api/chats/')
-            .then(response => response.json())
-            .then(data => {
-                if (!data.success) return;
-                const chats = data.chats;
-                chats.forEach(chat => {
-                    // Find sidebar item by chat id
-                    const item = document.querySelector('.ig-direct-item[href$="/' + chat.id + '/"]');
-                    if (!item) return;
-                    // Update unread badge
-                    const imgWrap = item.querySelector('span[style*="position:relative"]');
-                    let badge = item.querySelector('.unread-badge');
-                    if (chat.unread_count > 0) {
-                        if (!badge && imgWrap) {
-                            badge = document.createElement('span');
-                            badge.className = 'unread-badge';
-                            badge.style = "position:absolute;top:-6px;right:-6px;background:#ff3b3b;color:#fff;border-radius:50%;min-width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:bold;box-shadow:0 0 0 2px #fff;z-index:2;";
-                            imgWrap.appendChild(badge);
-                        }
-                        if (badge) {
-                            badge.textContent = chat.unread_count;
-                            badge.style.display = '';
-                        }
-                    } else if (badge) {
-                        badge.style.display = 'none';
-                    }
-                    // Update last message preview
-                    const preview = item.querySelector('.ig-direct-item-preview');
-                    if (preview) {
-                        preview.textContent = chat.last_message || 'No messages yet';
-                    }
-                });
-            });
-    }
-    setInterval(updateSidebarChats, 5000); // Poll every 5 seconds
-    updateSidebarChats(); // Initial call
+
 </script>
 
 <!-- Odnix Call configuration + script -->
 <script>
     try {
         window.OdnixCallConfig = {
-            chatId: {{ chat.id }
-    },
-    userId: { { request.user.id } },
-    wsScheme: (window.location.protocol === 'https:' ? 'wss' : 'ws'),
-        host: window.location.host,
+            chatId: {{ chat.id|default:'null' }},
+            userId: {{ request.user.id|default:'null' }},
+            wsScheme: (window.location.protocol === 'https:' ? 'wss' : 'ws'),
+            host: window.location.host,
             iceServers: []
         };
+    if (typeof window.OdnixCallConfig.chatId === 'undefined' || typeof window.OdnixCallConfig.userId === 'undefined' || window.OdnixCallConfig.chatId === null || window.OdnixCallConfig.userId === null) {
+        throw new Error('chatId or userId is undefined or null');
+    }
     console.log('[CallJS] Config set successfully:', window.OdnixCallConfig);
     } catch (e) {
         console.error('[CallJS] Error setting config:', e);
@@ -4635,4 +4703,98 @@
 <script src="{% static 'js/call.js' %}?v={% now 'U' %}"
     onload="console.log('call.js loaded successfully'); if(!window.OdnixCall) console.error('ERROR: window.OdnixCall is undefined after script load. Check call.js for syntax errors.');"
     onerror="console.error('Failed to load call.js'); alert('Error loading call functionality. Check console.');"></script>
+<script>
+    let sidebarSocket = null;
+
+    function connectSidebarSocket() {
+        const protocol = location.protocol === "https:" ? "wss" : "ws";
+        sidebarSocket = new WebSocket(
+            `${protocol}://${location.host}/ws/sidebar/`
+        );
+
+        sidebarSocket.onmessage = function (e) {
+            const data = JSON.parse(e.data);
+
+            if (data.type === "sidebar_update") {
+                updateSidebarUI(
+                    data.chat_id,
+                    data.unread_count,
+                    data.last_message
+                );
+            }
+        };
+
+        sidebarSocket.onclose = function () {
+            console.warn("Sidebar WS closed, reconnecting...");
+            setTimeout(connectSidebarSocket, 3000);
+        };
+    }
+
+    connectSidebarSocket();
+</script>
+<script>
+    function updateSidebarUI(chatId, unreadCount, lastMessage) {
+        const item = document.querySelector(
+            `.ig-direct-item[href$="/${chatId}/"]`
+        );
+        if (!item) return;
+
+        // Update preview
+        const preview = item.querySelector('.ig-direct-item-preview');
+        if (preview) {
+            preview.textContent = lastMessage || '';
+        }
+
+        // 🔥 KEY FIX — if this is the active chat, NEVER show badge
+        if (ACTIVE_CHAT_ID === chatId) {
+            const b1 = item.querySelector('.unread-badge');
+            const b2 = item.querySelector('.ig-unread-badge');
+            if (b1) b1.style.display = 'none';
+            if (b2) b2.style.display = 'none';
+            return;
+        }
+
+        // Private chat badge
+        let privateBadge = item.querySelector('.unread-badge');
+        let groupBadge = item.querySelector('.ig-unread-badge');
+
+        if (unreadCount > 0) {
+            if (!privateBadge && item.dataset.type === "private") {
+                const imgWrap = item.querySelector('span[style*="position:relative"]');
+                if (imgWrap) {
+                    privateBadge = document.createElement('span');
+                    privateBadge.className = 'unread-badge';
+                    privateBadge.style =
+                        "position:absolute;top:-6px;right:-6px;background:#ff3b3b;color:#fff;border-radius:50%;min-width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:bold;box-shadow:0 0 0 2px #fff;z-index:2;";
+                    imgWrap.appendChild(privateBadge);
+                }
+            }
+
+            if (!groupBadge && item.dataset.type === "group") {
+                groupBadge = document.createElement('div');
+                groupBadge.className = 'ig-unread-badge';
+                item.appendChild(groupBadge);
+            }
+
+            if (privateBadge) {
+                privateBadge.textContent = unreadCount;
+                privateBadge.style.display = '';
+            }
+            if (groupBadge) {
+                groupBadge.textContent = unreadCount;
+                groupBadge.style.display = '';
+            }
+        } else {
+            if (privateBadge) privateBadge.style.display = 'none';
+            if (groupBadge) groupBadge.style.display = 'none';
+        }
+    }
+
+</script>
+<script>
+    const ACTIVE_CHAT_ID = {{ active_chat_id|default:"null" }};
+</script>
+
+
+
 {% endblock %}

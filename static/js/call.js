@@ -500,19 +500,23 @@
     }
 
     function startSignalPolling() {
-        // Poll for signals if WebSocket fails
+        // Smart Polling: Polls signals from DB.
+        // Fast (500ms) if WS is down/connecting (for reliability).
+        // Slow (5000ms) if WS is secure (just checking for rare HTTP-relay fallbacks).
         if (signalPollInterval) return;
-        updateDebugStatus('Starting signal polling (server relay fallback)', 'orange');
-        signalPollInterval = setInterval(async () => {
+        updateDebugStatus('Starting signal polling (smart fallback)', 'orange');
+
+        const pollLoop = async () => {
             try {
-                if (!chatId) {
-                    updateDebugStatus('Cannot poll: chatId not set', 'orange');
-                    return;
-                }
+                if (!chatId) return;
+
+                // Perform Poll
                 const response = await fetch(`/api/p2p/${chatId}/signals/`);
                 const data = await response.json();
+
                 if (data.success && data.signals && data.signals.length > 0) {
                     updateDebugStatus(`Polling: Received ${data.signals.length} signals`, 'blue');
+
                     for (const signalInfo of data.signals) {
                         const signal = signalInfo.signal;
                         // Handle both 'webrtc.offer' and 'offer' for backward compatibility
@@ -527,23 +531,19 @@
                             signal.candidate && !signal.fileInfo;
 
                         if (isCallOffer) {
-                            // This is a call offer (has sdp, no fileInfo)
                             updateDebugStatus(`✓ Processing call offer from ${signalInfo.sender_name || 'unknown'}`, 'green');
-                            // Ensure we pass the correct structure to onOffer
                             await onOffer({
                                 sdp: signal.sdp,
                                 type: signal.type || 'offer',
                                 audioOnly: signal.audioOnly || false
                             });
                         } else if (isCallAnswer) {
-                            // This is a call answer
                             updateDebugStatus(`✓ Processing call answer from ${signalInfo.sender_name || 'unknown'}`, 'green');
                             await onAnswer({
                                 sdp: signal.sdp,
                                 type: signal.type || 'answer'
                             });
                         } else if (isCallIce) {
-                            // This is a call ICE candidate
                             await onRemoteIce({
                                 candidate: signal.candidate
                             });
@@ -552,23 +552,30 @@
                             stopTone();
                             teardown('Peer ended call');
                         }
-                        // Ignore file transfer signals (they have fileInfo)
                     }
-                } else if (data.success) {
-                    // No signals - this is normal, just silent
-                } else {
-                    updateDebugStatus(`Polling error: ${data.error || 'Unknown'}`, 'orange');
                 }
             } catch (e) {
-                console.error('Error polling signals:', e);
-                updateDebugStatus('Error polling: ' + e.message, 'red');
+                // Silent catch
             }
-        }, 500); // Poll every 500ms for faster connection
+
+            // Determine next delay based on WS Health
+            // Handshake step 2 means we are fully secure and communicating via WS
+            const isHealthy = ws && ws.readyState === WebSocket.OPEN && handshakeStep === 2;
+            const nextDelay = isHealthy ? 5000 : 500;
+
+            // Schedule next loop if not stopped
+            if (signalPollInterval) {
+                signalPollInterval = setTimeout(pollLoop, nextDelay);
+            }
+        };
+
+        // Start the loop
+        signalPollInterval = setTimeout(pollLoop, 500);
     }
 
     function stopSignalPolling() {
         if (signalPollInterval) {
-            clearInterval(signalPollInterval);
+            clearTimeout(signalPollInterval);
             signalPollInterval = null;
         }
     }
