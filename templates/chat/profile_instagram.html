@@ -3385,14 +3385,31 @@
                     if (data.is_following) {
                         btn.textContent = 'Following';
                         btn.classList.add('following');
+
+                        // Dynamically add Message button if it doesn't exist
+                        if (!document.querySelector(`button[onclick="startChat('${username}')"]`)) {
+                            const msgBtn = document.createElement('button');
+                            msgBtn.className = 'ig-profile-btn secondary';
+                            msgBtn.textContent = 'Message';
+                            msgBtn.onclick = function () { startChat(username); };
+                            btn.parentNode.insertBefore(msgBtn, btn.nextSibling);
+                        }
                     } else if (data.follow_request_status === 'pending') {
                         btn.textContent = 'Requested';
                         btn.classList.add('requested');
+
+                        // Remove Message button if exists
+                        const msgBtn = document.querySelector(`button[onclick="startChat('${username}')"]`);
+                        if (msgBtn) msgBtn.remove();
                     } else {
                         // Check if target is private (use original text as hint)
                         const isPrivate = originalText === 'Request' || originalText === 'Requested';
                         btn.textContent = isPrivate ? 'Request' : 'Follow';
                         btn.classList.add('primary');
+
+                        // Remove Message button if exists
+                        const msgBtn = document.querySelector(`button[onclick="startChat('${username}')"]`);
+                        if (msgBtn) msgBtn.remove();
                     }
 
                     // Update follower counts if provided
@@ -3815,7 +3832,7 @@
             .finally(() => { followersLoading = false; });
     }
 
-    document.getElementById('followersList').addEventListener('scroll', function() {
+    document.getElementById('followersList').addEventListener('scroll', function () {
         const list = this;
         if (list.scrollTop + list.clientHeight >= list.scrollHeight - 100) {
             loadFollowers();
@@ -3864,7 +3881,7 @@
             .finally(() => { followingLoading = false; });
     }
 
-    document.getElementById('followingList').addEventListener('scroll', function() {
+    document.getElementById('followingList').addEventListener('scroll', function () {
         const list = this;
         if (list.scrollTop + list.clientHeight >= list.scrollHeight - 100) {
             loadFollowing();

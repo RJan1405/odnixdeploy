@@ -338,6 +338,28 @@ def chat_view(request, chat_id):
     following_ids = list(Follow.objects.filter(
         follower=request.user).values_list('following_id', flat=True))
 
+    # --- Message Request Logic ---
+    is_message_request = False
+    target_user_username = ''
+    if chat.chat_type == 'private':
+        other_user = chat.participants.exclude(id=request.user.id).first()
+        if other_user:
+            target_user_username = other_user.username
+            # blocked_by_me = Block.objects.filter(blocker=request.user, blocked=other_user).exists()
+            is_following = Follow.objects.filter(follower=request.user, following=other_user).exists()
+            
+            # Check if current user has EVER replied in this chat
+            has_replied = chat.messages.filter(sender=request.user).exists()
+
+            # It is a request if:
+            # 1. We haven't replied yet (Acceptance = Reply)
+            # 2. They have sent messages.
+            # (Show regardless of follow status as per user request)
+            has_they_messaged = chat.messages.exclude(sender=request.user).exclude(message_type='system').exists()
+
+            if not has_replied and has_they_messaged:
+                is_message_request = True
+
     context = {
         'chat': chat,
         'messages': messages_list,
@@ -349,9 +371,16 @@ def chat_view(request, chat_id):
         'group_chats': group_chats,
         'active_chat_id': chat.id,
         'following_ids': following_ids,
+        'is_message_request': is_message_request,
+        'target_user_username': target_user_username,
     }
     # Calls feature flags and ICE servers for WebRTC
     context['calls_enabled'] = getattr(settings, 'ENABLE_CALLS', True)
+    ice_servers = getattr(settings, 'WEBRTC_ICE_SERVERS', [])
+    try:
+        context['ice_servers_json'] = _json.dumps(ice_servers)
+    except Exception:
+        context['ice_servers_json'] = '[]'
     ice_servers = getattr(settings, 'WEBRTC_ICE_SERVERS', [])
     try:
         context['ice_servers_json'] = _json.dumps(ice_servers)

@@ -2125,7 +2125,9 @@ def reels_view(request):
             'comments_count': reel.comment_count,
             'is_liked': reel.is_liked_by(request.user),
             'views': reel.views_count,
+            'views': reel.views_count,
             'timestamp': reel.created_at,
+            'is_following': Follow.objects.filter(follower=request.user, following=reel.user).exists(),
         })
 
     return render(request, 'chat/reels.html', {
