@@ -300,6 +300,8 @@ class Story(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     expires_at = models.DateTimeField()  # Stories expire after 24 hours
     is_active = models.BooleanField(default=True)
+    image_transform = models.JSONField(default=dict, blank=True)  # Store scale, x, y, rotation
+    text_size = models.FloatField(default=22.0)  # Text font size
     # Removed old views ManyToManyField - now using StoryView model
 
     class Meta:

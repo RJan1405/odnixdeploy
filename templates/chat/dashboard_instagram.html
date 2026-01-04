@@ -2193,7 +2193,7 @@
         display: block;
         width: 100%;
         padding: 12px 20px;
-        background: var(--odnix-gradient);
+        /*background: var(--odnix-gradient);*/
         color: white;
         border: none;
         border-radius: 12px;
@@ -4206,6 +4206,22 @@
 
                     <!-- Image Controls (shown when image is added) -->
                     <div id="storyImageControls" class="ig-story-image-controls" style="display: none;">
+                        <div class="ig-story-slider-control">
+                            <label><i data-lucide="zoom-in"></i> Scale</label>
+                            <input type="range" min="0.5" max="3" step="0.1" value="1"
+                                oninput="updateStoryImageTransform('scale', this.value)">
+                            <span id="scaleValue">1.0x</span>
+                        </div>
+                        <div class="ig-story-slider-control">
+                            <label><i data-lucide="rotate-cw"></i> Rotate</label>
+                            <input type="range" min="-180" max="180" step="5" value="0"
+                                oninput="updateStoryImageTransform('rotate', this.value)">
+                            <span id="rotateValue">0°</span>
+                        </div>
+                        <div class="ig-story-pan-hint">
+                            <i data-lucide="move"></i>
+                            Drag image to reposition
+                        </div>
                         <button type="button" class="ig-story-remove-img" onclick="removeStoryImage()">
                             <i data-lucide="trash-2"></i>
                             Remove Image
@@ -4233,6 +4249,18 @@
                                 id="customPosBtn">
                                 <i data-lucide="move"></i>
                             </button>
+                        </div>
+                    </div>
+
+                    <div class="ig-story-control-divider"></div>
+
+                    <!-- Text Size Control -->
+                    <div class="ig-story-text-size">
+                        <span class="ig-story-preset-label">Text Size</span>
+                        <div class="ig-story-slider-control">
+                            <input type="range" class="ig-range-input" min="14" max="60" value="22"
+                                oninput="changeStoryTextSize(this.value)">
+                            <span id="textSizeValue">22px</span>
                         </div>
                     </div>
 
@@ -4467,6 +4495,25 @@
         gap: 20px;
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
+    }
+
+    .ig-story-controls-panel::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .ig-story-controls-panel::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .ig-story-controls-panel::-webkit-scrollbar-thumb {
+        background: #3f3f46;
+        /* Better dark theme contrast */
+        border-radius: 3px;
+        transition: background 0.2s;
+    }
+
+    .ig-story-controls-panel::-webkit-scrollbar-thumb:hover {
+        background: #52525b;
     }
 
     .ig-story-panel-title {
@@ -6163,7 +6210,82 @@
     // Story Functions - Simplified
     let storyTextPosition = 'center';
     let isTextDragging = false;
+    let isTextPotentialDrag = false;
+    let textDragStartX = 0;
+    let textDragStartY = 0;
     let textDragOffset = { x: 0, y: 0 };
+    let storyTextSize = 22;
+
+    // Image Transform Functions
+    let storyImageTransform = { scale: 1, rotate: 0, x: 0, y: 0 };
+    let isImageDragging = false;
+    let imageDragStart = { x: 0, y: 0 };
+
+    function updateStoryImageTransform(type, value) {
+        if (type === 'scale') {
+            storyImageTransform.scale = parseFloat(value);
+            document.getElementById('scaleValue').innerText = value + 'x';
+        } else if (type === 'rotate') {
+            storyImageTransform.rotate = parseInt(value);
+            document.getElementById('rotateValue').innerText = value + '°';
+        }
+        applyStoryImageTransform();
+    }
+
+    function applyStoryImageTransform() {
+        const img = document.getElementById('storyPreviewImg');
+        if (img) {
+            img.style.transform = `translate(${storyImageTransform.x}px, ${storyImageTransform.y}px) scale(${storyImageTransform.scale}) rotate(${storyImageTransform.rotate}deg)`;
+        }
+    }
+
+    function initImageDrag() {
+        const imgContainer = document.getElementById('storyPreviewImage');
+        if (!imgContainer) return;
+
+        imgContainer.style.cursor = 'move';
+        imgContainer.addEventListener('mousedown', startImageDrag);
+        imgContainer.addEventListener('touchstart', startImageDrag, { passive: false });
+    }
+
+    function startImageDrag(e) {
+        e.preventDefault();
+        isImageDragging = true;
+
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+        imageDragStart = {
+            x: clientX - storyImageTransform.x,
+            y: clientY - storyImageTransform.y
+        };
+
+        document.addEventListener('mousemove', moveImageDrag);
+        document.addEventListener('mouseup', endImageDrag);
+        document.addEventListener('touchmove', moveImageDrag, { passive: false });
+        document.addEventListener('touchend', endImageDrag);
+    }
+
+    function moveImageDrag(e) {
+        if (!isImageDragging) return;
+        e.preventDefault();
+
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+        storyImageTransform.x = clientX - imageDragStart.x;
+        storyImageTransform.y = clientY - imageDragStart.y;
+
+        applyStoryImageTransform();
+    }
+
+    function endImageDrag() {
+        isImageDragging = false;
+        document.removeEventListener('mousemove', moveImageDrag);
+        document.removeEventListener('mouseup', endImageDrag);
+        document.removeEventListener('touchmove', moveImageDrag);
+        document.removeEventListener('touchend', endImageDrag);
+    }
 
     function openStoryModal() {
         document.getElementById('storyModal').style.display = 'flex';
@@ -6186,6 +6308,13 @@
         document.getElementById('storyTextColor').value = '#ffffff';
         document.getElementById('storyPreviewContainer').style.background = 'linear-gradient(135deg, #667eea, #764ba2)';
         textEl.style.color = '#ffffff';
+        textEl.style.fontSize = '22px';
+        storyTextSize = 22;
+        const textSizeInput = document.querySelector('input[oninput*="changeStoryTextSize"]');
+        if (textSizeInput) {
+            textSizeInput.value = 22;
+            document.getElementById('textSizeValue').innerText = '22px';
+        }
 
         // Hide image controls
         const imgControls = document.getElementById('storyImageControls');
@@ -6201,8 +6330,20 @@
 
         storyTextPosition = 'center';
 
+        // Reset transforms
+        storyImageTransform = { scale: 1, rotate: 0, x: 0, y: 0 };
+        const img = document.getElementById('storyPreviewImg');
+        if (img) img.style.transform = '';
+        const scaleInput = document.querySelector('input[oninput*="scale"]');
+        const rotateInput = document.querySelector('input[oninput*="rotate"]');
+        if (scaleInput) { scaleInput.value = 1; document.getElementById('scaleValue').innerText = '1.0x'; }
+        if (rotateInput) { rotateInput.value = 0; document.getElementById('rotateValue').innerText = '0°'; }
+
         // Initialize text drag
         initTextDrag();
+
+        // Initialize image drag
+        initImageDrag();
 
         if (typeof lucide !== 'undefined') lucide.createIcons();
     }
@@ -6291,21 +6432,24 @@
     }
 
     function startTextDrag(e) {
-        // Don't start drag if clicking to edit
+        // If already editing, let it be unless it's a specific drag handle (which we don't have, so assume text interaction)
         if (document.activeElement === e.target) return;
 
-        // Check if we're in custom mode or if text is focused
         const textEl = document.getElementById('storyPreviewText');
-        if (textEl.innerText.trim() === '') return; // Don't drag empty text
+        if (textEl.innerText.trim() === '') return;
 
-        e.preventDefault();
-        isTextDragging = true;
-        textEl.classList.add('dragging');
+        // Don't prevent default immediately to allow focus on click
 
-        const rect = textEl.getBoundingClientRect();
+        isTextPotentialDrag = true;
+        isTextDragging = false;
+
         const clientX = e.touches ? e.touches[0].clientX : e.clientX;
         const clientY = e.touches ? e.touches[0].clientY : e.clientY;
 
+        textDragStartX = clientX;
+        textDragStartY = clientY;
+
+        const rect = textEl.getBoundingClientRect();
         textDragOffset = {
             x: clientX - rect.left - rect.width / 2,
             y: clientY - rect.top - rect.height / 2
@@ -6318,7 +6462,28 @@
     }
 
     function moveTextDrag(e) {
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+        if (isTextPotentialDrag) {
+            const dx = Math.abs(clientX - textDragStartX);
+            const dy = Math.abs(clientY - textDragStartY);
+            if (dx > 5 || dy > 5) {
+                isTextDragging = true;
+                isTextPotentialDrag = false;
+                const textEl = document.getElementById('storyPreviewText');
+                if (textEl) {
+                    textEl.classList.add('dragging');
+                    textEl.blur(); // Stop editing
+                    if (window.getSelection) {
+                        window.getSelection().removeAllRanges();
+                    }
+                }
+            }
+        }
+
         if (!isTextDragging) return;
+
         e.preventDefault();
 
         const textEl = document.getElementById('storyPreviewText');
@@ -6326,8 +6491,6 @@
         if (!textEl || !container) return;
 
         const containerRect = container.getBoundingClientRect();
-        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
 
         // Calculate position as percentage
         let left = ((clientX - containerRect.left - textDragOffset.x) / containerRect.width) * 100;
@@ -6348,6 +6511,7 @@
     }
 
     function endTextDrag() {
+        isTextPotentialDrag = false;
         isTextDragging = false;
         const textEl = document.getElementById('storyPreviewText');
         if (textEl) textEl.classList.remove('dragging');
@@ -6374,6 +6538,18 @@
         const preview = document.getElementById('textColorPreview');
         if (preview) {
             preview.style.background = color;
+        }
+    }
+
+    function changeStoryTextSize(size) {
+        storyTextSize = parseFloat(size);
+        const text = document.getElementById('storyPreviewText');
+        if (text) {
+            text.style.fontSize = size + 'px';
+        }
+        const val = document.getElementById('textSizeValue');
+        if (val) {
+            val.innerText = size + 'px';
         }
     }
 
@@ -6426,6 +6602,8 @@
         formData.append('background_color', computedBg.includes('gradient') ? bgColor : computedBg);
         formData.append('text_color', textColor);
         formData.append('text_position', textPos);
+        formData.append('text_size', storyTextSize);
+        formData.append('image_transform', JSON.stringify(storyImageTransform));
 
         fetch('{% url "create_story" %}', {
             method: 'POST',
@@ -6615,14 +6793,20 @@
 
         // Show content
         if (story.media_url) {
+            // Apply transformation
+            const transform = story.image_transform || { scale: 1, rotate: 0, x: 0, y: 0 };
+            const transformStyle = `translate(${transform.x || 0}px, ${transform.y || 0}px) scale(${transform.scale || 1}) rotate(${transform.rotate || 0}deg)`;
+
             container.innerHTML = `
-            <img src="${story.media_url}" alt="Story" style="max-width: 100%; max-height: 100%; object-fit: contain;">
-            ${story.content ? `<div style="position: absolute; ${story.text_position === 'top' ? 'top: 80px;' : story.text_position === 'bottom' ? 'bottom: 80px;' : 'top: 50%; transform: translateY(-50%);'} left: 0; right: 0; text-align: center; color: ${story.text_color || '#fff'}; font-size: 24px; font-weight: 500; padding: 20px; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">${story.content}</div>` : ''}
+            <div style="width: 100%; height: 100%; overflow: hidden; position: relative;">
+                <img src="${story.media_url}" alt="Story" style="width: 100%; height: 100%; object-fit: contain; transform: ${transformStyle};">
+            </div>
+            ${story.content ? `<div style="position: absolute; ${story.text_position === 'top' ? 'top: 80px;' : story.text_position === 'bottom' ? 'bottom: 80px;' : 'top: 50%; transform: translateY(-50%);'} left: 0; right: 0; text-align: center; color: ${story.text_color || '#fff'}; font-size: ${story.text_size || 22}px; font-weight: 500; padding: 20px; text-shadow: 0 2px 4px rgba(0,0,0,0.5); pointer-events: none;">${story.content}</div>` : ''}
         `;
         } else {
             container.innerHTML = `
             <div class="ig-story-text-content" style="background: ${story.background_color || 'var(--brand-gradient)'}; width: 100%; height: 100%; color: ${story.text_color || '#fff'}; display: flex; align-items: ${story.text_position === 'top' ? 'flex-start' : story.text_position === 'bottom' ? 'flex-end' : 'center'}; justify-content: center; padding: 40px;">
-                <div style="text-align: center;">${story.content || ''}</div>
+                <div style="text-align: center; font-size: ${story.text_size || 22}px; font-weight: 500;">${story.content || ''}</div>
             </div>
         `;
         }

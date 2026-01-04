@@ -133,7 +133,7 @@
 
     @media (max-width: 480px) {
         .ig-profile-container {
-            padding-top: 16px !important;
+            padding-top: 60px !important;
         }
 
         .ig-profile-header {
@@ -250,6 +250,244 @@
         .ig-create-modal {
             max-height: 100vh !important;
             border-radius: 0 !important;
+        }
+
+        /* Mobile Top Bar */
+        .ig-mobile-top-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 44px;
+            background: var(--ig-bg);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            z-index: 100;
+            border-bottom: 0.5px solid var(--ig-border);
+        }
+
+        .ig-m-username-group {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-weight: 700;
+            font-size: 22px;
+            /* Large bold header */
+            color: var(--ig-text-primary);
+        }
+
+        .ig-m-notification-dot {
+            width: 8px;
+            height: 8px;
+            background: #ff3040;
+            border-radius: 50%;
+        }
+
+        .ig-m-top-actions {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+
+        /* Mobile Header Layout */
+        .ig-mobile-header {
+            display: flex;
+            align-items: center;
+            padding: 14px 16px;
+            gap: 20px;
+        }
+
+        .ig-mobile-avatar-group {
+            position: relative;
+            margin-right: 10px;
+        }
+
+        .ig-m-avatar-container {
+            width: 86px;
+            height: 86px;
+            border-radius: 50%;
+            padding: 2px;
+            background: white;
+            /* Default ring */
+        }
+
+        .ig-m-avatar-container.has-story {
+            background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+        }
+
+        .ig-m-avatar {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 2px solid var(--ig-bg);
+            object-fit: cover;
+        }
+
+        .ig-note-bubble {
+            position: absolute;
+            top: -5px;
+            left: 0;
+            background: var(--ig-surface);
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            white-space: nowrap;
+            z-index: 10;
+        }
+
+        .ig-plus-badge {
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            background: #0095f6;
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid var(--ig-bg);
+        }
+
+        .ig-mobile-stats {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex: 1;
+        }
+
+        .ig-m-stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .ig-m-stat-number {
+            font-weight: 600;
+            font-size: 17px;
+            color: var(--ig-text-primary);
+        }
+
+        .ig-m-stat-label {
+            font-size: 13px;
+            color: var(--ig-text-primary);
+        }
+
+        .ig-mobile-bio {
+            padding: 0 16px;
+            color: var(--ig-text-primary);
+        }
+
+        .ig-m-fullname {
+            font-weight: 600;
+            font-size: 13px;
+            margin-bottom: 2px;
+        }
+
+        .ig-m-bio-text {
+            font-size: 13px;
+            line-height: 1.4;
+            white-space: pre-wrap;
+        }
+
+        .ig-m-link {
+            color: #E0F1FF;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .ig-m-link i {
+            transform: rotate(-45deg);
+            vertical-align: middle;
+        }
+
+        /* Professional Dashboard */
+        .ig-dashboard-card {
+            margin: 16px;
+            padding: 12px;
+            background: #1c1c1c;
+            /* Slightly lighter than black */
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .ig-dash-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .ig-dash-title {
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .ig-dash-subtitle {
+            font-size: 11px;
+            color: var(--ig-text-secondary);
+        }
+
+        /* Mobile Buttons */
+        .ig-mobile-buttons {
+            display: flex;
+            gap: 6px;
+            padding: 0 16px 20px 16px;
+        }
+
+        .ig-m-btn {
+            flex: 1;
+            height: 32px;
+            background: #363636;
+            border-radius: 8px;
+            border: none;
+            font-weight: 600;
+            font-size: 13px;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .ig-m-btn-icon {
+            width: 34px;
+            height: 32px;
+            background: #363636;
+            border-radius: 8px;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            cursor: pointer;
+        }
+
+        /* Utility */
+        .desktop-only-flex,
+        .desktop-only-block {
+            display: none !important;
+        }
+
+        .mobile-only-flex {
+            display: flex !important;
+        }
+
+        .mobile-only-block {
+            display: block !important;
+        }
+    }
+
+    /* Desktop/Tablet utilities */
+    @media (min-width: 481px) {
+
+        .mobile-only-flex,
+        .mobile-only-block {
+            display: none !important;
         }
     }
 
@@ -1292,110 +1530,204 @@
 <div class="ig-profile-container">
     <div class="ig-profile">
         <!-- Profile Header -->
-        <header class="ig-profile-header">
-            <!-- Profile Picture -->
-            <div class="ig-profile-avatar-section">
-                <div class="ig-profile-avatar-container">
-                    {% if profile_user.has_active_story %}
-                    <div class="ig-profile-avatar-ring" onclick="viewUserStories('{{ profile_user.username }}')">
-                        {% else %}
-                        <div class="ig-profile-avatar-ring no-story">
-                            {% endif %}
-                            <img src="{{ profile_user.profile_picture_url }}" alt="{{ profile_user.full_name }}"
-                                class="ig-profile-avatar"
-                                onerror="this.outerHTML='<div class=\'ig-profile-avatar-placeholder\'>{{ profile_user.initials }}</div>'">
-                        </div>
+        <!-- MOBILE VIEW -->
+        <div class="ig-mobile-wrapper mobile-only-block">
+            <!-- Sticky Top Bar -->
+            <div class="ig-mobile-top-bar">
+                <div class="ig-m-username-group">
+                    <span>{{ profile_user.username }}</span>
+                    {% if pending_requests_count > 0 %}
+                    <div class="ig-m-notification-dot"></div>
+                    {% endif %}
+                    {% if profile_user.is_private %}
+                    <i data-lucide="lock" style="width: 14px; height: 14px;"></i>
+                    {% endif %}
+                    <i data-lucide="chevron-down" style="width: 16px; height: 16px;"></i>
+                </div>
+                <div class="ig-m-top-actions">
+                    <!--<i data-lucide="at-sign" style="width: 24px; height: 24px;"></i>-->
+                    <i data-lucide="plus-square" onclick="openCreateModal()" style="width: 24px; height: 24px;"></i>
+                    <i data-lucide="menu" onclick="openSettingsModal()" style="width: 24px; height: 24px;"></i>
+                </div>
+            </div>
+
+            <!-- Mobile Header (Avatar + Stats) -->
+            <div class="ig-mobile-header">
+                <!-- Avatar Section -->
+                <div class="ig-mobile-avatar-group">
+                    <div class="ig-note-bubble">Note...</div>
+                    <div class="ig-m-avatar-container {% if profile_user.has_active_story %}has-story{% endif %}"
+                        onclick="viewUserStories('{{ profile_user.username }}')">
+                        <img src="{{ profile_user.profile_picture_url }}" alt="{{ profile_user.username }}"
+                            class="ig-m-avatar"
+                            onerror="this.outerHTML='<div class=\'ig-profile-avatar-placeholder\'>{{ profile_user.initials }}</div>'">
                     </div>
+                    {% if is_own_profile %}
+                    <div class="ig-plus-badge">
+                        <i data-lucide="plus" style="width: 14px; height: 14px;"></i>
+                    </div>
+                    {% endif %}
                 </div>
 
-                <!-- Profile Info -->
-                <div class="ig-profile-info">
-                    <div class="ig-profile-username-row">
-                        <h1 class="ig-profile-username">
-                            {{ profile_user.username }}
-                            {% if profile_user.is_private %}
-                            <i data-lucide="lock" class="ig-private-badge" title="Private Account"
-                                style="width: 16px; height: 16px; margin-left: 6px; color: var(--ig-text-secondary);"></i>
-                            {% endif %}
-                        </h1>
-
-                        {% if is_own_profile %}
-                        <a href="{% url 'update_profile' %}" class="ig-profile-btn">Edit Profile</a>
-                        {% if pending_requests_count > 0 %}
-                        <button class="ig-profile-btn secondary" onclick="openFollowRequestsModal()"
-                            style="position: relative;">
-                            <i data-lucide="user-plus" style="width: 16px; height: 16px;"></i>
-                            <span class="ig-requests-badge">{{ pending_requests_count }}</span>
-                        </button>
-                        {% endif %}
-                        <button class="ig-profile-settings-btn" onclick="openSettingsModal()">
-                            <i data-lucide="settings"></i>
-                        </button>
-                        {% elif is_blocked %}
-                        <button class="ig-profile-btn blocked" disabled>Blocked</button>
-                        {% elif is_following %}
-                        <button class="ig-profile-btn following" onclick="toggleFollow('{{ profile_user.username }}')"
-                            data-username="{{ profile_user.username }}" id="followBtn">Following</button>
-                        <button class="ig-profile-btn secondary"
-                            onclick="startChat('{{ profile_user.username }}')">Message</button>
-                        {% elif follow_request_status == 'pending' %}
-                        <button class="ig-profile-btn requested" onclick="toggleFollow('{{ profile_user.username }}')"
-                            data-username="{{ profile_user.username }}" id="followBtn">Requested</button>
-                        {% else %}
-                        <button class="ig-profile-btn primary" onclick="toggleFollow('{{ profile_user.username }}')"
-                            data-username="{{ profile_user.username }}" id="followBtn">
-                            {% if profile_user.is_private%}Request
-                            {% else %}Follow
-                            {% endif %}</button>
-                        {% endif %}
+                <!-- Stats Section -->
+                <div class="ig-mobile-stats">
+                    <div class="ig-m-stat-item">
+                        <span class="ig-m-stat-number">{{ tweets|length }}</span>
+                        <span class="ig-m-stat-label">posts</span>
                     </div>
-
-                    <!-- Stats (Desktop) -->
-                    <div class="ig-profile-stats desktop-only">
-                        <div class="ig-profile-stat">
-                            <span class="ig-stat-count">{{ tweets|length }}</span>
-                            <span class="ig-stat-label">scribes</span>
-                        </div>
-                        <div class="ig-profile-stat" onclick="openFollowersModal()">
-                            <span class="ig-stat-count" id="followersCount">{{ profile_user.follower_count }}</span>
-                            <span class="ig-stat-label">followers</span>
-                        </div>
-                        <div class="ig-profile-stat" onclick="openFollowingModal()">
-                            <span class="ig-stat-count" id="followingCount">{{ profile_user.following_count }}</span>
-                            <span class="ig-stat-label">following</span>
-                        </div>
+                    <div class="ig-m-stat-item" onclick="openFollowersModal()">
+                        <span class="ig-m-stat-number" id="followersCountMobile">{{ profile_user.follower_count}}</span>
+                        <span class="ig-m-stat-label">followers</span>
                     </div>
-
-                    <!-- Bio -->
-                    <div class="ig-profile-bio">
-                        <h2 class="ig-profile-name">{{ profile_user.full_name }}</h2>
-                        {% if profile_user.bio %}
-                        <p class="ig-profile-bio-text">{{ profile_user.bio|linebreaksbr }}</p>
-                        {% endif %}
-                        {% if profile_user.location %}
-                        <span class="ig-profile-location">
-                            <i data-lucide="map-pin" style="width: 12px; height: 12px;"></i>
-                            {{ profile_user.location }}
-                        </span>
-                        {% endif %}
+                    <div class="ig-m-stat-item" onclick="openFollowingModal()">
+                        <span class="ig-m-stat-number" id="followingCountMobile">{{ profile_user.following_count}}</span>
+                        <span class="ig-m-stat-label">following</span>
                     </div>
                 </div>
-        </header>
+            </div>
 
-        <!-- Stats (Mobile) -->
-        <div class="ig-profile-stats-mobile mobile-only">
-            <div class="ig-profile-stat">
-                <span class="ig-stat-count">{{ tweets|length }}</span>
-                <span class="ig-stat-label">scribes</span>
+            <!-- Bio Section -->
+            <div class="ig-mobile-bio">
+                <div class="ig-m-fullname">{{ profile_user.full_name }}</div>
+                {% if profile_user.bio %}
+                <div class="ig-m-bio-text">{{ profile_user.bio|linebreaksbr }}</div>
+                {% endif %}
+                {% if profile_user.location %}
+                <div style="font-size: 13px; color: var(--ig-text-secondary); margin-top: 2px;">{{ profile_user.location
+                    }}</div>
+                {% endif %}
+                <!-- Link Placeholder -->
+                <!--<a href="#" class="ig-m-link">
+                    <i data-lucide="link" style="width: 12px; height: 12px;"></i>
+                    odnix.com/{{ profile_user.username }}
+                </a>-->
             </div>
-            <div class="ig-profile-stat" onclick="openFollowersModal()">
-                <span class="ig-stat-count" id="followersCountMobile">{{ profile_user.follower_count }}</span>
-                <span class="ig-stat-label">followers</span>
+
+            <!-- Dashboard -->
+           <!-- {% if is_own_profile %}
+            <div class="ig-dashboard-card">
+                <div class="ig-dash-info">
+                    <span class="ig-dash-title">Professional Dashboard</span>
+                    <span class="ig-dash-subtitle">Dashboard Message</span>
+                </div>
             </div>
-            <div class="ig-profile-stat" onclick="openFollowingModal()">
-                <span class="ig-stat-count" id="followingCountMobile">{{ profile_user.following_count }}</span>
-                <span class="ig-stat-label">following</span>
+            {% endif %}-->
+
+            <!-- Action Buttons -->
+            <div class="ig-mobile-buttons" style="margin-top: 12px;">
+                {% if is_own_profile %}
+                <button class="ig-m-btn" onclick="window.location.href='{% url 'update_profile' %}'">Edit
+                    profile</button>
+                <button class="ig-m-btn">Share profile</button>
+                {% elif is_following %}
+                <button class="ig-m-btn" onclick="toggleFollow('{{ profile_user.username }}')"
+                    data-username="{{ profile_user.username }}">Following</button>
+                <button class="ig-m-btn" onclick="startChat('{{ profile_user.username }}')">Message</button>
+                {% else %}
+                <button class="ig-m-btn" style="background: #0095f6;"
+                    onclick="toggleFollow('{{ profile_user.username }}')"
+                    data-username="{{ profile_user.username }}">Follow</button>
+                <button class="ig-m-btn" onclick="startChat('{{ profile_user.username }}')">Message</button>
+                {% endif %}
+                <!--<button class="ig-m-btn-icon">
+                    <i data-lucide="user-plus" style="width: 16px; height: 16px;"></i>
+                </button>-->
             </div>
+        </div>
+
+        <!-- DESKTOP HEADER (Wrapped to hide on mobile) -->
+        <div class="desktop-only-block">
+            <header class="ig-profile-header">
+                <!-- Profile Picture -->
+                <div class="ig-profile-avatar-section">
+                    <div class="ig-profile-avatar-container">
+                        {% if profile_user.has_active_story %}
+                        <div class="ig-profile-avatar-ring" onclick="viewUserStories('{{ profile_user.username }}')">
+                            {% else %}
+                            <div class="ig-profile-avatar-ring no-story">
+                                {% endif %}
+                                <img src="{{ profile_user.profile_picture_url }}" alt="{{ profile_user.full_name }}"
+                                    class="ig-profile-avatar"
+                                    onerror="this.outerHTML='<div class=\'ig-profile-avatar-placeholder\'>{{ profile_user.initials }}</div>'">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Profile Info -->
+                    <div class="ig-profile-info">
+                        <div class="ig-profile-username-row">
+                            <h1 class="ig-profile-username">
+                                {{ profile_user.username }}
+                                {% if profile_user.is_private %}
+                                <i data-lucide="lock" class="ig-private-badge" title="Private Account"
+                                    style="width: 16px; height: 16px; margin-left: 6px; color: var(--ig-text-secondary);"></i>
+                                {% endif %}
+                            </h1>
+
+                            {% if is_own_profile %}
+                            <a href="{% url 'update_profile' %}" class="ig-profile-btn">Edit Profile</a>
+                            {% if pending_requests_count > 0 %}
+                            <button class="ig-profile-btn secondary" onclick="openFollowRequestsModal()"
+                                style="position: relative;">
+                                <i data-lucide="user-plus" style="width: 16px; height: 16px;"></i>
+                                <span class="ig-requests-badge">{{ pending_requests_count }}</span>
+                            </button>
+                            {% endif %}
+                            <button class="ig-profile-settings-btn" onclick="openSettingsModal()">
+                                <i data-lucide="settings"></i>
+                            </button>
+                            {% elif is_blocked %}
+                            <button class="ig-profile-btn blocked" disabled>Blocked</button>
+                            {% elif is_following %}
+                            <button class="ig-profile-btn following"
+                                onclick="toggleFollow('{{ profile_user.username }}')"
+                                data-username="{{ profile_user.username }}" id="followBtn">Following</button>
+                            <button class="ig-profile-btn secondary"
+                                onclick="startChat('{{ profile_user.username }}')">Message</button>
+                            {% elif follow_request_status == 'pending' %}
+                            <button class="ig-profile-btn requested"
+                                onclick="toggleFollow('{{ profile_user.username }}')"
+                                data-username="{{ profile_user.username }}" id="followBtn">Requested</button>
+                            {% else %}
+                            <button class="ig-profile-btn primary" onclick="toggleFollow('{{ profile_user.username }}')"
+                                data-username="{{ profile_user.username }}" id="followBtn">
+                                {% if profile_user.is_private%}Request
+                                {% else %}Follow
+                                {% endif %}</button>
+                            {% endif %}
+                        </div>
+
+                        <!-- Stats (Desktop) -->
+                        <div class="ig-profile-stats desktop-only">
+                            <div class="ig-profile-stat">
+                                <span class="ig-stat-count">{{ tweets|length }}</span>
+                                <span class="ig-stat-label">scribes</span>
+                            </div>
+                            <div class="ig-profile-stat" onclick="openFollowersModal()">
+                                <span class="ig-stat-count" id="followersCount">{{ profile_user.follower_count }}</span>
+                                <span class="ig-stat-label">followers</span>
+                            </div>
+                            <div class="ig-profile-stat" onclick="openFollowingModal()">
+                                <span class="ig-stat-count" id="followingCount">{{ profile_user.following_count}}</span>
+                                <span class="ig-stat-label">following</span>
+                            </div>
+                        </div>
+
+                        <!-- Bio -->
+                        <div class="ig-profile-bio">
+                            <h2 class="ig-profile-name">{{ profile_user.full_name }}</h2>
+                            {% if profile_user.bio %}
+                            <p class="ig-profile-bio-text">{{ profile_user.bio|linebreaksbr }}</p>
+                            {% endif %}
+                            {% if profile_user.location %}
+                            <span class="ig-profile-location">
+                                <i data-lucide="map-pin" style="width: 12px; height: 12px;"></i>
+                                {{ profile_user.location }}
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+            </header>
         </div>
 
         <!-- Story Highlights Section -->
@@ -3353,18 +3685,21 @@
         }
     }
 
-    // Follow toggle - Enhanced for private accounts
+    // Follow toggle - Enhanced for private accounts and mobile/desktop sync
     function toggleFollow(username) {
-        const btn = document.querySelector(`[data-username="${username}"]`);
-        if (!btn) return;
+        const buttons = document.querySelectorAll(`[data-username="${username}"]`);
+        if (buttons.length === 0) return;
 
-        // Store original state
-        const originalText = btn.textContent;
-        const wasRequested = btn.classList.contains('requested');
+        // Store initial state from the first button (assuming they are synced)
+        const firstBtn = buttons[0];
+        const originalText = firstBtn.textContent;
+        const wasRequested = firstBtn.classList.contains('requested');
 
-        // Show loading state
-        btn.disabled = true;
-        btn.textContent = wasRequested ? 'Canceling...' : 'Loading...';
+        // Show loading state on all buttons
+        buttons.forEach(btn => {
+            btn.disabled = true;
+            btn.textContent = wasRequested ? 'Canceling...' : 'Loading...';
+        });
 
         fetch('{% url "toggle_follow" %}', {
             method: 'POST',
@@ -3376,42 +3711,88 @@
         })
             .then(response => response.json())
             .then(data => {
-                btn.disabled = false;
+                buttons.forEach(btn => {
+                    btn.disabled = false;
+
+                    if (data.success) {
+                        // Remove all states first
+                        btn.classList.remove('primary', 'following', 'requested');
+
+                        if (data.is_following) {
+                            btn.textContent = 'Following';
+                            btn.classList.add('following');
+
+                            // Dynamically add Message button if it doesn't exist in this specific container
+                            // We check the parent node for a message button
+                            let hasMsgBtn = false;
+                            const siblings = btn.parentNode.children;
+                            for (let i = 0; i < siblings.length; i++) {
+                                if (siblings[i].textContent.trim() === 'Message') {
+                                    hasMsgBtn = true;
+                                    break;
+                                }
+                            }
+
+                            if (!hasMsgBtn) {
+                                const msgBtn = document.createElement('button');
+                                msgBtn.className = 'ig-profile-btn secondary';
+                                // Adjust class for mobile if needed, but 'ig-profile-btn secondary' might be desktop specific?
+                                // Mobile uses 'ig-m-btn'. We need to check context.
+                                if (btn.classList.contains('ig-m-btn')) {
+                                    msgBtn.className = 'ig-m-btn';
+                                }
+
+                                msgBtn.textContent = 'Message';
+                                msgBtn.onclick = function () { startChat(username); };
+                                btn.parentNode.insertBefore(msgBtn, btn.nextSibling);
+                            }
+                        } else if (data.follow_request_status === 'pending') {
+                            btn.textContent = 'Requested';
+                            btn.classList.add('requested');
+
+                            // Remove Message button if exists
+                            const siblings = btn.parentNode.children;
+                            for (let i = 0; i < siblings.length; i++) {
+                                if (siblings[i].textContent.trim() === 'Message') {
+                                    siblings[i].remove();
+                                    break;
+                                }
+                            }
+                        } else {
+                            // Check if target is private (use original text as hint or server data if we had it)
+                            // We'll infer from context or default to 'Follow'/'Request' based on pre-existing knowledge??
+                            // The original code used 'originalText' to decide. 
+                            // If we just unfollowed, we go back to 'Follow' or 'Request'.
+                            // Ideally the server should return 'is_private'.
+                            // For now we assume 'Follow' unless we know otherwise.
+                            // But originalText is effectively lost if we don't save it per button properly.
+                            // Let's rely on the text content we saved.
+
+                            const isPrivate = originalText === 'Request' || originalText === 'Requested';
+                            btn.textContent = isPrivate ? 'Request' : 'Follow';
+                            btn.classList.add('primary');
+                            // Ensure background color for mobile 'Follow' button
+                            if (btn.classList.contains('ig-m-btn')) {
+                                btn.style.background = '#0095f6';
+                            }
+
+                            // Remove Message button if exists
+                            const siblings = btn.parentNode.children;
+                            for (let i = 0; i < siblings.length; i++) {
+                                if (siblings[i].textContent.trim() === 'Message') {
+                                    siblings[i].remove();
+                                    break;
+                                }
+                            }
+                        }
+                    } else {
+                        // Restore original state on error
+                        btn.textContent = originalText;
+                        if (wasRequested) btn.classList.add('requested');
+                    }
+                });
 
                 if (data.success) {
-                    // Remove all states first
-                    btn.classList.remove('primary', 'following', 'requested');
-
-                    if (data.is_following) {
-                        btn.textContent = 'Following';
-                        btn.classList.add('following');
-
-                        // Dynamically add Message button if it doesn't exist
-                        if (!document.querySelector(`button[onclick="startChat('${username}')"]`)) {
-                            const msgBtn = document.createElement('button');
-                            msgBtn.className = 'ig-profile-btn secondary';
-                            msgBtn.textContent = 'Message';
-                            msgBtn.onclick = function () { startChat(username); };
-                            btn.parentNode.insertBefore(msgBtn, btn.nextSibling);
-                        }
-                    } else if (data.follow_request_status === 'pending') {
-                        btn.textContent = 'Requested';
-                        btn.classList.add('requested');
-
-                        // Remove Message button if exists
-                        const msgBtn = document.querySelector(`button[onclick="startChat('${username}')"]`);
-                        if (msgBtn) msgBtn.remove();
-                    } else {
-                        // Check if target is private (use original text as hint)
-                        const isPrivate = originalText === 'Request' || originalText === 'Requested';
-                        btn.textContent = isPrivate ? 'Request' : 'Follow';
-                        btn.classList.add('primary');
-
-                        // Remove Message button if exists
-                        const msgBtn = document.querySelector(`button[onclick="startChat('${username}')"]`);
-                        if (msgBtn) msgBtn.remove();
-                    }
-
                     // Update follower counts if provided
                     if (data.follower_count !== undefined) {
                         const followersCount = document.getElementById('followersCount');
@@ -3420,16 +3801,15 @@
                         if (followersCountMobile) followersCountMobile.textContent = data.follower_count;
                     }
                 } else {
-                    // Restore original state on error
-                    btn.textContent = originalText;
-                    if (wasRequested) btn.classList.add('requested');
                     console.error('Follow error:', data.error);
                 }
             })
             .catch(err => {
-                btn.disabled = false;
-                btn.textContent = originalText;
-                if (wasRequested) btn.classList.add('requested');
+                buttons.forEach(btn => {
+                    btn.disabled = false;
+                    btn.textContent = originalText;
+                    if (wasRequested) btn.classList.add('requested');
+                });
                 console.error('Follow error:', err);
             });
     }

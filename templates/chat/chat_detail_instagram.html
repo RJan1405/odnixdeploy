@@ -513,7 +513,12 @@
     .ig-chat-like,
     .ig-chat-send,
     .ig-chat-emoji,
-    .ig-chat-viewonce {
+    .ig-chat-attachment,
+    .ig-chat-like,
+    .ig-chat-send,
+    .ig-chat-emoji,
+    .ig-chat-viewonce,
+    .ig-chat-mic {
         background: none;
         border: none;
         cursor: pointer;
@@ -529,9 +534,123 @@
     .ig-chat-attachment:hover,
     .ig-chat-like:hover,
     .ig-chat-emoji:hover,
-    .ig-chat-viewonce:hover {
+    .ig-chat-viewonce:hover,
+    .ig-chat-mic:hover {
         background: var(--ig-surface-hover);
         color: var(--color-primary);
+    }
+
+    /* Voice Recording UI */
+    .ig-voice-recording {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex: 1;
+        padding: 0 12px;
+        /* Match input padding */
+        background: var(--ig-bg);
+        border-radius: 22px;
+        /* Match input radius */
+        height: 42px;
+        /* Match input height approx */
+        animation: fadeIn 0.2s ease;
+        border: 1px solid var(--ig-border);
+        /* Match input border */
+    }
+
+    .ig-voice-cancel {
+        color: var(--ig-error, #ef4444);
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 6px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.2s;
+    }
+
+    .ig-voice-cancel:hover {
+        background: rgba(239, 68, 68, 0.1);
+    }
+
+    .ig-voice-cancel svg {
+        width: 18px;
+        height: 18px;
+    }
+
+    .ig-voice-timer {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: var(--ig-text-primary);
+        font-feature-settings: "tnum";
+        font-variant-numeric: tabular-nums;
+        font-size: 14px;
+        font-weight: 500;
+        justify-content: center;
+    }
+
+    .ig-voice-dot {
+        width: 8px;
+        height: 8px;
+        background: #ef4444;
+        border-radius: 50%;
+        animation: pulseRed 1s infinite;
+    }
+
+    .ig-voice-status {
+        font-size: 13px;
+        color: var(--ig-text-secondary);
+        display: none;
+        /* Hide on small screens if needed, or show */
+    }
+
+    @media (min-width: 480px) {
+        .ig-voice-status {
+            display: inline;
+        }
+    }
+
+    .ig-voice-send {
+        color: var(--color-primary);
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 6px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.2s;
+    }
+
+    .ig-voice-send:hover {
+        background: var(--ig-surface-hover);
+    }
+
+    .ig-voice-send svg {
+        width: 20px;
+        height: 20px;
+    }
+
+    @keyframes pulseRed {
+        0% {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        50% {
+            opacity: 0.5;
+            transform: scale(0.8);
+        }
+
+        100% {
+            opacity: 1;
+            transform: scale(1);
+        }
     }
 
     .ig-chat-viewonce.active {
@@ -1628,7 +1747,8 @@
                     </div>
                 </div>
 
-                <h3 style="font-size: 16px; font-weight: 600; margin: 0 0 8px; color: var(--ig-text-primary);">{{target_user_username }}</h3>
+                <h3 style="font-size: 16px; font-weight: 600; margin: 0 0 8px; color: var(--ig-text-primary);">
+                    {{target_user_username }}</h3>
                 <p style="color: var(--ig-text-secondary); font-size: 14px; margin: 0 0 24px; line-height: 1.5;">
                     {{ target_user_username }} wants to send you a message.<br>
                     They won't know you've seen it until you accept.
@@ -1711,8 +1831,7 @@
                         <div class="ig-reply-context" onclick="scrollToMessage('{{ message.reply_to.id }}')">
                             <span class="ig-reply-context-name">{{ message.reply_to.sender.full_name }}</span>
                             <span class="ig-reply-context-text">
-                                {% if message.reply_to.media_url %}📷 Photo{% else %}{{
-                                message.reply_to.content|truncatechars:50 }}{% endif %}
+                                {% if message.reply_to.media_url %}📷 Photo{% else %}{{message.reply_to.content|truncatechars:50 }}{% endif %}
                             </span>
                         </div>
                         {% endif %}
@@ -1730,6 +1849,10 @@
                         <div class="ig-message-media">
                             <video src="{{ message.media_url }}" controls
                                 style="max-width: 100%; border-radius: 8px;"></video>
+                        </div>
+                        {% elif message.media_url and message.media_type == 'audio' %}
+                        <div class="ig-message-media audio" style="width: 200px; max-width: 100%;">
+                            <audio src="{{ message.media_url }}" controls style="width: 100%;"></audio>
                         </div>
                         {% elif message.media_url %}
                         <div class="ig-message-media">
@@ -1865,11 +1988,29 @@
                             <path d="M1 12s4 8 11 8 11-8 11-8"></path>
                         </svg>
                     </button>
+                    <button type="button" class="ig-chat-mic" id="voiceBtn" onclick="toggleVoiceRecording()">
+                        <i data-lucide="mic"></i>
+                    </button>
                     <button type="submit" class="ig-chat-send" id="sendBtn" style="display: none;">
                         <i data-lucide="send"></i>
                     </button>
                 </div>
             </form>
+
+            <!-- Voice Recording UI -->
+            <div class="ig-voice-recording" id="voiceRecordingUI" style="display: none;">
+                <button type="button" class="ig-voice-cancel" onclick="cancelVoiceRecording()">
+                    <i data-lucide="trash-2"></i>
+                </button>
+                <div class="ig-voice-timer">
+                    <div class="ig-voice-dot"></div>
+                    <span id="voiceTimer">0:00</span>
+                    <span class="ig-voice-status">Recording...</span>
+                </div>
+                <button type="button" class="ig-voice-send" onclick="stopAndSendVoice()">
+                    <i data-lucide="send"></i>
+                </button>
+            </div>
 
             <!-- Image Preview -->
             <div class="ig-image-preview" id="imagePreview" style="display: none;">
@@ -2106,6 +2247,13 @@
     let isUserScrolledUp = false;
     let newMessagesCount = 0;
     let currentPinnedMessageId = null;
+
+    // Voice Recording Globals
+    let mediaRecorder = null;
+    let audioChunks = [];
+    let recordStartTime = null;
+    let recordInterval = null;
+    let audioStream = null;
 
     // Notification sound (base64 encoded short beep)
     const notificationSound = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdH2JkZufoZyXko2IhYOBf39+fn5+fn9/gIGDhYiLj5SYnJ+hoZ6ZlI+LiIaBfnt5eHh4eXp8foGEh4uPk5ibnaChoZ6blpGNioeBfXp3dXR0dHV2eHt+goaKjpKWmp2goKCdmpaRjYmGgn97eHVzcnJyc3R2eXyAhIiMkJSYm56goJ2alZGNiYWBfXp3dHJxcHBxcnR3en6Ch4uPk5ebnp+fnpuXk4+LiIR/fHl2c3FwcHBxc3Z5fYGFiY2Rl5qdn5+enJiUkIyIhIF9enZzcXBvb3Bxc3Z5fYKGio6Sl5qdn5+dnJiUj4uHg398eHVycG9vb3Bxc3Z6foKGio6SlZmcnp6dnJiUkIyIhIF9enZzcXBvb29wcnR3e3+Dh4uPk5aZnJ6enZuXk4+LiIR/fHl1cnBvbm5vcHJ1eHyAhIiMkJSXmp2fn56cmJSQjIiFgX57d3RxcG9vb3Byc3Z6foKGio6Sl5qdn56dnJiUkIyIhIF9enZzcXBvb29wcnR3en6ChomNkZWYm56enp2blZGNiYaBfnp3dHJwb29vcHJ0d3p+goaKjpGVmJudnp6dm5eTj4yIhIF9enZ0cXBvb29wcnR3e3+Dh4qOkpWYm56enp2blZKOioeBfnp3dHJwb29vcHJ0d3t/g4eKjpKVmJudnp6dnJiVkY2JhoJ+e3d0cnBvb29wcnV4fICEiIyQlJebnZ6enZuYlJCMiYWBfXp3dHFwb29vcHJ1eHyAhIiMkJSXmp2enp2cmJSTj4uIhIF9end0cnBvb29wcnR3e3+Dh4uPkpWYm56enp2blZKOioeCf3t4dXJwb29vcHJ1eHyAhIiMj5OWmZyenp2cmJWRjYqGgn57d3RycG9vb3BydXh8gISIjJCTlpmcnp6dnJmVkY2KhoJ+e3d0cnFvb29wcnV4fICEiIyQk5aZnJ6enZyYlZGNioaCfnt4dXJwb29vcHJ1eHx/g4eKjpGVmJudnp6dnJiVkY2KhoJ+e3d1cnBvb29wcnV4fICDh4uOkpWYm52enp2cmJWRjYqGgn97eHVycG9vb3BydXh7f4OHi4+SlZibnZ6enZyYlZGOioaCf3t4dXJwb29vcHJ0eHt/goaKjpGVmJudnp6dnJmVko6KhoJ+e3h1cnBvb29wcnR4e3+DhomNkJSXmpyenp2cmZWRjoqGgn57eHVycG9vb3BydHh7f4KGiY2Qk5eZnJ6enZyZlZKOioaCfnt4dXNwb29vcHJ0d3t+goaJjZCTl5mcnp6dnJmVko6LhoN/fHl2c3Bvb29wcnR3e36ChomNkJOWmZyenp6cmJWRjoqGgn57eHZzcXBvb29xc3Z5fYGEiIyPk5aZm56enp2al5ORjYmGgn57eHVzcXBvb29xc3Z5fYCEh4uOkpWYm52fn56cmJWRjYmGgn57eHVzcXBvb3BxdHd6foGFiIyPk5aZnJ6fn56cl5ORjYmFgX57eHVycXBvb3BydHd7foKFiYyQk5aZnJ6fn56cmJWRjYmFgX57eHVycXBvb3BxdHd6foKFiYyPk5aZnJ6fn56cmJWRjYmFgn57eHVycXBvb3BxdHd6foKFiYyPk5aZnJ6fnp2cl5SSjomFgX57eHVycXBvb3BxdHd6fn6FiYyPk5aZnJ6fn56cmJWRjYmFgn57eHVzcXBvb3BxdHd6foGFiIyPkpWYm52en56cmJWSjoqGgn97eHVzcXBvb3BxdHd6fn+FiIyPkpWYm52en56cmJWSjoqGgn97eHVzcXBvb29xdHd6foGFiIyPkpWYm52en56cmJWSjoqGgn97eHVzcXBvb3BxdHd6foGFiIyPkpWYm52enp6cmJSSjoqHg397eHVzcXBvb29xdHd6foGFiIuPkpWYm52enp6cmJWSjoqGg397eHVzcXBvb3BxdHd6foGFiIuOkpWYm52enp6cmJWSjoqGg397eHVzcXBvb3BxdHd6foGFiIuOkpWYm52enp6cmJWSjoqGg397eHVzcXBvbw==');
@@ -2643,11 +2791,24 @@
             }
         } else {
             // Regular message content
+            let mediaContent = '';
+            if (data.media_url) {
+                if (data.media_type === 'image') {
+                    mediaContent = `<div class="ig-message-media" onclick="openImageModal('${data.media_url}')"><img src="${data.media_url}" alt="" onload="forceScrollToBottom()"></div>`;
+                } else if (data.media_type === 'video') {
+                    mediaContent = `<div class="ig-message-media"><video src="${data.media_url}" controls style="max-width: 100%; border-radius: 8px;"></video></div>`;
+                } else if (data.media_type === 'audio') {
+                    mediaContent = `<div class="ig-message-media audio" style="width: 200px; max-width: 100%;"><audio src="${data.media_url}" controls style="width: 100%;"></audio></div>`;
+                } else {
+                    mediaContent = `<div class="ig-message-media"><a href="${data.media_url}" target="_blank" style="color: var(--color-primary);"><i data-lucide="file"></i> ${data.media_filename || 'Download file'}</a></div>`;
+                }
+            }
+
             bubbleContent = `
             ${replyHtml}
-            ${data.media_url ? `<div class="ig-message-media" onclick="openImageModal('${data.media_url}')"><img src="${data.media_url}" alt=""></div>` : ''}
+            ${mediaContent}
             ${data.content ? `<p class="ig-message-text">${escapeHtml(data.content)}</p>` : ''}
-        `;
+            `;
         }
 
         // Build avatar HTML - use profile picture if available, otherwise placeholder with initials
@@ -2735,15 +2896,15 @@
             </button>
         </div>
         ${contentHtml}
-        <div class="ig-viewonce-hint">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="10"></circle>
-                <path d="M12 16v-4"></path>
-                <path d="M12 8h.01"></path>
-            </svg>
-            <span>This message will disappear after you close it</span>
-        </div>
-    `;
+            <div class="ig-viewonce-hint">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <path d="M12 16v-4"></path>
+                    <path d="M12 8h.01"></path>
+                </svg>
+                <span>This message will disappear after you close it</span>
+            </div>
+            `;
 
         document.body.appendChild(modal);
         document.body.style.overflow = 'hidden';
@@ -2763,7 +2924,7 @@
         if (!messageId) return;
 
         // Mark as consumed on server when user closes
-        fetch(`/api/consume-message/${messageId}/`, {
+        fetch(`/ api / consume - message / ${messageId}/`, {
             method: 'POST',
             headers: {
                 'X-CSRFToken': getCSRFToken(),
@@ -2835,6 +2996,93 @@
             const textEl = msg.querySelector('.ig-message-text');
             if (textEl) textEl.textContent = data.content;
         }
+    }
+
+    // Voice Recording Logic
+    function toggleVoiceRecording() {
+        if (mediaRecorder && mediaRecorder.state === 'recording') {
+            stopAndSendVoice();
+        } else {
+            startVoiceRecording();
+        }
+    }
+
+    function startVoiceRecording() {
+        navigator.mediaDevices.getUserMedia({ audio: true })
+            .then(stream => {
+                audioStream = stream;
+                mediaRecorder = new MediaRecorder(stream);
+                audioChunks = [];
+
+                mediaRecorder.ondataavailable = event => {
+                    audioChunks.push(event.data);
+                };
+
+                mediaRecorder.onstop = () => {
+                    // handled in stopAndSendVoice
+                };
+
+                mediaRecorder.start();
+
+                document.getElementById('messageForm').style.display = 'none';
+                document.getElementById('voiceRecordingUI').style.display = 'flex';
+
+                recordStartTime = Date.now();
+                updateVoiceTimer();
+                recordInterval = setInterval(updateVoiceTimer, 1000);
+            })
+            .catch(err => {
+                console.error("Error accessing microphone:", err);
+                alert("Could not access microphone.");
+            });
+    }
+
+    function updateVoiceTimer() {
+        if (!recordStartTime) return;
+        const diff = Math.floor((Date.now() - recordStartTime) / 1000);
+        const minutes = Math.floor(diff / 60);
+        const seconds = diff % 60;
+        document.getElementById('voiceTimer').textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    }
+
+    function cancelVoiceRecording() {
+        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+            mediaRecorder.stop();
+        }
+        stopVoiceTracks();
+        resetVoiceUI();
+        audioChunks = [];
+    }
+
+    function stopAndSendVoice() {
+        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+            mediaRecorder.onstop = () => {
+                const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                const file = new File([audioBlob], "voice_message.webm", { type: "audio/webm" });
+                sendVoiceMessage(file);
+                stopVoiceTracks();
+            };
+            mediaRecorder.stop();
+        }
+        resetVoiceUI();
+    }
+
+    function stopVoiceTracks() {
+        if (audioStream) {
+            audioStream.getTracks().forEach(track => track.stop());
+            audioStream = null;
+        }
+        if (recordInterval) clearInterval(recordInterval);
+    }
+
+    function resetVoiceUI() {
+        document.getElementById('voiceRecordingUI').style.display = 'none';
+        document.getElementById('messageForm').style.display = 'flex';
+        document.getElementById('voiceTimer').textContent = '0:00';
+    }
+
+    function sendVoiceMessage(file) {
+        sendImageMessage(file, "", null, false);
     }
 
     // Send Message
@@ -4781,7 +5029,7 @@
     try {
         window.OdnixCallConfig = {
             chatId: {{ chat.id |default:"null" }},
-            userId: {{ request.user.id|default:"null" }},
+            userId: {{ request.user.id |default:"null" }},
             wsScheme: (window.location.protocol === 'https:' ? 'wss' : 'ws'),
             host: window.location.host,
             iceServers: []

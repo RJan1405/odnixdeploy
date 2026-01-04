@@ -21,6 +21,13 @@ def create_story(request):
         background_color = request.POST.get('background_color', '#667eea')
         text_color = request.POST.get('text_color', '#ffffff')
         text_position = request.POST.get('text_position', 'center')
+        text_size = float(request.POST.get('text_size', '22'))
+        image_transform_json = request.POST.get('image_transform', '{}')
+        try:
+            image_transform = json.loads(image_transform_json)
+        except:
+            image_transform = {}
+            
         media_file = request.FILES.get('media')
         
         logger.info(f"Creating story: type={story_type}, content={content}, has_media={bool(media_file)}, text_position={text_position}")
@@ -55,6 +62,8 @@ def create_story(request):
             background_color=background_color,
             text_color=text_color,
             text_position=text_position,
+            text_size=text_size,
+            image_transform=image_transform,
             # is_active=True by default from model
             # expires_at set automatically by model (24 hours from now)
         )
@@ -71,6 +80,8 @@ def create_story(request):
                 'background_color': story.background_color,
                 'text_color': story.text_color,
                 'text_position': story.text_position,
+                'text_size': story.text_size,
+                'image_transform': story.image_transform,
             }
         })
         
@@ -103,6 +114,8 @@ def view_story(request, story_id):
                 'background_color': story.background_color,
                 'text_color': story.text_color,
                 'text_position': story.text_position,
+                'text_size': story.text_size,
+                'image_transform': story.image_transform,
                 'user': {
                     'id': story.user.id,
                     'username': story.user.username,
@@ -150,6 +163,8 @@ def get_user_stories(request, username):
                 'background_color': story.background_color,
                 'text_color': story.text_color,
                 'text_position': story.text_position,
+                'text_size': story.text_size,
+                'image_transform': story.image_transform,
                 'user': {
                     'id': story.user.id,
                     'username': story.user.username,
@@ -402,6 +417,8 @@ def get_story_inbox(request):
                     'background_color': reply.story.background_color,
                     'text_color': reply.story.text_color,
                     'text_position': reply.story.text_position,
+                    'text_size': reply.story.text_size,
+                    'image_transform': reply.story.image_transform,
                     'created_at': reply.story.created_at.isoformat(),
                 }
             })

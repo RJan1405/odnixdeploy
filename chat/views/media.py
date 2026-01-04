@@ -68,8 +68,13 @@ def handle_media_upload(media_file):
         
         if file_extension in ['.jpg', '.jpeg', '.png', '.gif', '.webp']:
             media_type = 'image'
-        elif file_extension in ['.mp4', '.mov', '.avi', '.mkv', '.webm']:
+        elif file_extension in ['.mp4', '.mov', '.avi', '.mkv']: # Removed .webm from video
             media_type = 'video'
+        elif file_extension in ['.mp3', '.wav', '.ogg', '.m4a', '.webm']:  # Added .webm for audio
+            # Check MIME type if possible or assume audio if it's small/from recorder
+            # For now, if it's webm and not caught by video above (it is caught...), 
+            # actually webm can be both. Let's make explicit audio check.
+            media_type = 'audio'
         else:
             media_type = 'document'
         

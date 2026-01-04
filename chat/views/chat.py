@@ -272,6 +272,8 @@ def chat_view(request, chat_id):
                     last_message = 'Sent a video'
                 elif last_message_obj.media_type == 'document':
                     last_message = 'Sent a document'
+                elif last_message_obj.media_type == 'audio':
+                    last_message = '🎤 Sent a voice message'
                 else:
                     last_message = 'Sent a file'
             elif last_message_obj.message_type == 'system':
@@ -411,6 +413,8 @@ def messages_page(request):
                     last_message = 'Sent a video'
                 elif last_message_obj.media_type == 'document':
                     last_message = 'Sent a document'
+                elif last_message_obj.media_type == 'audio':
+                    last_message = '🎤 Sent a voice message'
                 else:
                     last_message = 'Sent a file'
             elif last_message_obj.message_type == 'system':
@@ -636,8 +640,11 @@ def get_chats_api(request):
             # Get last message
             last_message = chat.messages.order_by('-timestamp').first()
             last_msg_content = last_message.content if last_message else 'No messages yet'
-            if last_message and last_message.message_type == 'image':
-                last_msg_content = 'Sent an image'
+            if last_message and last_message.message_type == 'media':
+                if last_message.media_type == 'image':
+                    last_msg_content = 'Sent an image'
+                elif last_message.media_type == 'audio':
+                    last_msg_content = '🎤 Sent a voice message'
 
             # Get unread count
             unread_count = chat.messages.filter(
