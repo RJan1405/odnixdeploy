@@ -617,19 +617,22 @@ class FollowRequest(models.Model):
 
 
 class EmailVerificationToken(models.Model):
-    """Model for email verification tokens"""
+    """Model for email verification tokens (OTP)"""
     user = models.ForeignKey(
         CustomUser, on_delete=models.CASCADE, related_name='verification_tokens')
-    token = models.CharField(max_length=64, unique=True)
+    token = models.CharField(max_length=6)  # Changed to 6 chars for OTP, removed unique=True
     created_at = models.DateTimeField(auto_now_add=True)
     expires_at = models.DateTimeField()
     is_used = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
         if not self.token:
-            self.token = secrets.token_urlsafe(32)
+            # Generate 6-digit OTP
+            import random
+            self.token = ''.join([str(random.randint(0, 9)) for _ in range(6)])
         if not self.expires_at:
-            self.expires_at = timezone.now() + timezone.timedelta(hours=24)
+            # OTP expires in 10 minutes (shorter than link)
+            self.expires_at = timezone.now() + timezone.timedelta(minutes=10)
         super().save(*args, **kwargs)
 
     @property
@@ -637,7 +640,7 @@ class EmailVerificationToken(models.Model):
         return timezone.now() > self.expires_at
 
     def __str__(self):
-        return f"Verification token for {self.user.email}"
+        return f"OTP for {self.user.email}: {self.token}"
 
 
 class EmojiSet(models.Model):

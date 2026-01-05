@@ -19,7 +19,7 @@ from chat.models import (
     CustomUser, Chat, Tweet, Comment, Like, Follow, Block, FollowRequest,
     Hashtag, TweetHashtag, Mention, StoryReply, StoryLike, Story,
     SavedPost, PostReport, Reel, ReelLike, ReelComment, ReelReport,
-    ProfileView
+    ProfileView, PinnedChat
 )
 from chat.forms import TweetForm, ProfileUpdateForm
 
@@ -104,6 +104,7 @@ def profile_view(request, username=None):
             viewed_user=profile_user,
             defaults={'viewed_at': timezone.now()}
         )
+
 
     # Get user's tweets (only if profile is accessible)
     tweets = []
@@ -312,6 +313,47 @@ def profile_view(request, username=None):
 
     # Use Instagram-style template
     return render(request, 'chat/profile_instagram.html', context)
+
+
+@login_required
+@require_POST
+def toggle_private_chat(request):
+    """Toggle whether a chat is in the user's manual 'Private' list (using PinnedChat model)"""
+    try:
+        data = json.loads(request.body)
+        username = data.get('username')
+        
+        target_user = get_object_or_404(CustomUser, username=username)
+        
+        # Find the private chat between these users
+        chat = Chat.objects.filter(
+            chat_type='private',
+            participants=request.user
+        ).filter(participants=target_user).first()
+        
+        if not chat:
+            # If no chat exists, create one? 
+            # Ideally frontend only calls this on existing chats.
+            # But "Add to Private" logic implies we can do it even if we haven't chatted?
+            # Creating a chat just to pin it seems fine.
+            chat = Chat.objects.create(chat_type='private')
+            chat.participants.add(request.user, target_user)
+            
+        # Toggle PinnedChat
+        pinned, created = PinnedChat.objects.get_or_create(user=request.user, chat=chat)
+        
+        if not created:
+            # If it existed, delete it (Unpin/Remove from Private)
+            pinned.delete()
+            is_private = False
+        else:
+            is_private = True
+            
+        return JsonResponse({'success': True, 'is_private': is_private})
+        
+    except Exception as e:
+        logger.error(f"Error in toggle_private_chat: {str(e)}")
+        return JsonResponse({'success': False, 'error': str(e)})
 
 
 @login_required

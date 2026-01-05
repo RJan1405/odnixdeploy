@@ -1,5 +1,5 @@
 from .auth import (
-    login_view, register_view, logout_view, verify_email, home
+    login_view, register_view, logout_view, verify_email, home, verify_otp_view
 )
 from .chat import (
     dashboard, chat_view, get_chat_messages, send_message, create_chat,
@@ -29,7 +29,7 @@ from .social import (
     get_profile_followers, get_profile_following,
     toggle_save_post, delete_post, report_post, get_saved_posts, copy_post_link,
     view_post, reels_view, upload_reel, toggle_reel_like, add_reel_comment, get_reel_comments,
-    track_reel_view, report_reel
+    track_reel_view, report_reel, toggle_private_chat
 )
 from .stories import (
     create_story, view_story, get_user_stories, mark_story_viewed,

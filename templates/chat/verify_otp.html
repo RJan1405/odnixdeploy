@@ -1,0 +1,207 @@
+{% extends 'chat/base.html' %}
+
+{% block title %}Verify Email - Odnix{% endblock %}
+
+{% block content %}
+<style>
+    .auth-container {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 1rem;
+    }
+
+    .auth-card {
+        background: white;
+        border-radius: 1rem;
+        padding: 2.5rem;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+        width: 100%;
+        max-width: 450px;
+        text-align: center;
+        animation: slideIn 0.3s ease-out;
+    }
+
+    .auth-icon {
+        width: 64px;
+        height: 64px;
+        background: #e0e7ff;
+        color: #667eea;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.5rem;
+    }
+
+    .auth-header h1 {
+        color: #333;
+        font-size: 1.75rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .auth-header p {
+        color: #666;
+        margin-bottom: 2rem;
+        font-size: 0.95rem;
+    }
+
+    .otp-inputs {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: center;
+        margin-bottom: 2rem;
+    }
+
+    .otp-input {
+        width: 45px;
+        height: 55px;
+        border: 2px solid #e1e5e9;
+        border-radius: 0.5rem;
+        font-size: 1.5rem;
+        text-align: center;
+        font-weight: 600;
+        transition: all 0.2s;
+    }
+
+    .otp-input:focus {
+        border-color: #667eea;
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        transform: translateY(-2px);
+    }
+
+    .btn-verify {
+        width: 100%;
+        background: #667eea;
+        color: white;
+        border: none;
+        padding: 0.875rem 1rem;
+        border-radius: 0.5rem;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .btn-verify:hover {
+        background: #5a6fd8;
+        transform: translateY(-1px);
+    }
+
+    .resend-link {
+        margin-top: 1.5rem;
+        font-size: 0.9rem;
+        color: #666;
+    }
+
+    .resend-link a {
+        color: #667eea;
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+    .resend-link a:hover {
+        text-decoration: underline;
+    }
+</style>
+
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                <polyline points="22,6 12,13 2,6"></polyline>
+            </svg>
+        </div>
+
+        <div class="auth-header">
+            <h1>Check your email</h1>
+            <p>We've sent a 6-digit verification code to<br><strong>{{ email }}</strong></p>
+        </div>
+
+        {% if messages %}
+        {% for message in messages %}
+        <div
+            style="background: #f0fdf4; color: #166534; padding: 0.75rem; border-radius: 0.5rem; margin-bottom: 1.5rem; font-size: 0.9rem;">
+            {{ message }}
+        </div>
+        {% endfor %}
+        {% endif %}
+
+        <form method="post" id="otpForm">
+            {% csrf_token %}
+            <div class="otp-inputs">
+                <input type="text" class="otp-input" maxlength="1" pattern="[0-9]" inputmode="numeric" required>
+                <input type="text" class="otp-input" maxlength="1" pattern="[0-9]" inputmode="numeric" required>
+                <input type="text" class="otp-input" maxlength="1" pattern="[0-9]" inputmode="numeric" required>
+                <input type="text" class="otp-input" maxlength="1" pattern="[0-9]" inputmode="numeric" required>
+                <input type="text" class="otp-input" maxlength="1" pattern="[0-9]" inputmode="numeric" required>
+                <input type="text" class="otp-input" maxlength="1" pattern="[0-9]" inputmode="numeric" required>
+            </div>
+            <input type="hidden" name="otp" id="fullOtp">
+            <button type="submit" class="btn-verify">Verify Email</button>
+        </form>
+
+        <p class="resend-link">
+            Didn't receive the code? <a href="#">Click to resend</a>
+        </p>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const inputs = document.querySelectorAll('.otp-input');
+        const form = document.getElementById('otpForm');
+        const fullOtpInput = document.getElementById('fullOtp');
+
+        // Handle OTP input navigation
+        inputs.forEach((input, index) => {
+            input.addEventListener('input', function (e) {
+                if (this.value.length === 1) {
+                    if (index < inputs.length - 1) {
+                        inputs[index + 1].focus();
+                    }
+                }
+            });
+
+            input.addEventListener('keydown', function (e) {
+                if (e.key === 'Backspace' && !this.value) {
+                    if (index > 0) {
+                        inputs[index - 1].focus();
+                    }
+                }
+            });
+
+            // Allow pasting full code
+            input.addEventListener('paste', function (e) {
+                e.preventDefault();
+                const pastedData = e.clipboardData.getData('text').slice(0, 6);
+                if (/^\d+$/.test(pastedData)) {
+                    pastedData.split('').forEach((char, i) => {
+                        if (inputs[i]) inputs[i].value = char;
+                    });
+                    if (inputs[pastedData.length - 1]) {
+                        inputs[pastedData.length - 1].focus();
+                    }
+                }
+            });
+        });
+
+        // Combine inputs on submit
+        form.addEventListener('submit', function (e) {
+            let otp = '';
+            inputs.forEach(input => otp += input.value);
+            fullOtpInput.value = otp;
+
+            if (otp.length < 6) {
+                e.preventDefault();
+                alert('Please enter the complete 6-digit code');
+            }
+        });
+    });
+</script>
+{% endblock %}

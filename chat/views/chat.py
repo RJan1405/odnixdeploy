@@ -258,6 +258,10 @@ def chat_view(request, chat_id):
     # User chats split by type, with last_message and unread_count
     user_chats = Chat.objects.filter(participants=request.user).select_related(
         'admin').order_by('-updated_at')
+    
+    # Get Manual Private List (Pinned Chats)
+    pinned_chat_ids = set(PinnedChat.objects.filter(user=request.user).values_list('chat_id', flat=True))
+
     private_chats = []
     group_chats = []
     for chat in user_chats:
@@ -291,6 +295,7 @@ def chat_view(request, chat_id):
             'participants': chat.participants.all(),
             'last_message': last_message,
             'unread_count': unread_count,
+            'is_private': chat.id in pinned_chat_ids, # Manual Private List
         }
         if chat.chat_type == 'private':
             private_chats.append(chat_dict)
@@ -399,6 +404,10 @@ def messages_page(request):
     # User chats split by type, with last_message and unread_count
     user_chats = Chat.objects.filter(participants=request.user).select_related(
         'admin').order_by('-updated_at')
+    
+    # Get Manual Private List (Pinned Chats)
+    pinned_chat_ids = set(PinnedChat.objects.filter(user=request.user).values_list('chat_id', flat=True))
+
     private_chats = []
     group_chats = []
     for chat in user_chats:
@@ -432,6 +441,7 @@ def messages_page(request):
             'participants': chat.participants.all(),
             'last_message': last_message,
             'unread_count': unread_count,
+            'is_private': chat.id in pinned_chat_ids, # Manual Private List
         }
         if chat.chat_type == 'private':
             private_chats.append(chat_dict)

@@ -55,15 +55,19 @@ def register_view(request):
         if form.is_valid():
             try:
                 user = form.save(commit=False)
-                user.is_email_verified = True  # Auto-verify email for now
-                
+                # Ensure email is not verified initially
+                user.is_email_verified = False
                 user.save()
-                
-                # Send verification email
+
+                # Send verification email with OTP
                 send_verification_email(user, request)
-                messages.success(request, f'Account created! Please check your email to verify your account.')
-                return redirect('login')
-                
+
+                # Store user ID in session for the verification step
+                request.session['verification_user_id'] = user.id
+
+                messages.success(request, f'Account created! A verification code has been sent to {user.email}.')
+                return redirect('verify_email_otp')
+
             except Exception as e:
                 logger.error(f"Error creating account: {str(e)}")
                 messages.error(request, f'Error creating account: {str(e)}')
@@ -72,47 +76,46 @@ def register_view(request):
             for field, errors in form.errors.items():
                 for error in errors:
                     messages.error(request, f'{field}: {error}')
-    
+
     return render(request, 'chat/register.html')
 
 def send_verification_email(user, request):
     try:
         # Delete any existing tokens for this user
         EmailVerificationToken.objects.filter(user=user).delete()
-        
+
+        # Create new OTP token (auto-generated 6 digits by model save method)
         token = EmailVerificationToken.objects.create(user=user)
-        verification_url = request.build_absolute_uri(
-            reverse('verify_email', kwargs={'token': token.token})
-        )
-        
-        subject = 'Verify your Odnix account'
+
+        subject = 'Your Odnix Verification Code'
         html_content = f"""
         <html>
         <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
             <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
                 <div style="background: #667eea; color: white; padding: 20px; text-align: center;">
-                    <h1>Welcome to Odnix!</h1>
+                    <h1>Verify your email</h1>
                 </div>
-                <div style="padding: 20px;">
+                <div style="padding: 20px; text-align: center;">
                     <h2>Hello {user.full_name}!</h2>
-                    <p>Thank you for registering with Odnix. Please verify your email address:</p>
-                    <a href="{verification_url}" style="background: #667eea; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block; margin: 20px 0;">Verify Email</a>
-                    <p>If the button doesn't work, copy this link: {verification_url}</p>
-                    <p>This link expires in 24 hours.</p>
+                    <p>Use the following code to verify your Odnix account:</p>
+                    <div style="font-size: 32px; letter-spacing: 5px; font-weight: bold; color: #667eea; margin: 20px 0; padding: 10px; background: #f0f4ff; display: inline-block; border-radius: 8px;">
+                        {token.token}
+                    </div>
+                    <p>This code expires in 10 minutes.</p>
                 </div>
             </div>
         </body>
         </html>
         """
-        
+
         plain_message = f"""
         Hello {user.full_name}!
-        
-        Thank you for registering with Odnix. Please verify your email by visiting: {verification_url}
-        
-        This link expires in 24 hours.
+
+        Your verification code is: {token.token}
+
+        This code expires in 10 minutes.
         """
-        
+
         send_mail(
             subject,
             plain_message,
@@ -126,32 +129,60 @@ def send_verification_email(user, request):
         logger.error(f"Email error: {e}")
         return False
 
+def verify_otp_view(request):
+    # Get user ID from session
+    user_id = request.session.get('verification_user_id')
+    if not user_id:
+        messages.error(request, 'Session expired. Please sign up again.')
+        return redirect('register')
+
+    user = get_object_or_404(User, id=user_id)
+
+    if request.method == 'POST':
+        otp = request.POST.get('otp')
+        if not otp:
+            messages.error(request, 'Please enter the verification code.')
+            return render(request, 'chat/verify_otp.html', {'email': user.email})
+
+        # Verify OTP
+        try:
+            # Check for valid, unexpired, unused token for this user
+            token_obj = EmailVerificationToken.objects.filter(
+                user=user,
+                token=otp,
+                is_used=False
+            ).latest('created_at')
+
+            if token_obj.is_expired:
+                messages.error(request, 'Verification code has expired.')
+                return render(request, 'chat/verify_otp.html', {'email': user.email})
+
+            # Success!
+            user.is_email_verified = True
+            user.save()
+
+            token_obj.is_used = True
+            token_obj.save()
+
+            # Clean up session
+            del request.session['verification_user_id']
+
+            # Log the user in directly
+            login(request, user)
+            user.mark_online()
+
+            messages.success(request, 'Email verified successfully! Welcome to Odnix.')
+            return redirect('dashboard')
+
+        except EmailVerificationToken.DoesNotExist:
+            messages.error(request, 'Invalid verification code. Please try again.')
+
+    return render(request, 'chat/verify_otp.html', {'email': user.email})
+
+# Kept for backward compatibility if needed, or redirect to Login
 def verify_email(request, token):
-    try:
-        verification_token = get_object_or_404(EmailVerificationToken, token=token)
-        
-        if verification_token.is_used:
-            messages.error(request, 'This verification link has already been used.')
-            return redirect('login')
-        
-        if verification_token.is_expired:
-            messages.error(request, 'This verification link has expired.')
-            return redirect('login')
-        
-        user = verification_token.user
-        user.is_email_verified = True
-        user.save()
-        
-        verification_token.is_used = True
-        verification_token.save()
-        
-        messages.success(request, 'Email verified successfully! You can now log in.')
-        return redirect('login')
-        
-    except Exception as e:
-        logger.error(f"Email verification error: {e}")
-        messages.error(request, 'Invalid verification link.')
-        return redirect('login')
+    messages.error(request, 'Invalid verification link.')
+    return redirect('login')
 
 @login_required
 def logout_view(request):

@@ -1,7 +1,7 @@
 {% extends 'chat/base.html' %}
 {% load static %}
 
-{% block navbar %}{% endblock %}
+
 
 {% block extra_head %}
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
@@ -19,6 +19,28 @@
         }
     }
 
+    /* Custom Scrollbar */
+    .ig-direct-list::-webkit-scrollbar,
+    .ig-chat-messages::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .ig-direct-list::-webkit-scrollbar-track,
+    .ig-chat-messages::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .ig-direct-list::-webkit-scrollbar-thumb,
+    .ig-chat-messages::-webkit-scrollbar-thumb {
+        background: var(--ig-border);
+        border-radius: 3px;
+    }
+
+    .ig-direct-list::-webkit-scrollbar-thumb:hover,
+    .ig-chat-messages::-webkit-scrollbar-thumb:hover {
+        background: var(--ig-text-secondary);
+    }
+
     @keyframes pulse {
 
         0%,
@@ -33,12 +55,205 @@
 
     /* Chat detail page specific fixes */
     .ig-direct {
-        margin-top: 0 !important;
-        height: 100vh !important;
+        margin-top: 70px !important;
+        height: calc(100vh - 70px) !important;
         border: none !important;
         border-radius: 0 !important;
         max-width: 100% !important;
         overflow: hidden;
+    }
+
+    /* Sidebar Styles (Matched to messages page) */
+    .ig-direct-sidebar {
+        width: 340px;
+        max-width: 340px;
+        border-right: 1px solid var(--ig-border);
+        background: var(--ig-surface);
+        display: flex;
+        flex-direction: column;
+    }
+
+    .ig-direct-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--ig-border);
+    }
+
+    .ig-direct-back {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 8px;
+        border-radius: 50%;
+        color: var(--ig-text-primary);
+    }
+
+    .ig-direct-back:hover {
+        background: var(--ig-surface-hover);
+    }
+
+    .ig-direct-header-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+
+    .ig-direct-header-info {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .ig-direct-title {
+        margin: 0;
+        font-weight: 700;
+        font-size: 18px;
+        color: var(--ig-text-primary);
+        line-height: 1.2;
+    }
+
+    .ig-direct-sub {
+        margin: 0;
+        font-size: 12px;
+        color: var(--ig-text-secondary);
+    }
+
+    .ig-direct-new {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 8px;
+        border-radius: 50%;
+        color: var(--ig-text-primary);
+    }
+
+    .ig-direct-new:hover {
+        background: var(--ig-surface-hover);
+    }
+
+    .ig-direct-list {
+        overflow: auto;
+        padding: 6px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .ig-direct-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 12px;
+        border-radius: 12px;
+        text-decoration: none;
+        color: inherit;
+        transition: background .15s;
+    }
+
+    .ig-direct-item:hover {
+        background: var(--ig-surface-hover);
+    }
+
+    .ig-direct-item.active {
+        background: rgba(102, 126, 234, .12);
+    }
+
+    .ig-direct-item-avatar {
+        width: 44px;
+        height: 44px;
+        border-radius: 22%;
+        object-fit: cover;
+    }
+
+    .ig-direct-item-avatar.placeholder {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--odnix-gradient);
+        color: #fff;
+        font-weight: 700;
+    }
+
+    .ig-direct-item-avatar.group {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #5b6eae 0%, #8b5fc7 50%, #c471ed 100%);
+        color: #fff;
+        border-radius: 22%;
+        width: 44px;
+        height: 44px;
+    }
+
+    .ig-direct-item-info {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+    }
+
+    .ig-direct-item-name {
+        font-weight: 600;
+        color: var(--ig-text-primary);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .ig-direct-item-preview {
+        font-size: 12px;
+        color: var(--ig-text-secondary);
+    }
+
+    /* Search + categories sidebar control overrides */
+    .ig-direct-controls {
+        padding: 10px 12px;
+        border-bottom: 1px solid var(--ig-border);
+    }
+
+    .ig-search-bar {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: var(--ig-bg);
+        border: 1px solid var(--ig-border);
+        border-radius: 12px;
+        padding: 10px 12px;
+    }
+
+    .ig-search-bar input {
+        flex: 1;
+        background: transparent;
+        border: none;
+        outline: none;
+        color: var(--ig-text-primary);
+    }
+
+    .ig-categories {
+        display: flex;
+        gap: 8px;
+        margin-top: 10px;
+    }
+
+    .ig-cat-btn {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 12px;
+        background: var(--ig-bg);
+        border: 1px solid var(--ig-border);
+        border-radius: 999px;
+        font-size: 13px;
+        color: var(--ig-text-secondary);
+        cursor: pointer;
+    }
+
+    .ig-cat-btn.active {
+        background: rgba(102, 126, 234, .12);
+        color: var(--ig-text-primary);
+        border-color: transparent;
     }
 
     /* Prevent horizontal scroll */
@@ -1553,6 +1768,72 @@
     .ig-edit-save:hover {
         background: var(--color-primary-dark, #4f46e5);
     }
+
+    /* Context Menu Styles */
+    .ig-direct-item {
+        position: relative;
+    }
+
+    .ig-direct-options-btn {
+        position: absolute;
+        right: 8px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: transparent;
+        border: none;
+        color: var(--ig-text-secondary);
+        padding: 6px;
+        border-radius: 50%;
+        cursor: pointer;
+        display: none;
+        z-index: 5;
+    }
+
+    .ig-direct-item:hover .ig-direct-options-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--ig-bg);
+    }
+
+    .ig-direct-options-btn:hover {
+        background: var(--ig-surface-hover);
+        color: var(--ig-text-primary);
+    }
+
+    .ig-direct-context-menu {
+        position: fixed;
+        background: var(--ig-surface);
+        border: 1px solid var(--ig-border);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+        border-radius: 12px;
+        z-index: 12000;
+        display: none;
+        flex-direction: column;
+        min-width: 180px;
+        padding: 6px;
+        overflow: hidden;
+    }
+
+    .ig-context-item {
+        padding: 10px 12px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        color: var(--ig-text-primary);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: none;
+        border: none;
+        width: 100%;
+        text-align: left;
+        text-decoration: none;
+    }
+
+    .ig-context-item:hover {
+        background: var(--ig-surface-hover);
+    }
 </style>
 {% endblock %}
 
@@ -1607,13 +1888,14 @@
             {% for chat in private_chats %}
             <a href="{% url 'chat_detail' chat.id %}"
                 class="ig-direct-item{% if chat.id == active_chat_id %} active{% endif %}" data-type="private"
-                data-following="{% for p in chat.participants %}{% if p != request.user and p.id in following_ids %}true{% endif %}{% endfor %}"
+                data-following="{% if chat.is_private %}true{% endif %}"
+                data-username="{% for p in chat.participants %}{% if p != request.user %}{{ p.username }}{% endif %}{% endfor %}"
                 data-name="{% for p in chat.participants %}{% if p != request.user %}{{ p.full_name|lower }}{% endif %}{% endfor %}">
                 {% for participant in chat.participants %}
                 {% if participant != request.user %}
                 <span style="position:relative;display:inline-block;">
                     <img src="{{ participant.profile_picture_url }}" class="ig-direct-item-avatar"
-                        onerror="this.outerHTML='<div class='ig-direct-item-avatar placeholder'>{{ participant.initials }}</div>'">
+                        onerror="this.outerHTML='<div class=\'ig-direct-item-avatar placeholder\'>{{ participant.initials }}</div>'">
                     {% if participant.is_online %}
                     <span class="ig-online-dot"
                         style="position:absolute;bottom:0;right:0;width:12px;height:12px;background:#22c55e;border-radius:50%;border:2px solid #222;"></span>
@@ -1628,6 +1910,9 @@
                     <div class="ig-direct-item-preview">
                         {{ chat.last_message }}
                     </div>
+                </div>
+                <div class="ig-direct-options-btn" role="button" onclick="toggleDirectOptions(event)">
+                    <i data-lucide="more-vertical" style="width:16px;height:16px;"></i>
                 </div>
                 {% endif %}
                 {% endfor %}
@@ -1831,7 +2116,8 @@
                         <div class="ig-reply-context" onclick="scrollToMessage('{{ message.reply_to.id }}')">
                             <span class="ig-reply-context-name">{{ message.reply_to.sender.full_name }}</span>
                             <span class="ig-reply-context-text">
-                                {% if message.reply_to.media_url %}📷 Photo{% else %}{{message.reply_to.content|truncatechars:50 }}{% endif %}
+                                {% if message.reply_to.media_url %}📷 Photo{% else
+                                %}{{message.reply_to.content|truncatechars:50 }}{% endif %}
                             </span>
                         </div>
                         {% endif %}
@@ -2231,6 +2517,185 @@
 {% endblock %}
 
 {% block extra_js %}
+<script>
+    // Sidebar Filter & Context Menu Logic
+    let currentCtxUsername = null;
+    let currentCtxElement = null;
+
+    function toggleDirectOptions(e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const btn = e.currentTarget;
+        let item = btn.closest('.ig-direct-item');
+        if (!item) item = btn.parentElement.closest('.ig-direct-item') || btn.parentElement;
+
+        if (!item) {
+            console.warn('Parent item not found');
+            return;
+        }
+
+        const username = item.getAttribute('data-username');
+        const isFollowing = (item.getAttribute('data-following') || '').trim() === 'true';
+
+        currentCtxUsername = username;
+        currentCtxElement = item;
+
+        let menu = document.getElementById('directContextMenu');
+        if (!menu) return;
+
+        // Move menu to body to prevent overflow clipping
+        if (menu.parentNode !== document.body) {
+            document.body.appendChild(menu);
+        }
+
+        const addBtnText = document.getElementById('ctxAddToPrivateText');
+        const addBtnIcon = document.querySelector('#ctxAddToPrivate i');
+
+        if (isFollowing) {
+            if (addBtnText) addBtnText.textContent = 'Remove from Private';
+            if (addBtnIcon) addBtnIcon.setAttribute('data-lucide', 'user-minus');
+        } else {
+            if (addBtnText) addBtnText.textContent = 'Add to Private';
+            if (addBtnIcon) addBtnIcon.setAttribute('data-lucide', 'user-plus');
+        }
+
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+
+        // Position menu
+        const rect = btn.getBoundingClientRect();
+        menu.style.display = 'flex';
+        menu.style.zIndex = '99999';
+        menu.style.top = (rect.bottom + 6) + 'px';
+        menu.style.left = Math.min(rect.left, window.innerWidth - 200) + 'px';
+
+        // Click outside to close
+        const closeMenu = (evt) => {
+            if (!menu.contains(evt.target) && evt.target !== btn && !btn.contains(evt.target)) {
+                menu.style.display = 'none';
+                document.removeEventListener('click', closeMenu);
+            }
+        };
+        setTimeout(() => document.addEventListener('click', closeMenu), 10);
+    }
+
+    function handleAddToPrivate() {
+        function handleMuteChat() {
+            if (!currentCtxUsername) return;
+            const menu = document.getElementById('directContextMenu');
+            menu.style.display = 'none';
+            // TODO: Implement mute chat logic (AJAX or WebSocket)
+            if (typeof showIGToast === 'function') showIGToast('Chat muted (demo)', 'info');
+        }
+
+        function handleDeleteChat() {
+            if (!currentCtxUsername) return;
+            const menu = document.getElementById('directContextMenu');
+            menu.style.display = 'none';
+            // TODO: Implement delete chat logic (AJAX or WebSocket)
+            if (typeof showIGToast === 'function') showIGToast('Chat deleted (demo)', 'warning');
+        }
+        if (!currentCtxUsername) return;
+
+        const menu = document.getElementById('directContextMenu');
+        menu.style.display = 'none';
+
+        fetch('/chat/api/toggle-private-chat/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken()
+            },
+            body: JSON.stringify({ username: currentCtxUsername })
+        })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    if (currentCtxElement) {
+                        currentCtxElement.setAttribute('data-following', data.is_private ? 'true' : 'false');
+
+                        // Re-run filter in case we are in Private tab
+                        const activeCatBtn = document.querySelector('.ig-cat-btn.active');
+                        if (activeCatBtn) {
+                            const cat = activeCatBtn.textContent.trim().toLowerCase();
+                            if (cat.includes('private')) filterDirectCategory('private');
+                        }
+                    }
+                    const msg = data.is_private ? 'Added to Private' : 'Removed from Private';
+                    if (typeof showIGToast === 'function') showIGToast(msg, 'success');
+                } else {
+                    if (typeof showIGToast === 'function') showIGToast(data.error || 'Failed', 'error');
+                }
+            })
+            .catch(err => console.error(err));
+    }
+
+    function filterDirectChats(event) {
+        const term = (event?.target?.value || '').toLowerCase().trim();
+        document.querySelectorAll('.ig-direct-list .ig-direct-item').forEach(item => {
+            const name = (item.getAttribute('data-name') || '').toLowerCase();
+            const type = item.getAttribute('data-type');
+            // Apply active category constraint + search term
+            const activeCategory = document.querySelector('.ig-categories .ig-cat-btn.active');
+            let categoryMatch = true;
+
+            if (activeCategory) {
+                const cat = activeCategory.textContent.trim().toLowerCase();
+                if (cat.includes('private')) {
+                    const isFollowing = (item.getAttribute('data-following') || '').trim() === 'true';
+                    categoryMatch = (type === 'private' && isFollowing);
+                } else if (cat.includes('groups')) {
+                    categoryMatch = (type === 'group');
+                }
+            }
+
+            item.style.display = (categoryMatch && (!term || name.includes(term))) ? 'flex' : 'none';
+        });
+    }
+
+    function filterDirectCategory(category, btn) {
+        if (btn) {
+            document.querySelectorAll('.ig-categories .ig-cat-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
+
+        document.querySelectorAll('.ig-direct-list .ig-direct-item').forEach(item => {
+            const type = item.getAttribute('data-type');
+            const followingVal = (item.getAttribute('data-following') || '').trim();
+            const isFollowing = followingVal.includes('true');
+
+            let show = false;
+            // Normalize category string safely
+            const cat = category.toLowerCase().trim();
+
+            if (cat === 'all' || cat.includes('all')) {
+                show = true;
+            } else if (cat === 'group' || cat.includes('group')) {
+                show = (type === 'group');
+            } else if (cat === 'private' || cat.includes('private')) {
+                show = (type === 'private' && isFollowing);
+            }
+
+            item.style.display = show ? 'flex' : 'none';
+        });
+
+        const input = document.getElementById('directSearchInput');
+        if (input && input.value.trim()) filterDirectChats({ target: input });
+    }
+
+    function getCSRFToken() {
+        return document.querySelector('meta[name="csrf-token"]').content;
+    }
+    // Attach event listeners to context menu buttons after DOM loads
+    document.addEventListener('DOMContentLoaded', function () {
+        const addBtn = document.getElementById('ctxAddToPrivate');
+        const muteBtn = document.getElementById('ctxMuteChat');
+        const delBtn = document.getElementById('ctxDeleteChat');
+        if (addBtn) addBtn.onclick = handleAddToPrivate;
+        if (muteBtn) muteBtn.onclick = handleMuteChat;
+        if (delBtn) delBtn.onclick = handleDeleteChat;
+    });
+</script>
 <script>
     const chatId = {{ chat.id }};
     const currentUserId = {{ request.user.id }};
@@ -5028,10 +5493,11 @@
 <script>
     try {
         window.OdnixCallConfig = {
-            chatId: {{ chat.id |default:"null" }},
-            userId: {{ request.user.id |default:"null" }},
-            wsScheme: (window.location.protocol === 'https:' ? 'wss' : 'ws'),
-            host: window.location.host,
+            chatId: {{ chat.id |default: "null" }
+    },
+    userId: { { request.user.id |default: "null" } },
+    wsScheme: (window.location.protocol === 'https:' ? 'wss' : 'ws'),
+        host: window.location.host,
             iceServers: []
         };
     if (typeof window.OdnixCallConfig.chatId === 'undefined' || typeof window.OdnixCallConfig.userId === 'undefined' || window.OdnixCallConfig.chatId === null || window.OdnixCallConfig.userId === null) {
@@ -5139,5 +5605,25 @@
 </script>
 
 
+
+<!-- Context Menu for Sidebar Three-dot Button -->
+<div id="directContextMenu" class="ig-direct-context-menu"
+    style="display:none;position:absolute;z-index:9999;min-width:160px;background:#23243a;color:#fff;border-radius:8px;box-shadow:0 4px 24px rgba(0,0,0,0.25);padding:8px 0;">
+    <button id="ctxAddToPrivate"
+        style="width:100%;background:none;border:none;color:inherit;padding:10px 20px;text-align:left;display:flex;align-items:center;gap:8px;cursor:pointer;">
+        <i data-lucide="user-plus"></i>
+        <span id="ctxAddToPrivateText">Add to Private</span>
+    </button>
+    <button id="ctxMuteChat"
+        style="width:100%;background:none;border:none;color:inherit;padding:10px 20px;text-align:left;display:flex;align-items:center;gap:8px;cursor:pointer;">
+        <i data-lucide="volume-x"></i>
+        <span>Mute Chat</span>
+    </button>
+    <button id="ctxDeleteChat"
+        style="width:100%;background:none;border:none;color:#ff3b3b;padding:10px 20px;text-align:left;display:flex;align-items:center;gap:8px;cursor:pointer;">
+        <i data-lucide="trash-2"></i>
+        <span>Delete Chat</span>
+    </button>
+</div>
 
 {% endblock %}

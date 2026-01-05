@@ -1,13 +1,14 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign Up - Odnix</title>
     <!-- Clear any saved theme for logged-out users - show default theme -->
     <script>
-        (function() {
+        (function () {
             // Clear localStorage theme when on register page (user logged out)
             localStorage.removeItem('odnix-theme');
             // Ensure no theme classes are applied
@@ -26,7 +27,7 @@
             background: var(--ig-bg);
             padding: 16px;
         }
-        
+
         .ig-auth-wrapper {
             display: flex;
             flex-direction: column;
@@ -34,7 +35,7 @@
             max-width: 350px;
             width: 100%;
         }
-        
+
         .ig-auth-box {
             background: var(--ig-surface);
             border: 1px solid var(--ig-border);
@@ -44,7 +45,7 @@
             width: 100%;
             margin-bottom: 10px;
         }
-        
+
         .ig-auth-logo {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             font-size: 40px;
@@ -55,7 +56,7 @@
             background-clip: text;
             margin-bottom: 12px;
         }
-        
+
         .ig-auth-tagline {
             font-size: 17px;
             font-weight: 600;
@@ -63,13 +64,13 @@
             margin-bottom: 16px;
             line-height: 1.4;
         }
-        
+
         .ig-auth-form {
             display: flex;
             flex-direction: column;
             gap: 6px;
         }
-        
+
         .ig-auth-input {
             width: 100%;
             padding: 9px 8px;
@@ -80,26 +81,26 @@
             outline: none;
             transition: border-color 0.2s;
         }
-        
+
         .ig-auth-input:focus {
             border-color: var(--ig-text-secondary);
         }
-        
+
         .ig-auth-input::placeholder {
             color: var(--ig-text-secondary);
         }
-        
+
         .ig-auth-input.error {
             border-color: var(--ig-error);
         }
-        
+
         .ig-auth-gender {
             display: flex;
             gap: 1.5rem;
             margin: 12px 0;
             padding: 0 12px;
         }
-        
+
         .ig-radio-label {
             display: flex;
             align-items: center;
@@ -109,13 +110,13 @@
             font-size: 14px;
             color: #262626;
         }
-        
+
         .ig-radio-label input[type="radio"] {
             cursor: pointer;
             width: 16px;
             height: 16px;
         }
-        
+
         .ig-auth-btn {
             width: 100%;
             padding: 7px 16px;
@@ -129,47 +130,47 @@
             margin-top: 8px;
             transition: opacity 0.2s;
         }
-        
+
         .ig-auth-btn:hover {
             opacity: 0.9;
         }
-        
+
         .ig-auth-btn:disabled {
             opacity: 0.3;
             cursor: not-allowed;
         }
-        
+
         .ig-auth-divider {
             display: flex;
             align-items: center;
             margin: 16px 0;
             gap: 16px;
         }
-        
+
         .ig-auth-divider-line {
             flex: 1;
             height: 1px;
             background: var(--ig-border);
         }
-        
+
         .ig-auth-divider-text {
             font-size: 13px;
             font-weight: 600;
             color: var(--ig-text-secondary);
         }
-        
+
         .ig-auth-terms {
             font-size: 12px;
             color: var(--ig-text-secondary);
             line-height: 1.5;
             margin-top: 16px;
         }
-        
+
         .ig-auth-terms a {
             color: var(--ig-text-secondary);
             font-weight: 600;
         }
-        
+
         .ig-auth-signup-box {
             background: var(--ig-surface);
             border: 1px solid var(--ig-border);
@@ -179,43 +180,43 @@
             width: 100%;
             margin-bottom: 10px;
         }
-        
+
         .ig-auth-signup-text {
             font-size: 14px;
             color: var(--ig-text-primary);
         }
-        
+
         .ig-auth-signup-link {
             color: var(--color-primary);
             font-weight: 600;
             text-decoration: none;
         }
-        
+
         .ig-auth-signup-link:hover {
             text-decoration: underline;
         }
-        
+
         .ig-auth-apps {
             text-align: center;
             margin-top: 16px;
         }
-        
+
         .ig-auth-apps-text {
             font-size: 14px;
             color: var(--ig-text-primary);
             margin-bottom: 16px;
         }
-        
+
         .ig-auth-apps-buttons {
             display: flex;
             justify-content: center;
             gap: 8px;
         }
-        
+
         .ig-auth-apps-btn {
             height: 40px;
         }
-        
+
         .ig-auth-message {
             padding: 12px;
             border-radius: 4px;
@@ -223,35 +224,35 @@
             font-size: 14px;
             text-align: left;
         }
-        
+
         .ig-auth-message.error {
             background: #ffebee;
             color: var(--ig-error);
             border: 1px solid var(--ig-error);
         }
-        
+
         .ig-auth-message.success {
             background: #e8f5e9;
             color: var(--ig-success);
             border: 1px solid var(--ig-success);
         }
-        
+
         .ig-auth-error-list {
             list-style: none;
             padding: 0;
             margin: 0;
         }
-        
+
         /* Row for name fields */
         .ig-auth-row {
             display: flex;
             gap: 6px;
         }
-        
+
         .ig-auth-row .ig-auth-input {
             flex: 1;
         }
-        
+
         /* Footer */
         .ig-auth-footer {
             width: 100%;
@@ -259,7 +260,7 @@
             margin: 24px auto 0;
             padding: 0 16px;
         }
-        
+
         .ig-auth-footer-links {
             display: flex;
             flex-wrap: wrap;
@@ -267,23 +268,23 @@
             gap: 16px;
             margin-bottom: 16px;
         }
-        
+
         .ig-auth-footer-link {
             font-size: 12px;
             color: var(--ig-text-secondary);
             text-decoration: none;
         }
-        
+
         .ig-auth-footer-link:hover {
             text-decoration: underline;
         }
-        
+
         .ig-auth-footer-copyright {
             text-align: center;
             font-size: 12px;
             color: var(--ig-text-secondary);
         }
-        
+
         /* ===== MOBILE RESPONSIVE ===== */
         @media (max-width: 480px) {
             .ig-auth-page {
@@ -291,104 +292,134 @@
                 align-items: flex-start;
                 padding-top: 24px;
             }
-            
+
             .ig-auth-box {
                 padding: 24px 20px 16px;
             }
-            
+
             .ig-auth-logo {
                 font-size: 32px;
                 margin-bottom: 10px;
             }
-            
+
             .ig-auth-tagline {
                 font-size: 14px;
                 margin-bottom: 12px;
             }
-            
+
             .ig-auth-input {
                 padding: 12px 10px;
                 font-size: 14px;
             }
-            
+
             .ig-auth-row {
                 flex-direction: column;
                 gap: 6px;
             }
-            
+
             .ig-auth-btn {
                 padding: 12px 16px;
                 font-size: 15px;
             }
-            
+
             .ig-auth-terms {
                 font-size: 11px;
             }
-            
+
             .ig-auth-signup-box {
                 padding: 16px 20px;
             }
-            
+
             .ig-auth-apps {
                 margin-top: 12px;
             }
-            
+
             .ig-auth-apps-buttons {
                 flex-direction: column;
                 gap: 8px;
             }
-            
+
             .ig-auth-apps-btn {
                 width: 140px;
                 height: auto;
             }
-            
+
             .ig-auth-footer {
                 margin-top: 16px;
             }
-            
+
             .ig-auth-footer-links {
                 gap: 8px;
             }
-            
+
             .ig-auth-footer-link {
                 font-size: 11px;
             }
         }
-        
+
         @media (max-width: 374px) {
             .ig-auth-page {
                 padding: 8px;
                 padding-top: 16px;
             }
-            
+
             .ig-auth-box {
                 padding: 20px 14px 14px;
             }
-            
+
             .ig-auth-logo {
                 font-size: 26px;
             }
-            
+
             .ig-auth-tagline {
                 font-size: 13px;
             }
-            
+
             .ig-auth-input {
                 padding: 10px 8px;
                 font-size: 13px;
             }
-            
+
             .ig-auth-signup-box {
                 padding: 14px 14px;
             }
-            
+
             .ig-auth-signup-text {
                 font-size: 13px;
             }
         }
+
+        /* Password Strength Meter */
+        .password-strength-container {
+            margin-top: -4px;
+            margin-bottom: 10px;
+            width: 100%;
+        }
+
+        .password-strength-bar-bg {
+            height: 4px;
+            background-color: #e0e0e0;
+            border-radius: 2px;
+            margin-bottom: 4px;
+            overflow: hidden;
+        }
+
+        .password-strength-bar {
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s ease, background-color 0.3s ease;
+        }
+
+        .password-strength-text {
+            font-size: 11px;
+            color: var(--ig-text-secondary);
+            display: block;
+            text-align: right;
+            font-weight: 600;
+        }
     </style>
 </head>
+
 <body>
     <main class="ig-auth-page">
         <div class="ig-auth-wrapper">
@@ -396,35 +427,41 @@
             <div class="ig-auth-box">
                 <h1 class="ig-auth-logo">Odnix</h1>
                 <p class="ig-auth-tagline">Sign up to see photos and videos from your friends.</p>
-                
+
                 <div class="ig-auth-divider">
                     <div class="ig-auth-divider-line"></div>
                     <span class="ig-auth-divider-text">Sign up with email</span>
                     <div class="ig-auth-divider-line"></div>
                 </div>
-                
+
                 {% if form.errors %}
                 <div class="ig-auth-message error">
                     <ul class="ig-auth-error-list">
-                    {% for field in form %}
+                        {% for field in form %}
                         {% for error in field.errors %}
                         <li>{{ error }}</li>
                         {% endfor %}
-                    {% endfor %}
-                    {% for error in form.non_field_errors %}
+                        {% endfor %}
+                        {% for error in form.non_field_errors %}
                         <li>{{ error }}</li>
-                    {% endfor %}
+                        {% endfor %}
                     </ul>
                 </div>
                 {% endif %}
-                
+
                 <form method="post" action="{% url 'register' %}" class="ig-auth-form">
                     {% csrf_token %}
-                    <input type="email" name="email" class="ig-auth-input {% if form.email.errors %}error{% endif %}" placeholder="Email" value="{{ form.email.value|default:'' }}" required>
-                    <input type="text" name="username" class="ig-auth-input {% if form.username.errors %}error{% endif %}" placeholder="Username" value="{{ form.username.value|default:'' }}" required>
+                    <input type="email" name="email" class="ig-auth-input {% if form.email.errors %}error{% endif %}"
+                        placeholder="Email" value="{{ form.email.value|default:'' }}" required>
+                    <input type="text" name="username"
+                        class="ig-auth-input {% if form.username.errors %}error{% endif %}" placeholder="Username"
+                        value="{{ form.username.value|default:'' }}" required>
                     <div class="ig-auth-row">
-                        <input type="text" name="name" class="ig-auth-input {% if form.name.errors %}error{% endif %}" placeholder="First name" value="{{ form.name.value|default:'' }}" required>
-                        <input type="text" name="lastname" class="ig-auth-input {% if form.lastname.errors %}error{% endif %}" placeholder="Last name" value="{{ form.lastname.value|default:'' }}" required>
+                        <input type="text" name="name" class="ig-auth-input {% if form.name.errors %}error{% endif %}"
+                            placeholder="First name" value="{{ form.name.value|default:'' }}" required>
+                        <input type="text" name="lastname"
+                            class="ig-auth-input {% if form.lastname.errors %}error{% endif %}" placeholder="Last name"
+                            value="{{ form.lastname.value|default:'' }}" required>
                     </div>
                     <div class="ig-auth-gender">
                         <label class="ig-radio-label">
@@ -436,35 +473,48 @@
                             <span>Female</span>
                         </label>
                     </div>
-                    <input type="password" name="password1" class="ig-auth-input {% if form.password1.errors %}error{% endif %}" placeholder="Password" required>
-                    <input type="password" name="password2" class="ig-auth-input {% if form.password2.errors %}error{% endif %}" placeholder="Confirm password" required>
+                    <input type="password" name="password1"
+                        class="ig-auth-input {% if form.password1.errors %}error{% endif %}" placeholder="Password"
+                        required>
+                    <div class="password-strength-container" id="password_strength_container" style="display:none;">
+                        <div class="password-strength-bar-bg">
+                            <div class="password-strength-bar" id="password_strength_bar"></div>
+                        </div>
+                        <span class="password-strength-text" id="password_strength_text"></span>
+                    </div>
+                    <input type="password" name="password2"
+                        class="ig-auth-input {% if form.password2.errors %}error{% endif %}"
+                        placeholder="Confirm password" required>
                     <button type="submit" class="ig-auth-btn">Sign up</button>
                 </form>
-                
+
                 <p class="ig-auth-terms">
-                    By signing up, you agree to our <a href="#">Terms</a>, <a href="#">Privacy Policy</a> and <a href="#">Cookies Policy</a>.
+                    By signing up, you agree to our <a href="#">Terms</a>, <a href="#">Privacy Policy</a> and <a
+                        href="#">Cookies Policy</a>.
                 </p>
             </div>
-            
+
             <!-- Login Box -->
             <div class="ig-auth-signup-box">
                 <p class="ig-auth-signup-text">
-                    Have an account? 
+                    Have an account?
                     <a href="{% url 'login' %}" class="ig-auth-signup-link">Log in</a>
                 </p>
             </div>
-            
+
             <!-- App download -->
             <div class="ig-auth-apps">
                 <p class="ig-auth-apps-text">Get the app.</p>
                 <div class="ig-auth-apps-buttons">
-                    <img src="https://static.cdninstagram.com/rsrc.php/v3/yz/r/c5Rp7Ym-Klz.png" alt="Get it on Google Play" class="ig-auth-apps-btn">
-                    <img src="https://static.cdninstagram.com/rsrc.php/v3/yu/r/EHY6QnZYdNX.png" alt="Get it from Microsoft" class="ig-auth-apps-btn">
+                    <img src="https://static.cdninstagram.com/rsrc.php/v3/yz/r/c5Rp7Ym-Klz.png"
+                        alt="Get it on Google Play" class="ig-auth-apps-btn">
+                    <img src="https://static.cdninstagram.com/rsrc.php/v3/yu/r/EHY6QnZYdNX.png"
+                        alt="Get it from Microsoft" class="ig-auth-apps-btn">
                 </div>
             </div>
         </div>
     </main>
-    
+
     <!-- Footer -->
     <footer class="ig-auth-footer">
         <nav class="ig-auth-footer-links">
@@ -479,5 +529,66 @@
         </nav>
         <p class="ig-auth-footer-copyright">© 2025 Odnix</p>
     </footer>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const passwordInput = document.querySelector('input[name="password1"]');
+            const container = document.getElementById('password_strength_container');
+            const bar = document.getElementById('password_strength_bar');
+            const text = document.getElementById('password_strength_text');
+
+            if (!passwordInput || !container || !bar || !text) return;
+
+            passwordInput.addEventListener('input', function () {
+                const val = passwordInput.value;
+                if (val.length === 0) {
+                    container.style.display = 'none';
+                    return;
+                }
+                container.style.display = 'block';
+
+                let score = 0;
+                if (val.length >= 6) score++;
+                if (val.length >= 10) score++;
+                // Contains uppercase
+                if (/[A-Z]/.test(val)) score++;
+                // Contains numbers
+                if (/[0-9]/.test(val)) score++;
+                // Contains special chars
+                if (/[^A-Za-z0-9]/.test(val)) score++;
+
+                let percent = 0;
+                let color = '#ed4956';
+                let label = 'Too weak';
+
+                if (score <= 1) {
+                    percent = 20;
+                    color = '#ed4956';
+                    label = 'Too weak';
+                } else if (score === 2) {
+                    percent = 40;
+                    color = '#ed4956';
+                    label = 'Weak';
+                } else if (score === 3) {
+                    percent = 60;
+                    color = '#f59e0b'; // orange
+                    label = 'Fair';
+                } else if (score === 4) {
+                    percent = 80;
+                    color = '#0095f6'; // blue
+                    label = 'Good';
+                } else if (score >= 5) {
+                    percent = 100;
+                    color = '#22c55e'; // green
+                    label = 'Strong';
+                }
+
+                bar.style.width = percent + '%';
+                bar.style.backgroundColor = color;
+                text.textContent = label;
+                text.style.color = color;
+            });
+        });
+    </script>
 </body>
+
 </html>

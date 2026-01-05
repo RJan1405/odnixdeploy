@@ -40,15 +40,34 @@
 {% extends 'chat/base.html' %}
 {% load static %}
 
-{% block navbar %}{% endblock %}
+
 
 {% block extra_head %}
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 <style>
     /* Minimal styles to mirror chat layout */
+    /* Custom Scrollbar */
+    .ig-direct-list::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .ig-direct-list::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .ig-direct-list::-webkit-scrollbar-thumb {
+        background: var(--ig-border);
+        border-radius: 3px;
+    }
+
+    .ig-direct-list::-webkit-scrollbar-thumb:hover {
+        background: var(--ig-text-secondary);
+    }
+
     .ig-direct {
         display: flex;
-        height: 100vh;
+        height: calc(100vh - 70px);
+        margin-top: 70px;
         max-width: 100%;
         overflow: hidden;
     }
@@ -283,6 +302,72 @@
             display: none;
         }
     }
+
+    /* Context Menu Styles */
+    .ig-direct-item {
+        position: relative;
+    }
+
+    .ig-direct-options-btn {
+        position: absolute;
+        right: 8px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: transparent;
+        border: none;
+        color: var(--ig-text-secondary);
+        padding: 6px;
+        border-radius: 50%;
+        cursor: pointer;
+        display: none;
+        z-index: 5;
+    }
+
+    .ig-direct-item:hover .ig-direct-options-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--ig-bg);
+    }
+
+    .ig-direct-options-btn:hover {
+        background: var(--ig-surface-hover);
+        color: var(--ig-text-primary);
+    }
+
+    .ig-direct-context-menu {
+        position: fixed;
+        background: var(--ig-surface);
+        border: 1px solid var(--ig-border);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+        border-radius: 12px;
+        z-index: 12000;
+        display: none;
+        flex-direction: column;
+        min-width: 180px;
+        padding: 6px;
+        overflow: hidden;
+    }
+
+    .ig-context-item {
+        padding: 10px 12px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        color: var(--ig-text-primary);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: none;
+        border: none;
+        width: 100%;
+        text-align: left;
+        text-decoration: none;
+    }
+
+    .ig-context-item:hover {
+        background: var(--ig-surface-hover);
+    }
 </style>
 {% endblock %}
 
@@ -324,8 +409,9 @@
         <div class="ig-direct-list">
             {% for chat in private_chats %}
             <a href="{% url 'chat_detail' chat.id %}" class="ig-direct-item" data-type="{{ chat.chat_type }}"
+                data-username="{% for p in chat.participants.all %}{% if p != request.user %}{{ p.username }}{% endif %}{% endfor %}"
                 data-name="{% for p in chat.participants.all %}{% if p != request.user %}{{ p.full_name|default:p.username }}{% endif %}{% endfor %}"
-                data-following="{% for p in chat.participants.all %}{% if p != request.user and p.id in following_ids %}true{% endif %}{% endfor %}">
+                data-following="{% if chat.is_private %}true{% endif %}">
                 {% for participant in chat.participants.all %}
                 {% if participant != request.user %}
                 <span style="position:relative;display:inline-block;">
@@ -333,7 +419,7 @@
                         onerror="this.outerHTML='\u003cdiv class='ig-direct-item-avatar placeholder'\u003e{{ participant.initials }}\u003c/div\u003e'">
                     {% if chat.unread_count > 0 %}
                     <span
-                        style="position:absolute;top:-6px;right:-6px;background:#ff3b3b;color:#fff;border-radius:50%;min-width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:bold;box-shadow:0 0 0 2px #fff;z-index:2;">{{chat.unread_count }}</span>
+                        style="position:absolute;top:-6px;right:-6px;background:#ff3b3b;color:#fff;border-radius:50%;min-width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:bold;box-shadow:0 0 0 2px #fff;z-index:2;">{{chat.unread_count}}</span>
                     {% endif %}
                 </span>
                 {% endif %}
@@ -343,6 +429,9 @@
                     <div class="ig-direct-item-preview">
                         {{ chat.last_message|default:'No messages yet' }}
                     </div>
+                </div>
+                <div class="ig-direct-options-btn" role="button" onclick="toggleDirectOptions(event)">
+                    <i data-lucide="more-vertical" style="width:16px;height:16px;"></i>
                 </div>
             </a>
             {% endfor %}
@@ -355,8 +444,8 @@
                     </div>
                     {% if chat.unread_count > 0 %}
                     <span
-                        style="position:absolute;top:-6px;right:-6px;background:#ff3b3b;color:#fff;border-radius:50%;min-width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:bold;box-shadow:0 0 0 2px #fff;z-index:2;">{{
-                        chat.unread_count }}</span>
+                        style="position:absolute;top:-6px;right:-6px;background:#ff3b3b;color:#fff;border-radius:50%;min-width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:bold;box-shadow:0 0 0 2px #fff;z-index:2;">{{chat.unread_count
+                        }}</span>
                     {% endif %}
                 </span>
                 <div class="ig-direct-item-info">
@@ -422,11 +511,116 @@
             </div>
         </div>
     </div>
+    <!-- Context Menu for Sidebar -->
+    <div id="directContextMenu" class="ig-direct-context-menu">
+        <button class="ig-context-item" id="ctxAddToPrivate" onclick="handleAddToPrivate()">
+            <i data-lucide="user-plus"></i>
+            <span id="ctxAddToPrivateText">Add to Private</span>
+        </button>
+    </div>
     {% endblock %}
 
     {% block extra_js %}
     <script>
         if (typeof lucide !== 'undefined') { lucide.createIcons(); }
+
+        // Sidebar Context Menu Logic
+        let currentCtxUsername = null;
+        let currentCtxElement = null;
+
+        function toggleDirectOptions(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            const btn = e.currentTarget;
+            let item = btn.closest('.ig-direct-item');
+            if (!item) item = btn.parentElement.closest('.ig-direct-item') || btn.parentElement;
+
+            if (!item) {
+                console.warn('Parent item not found');
+                return;
+            }
+
+            const username = item.getAttribute('data-username');
+            const isFollowing = (item.getAttribute('data-following') || '').trim() === 'true';
+
+            currentCtxUsername = username;
+            currentCtxElement = item;
+
+            let menu = document.getElementById('directContextMenu');
+            if (!menu) return;
+
+            // Move menu to body to prevent overflow clipping
+            if (menu.parentNode !== document.body) {
+                document.body.appendChild(menu);
+            }
+
+            const addBtnText = document.getElementById('ctxAddToPrivateText');
+            const addBtnIcon = document.querySelector('#ctxAddToPrivate i');
+
+            if (isFollowing) {
+                if (addBtnText) addBtnText.textContent = 'Remove from Private';
+                if (addBtnIcon) addBtnIcon.setAttribute('data-lucide', 'user-minus');
+            } else {
+                if (addBtnText) addBtnText.textContent = 'Add to Private';
+                if (addBtnIcon) addBtnIcon.setAttribute('data-lucide', 'user-plus');
+            }
+
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+
+            // Position menu
+            const rect = btn.getBoundingClientRect();
+            menu.style.display = 'flex';
+            menu.style.zIndex = '99999';
+            menu.style.top = (rect.bottom + 6) + 'px';
+            menu.style.left = Math.min(rect.left, window.innerWidth - 200) + 'px';
+
+            // Click outside to close
+            const closeMenu = (evt) => {
+                if (!menu.contains(evt.target) && evt.target !== btn && !btn.contains(evt.target)) {
+                    menu.style.display = 'none';
+                    document.removeEventListener('click', closeMenu);
+                }
+            };
+            setTimeout(() => document.addEventListener('click', closeMenu), 10);
+        }
+
+        function handleAddToPrivate() {
+            if (!currentCtxUsername) return;
+
+            const menu = document.getElementById('directContextMenu');
+            menu.style.display = 'none';
+
+            fetch('/chat/api/toggle-private-chat/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content
+                },
+                body: JSON.stringify({ username: currentCtxUsername })
+            })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        if (currentCtxElement) {
+                            currentCtxElement.setAttribute('data-following', data.is_private ? 'true' : 'false');
+
+                            // Re-run filter in case we are in Private tab
+                            const activeCatBtn = document.querySelector('.ig-cat-btn.active');
+                            if (activeCatBtn) {
+                                const cat = activeCatBtn.textContent.trim().toLowerCase();
+                                if (cat.includes('private')) filterDirectCategory('private');
+                            }
+                        }
+                        const msg = data.is_private ? 'Added to Private' : 'Removed from Private';
+                        if (typeof showIGToast === 'function') showIGToast(msg, 'success');
+                    } else {
+                        if (typeof showIGToast === 'function') showIGToast(data.error || 'Failed', 'error');
+                    }
+                })
+                .catch(err => console.error(err));
+        }
+
         function filterDirectChats(event) {
             const term = (event?.target?.value || '').toLowerCase().trim();
             document.querySelectorAll('.ig-direct-list .ig-direct-item').forEach(item => {

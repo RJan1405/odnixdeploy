@@ -143,13 +143,16 @@ LOGIN_REDIRECT_URL = '/dashboard/'
 LOGOUT_REDIRECT_URL = '/login/'
 
 # FIXED: Email settings for verification using provided credentials
+# FIXED: Email settings for verification using Gmail
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'mail.vulnix.org'
+EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'intern@vulnix.org'
-EMAIL_HOST_PASSWORD = 'Anag@9987716115'
-DEFAULT_FROM_EMAIL = 'intern@vulnix.org'
+# TODO: Replace with your actual Gmail address
+EMAIL_HOST_USER = 'optinal46@gmail.com'
+# TODO: Replace with your 16-char Google App Password (NOT your login password)
+EMAIL_HOST_PASSWORD = 'qxeo wtqn xpsn jvuv'
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 # For development/testing - uncomment to see emails in console
 # EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'

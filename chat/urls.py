@@ -25,6 +25,7 @@ urlpatterns = [
 
     # Email verification URL
     path('verify-email/<str:token>/', views.verify_email, name='verify_email'),
+    path('verify-email-otp/', views.verify_otp_view, name='verify_email_otp'),
 
     # Main application URLs
     path('dashboard/', views.dashboard, name='dashboard'),
@@ -145,6 +146,7 @@ urlpatterns = [
     # Pin/Unpin Chat (conversation)
     path('api/pin-chat/<int:chat_id>/', views.pin_chat, name='pin_chat'),
     path('api/unpin-chat/<int:chat_id>/', views.unpin_chat, name='unpin_chat'),
+    path('api/toggle-private-chat/', views.toggle_private_chat, name='toggle_private_chat'),
 
     # Hashtag & Mention features
     path('api/hashtag/<str:hashtag>/',

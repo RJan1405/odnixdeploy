@@ -181,6 +181,7 @@
             opacity: 0;
             transform: translateY(20px);
         }
+
         to {
             opacity: 1;
             transform: translateY(0);
@@ -227,6 +228,34 @@
             margin: 0.5rem;
         }
     }
+
+    /* Password Strength Meter */
+    .password-strength-container {
+        margin-top: 0.5rem;
+        width: 100%;
+    }
+
+    .password-strength-bar-bg {
+        height: 4px;
+        background-color: #e1e5e9;
+        border-radius: 2px;
+        margin-bottom: 4px;
+        overflow: hidden;
+    }
+
+    .password-strength-bar {
+        height: 100%;
+        width: 0%;
+        transition: width 0.3s ease, background-color 0.3s ease;
+    }
+
+    .password-strength-text {
+        font-size: 0.85rem;
+        color: #666;
+        display: block;
+        text-align: right;
+        font-weight: 500;
+    }
 </style>
 
 <div class="auth-container">
@@ -237,13 +266,13 @@
         </div>
 
         {% if messages %}
-            <div class="messages">
-                {% for message in messages %}
-                    <div class="alert alert-{{ message.tags }}">
-                        {{ message }}
-                    </div>
-                {% endfor %}
+        <div class="messages">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
             </div>
+            {% endfor %}
+        </div>
         {% endif %}
 
         <form method="post" enctype="multipart/form-data" id="registerForm">
@@ -289,22 +318,29 @@
                 <div class="form-group">
                     <label for="password" class="form-label">Password</label>
                     <input type="password" id="password" name="password" class="form-control" required minlength="6">
+                    <div class="password-strength-container" id="password_strength_container" style="display:none;">
+                        <div class="password-strength-bar-bg">
+                            <div class="password-strength-bar" id="password_strength_bar"></div>
+                        </div>
+                        <span class="password-strength-text" id="password_strength_text"></span>
+                    </div>
                 </div>
 
                 <div class="form-group">
                     <label for="confirm_password" class="form-label">Confirm Password</label>
-                    <input type="password" id="confirm_password" name="confirm_password" class="form-control" required minlength="6">
+                    <input type="password" id="confirm_password" name="confirm_password" class="form-control" required
+                        minlength="6">
                 </div>
             </div>
 
             <div class="form-group">
-                <label class="form-label">Profile Picture (Required) *</label>
+                <label class="form-label">Profile Picture</label>
                 <div class="file-input-group">
                     <label for="profile_picture" class="file-input-label">
                         <i data-lucide="camera"></i>
                         <span id="file-label">Choose Profile Picture</span>
                     </label>
-                    <input type="file" id="profile_picture" name="profile_picture" class="file-input" accept="image/*" required>
+                    <input type="file" id="profile_picture" name="profile_picture" class="file-input" accept="image/*">
                 </div>
                 <div class="file-preview" id="file-preview"></div>
             </div>
@@ -319,64 +355,115 @@
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const fileInput = document.getElementById('profile_picture');
-    const fileLabel = document.getElementById('file-label');
-    const filePreview = document.getElementById('file-preview');
-    const form = document.getElementById('registerForm');
+    document.addEventListener('DOMContentLoaded', function () {
+        const fileInput = document.getElementById('profile_picture');
+        const fileLabel = document.getElementById('file-label');
+        const filePreview = document.getElementById('file-preview');
+        const form = document.getElementById('registerForm');
 
-    // Handle file input change
-    fileInput.addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (file) {
-            fileLabel.textContent = file.name;
+        // Password Strength Logic
+        const passwordInput = document.getElementById('password');
+        const strengthContainer = document.getElementById('password_strength_container');
+        const strengthBar = document.getElementById('password_strength_bar');
+        const strengthText = document.getElementById('password_strength_text');
 
-            // Show preview if it's an image
-            if (file.type.startsWith('image/')) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    filePreview.innerHTML = `<img src="${e.target.result}" class="preview-image" alt="Preview">`;
-                };
-                reader.readAsDataURL(file);
+        if (passwordInput && strengthContainer && strengthBar && strengthText) {
+            passwordInput.addEventListener('input', function () {
+                const val = passwordInput.value;
+                if (val.length === 0) {
+                    strengthContainer.style.display = 'none';
+                    return;
+                }
+                strengthContainer.style.display = 'block';
+
+                let score = 0;
+                if (val.length >= 6) score++;
+                if (val.length >= 10) score++;
+                // Contains uppercase
+                if (/[A-Z]/.test(val)) score++;
+                // Contains numbers
+                if (/[0-9]/.test(val)) score++;
+                // Contains special chars
+                if (/[^A-Za-z0-9]/.test(val)) score++;
+
+                let percent = 0;
+                let color = '#dc3545'; // red
+                let label = 'Too weak';
+
+                if (score <= 1) {
+                    percent = 20;
+                    color = '#dc3545';
+                    label = 'Too weak';
+                } else if (score === 2) {
+                    percent = 40;
+                    color = '#dc3545';
+                    label = 'Weak';
+                } else if (score === 3) {
+                    percent = 60;
+                    color = '#ffc107'; // yellow
+                    label = 'Fair';
+                } else if (score === 4) {
+                    percent = 80;
+                    color = '#0d6efd'; // blue
+                    label = 'Good';
+                } else if (score >= 5) {
+                    percent = 100;
+                    color = '#198754'; // green
+                    label = 'Strong';
+                }
+
+                strengthBar.style.width = percent + '%';
+                strengthBar.style.backgroundColor = color;
+                strengthText.textContent = label;
+                strengthText.style.color = color;
+            });
+        }
+
+        // Handle file input change
+        fileInput.addEventListener('change', function (e) {
+            const file = e.target.files[0];
+            if (file) {
+                fileLabel.textContent = file.name;
+
+                // Show preview if it's an image
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        filePreview.innerHTML = `<img src="${e.target.result}" class="preview-image" alt="Preview">`;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            } else {
+                fileLabel.textContent = 'Choose Profile Picture';
+                filePreview.innerHTML = '';
             }
-        } else {
-            fileLabel.textContent = 'Choose Profile Picture';
-            filePreview.innerHTML = '';
-        }
+        });
+
+        // Form validation
+        form.addEventListener('submit', function (e) {
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirm_password').value;
+            const profilePicture = document.getElementById('profile_picture').files[0];
+
+            // Check if selected file is an image (only if a file is selected)
+            if (profilePicture && !profilePicture.type.startsWith('image/')) {
+                e.preventDefault();
+                alert('Please select a valid image file!');
+                return false;
+            }
+
+            if (password !== confirmPassword) {
+                e.preventDefault();
+                alert('Passwords do not match!');
+                return false;
+            }
+
+            if (password.length < 6) {
+                e.preventDefault();
+                alert('Password must be at least 6 characters long!');
+                return false;
+            }
+        });
     });
-
-    // Form validation
-    form.addEventListener('submit', function(e) {
-        const password = document.getElementById('password').value;
-        const confirmPassword = document.getElementById('confirm_password').value;
-        const profilePicture = document.getElementById('profile_picture').files[0];
-
-        // Check if profile picture is selected
-        if (!profilePicture) {
-            e.preventDefault();
-            alert('Please select a profile picture!');
-            return false;
-        }
-
-        // Check if selected file is an image
-        if (!profilePicture.type.startsWith('image/')) {
-            e.preventDefault();
-            alert('Please select a valid image file!');
-            return false;
-        }
-
-        if (password !== confirmPassword) {
-            e.preventDefault();
-            alert('Passwords do not match!');
-            return false;
-        }
-
-        if (password.length < 6) {
-            e.preventDefault();
-            alert('Password must be at least 6 characters long!');
-            return false;
-        }
-    });
-});
 </script>
 {% endblock %}
