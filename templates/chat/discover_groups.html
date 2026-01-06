@@ -130,7 +130,7 @@
         overflow: hidden;
     }
 
-    .explore-reel-play-icon {
+    .explore-omzo-play-icon {
         position: absolute;
         top: 8px;
         right: 8px;
@@ -146,12 +146,12 @@
         transition: background 0.2s;
     }
 
-    .explore-card:hover .explore-reel-play-icon {
+    .explore-card:hover .explore-omzo-play-icon {
         background: rgba(255, 255, 255, 0.6);
     }
 
-    .explore-reel-play-icon i,
-    .explore-reel-play-icon svg {
+    .explore-omzo-play-icon i,
+    .explore-omzo-play-icon svg {
         width: 16px;
         height: 16px;
         color: white;
@@ -622,19 +622,19 @@
                 </div>
             </article>
             {% endwith %}
-            {% elif item.type == 'reel' %}
-            {% with reel=item.object %}
-            <article class="explore-card" data-type="reel"
-                data-search-text="{{ reel.user.full_name|default:reel.user.username }} @{{ reel.user.username }} {{ reel.caption }}"
-                onclick="openReelInOmzo({{ reel.id }})">
+            {% elif item.type == 'omzo' %}
+            {% with omzo=item.object %}
+            <article class="explore-card" data-type="omzo"
+                data-search-text="{{ omzo.user.full_name|default:omzo.user.username }} @{{ omzo.user.username }} {{ omzo.caption }}"
+                onclick="openOmzoInOmzo({{ omzo.id }})">
                 <div class="explore-card-media-container">
-                    {% if reel.video_file %}
+                    {% if omzo.video_file %}
                     <video class="explore-card-media" muted autoplay loop playsinline
-                        onclick="event.stopPropagation(); openReelInOmzo({{ reel.id }})">
-                        <source src="{{ reel.video_file.url }}" type="video/mp4">
+                        onclick="event.stopPropagation(); openOmzoInOmzo({{ omzo.id }})">
+                        <source src="{{ omzo.video_file.url }}" type="video/mp4">
                     </video>
-                    <div class="explore-reel-play-icon"
-                        onclick="event.stopPropagation(); openReelInOmzo({{ reel.id }})">
+                    <div class="explore-omzo-play-icon"
+                        onclick="event.stopPropagation(); openOmzoInOmzo({{ omzo.id }})">
                         <i data-lucide="play"></i>
                     </div>
                     {% else %}
@@ -645,8 +645,8 @@
                     {% endif %}
                     <div class="explore-card-overlay">
                         <div class="explore-card-tag">Omzo</div>
-                        {% if reel.caption %}
-                        <div class="explore-card-caption">{{ reel.caption|truncatewords:15 }}</div>
+                        {% if omzo.caption %}
+                        <div class="explore-card-caption">{{ omzo.caption|truncatewords:15 }}</div>
                         {% endif %}
                     </div>
                 </div>
@@ -721,13 +721,13 @@
     </div>
 </div>
 
-<!-- Reel Modal -->
-<div class="post-modal-overlay" id="reelModal">
+<!-- Omzo Modal -->
+<div class="post-modal-overlay" id="omzoModal">
     <div class="post-modal-content">
-        <button class="post-modal-close" onclick="document.getElementById('reelModal').classList.remove('show')">
+        <button class="post-modal-close" onclick="document.getElementById('omzoModal').classList.remove('show')">
             <i data-lucide="x"></i>
         </button>
-        <div class="post-modal-body" id="reelModalBody"></div>
+        <div class="post-modal-body" id="omzoModalBody"></div>
     </div>
 </div>
 
@@ -950,10 +950,10 @@
         modal.classList.remove('show');
     }
 
-    function openReelInOmzo(reelId) {
+    function openOmzoInOmzo(omzoId) {
         sessionStorage.setItem('exploreScrollPosition', window.scrollY);
         sessionStorage.setItem('exploreReturnPage', window.location.pathname);
-        window.location.href = `/chat/reels/?reel=${reelId}`;
+        window.location.href = `/chat/omzo/?omzo=${omzoId}`;
     }
 
     function filterExploreContent(query) {
@@ -1156,12 +1156,12 @@
                 </div>
             `;
 
-        } else if (item.type === 'reel') {
+        } else if (item.type === 'omzo') {
             article.setAttribute('data-search-text', `${item.user.full_name} @${item.user.username} ${item.caption}`);
-            article.onclick = () => openReelInOmzo(item.id);
+            article.onclick = () => openOmzoInOmzo(item.id);
 
             const mediaHTML = item.video_url ?
-                `<video class="explore-card-media" muted autoplay loop playsinline onclick="event.stopPropagation(); openReelInOmzo(${item.id})"><source src="${item.video_url}" type="video/mp4"></video><div class="explore-reel-play-icon" onclick="event.stopPropagation(); openReelInOmzo(${item.id})"><i data-lucide="play"></i></div>` :
+                `<video class="explore-card-media" muted autoplay loop playsinline onclick="event.stopPropagation(); openOmzoInOmzo(${item.id})"><source src="${item.video_url}" type="video/mp4"></video><div class="explore-omzo-play-icon" onclick="event.stopPropagation(); openOmzoInOmzo(${item.id})"><i data-lucide="play"></i></div>` :
                 `<div class="explore-card-media" style="background: var(--ig-surface-hover); display: flex; align-items: center; justify-content: center;"><i data-lucide="video" style="width: 48px; height: 48px; opacity: 0.3;"></i></div>`;
 
             content = `
@@ -1422,8 +1422,8 @@
             if (item.image_url) { imageHtml = `<img src="${item.image_url}" class="explore-card-media">`; }
             else if (item.data.has_code) { imageHtml = `<div class="explore-card-media" style="background:#263238;display:flex;align-items:center;justify-content:center;"><i data-lucide="code" style="width:48px;height:48px;color:#fff;opacity:0.8;"></i></div>`; }
             else { imageHtml = `<div class="explore-card-media" style="background:#f0f2f5;display:flex;align-items:center;justify-content:center;"><div style="padding:20px;font-size:12px;overflow:hidden;">${item.data.content || 'Text Post'}</div></div>`; }
-        } else if (item.type === 'reel') {
-            clickAction = `openReelInOmzo(${item.id})`;
+        } else if (item.type === 'omzo') {
+            clickAction = `openOmzoInOmzo(${item.id})`;
             icon = 'video'; tag = 'Omzo';
             if (item.image_url) { imageHtml = `<video src="${item.image_url}" class="explore-card-media" muted></video>`; }
             else { imageHtml = `<div class="explore-card-media" style="background:#000;display:flex;align-items:center;justify-content:center;"><i data-lucide="video" style="width:48px;height:48px;color:#fff;"></i></div>`; }

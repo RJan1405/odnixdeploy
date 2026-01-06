@@ -28,8 +28,8 @@ from .social import (
     global_search,
     get_profile_followers, get_profile_following,
     toggle_save_post, delete_post, report_post, get_saved_posts, copy_post_link,
-    view_post, reels_view, upload_reel, toggle_reel_like, add_reel_comment, get_reel_comments,
-    track_reel_view, report_reel, toggle_private_chat
+    view_post, omzo_view, upload_omzo, toggle_omzo_like, add_omzo_comment, get_omzo_comments,
+    track_omzo_view, report_omzo, toggle_private_chat
 )
 from .stories import (
     create_story, view_story, get_user_stories, mark_story_viewed,

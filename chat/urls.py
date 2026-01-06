@@ -146,7 +146,8 @@ urlpatterns = [
     # Pin/Unpin Chat (conversation)
     path('api/pin-chat/<int:chat_id>/', views.pin_chat, name='pin_chat'),
     path('api/unpin-chat/<int:chat_id>/', views.unpin_chat, name='unpin_chat'),
-    path('api/toggle-private-chat/', views.toggle_private_chat, name='toggle_private_chat'),
+    path('api/toggle-private-chat/', views.toggle_private_chat,
+         name='toggle_private_chat'),
 
     # Hashtag & Mention features
     path('api/hashtag/<str:hashtag>/',
@@ -205,15 +206,15 @@ urlpatterns = [
     path('api/call/notify/', views.send_call_notification,
          name='send_call_notification'),
 
-    # Reels
-    path('reels/', views.reels_view, name='reels'),
-    path('api/reels/upload/', views.upload_reel, name='upload_reel'),
-    path('api/reels/like/', views.toggle_reel_like, name='toggle_reel_like'),
-    path('api/reels/track-view/', views.track_reel_view, name='track_reel_view'),
-    path('api/reels/<int:reel_id>/comments/',
-         views.get_reel_comments, name='get_reel_comments'),
-    path('api/reels/comment/', views.add_reel_comment, name='add_reel_comment'),
-    path('api/reels/report/', views.report_reel, name='report_reel'),
+    # Omzo
+    path('omzo/', views.omzo_view, name='omzo'),
+    path('api/omzo/upload/', views.upload_omzo, name='upload_omzo'),
+    path('api/omzo/like/', views.toggle_omzo_like, name='toggle_omzo_like'),
+    path('api/omzo/track-view/', views.track_omzo_view, name='track_omzo_view'),
+    path('api/omzo/<int:omzo_id>/comments/',
+         views.get_omzo_comments, name='get_omzo_comments'),
+    path('api/omzo/comment/', views.add_omzo_comment, name='add_omzo_comment'),
+    path('api/omzo/report/', views.report_omzo, name='report_omzo'),
 ]
 
 # Serve media files in development

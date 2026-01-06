@@ -898,9 +898,9 @@
                 <i data-lucide="compass"
                     class="ig-nav-icon {% if request.resolver_match.url_name == 'discover_groups' %}active{% endif %}"></i>
             </a>
-            <a href="{% url 'reels' %}" title="Omzo">
+            <a href="{% url 'omzo' %}" title="Omzo">
                 <i data-lucide="play-square"
-                    class="ig-nav-icon {% if request.resolver_match.url_name == 'reels' %}active{% endif %}"></i>
+                    class="ig-nav-icon {% if request.resolver_match.url_name == 'omzo' %}active{% endif %}"></i>
             </a>
             <button onclick="openActivityPanel()" title="Activity">
                 <i data-lucide="heart" class="ig-nav-icon"></i>
@@ -946,8 +946,8 @@
         title="Discover">
         <i data-lucide="compass"></i>
     </a>
-    <a href="{% url 'reels' %}"
-        class="ig-bottom-nav-item {% if request.resolver_match.url_name == 'reels' %}active{% endif %}" title="Omzo">
+    <a href="{% url 'omzo' %}"
+        class="ig-bottom-nav-item {% if request.resolver_match.url_name == 'omzo' %}active{% endif %}" title="Omzo">
         <i data-lucide="play-square"></i>
     </a>
     <button class="ig-bottom-nav-item" onclick="navCreatePost()" title="Create">
@@ -1645,12 +1645,12 @@
         }
     }
 
-    function triggerGlobalReelCreate() {
+    function triggerGlobalOmzoCreate() {
         closeCreateSelectionModal();
         document.getElementById('globalReelInput').click();
     }
 
-    // handleGlobalReelUpload is defined in base.html with proper modal support
+    // handleGlobalOmzoUpload is defined in base.html with proper modal support
 
     function navCreateGroup() {
         if (typeof window.openCreateGroupModal === 'function') {
@@ -1683,7 +1683,7 @@
                 <i data-lucide="image" style="width: 20px; height: 20px;"></i>
                 <span style="font-weight: 500; font-size: 15px;">Scribe</span>
             </button>
-            <button onclick="triggerGlobalReelCreate()"
+            <button onclick="triggerGlobalOmzoCreate()"
                 style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; border: 1px solid var(--border-color, #dbdbdb); border-radius: 8px; background: transparent; cursor: pointer; text-align: left; transition: background 0.2s; color: var(--text-primary, #000);">
                 <i data-lucide="play-square" style="width: 20px; height: 20px;"></i>
                 <span style="font-weight: 500; font-size: 15px;">Omzo</span>

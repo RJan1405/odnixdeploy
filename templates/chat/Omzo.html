@@ -36,7 +36,7 @@
         display: none;
     }
 
-    .reel-item {
+    .omzo-item {
         height: 100%;
         width: 100%;
         scroll-snap-align: start;
@@ -48,14 +48,14 @@
         background: #111;
     }
 
-    .reel-video {
+    .omzo-video {
         width: 100%;
         height: 100%;
         object-fit: cover;
         /* Immersive full screen */
     }
 
-    .reel-play-overlay {
+    .omzo-play-overlay {
         position: absolute;
         top: 0;
         left: 0;
@@ -69,12 +69,12 @@
         z-index: 15;
     }
 
-    .reel-video:paused~.reel-play-overlay {
+    .omzo-video:paused~.omzo-play-overlay {
         display: flex;
     }
 
     /* Overlays */
-    .reel-overlay {
+    .omzo-overlay {
         position: absolute;
         bottom: 0;
         left: 0;
@@ -89,11 +89,11 @@
         /* Let clicks pass through to video */
     }
 
-    .reel-info {
+    .omzo-info {
         pointer-events: auto;
     }
 
-    .reel-actions {
+    .omzo-actions {
         position: absolute;
         right: 16px;
         bottom: 120px;
@@ -157,13 +157,13 @@
             height: 32px !important;
         }
 
-        .reel-actions {
+        .omzo-actions {
             right: 20px;
             gap: 16px;
         }
     }
 
-    .reel-user {
+    .omzo-user {
         display: flex;
         align-items: center;
         gap: 10px;
@@ -171,21 +171,21 @@
         font-weight: 600;
     }
 
-    .reel-avatar {
+    .omzo-avatar {
         width: 36px;
         height: 36px;
         border-radius: 30%;
         border: 2px solid white;
     }
 
-    .reel-caption {
+    .omzo-caption {
         font-size: 14px;
         margin-bottom: 10px;
         line-height: 1.4;
         text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
     }
 
-    .reel-audio {
+    .omzo-audio {
         display: flex;
         align-items: center;
         gap: 8px;
@@ -227,7 +227,7 @@
     }
 
     /* ===== Custom Toast Notifications for Omzo ===== */
-    .reel-toast-container {
+    .omzo-toast-container {
         position: fixed;
         top: 80px;
         left: 50%;
@@ -239,7 +239,7 @@
         pointer-events: none;
     }
 
-    .reel-toast {
+    .omzo-toast {
         background: rgba(30, 30, 30, 0.95);
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
@@ -257,61 +257,61 @@
         border: 1px solid rgba(255, 255, 255, 0.1);
     }
 
-    .reel-toast.success {
+    .omzo-toast.success {
         border-left: 4px solid #4ade80;
     }
 
-    .reel-toast.error {
+    .omzo-toast.error {
         border-left: 4px solid #f87171;
     }
 
-    .reel-toast.info {
+    .omzo-toast.info {
         border-left: 4px solid #60a5fa;
     }
 
-    .reel-toast.uploading {
+    .omzo-toast.uploading {
         border-left: 4px solid #fbbf24;
     }
 
-    .reel-toast-icon {
+    .omzo-toast-icon {
         width: 24px;
         height: 24px;
         flex-shrink: 0;
     }
 
-    .reel-toast.success .reel-toast-icon {
+    .omzo-toast.success .omzo-toast-icon {
         color: #4ade80;
     }
 
-    .reel-toast.error .reel-toast-icon {
+    .omzo-toast.error .omzo-toast-icon {
         color: #f87171;
     }
 
-    .reel-toast.info .reel-toast-icon {
+    .omzo-toast.info .omzo-toast-icon {
         color: #60a5fa;
     }
 
-    .reel-toast.uploading .reel-toast-icon {
+    .omzo-toast.uploading .omzo-toast-icon {
         color: #fbbf24;
     }
 
-    .reel-toast-content {
+    .omzo-toast-content {
         flex: 1;
     }
 
-    .reel-toast-title {
+    .omzo-toast-title {
         font-weight: 600;
         font-size: 14px;
         margin-bottom: 2px;
     }
 
-    .reel-toast-message {
+    .omzo-toast-message {
         font-size: 13px;
         opacity: 0.9;
         line-height: 1.4;
     }
 
-    .reel-toast-progress {
+    .omzo-toast-progress {
         height: 3px;
         background: rgba(255, 255, 255, 0.2);
         border-radius: 2px;
@@ -319,7 +319,7 @@
         overflow: hidden;
     }
 
-    .reel-toast-progress-bar {
+    .omzo-toast-progress-bar {
         height: 100%;
         background: linear-gradient(90deg, #fbbf24, #f59e0b);
         border-radius: 2px;
@@ -366,7 +366,7 @@
     }
 
     /* ===== Comments Modal ===== */
-    .reel-comments-modal {
+    .omzo-comments-modal {
         display: none;
         position: fixed;
         bottom: 0;
@@ -379,11 +379,11 @@
         justify-content: center;
     }
 
-    .reel-comments-modal.show {
+    .omzo-comments-modal.show {
         display: flex;
     }
 
-    .reel-comments-container {
+    .omzo-comments-container {
         background: #1e1e1e;
         width: 100%;
         max-width: 450px;
@@ -404,7 +404,7 @@
         }
     }
 
-    .reel-comments-header {
+    .omzo-comments-header {
         padding: 16px 20px;
         border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         display: flex;
@@ -412,14 +412,14 @@
         justify-content: space-between;
     }
 
-    .reel-comments-header h3 {
+    .omzo-comments-header h3 {
         color: white;
         font-size: 16px;
         font-weight: 600;
         margin: 0;
     }
 
-    .reel-comments-close {
+    .omzo-comments-close {
         background: none;
         border: none;
         color: white;
@@ -431,24 +431,24 @@
         justify-content: center;
     }
 
-    .reel-comments-close:hover {
+    .omzo-comments-close:hover {
         background: rgba(255, 255, 255, 0.1);
     }
 
-    .reel-comments-list {
+    .omzo-comments-list {
         flex: 1;
         overflow-y: auto;
         padding: 16px 20px;
         min-height: 200px;
     }
 
-    .reel-comment-item {
+    .omzo-comment-item {
         display: flex;
         gap: 12px;
         margin-bottom: 16px;
     }
 
-    .reel-comment-avatar {
+    .omzo-comment-avatar {
         width: 36px;
         height: 36px;
         border-radius: 50%;
@@ -456,44 +456,44 @@
         flex-shrink: 0;
     }
 
-    .reel-comment-content {
+    .omzo-comment-content {
         flex: 1;
     }
 
-    .reel-comment-username {
+    .omzo-comment-username {
         color: white;
         font-weight: 600;
         font-size: 14px;
         margin-bottom: 2px;
     }
 
-    .reel-comment-text {
+    .omzo-comment-text {
         color: rgba(255, 255, 255, 0.9);
         font-size: 14px;
         line-height: 1.4;
     }
 
-    .reel-comment-time {
+    .omzo-comment-time {
         color: rgba(255, 255, 255, 0.5);
         font-size: 12px;
         margin-top: 4px;
     }
 
-    .reel-comments-empty {
+    .omzo-comments-empty {
         text-align: center;
         padding: 40px 20px;
         color: rgba(255, 255, 255, 0.6);
     }
 
-    .reel-comments-empty i,
-    .reel-comments-empty svg {
+    .omzo-comments-empty i,
+    .omzo-comments-empty svg {
         width: 48px;
         height: 48px;
         opacity: 0.5;
         margin-bottom: 12px;
     }
 
-    .reel-comments-input-container {
+    .omzo-comments-input-container {
         padding: 12px 16px;
         border-top: 1px solid rgba(255, 255, 255, 0.1);
         display: flex;
@@ -502,7 +502,7 @@
         background: #262626;
     }
 
-    .reel-comments-input {
+    .omzo-comments-input {
         flex: 1;
         background: #3a3a3a;
         border: none;
@@ -513,11 +513,11 @@
         outline: none;
     }
 
-    .reel-comments-input::placeholder {
+    .omzo-comments-input::placeholder {
         color: rgba(255, 255, 255, 0.5);
     }
 
-    .reel-comments-submit {
+    .omzo-comments-submit {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         border: none;
         color: white;
@@ -529,11 +529,11 @@
         transition: opacity 0.2s;
     }
 
-    .reel-comments-submit:hover {
+    .omzo-comments-submit:hover {
         opacity: 0.9;
     }
 
-    .reel-comments-submit:disabled {
+    .omzo-comments-submit:disabled {
         opacity: 0.5;
         cursor: not-allowed;
     }
@@ -831,74 +831,74 @@
     <!-- Navbar is included in base. For omzo we might want a minimal transparent header or just use absolute positioning -->
 
     <div class="omzo-container" id="omzoContainer">
-        {% for reel in reels %}
-        <div class="reel-item" data-id="{{ reel.id }}">
-            <video class="reel-video lazy-reel" loop playsinline {% if reel.is_muted %}muted{% endif %}
-                data-src="{{ reel.url }}" onclick="toggleReelPlay(this)" data-is-muted="{{ reel.is_muted|lower }}"
-                poster="{{ reel.thumbnail_url|default:'' }}"></video>
+        {% for omzo in omzos %}
+        <div class="omzo-item" data-id="{{ omzo.id }}">
+            <video class="omzo-video lazy-omzo" loop playsinline {% if omzo.is_muted %}muted{% endif %}
+                data-src="{{ omzo.url }}" onclick="toggleOmzoPlay(this)" data-is-muted="{{ omzo.is_muted|lower }}"
+                poster="{{ omzo.thumbnail_url|default:'' }}"></video>
 
-            <div class="reel-actions">
+            <div class="omzo-actions">
                 <!--<button class="action-btn" style="cursor: default;" title="Views">
                     <i data-lucide="eye"></i>
-                    <span class="view-count">{{ reel.views }}</span>
+                    <span class="view-count">{{ omzo.views }}</span>
                 </button>-->
-                <button class="action-btn mute-btn" onclick="toggleReelMute(this, event)" data-muted="false"
+                <button class="action-btn mute-btn" onclick="toggleOmzoMute(this, event)" data-muted="false"
                     title="Toggle sound">
                     <i data-lucide="volume-x"></i>
                 </button>
-                <button class="action-btn" onclick="toggleReelLike({{ reel.id }}, this)" title="Like">
-                    <i data-lucide="heart" class="{% if reel.is_liked %}liked-heart{% endif %}"></i>
-                    <span class="like-count">{{ reel.likes }}</span>
+                <button class="action-btn" onclick="toggleOmzoLike({{ omzo.id }}, this)" title="Like">
+                    <i data-lucide="heart" class="{% if omzo.is_liked %}liked-heart{% endif %}"></i>
+                    <span class="like-count">{{ omzo.likes }}</span>
                 </button>
-                <button class="action-btn" onclick="openReelComments({{ reel.id }})" title="Comments">
+                <button class="action-btn" onclick="openOmzoComments({{ omzo.id }})" title="Comments">
                     <i data-lucide="message-circle"></i>
-                    <span class="comment-count" data-reel-id="{{ reel.id }}">{{ reel.comments_count }}</span>
+                    <span class="comment-count" data-omzo-id="{{ omzo.id }}">{{ omzo.comments_count }}</span>
                 </button>
-                <button class="action-btn" onclick="shareReel('{{ reel.url }}')" title="Share">
+                <button class="action-btn" onclick="shareOmzo('{{ omzo.url }}')" title="Share">
                     <i data-lucide="share-2"></i>
                     <span>Share</span>
                 </button>
-                <button class="action-btn" onclick="openReportModal({{ reel.id }})" title="More">
+                <button class="action-btn" onclick="openReportModal({{ omzo.id }})" title="More">
                     <i data-lucide="more-vertical"></i>
                     <span>Report</span>
                 </button>
             </div>
 
-            <div class="reel-overlay">
-                <div class="reel-info">
-                    <div class="reel-user">
-                        <img src="{% if reel.user.profile_picture %}{{ reel.user.profile_picture.url }}{% else %}https://ui-avatars.com/api/?name={{ reel.user.username }}{% endif %}"
-                            class="reel-avatar">
-                        <span>{{ reel.user.username }}</span>
-                        {% if user != reel.user %}
-                        {% if reel.is_following %}
-                        <button class="reel-follow-btn" onclick="toggleReelFollow('{{ reel.user.username }}', this)"
+            <div class="omzo-overlay">
+                <div class="omzo-info">
+                    <div class="omzo-user">
+                        <img src="{% if omzo.user.profile_picture %}{{ omzo.user.profile_picture.url }}{% else %}https://ui-avatars.com/api/?name={{ omzo.user.username }}{% endif %}"
+                            class="omzo-avatar">
+                        <span>{{ omzo.user.username }}</span>
+                        {% if user != omzo.user %}
+                        {% if omzo.is_following %}
+                        <button class="omzo-follow-btn" onclick="toggleOmzoFollow('{{ omzo.user.username }}', this)"
                             style="background: transparent; border: 1px solid rgba(255,255,255,0.4); color: rgba(255,255,255,0.8); border-radius: 6px; padding: 4px 12px; font-size: 12px; font-weight: 600; margin-left: 10px; cursor: pointer;">Following</button>
                         {% else %}
-                        <button class="reel-follow-btn" onclick="toggleReelFollow('{{ reel.user.username }}', this)"
+                        <button class="omzo-follow-btn" onclick="toggleOmzoFollow('{{ omzo.user.username }}', this)"
                             style="background: var(--odnix-gradient); border: none; color: white; border-radius: 6px; padding: 4px 12px; font-size: 12px; font-weight: 600; margin-left: 10px; cursor: pointer;">Follow</button>
                         {% endif %}
                         {% endif %}
                     </div>
-                    {% if reel.caption %}
-                    <p class="reel-caption">{{ reel.caption }}</p>
+                    {% if omzo.caption %}
+                    <p class="omzo-caption">{{ omzo.caption }}</p>
                     {% endif %}
-                    <div class="reel-audio">
+                    <div class="omzo-audio">
                         <i data-lucide="music-2" style="width: 14px; height: 14px;"></i>
-                        <span style="font-weight: 500;">Original Audio • {{ reel.user.username }}</span>
+                        <span style="font-weight: 500;">Original Audio • {{ omzo.user.username }}</span>
                     </div>
                 </div>
             </div>
         </div>
         {% empty %}
-        <div class="reel-item" style="background: #000; color: white;">
+        <div class="omzo-item" style="background: #000; color: white;">
             <div style="text-align: center; padding: 20px;">
                 <i data-lucide="film" style="width: 64px; height: 64px; opacity: 0.5; margin-bottom: 20px;"></i>
                 <h3>No Omzo yet</h3>
                 <p style="opacity: 0.7; margin-top: 10px;">Be the first to create one!</p>
-                <button onclick="document.getElementById('uploadReelInput').click()" style="margin-top: 20px; background: var(--odnix-gradient); border: none; padding: 10px 20px;
+                <button onclick="document.getElementById('uploadOmzoInput').click()" style="margin-top: 20px; background: var(--odnix-gradient); border: none; padding: 10px 20px;
                 border-radius: 20px; color: white; font-weight: 600; cursor: pointer;">Create
-                    Reel</button>
+                    Omzo</button>
                 <p style="color: #ff4444; font-size: 12px; margin-top: 10px; font-weight: 500;">Note: Omzo should be 2
                     mins max</p>
             </div>
@@ -930,27 +930,27 @@
 
 
     <!-- Upload FAB removed as per requirement -->
-    <input type="file" id="uploadReelInput" accept="video/*" style="display: none;" onchange="handleReelUpload(this)">
+    <input type="file" id="uploadOmzoInput" accept="video/*" style="display: none;" onchange="handleOmzoUpload(this)">
 
     <!-- Toast Container -->
-    <div class="reel-toast-container" id="reelToastContainer"></div>
+    <div class="omzo-toast-container" id="omzoToastContainer"></div>
 
     <!-- Comments Modal -->
-    <div class="reel-comments-modal" id="reelCommentsModal" onclick="closeReelComments(event)">
-        <div class="reel-comments-container" onclick="event.stopPropagation()">
-            <div class="reel-comments-header">
+    <div class="omzo-comments-modal" id="omzoCommentsModal" onclick="closeOmzoComments(event)">
+        <div class="omzo-comments-container" onclick="event.stopPropagation()">
+            <div class="omzo-comments-header">
                 <h3>Comments</h3>
-                <button class="reel-comments-close" onclick="closeReelComments()">
+                <button class="omzo-comments-close" onclick="closeOmzoComments()">
                     <i data-lucide="x" style="width: 20px; height: 20px;"></i>
                 </button>
             </div>
-            <div class="reel-comments-list" id="reelCommentsList">
+            <div class="omzo-comments-list" id="omzoCommentsList">
                 <!-- Comments will be loaded here -->
             </div>
-            <div class="reel-comments-input-container">
-                <input type="text" class="reel-comments-input" id="reelCommentInput" placeholder="Add a comment..."
-                    onkeydown="if(event.key === 'Enter') submitReelComment()">
-                <button class="reel-comments-submit" onclick="submitReelComment()">Post</button>
+            <div class="omzo-comments-input-container">
+                <input type="text" class="omzo-comments-input" id="omzoCommentInput" placeholder="Add a comment..."
+                    onkeydown="if(event.key === 'Enter') submitOmzoComment()">
+                <button class="omzo-comments-submit" onclick="submitOmzoComment()">Post</button>
             </div>
         </div>
     </div>
@@ -959,7 +959,7 @@
     <div class="caption-modal" id="captionModal">
         <div class="caption-modal-content">
             <div class="caption-modal-header">
-                <h3>New Reel</h3>
+                <h3>New Omzo</h3>
                 <button class="caption-modal-close" onclick="closeCaptionModal()">
                     <i data-lucide="x" style="width: 20px; height: 20px;"></i>
                 </button>
@@ -968,12 +968,12 @@
                 <div class="caption-preview">
                     <video id="captionPreviewVideo" muted loop></video>
                 </div>
-                <textarea class="caption-input" id="captionInput" placeholder="Write a caption for your reel..."
+                <textarea class="caption-input" id="captionInput" placeholder="Write a caption for your omzo..."
                     maxlength="500"></textarea>
             </div>
             <div class="caption-modal-actions">
                 <button class="caption-modal-btn cancel" onclick="closeCaptionModal()">Cancel</button>
-                <button class="caption-modal-btn submit" onclick="submitReel()">Share Reel</button>
+                <button class="caption-modal-btn submit" onclick="submitOmzo()">Share Omzo</button>
             </div>
         </div>
     </div>
@@ -1006,12 +1006,12 @@
                             <!-- Copyright Type Selection -->
                             <div style="margin-bottom: 12px;">
                                 <label style="display: flex; align-items: center; margin-bottom: 8px; cursor: pointer;">
-                                    <input type="checkbox" id="isAudioCopyrightReel"
+                                    <input type="checkbox" id="isAudioCopyrightOmzo"
                                         style="margin-right: 10px; cursor: pointer;">
                                     <span style="font-size: 13px;">Audio is copyrighted</span>
                                 </label>
                                 <label style="display: flex; align-items: center; cursor: pointer;">
-                                    <input type="checkbox" id="isContentCopyrightReel"
+                                    <input type="checkbox" id="isContentCopyrightOmzo"
                                         style="margin-right: 10px; cursor: pointer;">
                                     <span style="font-size: 13px;">Content/Media is copyrighted</span>
                                 </label>
@@ -1019,7 +1019,7 @@
 
                             <!-- Copyright Description -->
                             <div style="margin-bottom: 12px;">
-                                <textarea id="copyrightDescriptionReel"
+                                <textarea id="copyrightDescriptionOmzo"
                                     placeholder="Optional: Describe the copyright infringement" style="
                                         width: 100%;
                                         padding: 8px 10px;
@@ -1039,13 +1039,13 @@
                                 <label style="display: flex; align-items: center; cursor: pointer; margin-top: 8px;">
                                     <input type="checkbox" id="disableAudioCheckbox"
                                         style="margin-right: 10px; cursor: pointer;">
-                                    <span style="font-size: 13px;">Disable audio for this reel</span>
+                                    <span style="font-size: 13px;">Disable audio for this omzo</span>
                                 </label>
                                 <p style="font-size: 11px; opacity: 0.7; margin: 6px 0 0 24px;">Audio will be muted for
                                     all users</p>
 
                                 <!-- Admin Navigation Button -->
-                                <button id="adminNavBtn" onclick="openReelAdmin()" style="
+                                <button id="adminNavBtn" onclick="openOmzoAdmin()" style="
                                     margin-top: 10px;
                                     padding: 8px 12px;
                                     background: rgba(255, 165, 0, 0.2);
@@ -1087,7 +1087,7 @@
             </div>
             <div class="report-modal-actions">
                 <button class="report-btn cancel" onclick="closeReportModal()">Cancel</button>
-                <button class="report-btn submit" onclick="submitReelReport()">Submit Report</button>
+                <button class="report-btn submit" onclick="submitOmzoReport()">Submit Report</button>
             </div>
         </div>
     </div>
@@ -1095,10 +1095,10 @@
 
 <script>
     // Global state
-    let currentReelId = null;
-    let pendingReelFile = null;
+    let currentOmzoId = null;
+    let pendingOmzoFile = null;
 
-    // --- NEW REELS LOGIC START ---
+    // --- NEW OMZO LOGIC START ---
     // Optimistic: Default to TRUE (Sound On) if no preference is saved.
     // This attempts to play sound immediately. If browser blocks it, our fail-safe handles it.
     let storedSoundObj = localStorage.getItem('omzo_sound_unlocked');
@@ -1106,7 +1106,7 @@
 
     // Safe autoplay
     function autoPlay(video) {
-        // Check if reel is globally muted (disabled by admin)
+        // Check if omzo is globally muted (disabled by admin)
         const isGloballyMuted = video.dataset.isMuted === 'true';
 
         // If globally muted, always mute. Otherwise, try to respect preference
@@ -1125,9 +1125,9 @@
                     video.muted = true;
                     video.play().then(() => {
                         // Inform user ONLY if they expected sound (soundUnlocked is true)
-                        // AND the reel is not globally muted
+                        // AND the omzo is not globally muted
                         if (soundUnlocked && !isGloballyMuted) {
-                            showReelToast('Tap to Unmute', 'Browser blocked auto-sound', 'info', false);
+                            showOmzoToast('Tap to Unmute', 'Browser blocked auto-sound', 'info', false);
                         }
                     });
                 }
@@ -1138,7 +1138,7 @@
     // Single source of truth for Icon Sync
     // When the browser or our code changes video.muted, this updates the icon.
     function syncMuteIcon(video) {
-        const btn = video.closest('.reel-item').querySelector('.mute-btn');
+        const btn = video.closest('.omzo-item').querySelector('.mute-btn');
         if (!btn) return;
         const icon = btn.querySelector('i') || btn.querySelector('svg');
         if (icon) {
@@ -1147,8 +1147,8 @@
         }
     }
 
-    // IntersectionObserver for reels
-    const viewedReels = new Set();
+    // IntersectionObserver for OMZO
+    const viewedOmzo = new Set();
     const observer = new IntersectionObserver(entries => {
         entries.forEach(entry => {
             const video = entry.target.querySelector('video');
@@ -1171,34 +1171,34 @@
                 syncMuteIcon(video);
 
                 // Track View (Real-time)
-                const reelId = video.closest('.reel-item').dataset.id;
-                if (reelId && !viewedReels.has(reelId)) {
-                    viewedReels.add(reelId);
-                    trackReelView(reelId);
+                const omzoId = video.closest('.omzo-item').dataset.id;
+                if (omzoId && !viewedOmzo.has(omzoId)) {
+                    viewedOmzo.add(omzoId);
+                    trackOmzoView(omzoId);
                 }
 
             } else {
                 video.pause();
-                // We DO NOT reset soundUnlocked here. If user left sound on, it stays on for the next reel.
+                // We DO NOT reset soundUnlocked here. If user left sound on, it stays on for the next omzo.
             }
         });
     }, { threshold: 0.6 });
 
-    // Track Reel View API
-    function trackReelView(reelId) {
-        fetch('/chat/api/reels/track-view/', {
+    // Track Omzo View API
+    function trackOmzoView(omzoId) {
+        fetch('/chat/api/omzo/track-view/', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRFToken': '{{ csrf_token }}'
             },
-            body: JSON.stringify({ reel_id: reelId })
+            body: JSON.stringify({ omzo_id: omzoId })
         }).catch(err => console.error('Error tracking view:', err));
     }
 
-    // Observe all reels
+    // Observe all omzo items
     document.addEventListener('DOMContentLoaded', () => {
-        document.querySelectorAll('.reel-item').forEach(item => {
+        document.querySelectorAll('.omzo-item').forEach(item => {
             observer.observe(item);
         });
         if (typeof lucide !== 'undefined') {
@@ -1207,7 +1207,7 @@
     });
 
     // Play/Pause on Tap
-    function toggleReelPlay(video) {
+    function toggleOmzoPlay(video) {
         if (video.paused) {
             video.play();
         } else {
@@ -1216,14 +1216,14 @@
     }
 
     // Mute Button Logic
-    function toggleReelMute(btn, e) {
+    function toggleOmzoMute(btn, e) {
         e.stopPropagation();
-        const video = btn.closest('.reel-item').querySelector('video');
+        const video = btn.closest('.omzo-item').querySelector('video');
         const isGloballyMuted = video.dataset.isMuted === 'true';
 
-        // If reel is globally muted (by admin), don't allow unmuting
+        // If omzo is globally muted (by admin), don't allow unmuting
         if (isGloballyMuted) {
-            showReelToast('Audio Disabled', 'This reel has audio disabled.', 'info');
+            showOmzoToast('Audio Disabled', 'This omzo has audio disabled.', 'info');
             return;
         }
 
@@ -1244,11 +1244,11 @@
             lucide.createIcons();
         }
     }
-    // --- NEW REELS LOGIC END ---
+    // --- NEW OMZO LOGIC END ---
 
     // ===== Toast Notifications =====
-    function showReelToast(title, message, type = 'info', persistent = false) {
-        const container = document.getElementById('reelToastContainer');
+    function showOmzoToast(title, message, type = 'info', persistent = false) {
+        const container = document.getElementById('omzoToastContainer');
         const toastId = 'toast-' + Date.now();
 
         const iconMap = {
@@ -1259,14 +1259,14 @@
         };
 
         const toast = document.createElement('div');
-        toast.className = `reel-toast ${type}`;
+        toast.className = `omzo-toast ${type}`;
         toast.id = toastId;
         toast.innerHTML = `
-            <i data-lucide="${iconMap[type] || 'info'}" class="reel-toast-icon"></i>
-            <div class="reel-toast-content">
-                <div class="reel-toast-title">${title}</div>
-                <div class="reel-toast-message">${message}</div>
-                ${type === 'uploading' ? '<div class="reel-toast-progress"><div class="reel-toast-progress-bar"></div></div>' : ''}
+            <i data-lucide="${iconMap[type] || 'info'}" class="omzo-toast-icon"></i>
+            <div class="omzo-toast-content">
+                <div class="omzo-toast-title">${title}</div>
+                <div class="omzo-toast-message">${message}</div>
+                ${type === 'uploading' ? '<div class="omzo-toast-progress"><div class="omzo-toast-progress-bar"></div></div>' : ''}
             </div>
         `;
 
@@ -1293,15 +1293,15 @@
         }
     }
 
-    // ===== Reel Upload Handling =====
-    function handleReelUpload(input) {
+    // ===== Omzo Upload Handling =====
+    function handleOmzoUpload(input) {
         if (!input.files || !input.files[0]) return;
 
         const file = input.files[0];
 
         // Validate file size (100MB max)
         if (file.size > 100 * 1024 * 1024) {
-            showReelToast('File Too Large', 'Please upload a video under 100MB.', 'error');
+            showOmzoToast('File Too Large', 'Please upload a video under 100MB.', 'error');
             input.value = '';
             return;
         }
@@ -1314,13 +1314,13 @@
             URL.revokeObjectURL(video.src);
 
             if (video.duration > 120) {
-                showReelToast('Video Too Long', 'Omzo must be 2 minutes or less.', 'error');
+                showOmzoToast('Video Too Long', 'Omzo must be 2 minutes or less.', 'error');
                 input.value = '';
                 return;
             }
 
             // Store the file and show caption modal
-            pendingReelFile = file;
+            pendingOmzoFile = file;
             openCaptionModal(file);
         };
 
@@ -1357,14 +1357,14 @@
         modal.classList.remove('show');
         preview.pause();
         preview.src = '';
-        pendingReelFile = null;
+        pendingOmzoFile = null;
 
         // Reset file input
-        document.getElementById('uploadReelInput').value = '';
+        document.getElementById('uploadOmzoInput').value = '';
     }
 
-    function submitReel() {
-        if (!pendingReelFile) return;
+    function submitOmzo() {
+        if (!pendingOmzoFile) return;
 
         const caption = document.getElementById('captionInput').value.trim();
 
@@ -1372,13 +1372,13 @@
         closeCaptionModal();
 
         // Show uploading toast
-        const toastId = showReelToast('Uploading Reel', 'Please wait while your reel is being processed...', 'uploading', true);
+        const toastId = showOmzoToast('Uploading Omzo', 'Please wait while your omzo is being processed...', 'uploading', true);
 
         const formData = new FormData();
-        formData.append('video', pendingReelFile);
+        formData.append('video', pendingOmzoFile);
         formData.append('caption', caption);
 
-        fetch('/chat/api/reels/upload/', {
+        fetch('/chat/api/omzo/upload/', {
             method: 'POST',
             body: formData,
             headers: { 'X-CSRFToken': '{{ csrf_token }}' }
@@ -1388,45 +1388,45 @@
                 removeToast(toastId);
 
                 if (data.success) {
-                    showReelToast('Reel Posted!', 'Your reel has been shared successfully.', 'success');
+                    showOmzoToast('Omzo Posted!', 'Your omzo has been shared successfully.', 'success');
 
                     // Reload after a short delay to show the success message
                     setTimeout(() => {
-                        if (window.location.pathname.includes('/reels')) {
+                        if (window.location.pathname.includes('/omzo')) {
                             location.reload();
                         } else {
-                            window.location.href = '{% url "reels" %}';
+                            window.location.href = '{% url "omzo" %}';
                         }
                     }, 1500);
                 } else {
-                    showReelToast('Upload Failed', data.error || 'Something went wrong. Please try again.', 'error');
+                    showOmzoToast('Upload Failed', data.error || 'Something went wrong. Please try again.', 'error');
                 }
             })
             .catch(err => {
                 removeToast(toastId);
                 console.error(err);
-                showReelToast('Upload Failed', 'Network error. Please check your connection.', 'error');
+                showOmzoToast('Upload Failed', 'Network error. Please check your connection.', 'error');
             });
     }
 
     // ===== Comments Functionality =====
-    function openReelComments(reelId) {
-        currentReelId = reelId;
-        const modal = document.getElementById('reelCommentsModal');
-        const list = document.getElementById('reelCommentsList');
+    function openOmzoComments(omzoId) {
+        currentOmzoId = omzoId;
+        const modal = document.getElementById('omzoCommentsModal');
+        const list = document.getElementById('omzoCommentsList');
 
         // Show modal
         modal.classList.add('show');
 
         // Show loading state
-        list.innerHTML = '<div class="reel-comments-empty"><div style="color: rgba(255,255,255,0.6);">Loading comments...</div></div>';
+        list.innerHTML = '<div class="omzo-comments-empty"><div style="color: rgba(255,255,255,0.6);">Loading comments...</div></div>';
 
         if (typeof lucide !== 'undefined') {
             lucide.createIcons();
         }
 
         // Fetch comments
-        fetch(`/chat/api/reels/${reelId}/comments/`, {
+        fetch(`/chat/api/omzo/${omzoId}/comments/`, {
             headers: { 'X-CSRFToken': '{{ csrf_token }}' }
         })
             .then(r => r.json())
@@ -1435,7 +1435,7 @@
                     renderComments(data.comments);
                 } else {
                     list.innerHTML = `
-                    <div class="reel-comments-empty">
+                    <div class="omzo-comments-empty">
                         <i data-lucide="message-circle"></i>
                         <p>No comments yet</p>
                         <p style="font-size: 13px; opacity: 0.7;">Be the first to comment!</p>
@@ -1449,7 +1449,7 @@
             .catch(err => {
                 console.error(err);
                 list.innerHTML = `
-                <div class="reel-comments-empty">
+                <div class="omzo-comments-empty">
                     <i data-lucide="message-circle"></i>
                     <p>No comments yet</p>
                     <p style="font-size: 13px; opacity: 0.7;">Be the first to comment!</p>
@@ -1462,11 +1462,11 @@
     }
 
     function renderComments(comments) {
-        const list = document.getElementById('reelCommentsList');
+        const list = document.getElementById('omzoCommentsList');
 
         if (!comments || comments.length === 0) {
             list.innerHTML = `
-                <div class="reel-comments-empty">
+                <div class="omzo-comments-empty">
                     <i data-lucide="message-circle"></i>
                     <p>No comments yet</p>
                     <p style="font-size: 13px; opacity: 0.7;">Be the first to comment!</p>
@@ -1476,40 +1476,40 @@
         }
 
         list.innerHTML = comments.map(c => `
-            <div class="reel-comment-item">
-                <img src="${c.user.avatar || 'https://ui-avatars.com/api/?name=' + c.user.username}" class="reel-comment-avatar">
-                <div class="reel-comment-content">
-                    <div class="reel-comment-username">${c.user.username}</div>
-                    <div class="reel-comment-text">${c.content}</div>
-                    <div class="reel-comment-time">${c.time_ago || ''}</div>
+            <div class="omzo-comment-item">
+                <img src="${c.user.avatar || 'https://ui-avatars.com/api/?name=' + c.user.username}" class="omzo-comment-avatar">
+                <div class="omzo-comment-content">
+                    <div class="omzo-comment-username">${c.user.username}</div>
+                    <div class="omzo-comment-text">${c.content}</div>
+                    <div class="omzo-comment-time">${c.time_ago || ''}</div>
                 </div>
             </div>
         `).join('');
     }
 
-    function closeReelComments(event) {
+    function closeOmzoComments(event) {
         if (event && event.target !== event.currentTarget) return;
-        const modal = document.getElementById('reelCommentsModal');
+        const modal = document.getElementById('omzoCommentsModal');
         modal.classList.remove('show');
-        currentReelId = null;
-        document.getElementById('reelCommentInput').value = '';
+        currentOmzoId = null;
+        document.getElementById('omzoCommentInput').value = '';
     }
 
-    function submitReelComment() {
-        if (!currentReelId) return;
+    function submitOmzoComment() {
+        if (!currentOmzoId) return;
 
-        const input = document.getElementById('reelCommentInput');
+        const input = document.getElementById('omzoCommentInput');
         const text = input.value.trim();
 
         if (!text) return;
 
         // Disable submit button
-        const submitBtn = document.querySelector('.reel-comments-submit');
+        const submitBtn = document.querySelector('.omzo-comments-submit');
         submitBtn.disabled = true;
 
-        fetch('/chat/api/reels/comment/', {
+        fetch('/chat/api/omzo/comment/', {
             method: 'POST',
-            body: JSON.stringify({ reel_id: currentReelId, content: text }),
+            body: JSON.stringify({ omzo_id: currentOmzoId, content: text }),
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRFToken': '{{ csrf_token }}'
@@ -1522,31 +1522,31 @@
                 if (data.success) {
                     input.value = '';
 
-                    // Update comment count on the reel
-                    const countEl = document.querySelector(`.comment-count[data-reel-id="${currentReelId}"]`);
+                    // Update comment count on the omzo
+                    const countEl = document.querySelector(`.comment-count[data-omzo-id="${currentOmzoId}"]`);
                     if (countEl && data.comments_count !== undefined) {
                         countEl.textContent = data.comments_count;
                     }
 
                     // Refresh comments
-                    openReelComments(currentReelId);
+                    openOmzoComments(currentOmzoId);
 
-                    showReelToast('Comment Posted', 'Your comment has been added.', 'success');
+                    showOmzoToast('Comment Posted', 'Your comment has been added.', 'success');
                 } else {
-                    showReelToast('Error', data.error || 'Failed to post comment.', 'error');
+                    showOmzoToast('Error', data.error || 'Failed to post comment.', 'error');
                 }
             })
             .catch(err => {
                 submitBtn.disabled = false;
                 console.error(err);
-                showReelToast('Error', 'Failed to post comment. Please try again.', 'error');
+                showOmzoToast('Error', 'Failed to post comment. Please try again.', 'error');
             });
     }
 
     // ===== Mute/Sound Controls =====
 
-    // ===== Follow Functionality inside Reels =====
-    function toggleReelFollow(username, btn) {
+    // ===== Follow Functionality inside Omzo =====
+    function toggleOmzoFollow(username, btn) {
         fetch('/chat/api/toggle-follow/', {
             method: 'POST',
             body: JSON.stringify({ username: username }),
@@ -1579,19 +1579,19 @@
                     }
 
                     // Optional: Update all other buttons for this same user on the page
-                    document.querySelectorAll(`.reel-follow-btn[onclick*="'${username}'"]`).forEach(otherBtn => {
+                    document.querySelectorAll(`.omzo-follow-btn[onclick*="'${username}'"]`).forEach(otherBtn => {
                         if (otherBtn !== btn) {
                             otherBtn.textContent = btn.textContent;
                             otherBtn.style.cssText = btn.style.cssText;
                         }
                     });
                 } else {
-                    showReelToast('Error', data.error || 'Action failed', 'error');
+                    showOmzoToast('Error', data.error || 'Action failed', 'error');
                 }
             })
             .catch(err => {
                 console.error(err);
-                showReelToast('Error', 'Network error', 'error');
+                showOmzoToast('Error', 'Network error', 'error');
             });
     }
 
@@ -1599,10 +1599,10 @@
 
 
     // ===== Like Functionality =====
-    function toggleReelLike(reelId, btn) {
-        fetch('/chat/api/reels/like/', {
+    function toggleOmzoLike(omzoId, btn) {
+        fetch('/chat/api/omzo/like/', {
             method: 'POST',
-            body: JSON.stringify({ reel_id: reelId }),
+            body: JSON.stringify({ omzo_id: omzoId }),
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRFToken': '{{ csrf_token }}'
@@ -1629,20 +1629,20 @@
     }
 
     // ===== Share Functionality =====
-    function shareReel(url) {
+    function shareOmzo(url) {
         const fullUrl = window.location.origin + url;
 
         if (navigator.share) {
             navigator.share({
-                title: 'Check out this reel on Odnix',
+                title: 'Check out this omzo on Odnix',
                 url: fullUrl
             }).catch(console.error);
         } else {
             navigator.clipboard.writeText(fullUrl).then(() => {
-                showReelToast('Link Copied', 'Reel link copied to clipboard!', 'success');
+                showOmzoToast('Link Copied', 'Omzo link copied to clipboard!', 'success');
             }).catch(err => {
                 console.error('Failed to copy: ', err);
-                showReelToast('Error', 'Failed to copy link.', 'error');
+                showOmzoToast('Error', 'Failed to copy link.', 'error');
             });
         }
     }
@@ -1655,9 +1655,9 @@
         document.getElementById('errorModal').style.display = 'none';
     }
 
-    // ===== Report Reel =====
-    function openReportModal(reelId) {
-        currentReelId = reelId;
+    // ===== Report Omzo =====
+    function openReportModal(omzoId) {
+        currentOmzoId = omzoId;
         const modal = document.getElementById('reportModal');
         modal.classList.add('show');
         if (typeof lucide !== 'undefined') { lucide.createIcons(); }
@@ -1670,17 +1670,17 @@
         document.querySelectorAll('input[name="reportReason"]').forEach(radio => {
             radio.addEventListener('change', function () {
                 if (this.value === 'copyright') {
-                    selectReelReportReason('copyright');
+                    selectOmzoReportReason('copyright');
                 } else {
-                    selectReelReportReason('other');
+                    selectOmzoReportReason('other');
                 }
             });
         });
     }
 
-    function openReelAdmin() {
-        if (!currentReelId) return;
-        const adminUrl = `/admin/chat/reel/${currentReelId}/change/`;
+    function openOmzoAdmin() {
+        if (!currentOmzoId) return;
+        const adminUrl = `/admin/chat/omzo/${currentOmzoId}/change/`;
         window.open(adminUrl, '_blank');
     }
 
@@ -1692,27 +1692,27 @@
         document.getElementById('copyrightDetailsSection').style.display = 'none';
         document.querySelectorAll('input[name="reportReason"]').forEach(r => r.checked = false);
         document.getElementById('reportDescription').value = '';
-        document.getElementById('isAudioCopyrightReel').checked = false;
-        document.getElementById('isContentCopyrightReel').checked = false;
-        document.getElementById('copyrightDescriptionReel').value = '';
+        document.getElementById('isAudioCopyrightOmzo').checked = false;
+        document.getElementById('isContentCopyrightOmzo').checked = false;
+        document.getElementById('copyrightDescriptionOmzo').value = '';
         document.getElementById('disableAudioCheckbox').checked = false;
     }
 
-    function submitReelReport() {
-        if (!currentReelId) return;
+    function submitOmzoReport() {
+        if (!currentOmzoId) return;
         const reasonEl = document.querySelector('input[name="reportReason"]:checked');
         const reason = reasonEl ? reasonEl.value : null;
         const description = document.getElementById('reportDescription').value.trim();
 
         if (!reason) {
-            showReelToast('Select a Reason', 'Please choose a report reason.', 'error');
+            showOmzoToast('Select a Reason', 'Please choose a report reason.', 'error');
             return;
         }
 
         // Handle copyright reports
         if (reason === 'copyright') {
-            const isAudio = document.getElementById('isAudioCopyrightReel').checked;
-            const isContent = document.getElementById('isContentCopyrightReel').checked;
+            const isAudio = document.getElementById('isAudioCopyrightOmzo').checked;
+            const isContent = document.getElementById('isContentCopyrightOmzo').checked;
             let copyrightType = null;
 
             if (isAudio && !isContent) {
@@ -1724,17 +1724,17 @@
                 copyrightType = 'both';
             }
 
-            const copyrightDescription = document.getElementById('copyrightDescriptionReel').value.trim();
+            const copyrightDescription = document.getElementById('copyrightDescriptionOmzo').value.trim();
             const disableAudio = document.getElementById('disableAudioCheckbox').checked;
 
-            fetch('/chat/api/reels/report/', {
+            fetch('/chat/api/omzo/report/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'X-CSRFToken': '{{ csrf_token }}'
                 },
                 body: JSON.stringify({
-                    reel_id: currentReelId,
+                    omzo_id: currentOmzoId,
                     reason: reason,
                     description: description,
                     copyright_type: copyrightType,
@@ -1745,43 +1745,43 @@
                 .then(r => r.json())
                 .then(data => {
                     if (data.success) {
-                        showReelToast('Reported', 'Thanks. We will review this reel shortly.', 'success');
+                        showOmzoToast('Reported', 'Thanks. We will review this omzo shortly.', 'success');
                         closeReportModal();
                     } else {
-                        showReelToast('Unable to Report', data.error || 'Please try again later.', 'error');
+                        showOmzoToast('Unable to Report', data.error || 'Please try again later.', 'error');
                     }
                 })
                 .catch(err => {
                     console.error(err);
-                    showReelToast('Error', 'Failed to submit report.', 'error');
+                    showOmzoToast('Error', 'Failed to submit report.', 'error');
                 });
         } else {
             // Non-copyright reports
-            fetch('/chat/api/reels/report/', {
+            fetch('/chat/api/omzo/report/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'X-CSRFToken': '{{ csrf_token }}'
                 },
-                body: JSON.stringify({ reel_id: currentReelId, reason: reason, description: description })
+                body: JSON.stringify({ omzo_id: currentOmzoId, reason: reason, description: description })
             })
                 .then(r => r.json())
                 .then(data => {
                     if (data.success) {
-                        showReelToast('Reported', 'Thanks. We will review this reel shortly.', 'success');
+                        showOmzoToast('Reported', 'Thanks. We will review this omzo shortly.', 'success');
                         closeReportModal();
                     } else {
-                        showReelToast('Unable to Report', data.error || 'Please try again later.', 'error');
+                        showOmzoToast('Unable to Report', data.error || 'Please try again later.', 'error');
                     }
                 })
                 .catch(err => {
                     console.error(err);
-                    showReelToast('Error', 'Failed to submit report.', 'error');
+                    showOmzoToast('Error', 'Failed to submit report.', 'error');
                 });
         }
     }
 
-    function selectReelReportReason(reason) {
+    function selectOmzoReportReason(reason) {
         const copyrightSection = document.getElementById('copyrightDetailsSection');
         if (!copyrightSection) {
             console.error('Copyright section not found!');
@@ -1793,41 +1793,41 @@
         } else {
             copyrightSection.style.display = 'none';
             // Reset copyright fields
-            document.getElementById('isAudioCopyrightReel').checked = false;
-            document.getElementById('isContentCopyrightReel').checked = false;
-            document.getElementById('copyrightDescriptionReel').value = '';
+            document.getElementById('isAudioCopyrightOmzo').checked = false;
+            document.getElementById('isContentCopyrightOmzo').checked = false;
+            document.getElementById('copyrightDescriptionOmzo').value = '';
         }
     }
 
     // ===== Initialize Omzo =====
-    // Handle opening specific reel from Explore page
+    // Handle opening specific omzo from Explore page
     window.addEventListener('DOMContentLoaded', () => {
         const urlParams = new URLSearchParams(window.location.search);
-        const targetReelId = urlParams.get('reel');
+        const targetOmzoId = urlParams.get('omzo');
 
-        if (targetReelId) {
-            // Find the reel and jump directly to it without scrolling animation
+        if (targetOmzoId) {
+            // Find the omzo and jump directly to it without scrolling animation
             const container = document.getElementById('omzoContainer');
-            const reels = container.querySelectorAll('.reel-item');
+            const omzos = container.querySelectorAll('.omzo-item');
             let targetIndex = -1;
 
-            // Find the index of the target reel
-            reels.forEach((reel, index) => {
-                if (reel.getAttribute('data-id') === targetReelId) {
+            // Find the index of the target omzo
+            omzos.forEach((omzo, index) => {
+                if (omzo.getAttribute('data-id') === targetOmzoId) {
                     targetIndex = index;
                 }
             });
 
             if (targetIndex !== -1) {
-                // Jump directly to the reel without scroll animation
-                // Each reel is full viewport height
+                // Jump directly to the omzo without scroll animation
+                // Each omzo is full viewport height
                 const scrollPosition = targetIndex * window.innerHeight;
                 container.scrollTop = scrollPosition;
             } else {
-                console.warn(`Reel ${targetReelId} not found in feed`);
+                console.warn(`Omzo ${targetOmzoId} not found in feed`);
             }
 
-            // Clean up the URL to hide the reel parameter
+            // Clean up the URL to hide the omzo parameter
             window.history.replaceState({}, document.title, window.location.pathname);
         }
     });

@@ -11,6 +11,12 @@ SECRET_KEY = 'django-insecure-change-this-key-in-production-123456789'
 
 DEBUG = True
 
+
+# Allow Cloudflare tunnel for CSRF
+CSRF_TRUSTED_ORIGINS = [
+    "https://occur-million-reporters-occasionally.trycloudflare.com",
+]
+
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', '*']
 
 # FIXED: Site domain for clean invite links
@@ -200,19 +206,19 @@ LOGGING = {
     },
 }
 
-# --- Reels Compression Settings ---
-# Tunable knobs for server-side reel compression. You can override via env vars
+# --- Omzo Compression Settings ---
+# Tunable knobs for server-side omzo compression. You can override via env vars
 # or directly edit here per environment.
-REELS_MAX_WIDTH = int(os.getenv('REELS_MAX_WIDTH', 480))           # px
-REELS_MAX_DURATION = int(os.getenv('REELS_MAX_DURATION', 120))      # seconds
+OMZO_MAX_WIDTH = int(os.getenv('OMZO_MAX_WIDTH', 480))           # px
+OMZO_MAX_DURATION = int(os.getenv('OMZO_MAX_DURATION', 120))      # seconds
 # frames per second (cap)
-REELS_MAX_FPS = int(os.getenv('REELS_MAX_FPS', 30))
+OMZO_MAX_FPS = int(os.getenv('OMZO_MAX_FPS', 30))
 # 18-32 (lower=better quality)
-REELS_CRF = int(os.getenv('REELS_CRF', 28))
+OMZO_CRF = int(os.getenv('OMZO_CRF', 28))
 # ultrafast..veryslow
-REELS_PRESET = os.getenv('REELS_PRESET', 'veryfast')
-REELS_AUDIO_BITRATE = os.getenv(
-    'REELS_AUDIO_BITRATE', '96k')      # e.g. '96k', '128k'
-REELS_SMART_FALLBACK = os.getenv(
-    'REELS_SMART_FALLBACK', '1') in ('1', 'true', 'True')
-REELS_FORCE_MP4 = os.getenv('REELS_FORCE_MP4', '1') in ('1', 'true', 'True')
+OMZO_PRESET = os.getenv('OMZO_PRESET', 'veryfast')
+OMZO_AUDIO_BITRATE = os.getenv(
+    'OMZO_AUDIO_BITRATE', '96k')      # e.g. '96k', '128k'
+OMZO_SMART_FALLBACK = os.getenv(
+    'OMZO_SMART_FALLBACK', '1') in ('1', 'true', 'True')
+OMZO_FORCE_MP4 = os.getenv('OMZO_FORCE_MP4', '1') in ('1', 'true', 'True')

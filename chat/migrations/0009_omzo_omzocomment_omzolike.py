@@ -13,39 +13,39 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='Reel',
+            name='Omzo',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('video_file', models.FileField(upload_to='reels/')),
+                ('video_file', models.FileField(upload_to='omzos/')),
                 ('caption', models.TextField(blank=True, max_length=500)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('views_count', models.PositiveIntegerField(default=0)),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='reels', to=settings.AUTH_USER_MODEL)),
+                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='omzos', to=settings.AUTH_USER_MODEL)),
             ],
             options={
                 'ordering': ['-created_at'],
             },
         ),
         migrations.CreateModel(
-            name='ReelComment',
+            name='OmzoComment',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('content', models.TextField(max_length=500)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('reel', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='comments', to='chat.reel')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='reel_comments', to=settings.AUTH_USER_MODEL)),
+                ('omzo', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='comments', to='chat.omzo')),
+                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='omzo_comments', to=settings.AUTH_USER_MODEL)),
             ],
         ),
         migrations.CreateModel(
-            name='ReelLike',
+            name='OmzoLike',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('reel', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='likes', to='chat.reel')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='liked_reels', to=settings.AUTH_USER_MODEL)),
+                ('omzo', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='likes', to='chat.omzo')),
+                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='liked_omzos', to=settings.AUTH_USER_MODEL)),
             ],
             options={
-                'unique_together': {('reel', 'user')},
+                'unique_together': {('omzo', 'user')},
             },
         ),
     ]

@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('chat', '0018_reel_audio_mute'),
+        ('chat', '0018_omzo_audio_mute'),
     ]
 
     operations = [
@@ -16,7 +16,7 @@ class Migration(migrations.Migration):
             field=models.CharField(blank=True, choices=[('audio', 'Audio Copyright'), ('content', 'Content Copyright'), ('both', 'Both Audio and Content Copyright')], help_text='Whether the copyright is for audio or content', max_length=10, null=True),
         ),
         migrations.AlterField(
-            model_name='reelreport',
+            model_name='omzoreport',
             name='copyright_type',
             field=models.CharField(blank=True, choices=[('audio', 'Audio Copyright'), ('content', 'Content Copyright'), ('both', 'Both Audio and Content Copyright')], help_text='Whether the copyright is for audio or content', max_length=10, null=True),
         ),

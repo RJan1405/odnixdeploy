@@ -17,7 +17,7 @@ from chat.utils import clear_sidebar_unread
 from chat.models import (
     CustomUser, Chat, Message, GroupJoinRequest, Follow, Story, StoryView,
     StoryLike, StoryReply, Tweet, Like, Comment, MessageDeletion, MessageRead,
-    MessageReaction, StarredMessage, PinnedChat, SavedPost, Reel
+    MessageReaction, StarredMessage, PinnedChat, SavedPost, Omzo
 )
 from chat.forms import TweetForm
 from .media import handle_media_upload
@@ -250,7 +250,7 @@ def dashboard(request):
     }
 
     # Use Instagram-style template
-    return render(request, 'chat/dashboard_instagram.html', context)
+    return render(request, 'chat/dashboard.html', context)
 
 
 @login_required
@@ -258,9 +258,10 @@ def chat_view(request, chat_id):
     # User chats split by type, with last_message and unread_count
     user_chats = Chat.objects.filter(participants=request.user).select_related(
         'admin').order_by('-updated_at')
-    
+
     # Get Manual Private List (Pinned Chats)
-    pinned_chat_ids = set(PinnedChat.objects.filter(user=request.user).values_list('chat_id', flat=True))
+    pinned_chat_ids = set(PinnedChat.objects.filter(
+        user=request.user).values_list('chat_id', flat=True))
 
     private_chats = []
     group_chats = []
@@ -295,7 +296,7 @@ def chat_view(request, chat_id):
             'participants': chat.participants.all(),
             'last_message': last_message,
             'unread_count': unread_count,
-            'is_private': chat.id in pinned_chat_ids, # Manual Private List
+            'is_private': chat.id in pinned_chat_ids,  # Manual Private List
         }
         if chat.chat_type == 'private':
             private_chats.append(chat_dict)
@@ -353,8 +354,9 @@ def chat_view(request, chat_id):
         if other_user:
             target_user_username = other_user.username
             # blocked_by_me = Block.objects.filter(blocker=request.user, blocked=other_user).exists()
-            is_following = Follow.objects.filter(follower=request.user, following=other_user).exists()
-            
+            is_following = Follow.objects.filter(
+                follower=request.user, following=other_user).exists()
+
             # Check if current user has EVER replied in this chat
             has_replied = chat.messages.filter(sender=request.user).exists()
 
@@ -362,7 +364,8 @@ def chat_view(request, chat_id):
             # 1. We haven't replied yet (Acceptance = Reply)
             # 2. They have sent messages.
             # (Show regardless of follow status as per user request)
-            has_they_messaged = chat.messages.exclude(sender=request.user).exclude(message_type='system').exists()
+            has_they_messaged = chat.messages.exclude(
+                sender=request.user).exclude(message_type='system').exists()
 
             if not has_replied and has_they_messaged:
                 is_message_request = True
@@ -395,7 +398,7 @@ def chat_view(request, chat_id):
         context['ice_servers_json'] = '[]'
 
     # Use Instagram-style template
-    return render(request, 'chat/chat_detail_instagram.html', context)
+    return render(request, 'chat/chat_detail.html', context)
 
 
 @login_required
@@ -404,9 +407,10 @@ def messages_page(request):
     # User chats split by type, with last_message and unread_count
     user_chats = Chat.objects.filter(participants=request.user).select_related(
         'admin').order_by('-updated_at')
-    
+
     # Get Manual Private List (Pinned Chats)
-    pinned_chat_ids = set(PinnedChat.objects.filter(user=request.user).values_list('chat_id', flat=True))
+    pinned_chat_ids = set(PinnedChat.objects.filter(
+        user=request.user).values_list('chat_id', flat=True))
 
     private_chats = []
     group_chats = []
@@ -441,7 +445,7 @@ def messages_page(request):
             'participants': chat.participants.all(),
             'last_message': last_message,
             'unread_count': unread_count,
-            'is_private': chat.id in pinned_chat_ids, # Manual Private List
+            'is_private': chat.id in pinned_chat_ids,  # Manual Private List
         }
         if chat.chat_type == 'private':
             private_chats.append(chat_dict)
@@ -474,7 +478,7 @@ def messages_page(request):
     }
 
     # Render a chat-style messages selector (two-pane layout with empty chat area)
-    return render(request, 'chat/messages_instagram.html', context)
+    return render(request, 'chat/messages.html', context)
 
 
 @login_required
@@ -929,13 +933,13 @@ def _get_explore_content_batch(page=1, per_page=15):
             .values_list('id', flat=True)
             .order_by('-timestamp'))
 
-        reels_ids = list(
-            Reel.objects.values_list('id', flat=True)
+        omzo_ids = list(
+            Omzo.objects.values_list('id', flat=True)
             .order_by('-created_at'))
 
         # Create combined list of (id, type) tuples
         shuffled_ids = [(sid, 'scribe') for sid in scribes_ids] + \
-                       [(rid, 'reel') for rid in reels_ids]
+                       [(rid, 'omzo') for rid in omzo_ids]
 
         # Shuffle
         random.shuffle(shuffled_ids)
@@ -956,7 +960,7 @@ def _get_explore_content_batch(page=1, per_page=15):
         if item_type == 'scribe':
             obj = Tweet.objects.select_related('user').get(id=item_id)
         else:
-            obj = Reel.objects.select_related('user').get(id=item_id)
+            obj = Omzo.objects.select_related('user').get(id=item_id)
 
         paginated.append({
             'type': item_type,
@@ -969,7 +973,7 @@ def _get_explore_content_batch(page=1, per_page=15):
 
 @login_required
 def discover_groups_view(request):
-    """Explore page: show random scribes, omzo reels, people, and groups with pagination."""
+    """Explore page: show random scribes, omzo , people, and groups with pagination."""
 
     # Get first page (15 items)
     mixed_content = _get_explore_content_batch(page=1, per_page=15)
@@ -1057,7 +1061,7 @@ def load_more_explore_content(request):
                         'initials': obj.user.initials,
                     }
                 })
-            elif item['type'] == 'reel':
+            elif item['type'] == 'omzo':
                 item_data.update({
                     'id': obj.id,
                     'caption': obj.caption,

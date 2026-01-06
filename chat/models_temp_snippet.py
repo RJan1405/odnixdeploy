@@ -1,5 +1,5 @@
-class ReelReport(models.Model):
-    """Model for reported reels"""
+class OmzoReport(models.Model):
+    """Model for reported omzos"""
     REPORT_REASONS = [
         ('spam', 'Spam'),
         ('inappropriate', 'Inappropriate Content'),
@@ -11,8 +11,8 @@ class ReelReport(models.Model):
         ('other', 'Other'),
     ]
     
-    reporter = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='reel_reports_made')
-    reel = models.ForeignKey(Reel, on_delete=models.CASCADE, related_name='reports')
+    reporter = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='omzo_reports_made')
+    omzo = models.ForeignKey(Omzo, on_delete=models.CASCADE, related_name='reports')
     reason = models.CharField(max_length=20, choices=REPORT_REASONS)
     description = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -20,8 +20,8 @@ class ReelReport(models.Model):
     reviewed_at = models.DateTimeField(null=True, blank=True)
     
     class Meta:
-        unique_together = ('reporter', 'reel')
+        unique_together = ('reporter', 'omzo')
         ordering = ['-created_at']
     
     def __str__(self):
-        return f"{self.reporter.username} reported reel {self.reel.id} for {self.reason}"
+        return f"{self.reporter.username} reported omzo {self.omzo.id} for {self.reason}"

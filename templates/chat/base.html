@@ -288,7 +288,7 @@
                     <i data-lucide="image" style="width: 20px; height: 20px;"></i>
                     <span style="font-weight: 500; font-size: 15px;">Scribe</span>
                 </button>
-                <button onclick="triggerGlobalReelCreate()"
+                <button onclick="triggerGlobalOmzoCreate()"
                     style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; border: 1px solid var(--border-color, #dbdbdb); border-radius: 8px; background: transparent; cursor: pointer; text-align: left; transition: background 0.2s; color: var(--text-primary, #000);">
                     <i data-lucide="play-square" style="width: 20px; height: 20px;"></i>
                     <span style="font-weight: 500; font-size: 15px;">Omzo</span>
@@ -297,18 +297,18 @@
         </div>
     </div>
 
-    <input type="file" id="globalReelInput" accept="video/*" style="display: none;"
-        onchange="handleGlobalReelUpload(this)">
+    <input type="file" id="globalOmzoInput" accept="video/*" style="display: none;"
+        onchange="handleGlobalOmzoUpload(this)">
 
-    <!-- Global Reel Upload Modal -->
-    <div id="globalReelUploadModal"
+    <!-- Global Omzo Upload Modal -->
+    <div id="globalOmzoUploadModal"
         style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); z-index: 10001; align-items: center; justify-content: center; padding: 20px;">
         <div style="background: var(--ig-surface, #1e1e1e); border-radius: 16px; width: 100%; max-width: 420px; max-height: 90vh; overflow: hidden; display: flex; flex-direction: column;"
             onclick="event.stopPropagation()">
             <!-- Header -->
             <div
                 style="padding: 16px 20px; border-bottom: 1px solid var(--ig-border, rgba(255,255,255,0.1)); display: flex; align-items: center; justify-content: space-between;">
-                <button onclick="closeGlobalReelModal()"
+                <button onclick="closeGlobalOmzoModal()"
                     style="background: none; border: none; color: var(--ig-text, white); cursor: pointer; padding: 4px;">
                     <i data-lucide="x" style="width: 24px; height: 24px;"></i>
                 </button>
@@ -321,9 +321,9 @@
             <div style="flex: 1; display: flex; flex-direction: column; overflow-y: auto;">
                 <div
                     style="position: relative; background: #000; aspect-ratio: 9/16; max-height: 350px; overflow: hidden;">
-                    <video id="globalReelPreviewVideo" style="width: 100%; height: 100%; object-fit: contain;" loop
+                    <video id="globalOmzoPreviewVideo" style="width: 100%; height: 100%; object-fit: contain;" loop
                         muted playsinline></video>
-                    <div id="globalReelPreviewOverlay"
+                    <div id="globalOmzoPreviewOverlay"
                         style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.5);">
                         <i data-lucide="play-circle" style="width: 48px; height: 48px; color: white; opacity: 0.8;"></i>
                         <p style="color: white; margin-top: 12px; font-size: 13px; opacity: 0.8;">Click to preview</p>
@@ -340,33 +340,33 @@
                                 style="margin: 0; font-weight: 600; font-size: 14px; color:var(--ig-text-secondary, #141414ff);">
                                 {{user.username|default:'You' }}</p>
                             <p style="margin: 2px 0 0; font-size: 12px; color: var(--ig-text-secondary, #a8a8a8);">
-                                Sharing a new reel</p>
+                                Sharing a new omzo</p>
                         </div>
                     </div>
 
-                    <textarea id="globalReelCaption" placeholder="Write a caption..."
+                    <textarea id="globalOmzoCaption" placeholder="Write a caption..."
                         style="width: 100%; min-height: 80px; background: var(--ig-bg, #121212); border: 1px solid var(--ig-border, rgba(255,255,255,0.1)); border-radius: 12px; padding: 12px; color:var(--ig-text-secondary, #141414ff); font-size: 14px; resize: none; outline: none; font-family: inherit;"
                         maxlength="500"></textarea>
                     <div style="display: flex; justify-content: space-between; margin-top: 8px;">
                         <span style="font-size: 12px; color: var(--ig-text-secondary, #a8a8a8);">Max 2 minutes</span>
-                        <span id="globalReelCharCount"
+                        <span id="globalOmzoCharCount"
                             style="font-size: 12px; color: var(--ig-text-secondary, #a8a8a8);">0/500</span>
                     </div>
                 </div>
             </div>
 
             <!-- Upload Progress -->
-            <div id="globalReelProgress"
+            <div id="globalOmzoProgress"
                 style="display: none; padding: 16px; border-top: 1px solid var(--ig-border, rgba(255,255,255,0.1));">
                 <div style="display: flex; align-items: center; gap: 12px;">
                     <div
                         style="width: 24px; height: 24px; border: 3px solid var(--color-primary, #667eea); border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite;">
                     </div>
-                    <span style="color: var(--ig-text, white); font-size: 14px;">Uploading your reel...</span>
+                    <span style="color: var(--ig-text, white); font-size: 14px;">Uploading your omzo...</span>
                 </div>
                 <div
                     style="margin-top: 12px; height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden;">
-                    <div id="globalReelProgressBar"
+                    <div id="globalOmzoProgressBar"
                         style="height: 100%; background: linear-gradient(90deg, #667eea, #764ba2); width: 0%; transition: width 0.3s;">
                     </div>
                 </div>
@@ -383,8 +383,8 @@
     </style>
 
     <script>
-        // Global state for reel upload
-        let globalPendingReelFile = null;
+        // Global state for omzo upload
+        let globalPendingOmzoFile = null;
 
         // Define all global functions explicitly on window object
         window.openCreateMenu = function () {
@@ -414,13 +414,13 @@
             }
         };
 
-        window.triggerGlobalReelCreate = function () {
+        window.triggerGlobalOmzoCreate = function () {
             closeCreateSelectionModal();
-            const input = document.getElementById('globalReelInput');
+            const input = document.getElementById('globalOmzoInput');
             if (input) input.click();
         };
 
-        window.handleGlobalReelUpload = function (input) {
+        window.handleGlobalOmzoUpload = function (input) {
             if (input.files && input.files[0]) {
                 const file = input.files[0];
 
@@ -444,8 +444,8 @@
                     }
 
                     // Store file and open modal with preview
-                    globalPendingReelFile = file;
-                    openGlobalReelModal(file, video.src);
+                    globalPendingOmzoFile = file;
+                    openGlobalOmzoModal(file, video.src);
                 };
 
                 video.onerror = function () {
@@ -457,17 +457,17 @@
             }
         };
 
-        function openGlobalReelModal(file, videoUrl) {
-            const modal = document.getElementById('globalReelUploadModal');
-            const preview = document.getElementById('globalReelPreviewVideo');
-            const overlay = document.getElementById('globalReelPreviewOverlay');
-            const caption = document.getElementById('globalReelCaption');
-            const progress = document.getElementById('globalReelProgress');
+        function openGlobalOmzoModal(file, videoUrl) {
+            const modal = document.getElementById('globalOmzoUploadModal');
+            const preview = document.getElementById('globalOmzoPreviewVideo');
+            const overlay = document.getElementById('globalOmzoPreviewOverlay');
+            const caption = document.getElementById('globalOmzoCaption');
+            const progress = document.getElementById('globalOmzoProgress');
             const shareBtn = document.getElementById('globalOmzoShareBtn');
 
             // Reset state
             caption.value = '';
-            document.getElementById('globalReelCharCount').textContent = '0/500';
+            document.getElementById('globalOmzoCharCount').textContent = '0/500';
             progress.style.display = 'none';
             shareBtn.disabled = false;
             shareBtn.textContent = 'Share';
@@ -489,7 +489,7 @@
 
             // Character counter
             caption.oninput = function () {
-                document.getElementById('globalReelCharCount').textContent = this.value.length + '/500';
+                document.getElementById('globalOmzoCharCount').textContent = this.value.length + '/500';
             };
 
             // Show modal
@@ -497,25 +497,25 @@
             if (typeof lucide !== 'undefined') lucide.createIcons();
         }
 
-        window.closeGlobalReelModal = function () {
-            const modal = document.getElementById('globalReelUploadModal');
-            const preview = document.getElementById('globalReelPreviewVideo');
+        window.closeGlobalOmzoModal = function () {
+            const modal = document.getElementById('globalOmzoUploadModal');
+            const preview = document.getElementById('globalOmzoPreviewVideo');
 
             modal.style.display = 'none';
             preview.pause();
             preview.src = '';
-            globalPendingReelFile = null;
+            globalPendingOmzoFile = null;
 
             // Reset file input
-            document.getElementById('globalReelInput').value = '';
+            document.getElementById('globalOmzoInput').value = '';
         };
 
         window.submitGlobalOmzo = function () {
-            if (!globalPendingReelFile) return;
+            if (!globalPendingOmzoFile) return;
 
-            const caption = document.getElementById('globalReelCaption').value.trim();
-            const progress = document.getElementById('globalReelProgress');
-            const progressBar = document.getElementById('globalReelProgressBar');
+            const caption = document.getElementById('globalOmzoCaption').value.trim();
+            const progress = document.getElementById('globalOmzoProgress');
+            const progressBar = document.getElementById('globalOmzoProgressBar');
             const shareBtn = document.getElementById('globalOmzoShareBtn');
 
             // Show progress
@@ -532,10 +532,10 @@
             }, 500);
 
             const formData = new FormData();
-            formData.append('video', globalPendingReelFile);
+            formData.append('video', globalPendingOmzoFile);
             formData.append('caption', caption);
 
-            fetch('/chat/api/reels/upload/', {
+            fetch('/chat/api/omzo/upload/', {
                 method: 'POST',
                 body: formData,
                 headers: { 'X-CSRFToken': '{{ csrf_token }}' }
@@ -547,10 +547,10 @@
 
                     if (data.success) {
                         setTimeout(() => {
-                            closeGlobalReelModal();
+                            closeGlobalOmzoModal();
                             showGlobalToast("Omzo posted successfully!", "success");
                             setTimeout(() => {
-                                window.location.href = '{% url "reels" %}';
+                                window.location.href = '{% url "omzo" %}';
                             }, 1000);
                         }, 500);
                     } else {

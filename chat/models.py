@@ -878,11 +878,11 @@ class P2PSignal(models.Model):
         return deleted_consumed + deleted_stale
 
 
-class Reel(models.Model):
-    """Model for short video reels"""
+class Omzo(models.Model):
+    """Model for short video omzo"""
     user = models.ForeignKey(
-        CustomUser, on_delete=models.CASCADE, related_name='reels')
-    video_file = models.FileField(upload_to='reels/')
+        CustomUser, on_delete=models.CASCADE, related_name='omzos')
+    video_file = models.FileField(upload_to='omzos/')
     caption = models.TextField(max_length=500, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     views_count = models.PositiveIntegerField(default=0)
@@ -893,7 +893,7 @@ class Reel(models.Model):
         ordering = ['-created_at']
 
     def __str__(self):
-        return f"Reel by {self.user.username} at {self.created_at}"
+        return f"Omzo by {self.user.username} at {self.created_at}"
 
     @property
     def like_count(self):
@@ -909,30 +909,30 @@ class Reel(models.Model):
         return self.likes.filter(user=user).exists()
 
 
-class ReelLike(models.Model):
-    """Model for reel likes"""
-    reel = models.ForeignKey(
-        Reel, on_delete=models.CASCADE, related_name='likes')
+class OmzoLike(models.Model):
+    """Model for omzo likes"""
+    omzo = models.ForeignKey(
+        Omzo, on_delete=models.CASCADE, related_name='likes')
     user = models.ForeignKey(
-        CustomUser, on_delete=models.CASCADE, related_name='liked_reels')
+        CustomUser, on_delete=models.CASCADE, related_name='liked_omzos')
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ('reel', 'user')
+        unique_together = ('omzo', 'user')
 
 
-class ReelComment(models.Model):
-    """Model for reel comments"""
-    reel = models.ForeignKey(
-        Reel, on_delete=models.CASCADE, related_name='comments')
+class OmzoComment(models.Model):
+    """Model for omzo comments"""
+    omzo = models.ForeignKey(
+        Omzo, on_delete=models.CASCADE, related_name='comments')
     user = models.ForeignKey(
-        CustomUser, on_delete=models.CASCADE, related_name='reel_comments')
+        CustomUser, on_delete=models.CASCADE, related_name='omzo_comments')
     content = models.TextField(max_length=500)
     created_at = models.DateTimeField(auto_now_add=True)
 
 
-class ReelReport(models.Model):
-    """Model for reported reels"""
+class OmzoReport(models.Model):
+    """Model for reported omzos"""
     COPYRIGHT_TYPE_CHOICES = [
         ('audio', 'Audio Copyright'),
         ('content', 'Content Copyright'),
@@ -951,9 +951,9 @@ class ReelReport(models.Model):
     ]
 
     reporter = models.ForeignKey(
-        CustomUser, on_delete=models.CASCADE, related_name='reel_reports_made')
-    reel = models.ForeignKey(
-        Reel, on_delete=models.CASCADE, related_name='reports')
+        CustomUser, on_delete=models.CASCADE, related_name='omzo_reports_made')
+    omzo = models.ForeignKey(
+        Omzo, on_delete=models.CASCADE, related_name='reports')
     reason = models.CharField(max_length=20, choices=REPORT_REASONS)
     description = models.TextField(blank=True, null=True)
     # Copyright-specific fields
@@ -967,17 +967,17 @@ class ReelReport(models.Model):
         help_text="Whether the copyright is for audio or content"
     )
     disable_audio = models.BooleanField(
-        default=False, help_text="If checked, audio will be disabled for this reel")
+        default=False, help_text="If checked, audio will be disabled for this omzo")
     created_at = models.DateTimeField(auto_now_add=True)
     reviewed = models.BooleanField(default=False)
     reviewed_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
-        unique_together = ('reporter', 'reel')
+        unique_together = ('reporter', 'omzo')
         ordering = ['-created_at']
 
     def __str__(self):
-        return f"{self.reporter.username} reported reel {self.reel.id} for {self.reason}"
+        return f"{self.reporter.username} reported omzo {self.omzo.id} for {self.reason}"
 
     @property
     def copyright_info(self):

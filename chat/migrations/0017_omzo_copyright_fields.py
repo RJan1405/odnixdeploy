@@ -1,4 +1,4 @@
-# Generated migration for copyright fields in ReelReport
+# Generated migration for copyright fields in OmzoReport
 
 from django.db import migrations, models
 
@@ -11,13 +11,13 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.AddField(
-            model_name='reelreport',
+            model_name='omzoreport',
             name='copyright_description',
             field=models.TextField(
                 blank=True, null=True, help_text='Description of copyright infringement (optional)'),
         ),
         migrations.AddField(
-            model_name='reelreport',
+            model_name='omzoreport',
             name='copyright_type',
             field=models.CharField(
                 blank=True,

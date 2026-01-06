@@ -7,7 +7,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ("chat", "0009_add_expanded_theme_choices"),
-        ("chat", "0009_reel_reelcomment_reellike"),
+        ("chat", "0009_omzo_omzocomment_omzolike"),
     ]
 
     operations = []

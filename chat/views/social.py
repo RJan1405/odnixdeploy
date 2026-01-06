@@ -18,7 +18,7 @@ from django.db import models as db_models
 from chat.models import (
     CustomUser, Chat, Tweet, Comment, Like, Follow, Block, FollowRequest,
     Hashtag, TweetHashtag, Mention, StoryReply, StoryLike, Story,
-    SavedPost, PostReport, Reel, ReelLike, ReelComment, ReelReport,
+    SavedPost, PostReport, Omzo, OmzoLike, OmzoComment, OmzoReport,
     ProfileView, PinnedChat
 )
 from chat.forms import TweetForm, ProfileUpdateForm
@@ -104,7 +104,6 @@ def profile_view(request, username=None):
             viewed_user=profile_user,
             defaults={'viewed_at': timezone.now()}
         )
-
 
     # Get user's tweets (only if profile is accessible)
     tweets = []
@@ -283,15 +282,15 @@ def profile_view(request, username=None):
                 'saved_at': saved.created_at,
             })
 
-    # Get Reels if profile is viewable
-    reels = []
+    # Get omzo if profile is viewable
+    omzo = []
     if can_view_profile:
-        reels = Reel.objects.filter(user=profile_user).order_by('-created_at')
+        omzo = Omzo.objects.filter(user=profile_user).order_by('-created_at')
 
     context = {
         'profile_user': profile_user,
         'tweets': tweets,
-        'reels': reels,
+        'omzo': omzo,
         'is_own_profile': is_own_profile,
         'existing_chat': existing_chat,
         'is_following': is_following,
@@ -312,7 +311,7 @@ def profile_view(request, username=None):
     }
 
     # Use Instagram-style template
-    return render(request, 'chat/profile_instagram.html', context)
+    return render(request, 'chat/profile.html', context)
 
 
 @login_required
@@ -322,35 +321,36 @@ def toggle_private_chat(request):
     try:
         data = json.loads(request.body)
         username = data.get('username')
-        
+
         target_user = get_object_or_404(CustomUser, username=username)
-        
+
         # Find the private chat between these users
         chat = Chat.objects.filter(
             chat_type='private',
             participants=request.user
         ).filter(participants=target_user).first()
-        
+
         if not chat:
-            # If no chat exists, create one? 
+            # If no chat exists, create one?
             # Ideally frontend only calls this on existing chats.
             # But "Add to Private" logic implies we can do it even if we haven't chatted?
             # Creating a chat just to pin it seems fine.
             chat = Chat.objects.create(chat_type='private')
             chat.participants.add(request.user, target_user)
-            
+
         # Toggle PinnedChat
-        pinned, created = PinnedChat.objects.get_or_create(user=request.user, chat=chat)
-        
+        pinned, created = PinnedChat.objects.get_or_create(
+            user=request.user, chat=chat)
+
         if not created:
             # If it existed, delete it (Unpin/Remove from Private)
             pinned.delete()
             is_private = False
         else:
             is_private = True
-            
+
         return JsonResponse({'success': True, 'is_private': is_private})
-        
+
     except Exception as e:
         logger.error(f"Error in toggle_private_chat: {str(e)}")
         return JsonResponse({'success': False, 'error': str(e)})
@@ -459,7 +459,7 @@ def update_profile(request):
         'form': form,
     }
     # Use Instagram-style template
-    return render(request, 'chat/update_profile_instagram.html', context)
+    return render(request, 'chat/update_profile.html', context)
 
 
 @login_required
@@ -1625,7 +1625,7 @@ def search_users_for_mention(request):
 
 @login_required
 def global_search(request):
-    """Global search across Users, Groups, Tweets, Reels, and Scribes"""
+    """Global search across Users, Groups, Tweets, Omzo, and Scribes"""
     try:
         query = request.GET.get('q', '').strip()
         page = int(request.GET.get('page', 1))
@@ -1660,8 +1660,8 @@ def global_search(request):
             db_models.Q(code_js__icontains=query)
         ).select_related('user')
 
-        # 4. Reels
-        reels_qs = Reel.objects.filter(
+        # 4.Omzo
+        omzo_qs = Omzo.objects.filter(
             caption__icontains=query
         ).select_related('user')
 
@@ -1679,7 +1679,7 @@ def global_search(request):
         users = list(users_qs[:limit])
         groups = list(groups_qs[:limit])
         tweets = list(tweets_qs[:limit])
-        reels = list(reels_qs[:limit])
+        omzos = list(omzo_qs[:limit])
 
         # Normalize to standard dict format
         combined = []
@@ -1725,12 +1725,12 @@ def global_search(request):
                 'score': 80
             })
 
-        for r in reels:
+        for r in omzos:
             combined.append({
-                'type': 'reel',
+                'type': 'omzo',
                 'id': r.id,
                 'title': r.user.full_name or r.user.username,
-                'subtitle': r.caption[:50] if r.caption else 'Reel',
+                'subtitle': r.caption[:50] if r.caption else 'Omzo content',
                 # Not a thumbnail, but browser might handle
                 'image_url': r.video_file.url if r.video_file else None,
                 'data': {'id': r.id},
@@ -1899,14 +1899,14 @@ def get_all_activity(request):
                 'content': reply.content[:80] + '...' if len(reply.content) > 80 else reply.content,
             })
 
-        # 6. Reel (Omzo) likes - people who liked MY reels
-        reel_likes = ReelLike.objects.filter(
-            reel__user=request.user
-        ).exclude(user=request.user).select_related('user', 'reel').order_by('-created_at')[:20]
+        # 6. Omzo (Omzo) likes - people who liked MY Omzo
+        omzo_likes = OmzoLike.objects.filter(
+            omzo__user=request.user
+        ).exclude(user=request.user).select_related('user', 'omzo').order_by('-created_at')[:20]
 
-        for like in reel_likes:
+        for like in omzo_likes:
             activity_items.append({
-                'type': 'reel_like',
+                'type': 'omzo_like',
                 'timestamp': like.created_at,
                 'user': {
                     'id': like.user.id,
@@ -1914,20 +1914,20 @@ def get_all_activity(request):
                     'full_name': like.user.full_name,
                     'profile_picture_url': like.user.profile_picture_url,
                 },
-                'reel': {
-                    'id': like.reel.id,
-                    'caption': like.reel.caption[:50] + '...' if like.reel.caption and len(like.reel.caption) > 50 else (like.reel.caption or 'Omzo'),
+                'omzo': {
+                    'id': like.omzo.id,
+                    'caption': like.omzo.caption[:50] + '...' if like.omzo.caption and len(like.omzo.caption) > 50 else (like.omzo.caption or 'Omzo'),
                 }
             })
 
-        # 7. Reel (Omzo) comments - people who commented on MY reels
-        reel_comments = ReelComment.objects.filter(
-            reel__user=request.user
-        ).exclude(user=request.user).select_related('user', 'reel').order_by('-created_at')[:20]
+        # 7. Omzo (Omzo) comments - people who commented on MY Omzo
+        omzo_comments = OmzoComment.objects.filter(
+            omzo__user=request.user
+        ).exclude(user=request.user).select_related('user', 'omzo').order_by('-created_at')[:20]
 
-        for comment in reel_comments:
+        for comment in omzo_comments:
             activity_items.append({
-                'type': 'reel_comment',
+                'type': 'omzo_comment',
                 'timestamp': comment.created_at,
                 'user': {
                     'id': comment.user.id,
@@ -1935,9 +1935,9 @@ def get_all_activity(request):
                     'full_name': comment.user.full_name,
                     'profile_picture_url': comment.user.profile_picture_url,
                 },
-                'reel': {
-                    'id': comment.reel.id,
-                    'caption': comment.reel.caption[:50] + '...' if comment.reel.caption and len(comment.reel.caption) > 50 else (comment.reel.caption or 'Omzo'),
+                'omzo': {
+                    'id': comment.omzo.id,
+                    'caption': comment.omzo.caption[:50] + '...' if comment.omzo.caption and len(comment.omzo.caption) > 50 else (comment.omzo.caption or 'Omzo'),
                 },
                 'comment_content': comment.content[:80] + '...' if len(comment.content) > 80 else comment.content,
             })
@@ -1969,19 +1969,19 @@ def get_all_activity(request):
                 'reason': reason_display,
             })
 
-        # 9. Reel Reports - Notify the user that they have been reported
-        reel_reports = ReelReport.objects.filter(
-            reel__user=request.user
-        ).select_related('reporter', 'reel').order_by('-created_at')[:20]
+        # 9. Omzo Reports - Notify the user that they have been reported
+        omzo_reports = OmzoReport.objects.filter(
+            omzo__user=request.user
+        ).select_related('reporter', 'omzo').order_by('-created_at')[:20]
 
-        for report in reel_reports:
+        for report in omzo_reports:
             reason_display = report.get_reason_display()
             # Add copyright type info if applicable
             if report.reason == 'copyright' and report.copyright_type:
                 reason_display = f"{reason_display} ({report.get_copyright_type_display()})"
 
             activity_items.append({
-                'type': 'reel_report',
+                'type': 'omzo_report',
                 'timestamp': report.created_at,
                 'user': {
                     'id': report.reporter.id,
@@ -1989,9 +1989,9 @@ def get_all_activity(request):
                     'full_name': report.reporter.full_name,
                     'profile_picture_url': report.reporter.profile_picture_url,
                 },
-                'reel': {
-                    'id': report.reel.id,
-                    'caption': report.reel.caption[:50] + '...' if len(report.reel.caption) > 50 else report.reel.caption,
+                'omzo': {
+                    'id': report.omzo.id,
+                    'caption': report.omzo.caption[:50] + '...' if len(report.omzo.caption) > 50 else report.omzo.caption,
                 },
                 'reason': reason_display,
             })
@@ -2018,23 +2018,23 @@ def get_all_activity(request):
                 'reason': report.get_reason_display(),
             })
 
-        my_reel_reports = ReelReport.objects.filter(
+        my_omzo_reports = OmzoReport.objects.filter(
             reporter=request.user
-        ).select_related('reel', 'reel__user').order_by('-created_at')[:20]
+        ).select_related('omzo', 'omzo__user').order_by('-created_at')[:20]
 
-        for report in my_reel_reports:
+        for report in my_omzo_reports:
             activity_items.append({
-                'type': 'my_reel_report',
+                'type': 'my_omzo_report',
                 'timestamp': report.created_at,
                 'user': {  # target content owner
-                    'id': report.reel.user.id,
-                    'username': report.reel.user.username,
-                    'full_name': report.reel.user.full_name,
-                    'profile_picture_url': report.reel.user.profile_picture_url,
+                    'id': report.omzo.user.id,
+                    'username': report.omzo.user.username,
+                    'full_name': report.omzo.user.full_name,
+                    'profile_picture_url': report.omzo.user.profile_picture_url,
                 },
-                'reel': {
-                    'id': report.reel.id,
-                    'caption': report.reel.caption[:50] + '...' if len(report.reel.caption) > 50 else report.reel.caption,
+                'omzo': {
+                    'id': report.omzo.id,
+                    'caption': report.omzo.caption[:50] + '...' if len(report.omzo.caption) > 50 else report.omzo.caption,
                 },
                 'reason': report.get_reason_display(),
             })
@@ -2147,73 +2147,72 @@ def get_profile_following(request, username):
 
 
 @login_required
-def reels_view(request):
-    """View to watch and scroll through reels"""
+def omzo_view(request):
+    """View to watch and scroll through omzo"""
     from chat.recommendations import ContentRecommender
 
     # Use Recommendation Engine
     recommender = ContentRecommender(request.user)
-    reels = recommender.get_reels(limit=50)
+    omzos = recommender.get_omzo(limit=50)
 
-    # Process reels for the frontend
-    reels_data = []
-    for reel in reels:
-        reels_data.append({
-            'id': reel.id,
-            'url': reel.video_file.url,
-            'caption': reel.caption,
-            'user': reel.user,
-            'likes': reel.like_count,
-            'comments_count': reel.comment_count,
-            'is_liked': reel.is_liked_by(request.user),
-            'views': reel.views_count,
-            'views': reel.views_count,
-            'timestamp': reel.created_at,
-            'is_following': Follow.objects.filter(follower=request.user, following=reel.user).exists(),
+    # Process omzo for the frontend
+    omzo_data = []
+    for omzo in omzos:
+        omzo_data.append({
+            'id': omzo.id,
+            'url': omzo.video_file.url,
+            'caption': omzo.caption,
+            'user': omzo.user,
+            'likes': omzo.like_count,
+            'comments_count': omzo.comment_count,
+            'is_liked': omzo.is_liked_by(request.user),
+            'views': omzo.views_count,
+            'views': omzo.views_count,
+            'timestamp': omzo.created_at,
+            'is_following': Follow.objects.filter(follower=request.user, following=omzo.user).exists(),
         })
 
-    return render(request, 'chat/reels.html', {
-        'reels': reels_data
+    return render(request, 'chat/Omzo.html', {
+        'omzos': omzo_data
     })
 
 
 @login_required
 @require_POST
-def track_reel_view(request):
-    """API endpoint to track when a user watches a specific reel"""
+def track_omzo_view(request):
+    """API endpoint to track when a user watches a specific omzo"""
     try:
         data = json.loads(request.body)
-        reel_id = data.get('reel_id')
 
-        if not reel_id:
-            return JsonResponse({'error': 'reel_id required'}, status=400)
+        omzo_id = data.get('omzo_id') or data.get('omzo_id')
+        if not omzo_id:
+            return JsonResponse({'error': 'omzo_id required'}, status=400)
+        omzo = get_object_or_404(Omzo, id=omzo_id)
 
-        reel = get_object_or_404(Reel, id=reel_id)
-
-        # Increment view count only for this reel
-        reel.views_count += 1
-        reel.save(update_fields=['views_count'])
+        # Increment view count only for this omzo
+        omzo.views_count += 1
+        omzo.save(update_fields=['views_count'])
 
         return JsonResponse({
             'status': 'success',
-            'views': reel.views_count
+            'views': omzo.views_count
         })
     except json.JSONDecodeError:
         return JsonResponse({'error': 'Invalid JSON'}, status=400)
     except Exception as e:
-        logger.error(f"Error tracking reel view: {str(e)}")
+        logger.error(f"Error tracking omzo view: {str(e)}")
         return JsonResponse({'error': str(e)}, status=500)
 
 
 @login_required
 @require_POST
-def upload_reel(request):
-    """API to upload a new reel with compression"""
+def upload_omzo(request):
+    """API to upload a new omzo with compression"""
     import os
     import tempfile
-    # CHECK DAILY LIMIT (5 reels per day)
+    # CHECK DAILY LIMIT (5 Omzo per day)
     today_start = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
-    today_count = Reel.objects.filter(
+    today_count = Omzo.objects.filter(
         user=request.user,
         created_at__gte=today_start
     ).count()
@@ -2221,7 +2220,7 @@ def upload_reel(request):
     if today_count >= 5:
         return JsonResponse({
             'success': False,
-            'error': 'Daily reel limit reached. You can upload up to 5 reels per day. Try again tomorrow!'
+            'error': 'Daily omzo limit reached. You can upload up to 5 Omzo per day. Try again tomorrow!'
         })
 
     # Try to import MoviePy lazily so missing dependency won't 500
@@ -2260,14 +2259,14 @@ def upload_reel(request):
 
         # If MoviePy isn't available, save original without compression
         if not moviepy_available:
-            reel = Reel.objects.create(
+            omzo = Omzo.objects.create(
                 user=request.user,
                 video_file=video_file,
                 caption=caption
             )
             if os.path.exists(temp_in_path):
                 os.remove(temp_in_path)
-            return JsonResponse({'success': True, 'message': 'Reel uploaded (no compression available)'})
+            return JsonResponse({'success': True, 'message': 'Omzo uploaded (no compression available)'})
 
         try:
             # Load video
@@ -2280,7 +2279,7 @@ def upload_reel(request):
             # 1) Resize if too wide (keep aspect ratio)
             try:
                 max_width = max(
-                    int(getattr(settings, 'REELS_MAX_WIDTH', 720)), 1)
+                    int(getattr(settings, 'OMZO_MAX_WIDTH', 720)), 1)
                 if getattr(clip, 'w', 0) and clip.w > max_width:
                     # MoviePy API variants: prefer resize; keep existing method name if available
                     if hasattr(clip, 'resize'):
@@ -2294,7 +2293,7 @@ def upload_reel(request):
             # 2) Limit duration
             try:
                 max_duration = max(
-                    int(getattr(settings, 'REELS_MAX_DURATION', 120)), 1)
+                    int(getattr(settings, 'OMZO_MAX_DURATION', 120)), 1)
                 if getattr(clip, 'duration', 0) and clip.duration > max_duration:
                     try:
                         clip.close()
@@ -2302,7 +2301,7 @@ def upload_reel(request):
                         pass
                     return JsonResponse({
                         'success': False,
-                        'error': f'Reel is too long. Maximum allowed duration is {max_duration // 60} minutes.'
+                        'error': f'Omzo is too long. Maximum allowed duration is {max_duration // 60} minutes.'
                     })
             except Exception:
                 pass
@@ -2312,7 +2311,7 @@ def upload_reel(request):
                 current_fps = int(getattr(clip, 'fps', 30) or 30)
             except Exception:
                 current_fps = 30
-            fps_cap = max(int(getattr(settings, 'REELS_MAX_FPS', 30)), 1)
+            fps_cap = max(int(getattr(settings, 'OMZO_MAX_FPS', 30)), 1)
             target_fps = min(current_fps, fps_cap)
 
             # Create temp file for compressed output (.mp4 enforced)
@@ -2343,7 +2342,7 @@ def upload_reel(request):
             # Ensure at least 100k bitrate so it doesn't break completely
             video_bitrate = f"{max(int(target_video_bitrate_bps / 1000), 100)}k"
 
-            preset = str(getattr(settings, 'REELS_PRESET', 'veryfast'))
+            preset = str(getattr(settings, 'OMZO_PRESET', 'veryfast'))
             audio_bitrate = f"{audio_bitrate_kbps}k"
 
             clip.write_videofile(
@@ -2374,7 +2373,7 @@ def upload_reel(request):
             try:
                 compressed_size = os.path.getsize(temp_out_path)
                 smart_fallback = bool(
-                    getattr(settings, 'REELS_SMART_FALLBACK', True))
+                    getattr(settings, 'OMZO_SMART_FALLBACK', True))
                 # If compression didn't help and smart fallback enabled, keep original
                 if smart_fallback and compressed_size >= max(original_size - 1024, 0):
                     use_path = temp_in_path
@@ -2383,16 +2382,16 @@ def upload_reel(request):
                     temp_out_path) else temp_in_path
 
             # Save to model
-            force_mp4 = bool(getattr(settings, 'REELS_FORCE_MP4', True))
-            save_name = f"reel_{request.user.id}_{os.path.splitext(video_file.name)[0]}.mp4"
+            force_mp4 = bool(getattr(settings, 'OMZO_FORCE_MP4', True))
+            save_name = f"omzo_{request.user.id}_{os.path.splitext(video_file.name)[0]}.mp4"
             if use_path == temp_in_path:
                 # Preserve original extension when keeping the original
                 orig_ext = os.path.splitext(video_file.name)[1] or '.mp4'
-                save_name = f"reel_{request.user.id}_{os.path.splitext(video_file.name)[0]}{(orig_ext if not force_mp4 else '.mp4')}"
+                save_name = f"omzo_{request.user.id}_{os.path.splitext(video_file.name)[0]}{(orig_ext if not force_mp4 else '.mp4')}"
 
             with open(use_path, 'rb') as f:
                 django_file = File(f, name=save_name)
-                reel = Reel.objects.create(
+                omzo = Omzo.objects.create(
                     user=request.user,
                     video_file=django_file,
                     caption=caption
@@ -2408,7 +2407,7 @@ def upload_reel(request):
         except Exception as e:
             logger.error(f"Compression failed, falling back to original: {e}")
             # Fallback: Save original if anything goes wrong
-            reel = Reel.objects.create(
+            omzo = Omzo.objects.create(
                 user=request.user,
                 video_file=video_file,
                 caption=caption
@@ -2418,48 +2417,48 @@ def upload_reel(request):
             if os.path.exists(temp_in_path):
                 os.remove(temp_in_path)
 
-        return JsonResponse({'success': True, 'message': 'Reel uploaded successfully'})
+        return JsonResponse({'success': True, 'message': 'Omzo uploaded successfully'})
     except Exception as e:
-        logger.error(f"Error uploading reel: {str(e)}")
-        return JsonResponse({'success': False, 'error': f'Failed to upload reel: {str(e)}'})
+        logger.error(f"Error uploading omzo: {str(e)}")
+        return JsonResponse({'success': False, 'error': f'Failed to upload omzo: {str(e)}'})
 
 
 @login_required
 @require_POST
-def toggle_reel_like(request):
-    """API to like/unlike a reel"""
+def toggle_omzo_like(request):
+    """API to like/unlike a omzo"""
     try:
         data = json.loads(request.body)
-        reel_id = data.get('reel_id')
-        reel = get_object_or_404(Reel, id=reel_id)
+        omzo_id = data.get('omzo_id')
+        omzo = get_object_or_404(Omzo, id=omzo_id)
 
-        like = ReelLike.objects.filter(reel=reel, user=request.user).first()
+        like = OmzoLike.objects.filter(omzo=omzo, user=request.user).first()
         if like:
             like.delete()
             is_liked = False
         else:
-            ReelLike.objects.create(reel=reel, user=request.user)
+            OmzoLike.objects.create(omzo=omzo, user=request.user)
             is_liked = True
 
         return JsonResponse({
             'success': True,
             'is_liked': is_liked,
-            'likes_count': reel.like_count
+            'likes_count': omzo.like_count
         })
     except Exception as e:
-        logger.error(f"Error toggling reel like: {str(e)}")
+        logger.error(f"Error toggling omzo like: {str(e)}")
         return JsonResponse({'success': False, 'error': 'Action failed'})
 
 
 @login_required
-def get_reel_comments(request, reel_id):
-    """Return comments for a reel (latest first)."""
+def get_omzo_comments(request, omzo_id):
+    """Return comments for a omzo (latest first)."""
     try:
-        reel = get_object_or_404(Reel, id=reel_id)
+        omzo = get_object_or_404(Omzo, id=omzo_id)
         limit = int(request.GET.get('limit', 20))
         offset = int(request.GET.get('offset', 0))
 
-        qs = ReelComment.objects.filter(reel=reel).select_related(
+        qs = OmzoComment.objects.filter(omzo=omzo).select_related(
             'user').order_by('-created_at')
         total = qs.count()
         comments = []
@@ -2483,29 +2482,29 @@ def get_reel_comments(request, reel_id):
             'comments': comments,
         })
     except Exception as e:
-        logger.error(f"Error getting reel comments: {str(e)}")
+        logger.error(f"Error getting omzo comments: {str(e)}")
         return JsonResponse({'success': False, 'error': 'Failed to load comments'})
 
 
 @login_required
 @require_POST
-def add_reel_comment(request):
-    """Add a comment to a reel."""
+def add_omzo_comment(request):
+    """Add a comment to a omzo."""
     try:
         data = json.loads(request.body)
-        reel_id = data.get('reel_id')
+        omzo_id = data.get('omzo_id') or data.get('omzo_id')
         content = (data.get('content') or '').strip()
 
-        if not reel_id:
-            return JsonResponse({'success': False, 'error': 'reel_id required'}, status=400)
+        if not omzo_id:
+            return JsonResponse({'success': False, 'error': 'omzo_id required'}, status=400)
         if not content:
             return JsonResponse({'success': False, 'error': 'Comment cannot be empty'}, status=400)
         if len(content) > 500:
             return JsonResponse({'success': False, 'error': 'Comment too long (max 500)'}, status=400)
 
-        reel = get_object_or_404(Reel, id=reel_id)
-        rc = ReelComment.objects.create(
-            reel=reel, user=request.user, content=content)
+        omzo = get_object_or_404(Omzo, id=omzo_id)
+        rc = OmzoComment.objects.create(
+            omzo=omzo, user=request.user, content=content)
 
         return JsonResponse({
             'success': True,
@@ -2521,30 +2520,30 @@ def add_reel_comment(request):
                     'initials': request.user.initials,
                 }
             },
-            'comments_count': reel.comment_count,
+            'comments_count': omzo.comment_count,
         })
     except json.JSONDecodeError:
         return JsonResponse({'success': False, 'error': 'Invalid JSON'}, status=400)
     except Exception as e:
-        logger.error(f"Error adding reel comment: {str(e)}")
+        logger.error(f"Error adding omzo comment: {str(e)}")
         return JsonResponse({'success': False, 'error': 'Failed to add comment'})
 
 
 @login_required
 @require_POST
-def report_reel(request):
-    """Report a reel for inappropriate content"""
+def report_omzo(request):
+    """Report a omzo for inappropriate content"""
     try:
         data = json.loads(request.body)
-        reel_id = data.get('reel_id')
+        omzo_id = data.get('omzo_id') or data.get('omzo_id')
         reason = data.get('reason')
         description = data.get('description', '').strip()
         copyright_description = data.get('copyright_description', '').strip()
         copyright_type = data.get('copyright_type', '').strip()
         disable_audio = data.get('disable_audio', False)
 
-        if not reel_id or not reason:
-            return JsonResponse({'success': False, 'error': 'Reel ID and reason are required'})
+        if not omzo_id or not reason:
+            return JsonResponse({'success': False, 'error': 'Omzo ID and reason are required'})
 
         valid_reasons = ['spam', 'inappropriate', 'harassment',
                          'violence', 'hate_speech', 'false_info', 'copyright', 'other']
@@ -2552,19 +2551,19 @@ def report_reel(request):
             return JsonResponse({'success': False, 'error': 'Invalid report reason'})
 
         try:
-            reel = Reel.objects.get(id=reel_id)
-        except Reel.DoesNotExist:
-            return JsonResponse({'success': False, 'error': 'Reel not found'})
+            omzo = Omzo.objects.get(id=omzo_id)
+        except Omzo.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Omzo not found'})
 
-        # Can't report your own reels
-        if reel.user == request.user:
-            return JsonResponse({'success': False, 'error': 'You cannot report your own reel'})
+        # Can't report your own Omzo
+        if omzo.user == request.user:
+            return JsonResponse({'success': False, 'error': 'You cannot report your own Omzo'})
 
         # Check if already reported by this user
-        existing_report = ReelReport.objects.filter(
-            reporter=request.user, reel=reel).first()
+        existing_report = OmzoReport.objects.filter(
+            reporter=request.user, omzo=omzo).first()
         if existing_report:
-            return JsonResponse({'success': False, 'error': 'You have already reported this reel'})
+            return JsonResponse({'success': False, 'error': 'You have already reported this Omzo'})
 
         # Validate copyright_type if reason is copyright
         if reason == 'copyright':
@@ -2573,9 +2572,9 @@ def report_reel(request):
                 return JsonResponse({'success': False, 'error': 'Invalid copyright type'})
 
         # Create the report
-        report = ReelReport.objects.create(
+        report = OmzoReport.objects.create(
             reporter=request.user,
-            reel=reel,
+            omzo=omzo,
             reason=reason,
             description=description,
             copyright_description=copyright_description if reason == 'copyright' else None,
@@ -2583,10 +2582,10 @@ def report_reel(request):
             disable_audio=disable_audio
         )
 
-        # If disable_audio is checked, mute the reel
+        # If disable_audio is checked, mute the omzo
         if disable_audio:
-            reel.is_muted = True
-            reel.save()
+            omzo.is_muted = True
+            omzo.save()
 
         return JsonResponse({
             'success': True,
@@ -2594,5 +2593,5 @@ def report_reel(request):
         })
 
     except Exception as e:
-        logger.error(f"Error in report_reel: {str(e)}")
-        return JsonResponse({'success': False, 'error': 'Failed to report reel'})
+        logger.error(f"Error in report_omzo: {str(e)}")
+        return JsonResponse({'success': False, 'error': 'Failed to report omzo'})

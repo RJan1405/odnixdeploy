@@ -1,6 +1,6 @@
 # admin.py - FIXED VERSION
 
-from .models import Reel, ReelLike, ReelComment, ReelReport
+from .models import Omzo, OmzoLike, OmzoComment, OmzoReport
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from .models import (
@@ -271,8 +271,8 @@ class PostReportAdmin(admin.ModelAdmin):
     mark_as_reviewed.short_description = "Mark selected reports as reviewed"
 
 
-@admin.register(Reel)
-class ReelAdmin(admin.ModelAdmin):
+@admin.register(Omzo)
+class OmzoAdmin(admin.ModelAdmin):
     list_display = ['id', 'user', 'caption_preview', 'views_count',
                     'like_count', 'comment_count', 'rank_score', 'created_at']
     list_filter = ['created_at']
@@ -303,38 +303,38 @@ class ReelAdmin(admin.ModelAdmin):
     rank_score.short_description = 'Rank (Likes/Comments/Views)'
 
 
-@admin.register(ReelLike)
-class ReelLikeAdmin(admin.ModelAdmin):
-    list_display = ['user', 'reel', 'created_at']
+@admin.register(OmzoLike)
+class OmzoLikeAdmin(admin.ModelAdmin):
+    list_display = ['user', 'omzo', 'created_at']
     list_filter = ['created_at']
-    search_fields = ['user__username', 'reel__caption']
+    search_fields = ['user__username', 'omzo__caption']
 
 
-@admin.register(ReelComment)
-class ReelCommentAdmin(admin.ModelAdmin):
-    list_display = ['user', 'reel', 'content', 'created_at']
+@admin.register(OmzoComment)
+class OmzoCommentAdmin(admin.ModelAdmin):
+    list_display = ['user', 'omzo', 'content', 'created_at']
     list_filter = ['created_at']
     search_fields = ['user__username', 'content']
 
 
-@admin.register(ReelReport)
-class ReelReportAdmin(admin.ModelAdmin):
-    list_display = ['reporter', 'reel', 'reason',
+@admin.register(OmzoReport)
+class OmzoReportAdmin(admin.ModelAdmin):
+    list_display = ['reporter', 'omzo', 'reason',
                     'copyright_type_display', 'disable_audio', 'created_at', 'reviewed']
     list_filter = ['reason', 'copyright_type',
                    'disable_audio', 'reviewed', 'created_at']
-    search_fields = ['reporter__username', 'reel__caption',
+    search_fields = ['reporter__username', 'omzo__caption',
                      'description', 'copyright_description']
-    raw_id_fields = ['reporter', 'reel']
-    readonly_fields = ['created_at', 'reviewed_at', 'reel_link']
+    raw_id_fields = ['reporter', 'omzo']
+    readonly_fields = ['created_at', 'reviewed_at', 'omzo_link']
     actions = ['mark_as_reviewed']
 
     fieldsets = (
         ('Report Information', {
-            'fields': ('reporter', 'reel', 'reason', 'description')
+            'fields': ('reporter', 'omzo', 'reason', 'description')
         }),
         ('Copyright Details (if applicable)', {
-            'fields': ('copyright_type', 'copyright_description', 'disable_audio', 'reel_link'),
+            'fields': ('copyright_type', 'copyright_description', 'disable_audio', 'omzo_link'),
             'classes': ('collapse',)
         }),
         ('Review Status', {
@@ -342,14 +342,14 @@ class ReelReportAdmin(admin.ModelAdmin):
         }),
     )
 
-    def reel_link(self, obj):
-        if obj.reel:
+    def omzo_link(self, obj):
+        if obj.omzo:
             from django.urls import reverse
             from django.utils.html import format_html
-            url = reverse('admin:chat_reel_change', args=[obj.reel.id])
-            return format_html('<a href="{}" target="_blank" style="display: inline-block; padding: 8px 12px; background: #417690; color: white; text-decoration: none; border-radius: 4px; font-weight: bold;">Open Reel in Admin</a>', url)
+            url = reverse('admin:chat_omzo_change', args=[obj.omzo.id])
+            return format_html('<a href="{}" target="_blank" style="display: inline-block; padding: 8px 12px; background: #417690; color: white; text-decoration: none; border-radius: 4px; font-weight: bold;">Open Omzo in Admin</a>', url)
         return '-'
-    reel_link.short_description = 'Quick Actions'
+    omzo_link.short_description = 'Quick Actions'
 
     def copyright_type_display(self, obj):
         if obj.copyright_type:

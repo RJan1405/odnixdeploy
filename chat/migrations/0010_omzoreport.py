@@ -8,12 +8,12 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('chat', '0009_reel_reelcomment_reellike'),
+        ('chat', '0009_omzo_omzocomment_omzolike'),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='ReelReport',
+            name='OmzoReport',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('reason', models.CharField(choices=[('spam', 'Spam'), ('inappropriate', 'Inappropriate Content'), ('harassment', 'Harassment or Bullying'), ('violence', 'Violence or Threats'), ('hate_speech', 'Hate Speech'), ('false_info', 'False Information'), ('copyright', 'Copyright Infringement'), ('other', 'Other')], max_length=20)),
@@ -21,12 +21,12 @@ class Migration(migrations.Migration):
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('reviewed', models.BooleanField(default=False)),
                 ('reviewed_at', models.DateTimeField(blank=True, null=True)),
-                ('reel', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='reports', to='chat.reel')),
-                ('reporter', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='reel_reports_made', to=settings.AUTH_USER_MODEL)),
+                ('omzo', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='reports', to='chat.omzo')),
+                ('reporter', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='omzo_reports_made', to=settings.AUTH_USER_MODEL)),
             ],
             options={
                 'ordering': ['-created_at'],
-                'unique_together': {('reporter', 'reel')},
+                'unique_together': {('reporter', 'omzo')},
             },
         ),
     ]
