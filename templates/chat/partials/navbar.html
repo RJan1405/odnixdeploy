@@ -2,19 +2,19 @@
 <!-- Shared Navbar CSS Styles -->
 <style>
     /* ===== TOP NAVIGATION ===== */
-    .ig-top-nav {
+    .od-top-nav {
         position: fixed;
         top: 0;
         left: 0;
         right: 0;
         height: 70px;
-        background: var(--ig-surface);
-        border-bottom: 1px solid var(--ig-border);
+        background: var(--od-surface);
+        border-bottom: 1px solid var(--od-border);
         z-index: 1000;
         backdrop-filter: blur(20px);
     }
 
-    .ig-top-nav-inner {
+    .od-top-nav-inner {
         max-width: 975px;
         height: 100%;
         margin: 0 auto;
@@ -25,7 +25,7 @@
         gap: 20px;
     }
 
-    .ig-logo {
+    .od-logo {
         font-size: 26px;
         font-weight: 700;
         background: var(--odnix-gradient);
@@ -36,11 +36,11 @@
         flex-shrink: 0;
     }
 
-    .ig-search-bar {
+    .od-search-bar {
         display: flex;
         align-items: center;
-        background: var(--ig-input-bg, var(--ig-bg));
-        border: 1px solid var(--ig-border);
+        background: var(--od-input-bg, var(--od-bg));
+        border: 1px solid var(--od-border);
         border-radius: 12px;
         padding: 10px 18px;
         width: 320px;
@@ -48,41 +48,41 @@
         transition: all 0.3s ease;
     }
 
-    .ig-search-bar:focus-within {
+    .od-search-bar:focus-within {
         border-color: var(--color-primary);
-        box-shadow: 0 0 0 3px var(--odnix-glow, var(--ig-glow));
+        box-shadow: 0 0 0 3px var(--odnix-glow, var(--od-glow));
     }
 
-    .ig-search-bar .search-icon {
+    .od-search-bar .search-icon {
         width: 18px;
         height: 18px;
-        color: var(--ig-text-secondary);
+        color: var(--od-text-secondary);
         margin-right: 10px;
         flex-shrink: 0;
     }
 
-    .ig-search-bar input {
+    .od-search-bar input {
         border: none;
         background: none;
         outline: none;
         font-size: 14px;
         width: 100%;
-        color: var(--ig-text-primary);
+        color: var(--od-text-primary);
         padding: 0;
     }
 
-    .ig-search-bar input::placeholder {
-        color: var(--ig-text-secondary);
+    .od-search-bar input::placeholder {
+        color: var(--od-text-secondary);
     }
 
-    .ig-nav-icons {
+    .od-nav-icons {
         display: flex;
         align-items: center;
         gap: 8px;
     }
 
-    .ig-nav-icons a,
-    .ig-nav-icons button {
+    .od-nav-icons a,
+    .od-nav-icons button {
         background: none;
         border: none;
         cursor: pointer;
@@ -95,29 +95,29 @@
         transition: all 0.2s ease;
     }
 
-    .ig-nav-icons a:hover,
-    .ig-nav-icons button:hover {
-        background: var(--ig-surface-hover);
+    .od-nav-icons a:hover,
+    .od-nav-icons button:hover {
+        background: var(--od-surface-hover);
     }
 
-    .ig-nav-icon {
+    .od-nav-icon {
         width: 24px;
         height: 24px;
-        color: var(--ig-icon-color);
+        color: var(--od-icon-color);
         transition: all 0.2s;
     }
 
-    .ig-nav-icons a:hover .ig-nav-icon,
-    .ig-nav-icons button:hover .ig-nav-icon {
-        color: var(--ig-icon-hover);
+    .od-nav-icons a:hover .od-nav-icon,
+    .od-nav-icons button:hover .od-nav-icon {
+        color: var(--od-icon-hover);
     }
 
-    .ig-nav-icon.active {
-        color: var(--ig-text-primary);
+    .od-nav-icon.active {
+        color: var(--od-text-primary);
         /*stroke-width: 3px;*/
     }
 
-    .ig-nav-avatar {
+    .od-nav-avatar {
         width: 32px;
         height: 32px;
         border-radius: 10px;
@@ -125,7 +125,7 @@
         border: 2px solid var(--color-primary);
     }
 
-    .ig-nav-badge {
+    .od-nav-badge {
         position: absolute;
         top: 4px;
         right: 4px;
@@ -171,23 +171,23 @@
     }
 
     /* ===== BOTTOM NAVIGATION (Mobile) ===== */
-    .ig-bottom-nav {
+    .od-bottom-nav {
         display: none;
         position: fixed;
         bottom: 0;
         left: 0;
         right: 0;
         height: 65px;
-        background: var(--ig-surface);
+        background: var(--od-surface);
         backdrop-filter: blur(20px);
-        border-top: 1px solid var(--ig-border);
+        border-top: 1px solid var(--od-border);
         z-index: 1000;
         justify-content: space-around;
         align-items: center;
         padding: 0 10px;
     }
 
-    .ig-bottom-nav-item {
+    .od-bottom-nav-item {
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -196,26 +196,26 @@
         border: none;
         background: none;
         cursor: pointer;
-        color: var(--ig-text-secondary);
+        color: var(--od-text-secondary);
         text-decoration: none;
         position: relative;
         transition: all 0.2s;
     }
 
-    .ig-bottom-nav-item i {
+    .od-bottom-nav-item i {
         width: 24px;
         height: 24px;
     }
 
-    .ig-bottom-nav-item.active {
-        color: var(--ig-text-primary);
+    .od-bottom-nav-item.active {
+        color: var(--od-text-primary);
     }
 
-    .ig-bottom-nav-item.active i {
+    .od-bottom-nav-item.active i {
         stroke-width: 3px;
     }
 
-    .ig-bottom-nav-item .nav-avatar {
+    .od-bottom-nav-item .nav-avatar {
         width: 28px;
         height: 28px;
         border-radius: 22%;
@@ -254,20 +254,20 @@
     }
 
     @media (max-width: 768px) {
-        .ig-bottom-nav {
+        .od-bottom-nav {
             display: flex;
         }
 
-        .ig-top-nav {
+        .od-top-nav {
             height: 60px;
         }
 
-        .ig-search-bar {
+        .od-search-bar {
             display: none;
         }
 
-        .ig-nav-icons a:not([href*="profile"]),
-        .ig-nav-icons button {
+        .od-nav-icons a:not([href*="profile"]),
+        .od-nav-icons button {
             display: none;
         }
     }
@@ -301,7 +301,7 @@
         width: 100%;
         max-width: 420px;
         height: 100vh;
-        background: var(--ig-surface);
+        background: var(--od-surface);
         display: flex;
         flex-direction: column;
         box-shadow: -10px 0 40px rgba(0, 0, 0, 0.3);
@@ -325,8 +325,8 @@
         align-items: center;
         justify-content: space-between;
         padding: 16px 20px;
-        background: linear-gradient(135deg, var(--ig-surface) 0%, var(--ig-bg) 100%);
-        border-bottom: 1px solid var(--ig-border);
+        background: linear-gradient(135deg, var(--od-surface) 0%, var(--od-bg) 100%);
+        border-bottom: 1px solid var(--od-border);
         min-height: 72px;
     }
 
@@ -342,7 +342,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        background: var(--ig-surface-hover);
+        background: var(--od-surface-hover);
         border: none;
         border-radius: 50%;
         cursor: pointer;
@@ -350,14 +350,14 @@
     }
 
     .dm-close-btn:hover {
-        background: var(--ig-border);
+        background: var(--od-border);
         transform: scale(1.05);
     }
 
     .dm-close-btn i {
         width: 20px;
         height: 20px;
-        color: var(--ig-text-primary);
+        color: var(--od-text-primary);
     }
 
     .dm-header-user {
@@ -372,7 +372,7 @@
         border-radius: 22%;
         object-fit: cover;
         border: 2px solid transparent;
-        background: linear-gradient(var(--ig-surface), var(--ig-surface)) padding-box,
+        background: linear-gradient(var(--od-surface), var(--od-surface)) padding-box,
             var(--odnix-gradient) border-box;
     }
 
@@ -397,14 +397,14 @@
     .dm-header-title {
         font-size: 18px;
         font-weight: 700;
-        color: var(--ig-text-primary);
+        color: var(--od-text-primary);
         margin: 0;
         line-height: 1.2;
     }
 
     .dm-header-username {
         font-size: 13px;
-        color: var(--ig-text-secondary);
+        color: var(--od-text-secondary);
     }
 
     .dm-header-actions {
@@ -440,16 +440,16 @@
     /* DM Search */
     .dm-search-container {
         padding: 12px 16px;
-        background: var(--ig-surface);
-        border-bottom: 1px solid var(--ig-border);
+        background: var(--od-surface);
+        border-bottom: 1px solid var(--od-border);
     }
 
     .dm-search-bar {
         display: flex;
         align-items: center;
         gap: 10px;
-        background: var(--ig-bg);
-        border: 1px solid var(--ig-border);
+        background: var(--od-bg);
+        border: 1px solid var(--od-border);
         border-radius: 12px;
         padding: 10px 14px;
         transition: all 0.2s ease;
@@ -463,7 +463,7 @@
     .dm-search-icon {
         width: 18px;
         height: 18px;
-        color: var(--ig-text-secondary);
+        color: var(--od-text-secondary);
         flex-shrink: 0;
     }
 
@@ -472,12 +472,12 @@
         border: none;
         background: transparent;
         font-size: 14px;
-        color: var(--ig-text-primary);
+        color: var(--od-text-primary);
         outline: none;
     }
 
     .dm-search-input::placeholder {
-        color: var(--ig-text-secondary);
+        color: var(--od-text-secondary);
     }
 
     /* DM Categories */
@@ -485,8 +485,8 @@
         display: flex;
         gap: 8px;
         padding: 12px 16px;
-        background: var(--ig-surface);
-        border-bottom: 1px solid var(--ig-border);
+        background: var(--od-surface);
+        border-bottom: 1px solid var(--od-border);
     }
 
     .dm-category-btn {
@@ -494,13 +494,13 @@
         align-items: center;
         gap: 6px;
         padding: 8px 16px;
-        background: var(--ig-bg);
-        border: 1px solid var(--ig-border);
+        background: var(--od-bg);
+        border: 1px solid var(--od-border);
         border-radius: 20px;
         cursor: pointer;
         font-size: 13px;
         font-weight: 500;
-        color: var(--ig-text-secondary);
+        color: var(--od-text-secondary);
         transition: all 0.2s ease;
     }
 
@@ -510,8 +510,8 @@
     }
 
     .dm-category-btn:hover {
-        background: var(--ig-surface-hover);
-        color: var(--ig-text-primary);
+        background: var(--od-surface-hover);
+        color: var(--od-text-primary);
     }
 
     .dm-category-btn.active {
@@ -540,7 +540,7 @@
     }
 
     .dm-chat-list::-webkit-scrollbar-thumb {
-        background: var(--ig-border);
+        background: var(--od-border);
         border-radius: 3px;
     }
 
@@ -556,7 +556,7 @@
     }
 
     .dm-chat-item:hover {
-        background: var(--ig-surface-hover);
+        background: var(--od-surface-hover);
         border-left-color: var(--color-primary);
     }
 
@@ -575,7 +575,7 @@
         height: 56px;
         border-radius: 22%;
         object-fit: cover;
-        border: 2px solid var(--ig-border);
+        border: 2px solid var(--od-border);
         transition: border-color 0.2s ease;
     }
 
@@ -636,7 +636,7 @@
         height: 14px;
         border-radius: 50%;
         background: #8b8b8b;
-        border: 2px solid var(--ig-surface);
+        border: 2px solid var(--od-surface);
         display: none;
     }
 
@@ -664,7 +664,7 @@
     .dm-chat-name {
         font-size: 15px;
         font-weight: 600;
-        color: var(--ig-text-primary);
+        color: var(--od-text-primary);
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -672,7 +672,7 @@
 
     .dm-chat-time {
         font-size: 12px;
-        color: var(--ig-text-secondary);
+        color: var(--od-text-secondary);
         flex-shrink: 0;
     }
 
@@ -685,7 +685,7 @@
 
     .dm-chat-preview {
         font-size: 13px;
-        color: var(--ig-text-secondary);
+        color: var(--od-text-secondary);
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -709,7 +709,7 @@
     .dm-chat-arrow {
         width: 18px;
         height: 18px;
-        color: var(--ig-text-secondary);
+        color: var(--od-text-secondary);
         opacity: 0;
         transform: translateX(-5px);
         transition: all 0.2s ease;
@@ -736,7 +736,7 @@
         width: 80px;
         height: 80px;
         border-radius: 50%;
-        background: var(--ig-bg);
+        background: var(--od-bg);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -746,19 +746,19 @@
     .dm-empty-icon i {
         width: 40px;
         height: 40px;
-        color: var(--ig-text-secondary);
+        color: var(--od-text-secondary);
     }
 
     .dm-empty-title {
         font-size: 20px;
         font-weight: 600;
-        color: var(--ig-text-primary);
+        color: var(--od-text-primary);
         margin: 0 0 8px 0;
     }
 
     .dm-empty-text {
         font-size: 14px;
-        color: var(--ig-text-secondary);
+        color: var(--od-text-secondary);
         margin: 0 0 24px 0;
         max-width: 250px;
     }
@@ -866,60 +866,60 @@
 </style>
 
 <!-- Instagram-Style Top Navigation (Desktop) -->
-<nav class="ig-top-nav">
-    <div class="ig-top-nav-inner">
+<nav class="od-top-nav">
+    <div class="od-top-nav-inner">
         <!-- Logo -->
-        <a href="{% url 'dashboard' %}" class="ig-logo">Odnix</a>
+        <a href="{% url 'dashboard' %}" class="od-logo">Odnix</a>
 
         <!-- Search Bar - Hidden on discover page, profile page, and edit profile page since they have their own -->
         {% if request.resolver_match.url_name != 'discover_groups' and request.resolver_match.url_name != 'profile' and request.resolver_match.url_name != 'user_profile' and request.resolver_match.url_name != 'update_profile' %}
-        <div class="ig-search-bar">
+        <div class="od-search-bar">
             <i data-lucide="search" class="search-icon"></i>
             <input type="text" placeholder="Search" id="globalSearchInput" onkeyup="handleGlobalSearch(event)">
         </div>
         {% endif %}
 
         <!-- Navigation Icons -->
-        <div class="ig-nav-icons">
+        <div class="od-nav-icons">
             <a href="{% url 'dashboard' %}" title="Home">
                 <i data-lucide="home"
-                    class="ig-nav-icon {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}"></i>
+                    class="od-nav-icon {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}"></i>
             </a>
             <button onclick="navCreatePost()" title="Create">
-                <i data-lucide="plus-square" class="ig-nav-icon"></i>
+                <i data-lucide="plus-square" class="od-nav-icon"></i>
             </button>
             <a href="{% url 'messages' %}" class="dm-nav-btn" title="Messages">
-                <i data-lucide="message-circle" class="ig-nav-icon dm-icon"></i>
+                <i data-lucide="message-circle" class="od-nav-icon dm-icon"></i>
                 {% if unread_message_count > 0 %}
-                <span class="ig-nav-badge dm-badge">{{ unread_message_count }}</span>
+                <span class="od-nav-badge dm-badge">{{ unread_message_count }}</span>
                 {% endif %}
             </a>
             <a href="{% url 'discover_groups' %}" title="Explore">
                 <i data-lucide="compass"
-                    class="ig-nav-icon {% if request.resolver_match.url_name == 'discover_groups' %}active{% endif %}"></i>
+                    class="od-nav-icon {% if request.resolver_match.url_name == 'discover_groups' %}active{% endif %}"></i>
             </a>
             <a href="{% url 'omzo' %}" title="Omzo">
                 <i data-lucide="play-square"
-                    class="ig-nav-icon {% if request.resolver_match.url_name == 'omzo' %}active{% endif %}"></i>
+                    class="od-nav-icon {% if request.resolver_match.url_name == 'omzo' %}active{% endif %}"></i>
             </a>
             <button onclick="openActivityPanel()" title="Activity">
-                <i data-lucide="heart" class="ig-nav-icon"></i>
+                <i data-lucide="heart" class="od-nav-icon"></i>
                 {% if story_inbox_count > 0 %}
-                <span class="ig-nav-badge">{{ story_inbox_count }}</span>
+                <span class="od-nav-badge">{{ story_inbox_count }}</span>
                 {% endif %}
             </button>
             <a href="{% url 'profile' %}" title="Profile">
                 {% if current_user %}
                 <span style="position:relative;display:inline-block;">
                     <img src="{{ current_user.profile_picture_url }}" alt="{{ current_user.full_name }}"
-                        class="ig-nav-avatar" onerror="this.style.display='none'">
+                        class="od-nav-avatar" onerror="this.style.display='none'">
                     {% if unread_message_count > 0 %}
                     <span style="position:absolute;top:0;right:0;transform:translate(40%,-40%);background:#ff3b3b;color:#fff;border-radius:50%;min-width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:bold;box-shadow:0 0 0 2px #fff;z-index:2;">{{ unread_message_count }}</span>
                     {% endif %}
                 </span>
                 {% elif user.is_authenticated %}
                 <span style="position:relative;display:inline-block;">
-                    <img src="{{ user.profile_picture_url }}" alt="{{ user.full_name }}" class="ig-nav-avatar"
+                    <img src="{{ user.profile_picture_url }}" alt="{{ user.full_name }}" class="od-nav-avatar"
                         onerror="this.style.display='none'">
                     {% if unread_message_count > 0 %}
                     <span style="position:absolute;top:0;right:0;transform:translate(40%,-40%);background:#ff3b3b;color:#fff;border-radius:50%;min-width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:bold;box-shadow:0 0 0 2px #fff;z-index:2;">{{ unread_message_count }}</span>
@@ -927,7 +927,7 @@
                 </span>
                 {% else %}
                 <i data-lucide="user"
-                    class="ig-nav-icon {% if request.resolver_match.url_name == 'profile' %}active{% endif %}"></i>
+                    class="od-nav-icon {% if request.resolver_match.url_name == 'profile' %}active{% endif %}"></i>
                 {% endif %}
             </a>
         </div>
@@ -935,32 +935,32 @@
 </nav>
 
 <!-- Instagram-Style Bottom Navigation (Mobile) -->
-<nav class="ig-bottom-nav">
+<nav class="od-bottom-nav">
     <a href="{% url 'dashboard' %}"
-        class="ig-bottom-nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}"
+        class="od-bottom-nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}"
         title="Home">
         <i data-lucide="home"></i>
     </a>
     <a href="{% url 'discover_groups' %}"
-        class="ig-bottom-nav-item {% if request.resolver_match.url_name == 'discover_groups' %}active{% endif %}"
+        class="od-bottom-nav-item {% if request.resolver_match.url_name == 'discover_groups' %}active{% endif %}"
         title="Discover">
         <i data-lucide="compass"></i>
     </a>
     <a href="{% url 'omzo' %}"
-        class="ig-bottom-nav-item {% if request.resolver_match.url_name == 'omzo' %}active{% endif %}" title="Omzo">
+        class="od-bottom-nav-item {% if request.resolver_match.url_name == 'omzo' %}active{% endif %}" title="Omzo">
         <i data-lucide="play-square"></i>
     </a>
-    <button class="ig-bottom-nav-item" onclick="navCreatePost()" title="Create">
+    <button class="od-bottom-nav-item" onclick="navCreatePost()" title="Create">
         <i data-lucide="plus-square"></i>
     </button>
-    <a href="{% url 'messages' %}" class="ig-bottom-nav-item dm-bottom-btn" title="Messages">
+    <a href="{% url 'messages' %}" class="od-bottom-nav-item dm-bottom-btn" title="Messages">
         <i data-lucide="message-circle"></i>
         {% if unread_message_count > 0 %}
         <span class="dm-mobile-badge">{{ unread_message_count }}</span>
         {% endif %}
     </a>
     <a href="{% url 'profile' %}"
-        class="ig-bottom-nav-item {% if request.resolver_match.url_name == 'profile' or request.resolver_match.url_name == 'user_profile' %}active{% endif %}"
+        class="od-bottom-nav-item {% if request.resolver_match.url_name == 'profile' or request.resolver_match.url_name == 'user_profile' %}active{% endif %}"
         title="Profile">
         {% if current_user %}
         <img src="{{ current_user.profile_picture_url }}" alt="" class="nav-avatar"
@@ -975,19 +975,19 @@
 </nav>
 
 <!-- Search Modal (Mobile) -->
-<div id="searchModal" class="ig-modal-overlay" style="display: none;" onclick="closeSearchModal(event)">
-    <div class="ig-modal" style="max-width: 100%; width: 100%; height: 100vh; border-radius: 0; max-height: 100vh;"
+<div id="searchModal" class="od-modal-overlay" style="display: none;" onclick="closeSearchModal(event)">
+    <div class="od-modal" style="max-width: 100%; width: 100%; height: 100vh; border-radius: 0; max-height: 100vh;"
         onclick="event.stopPropagation()">
-        <header class="ig-modal-header" style="border-bottom: 1px solid var(--ig-border);">
+        <header class="od-modal-header" style="border-bottom: 1px solid var(--od-border);">
             <button onclick="closeSearchModal()" style="background: none; border: none; cursor: pointer;">
-                <i data-lucide="arrow-left" style="width: 24px; height: 24px; color: var(--ig-text-primary);"></i>
+                <i data-lucide="arrow-left" style="width: 24px; height: 24px; color: var(--od-text-primary);"></i>
             </button>
             <input type="text" placeholder="Search" id="mobileSearchInput"
-                style="flex: 1; border: none; background: var(--ig-bg); padding: 8px 12px; border-radius: 8px; margin: 0 12px; font-size: 16px; color: var(--ig-text-primary);"
+                style="flex: 1; border: none; background: var(--od-bg); padding: 8px 12px; border-radius: 8px; margin: 0 12px; font-size: 16px; color: var(--od-text-primary);"
                 onkeyup="handleMobileSearch(event)">
         </header>
-        <div class="ig-modal-body" id="searchResults" style="padding: 16px;">
-            <p style="color: var(--ig-text-secondary); text-align: center; padding: 24px;">Search for users...</p>
+        <div class="od-modal-body" id="searchResults" style="padding: 16px;">
+            <p style="color: var(--od-text-secondary); text-align: center; padding: 24px;">Search for users...</p>
         </div>
     </div>
 </div>
@@ -1183,8 +1183,8 @@
         display: flex;
         gap: 8px;
         padding: 12px 16px;
-        border-bottom: 1px solid var(--ig-border);
-        background: var(--ig-surface);
+        border-bottom: 1px solid var(--od-border);
+        background: var(--od-surface);
     }
 
     .activity-tab {
@@ -1194,19 +1194,19 @@
         justify-content: center;
         gap: 6px;
         padding: 10px 12px;
-        background: var(--ig-bg);
-        border: 1px solid var(--ig-border);
+        background: var(--od-bg);
+        border: 1px solid var(--od-border);
         border-radius: 10px;
         font-size: 13px;
         font-weight: 500;
-        color: var(--ig-text-secondary);
+        color: var(--od-text-secondary);
         cursor: pointer;
         transition: all 0.2s;
     }
 
     .activity-tab:hover {
-        background: var(--ig-surface-hover);
-        color: var(--ig-text-primary);
+        background: var(--od-surface-hover);
+        color: var(--od-text-primary);
     }
 
     .activity-tab.active {
@@ -1225,13 +1225,13 @@
         align-items: flex-start;
         gap: 12px;
         padding: 16px;
-        border-bottom: 1px solid var(--ig-border);
+        border-bottom: 1px solid var(--od-border);
         transition: background 0.2s;
         cursor: pointer;
     }
 
     .activity-item:hover {
-        background: var(--ig-surface-hover);
+        background: var(--od-surface-hover);
     }
 
     .activity-item.unread {
@@ -1267,7 +1267,7 @@
 
     .activity-text {
         font-size: 14px;
-        color: var(--ig-text-primary);
+        color: var(--od-text-primary);
         line-height: 1.4;
         margin-bottom: 4px;
     }
@@ -1278,7 +1278,7 @@
 
     .activity-time {
         font-size: 12px;
-        color: var(--ig-text-secondary);
+        color: var(--od-text-secondary);
     }
 
     .activity-preview {
@@ -1299,7 +1299,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        border: 2px solid var(--ig-surface);
+        border: 2px solid var(--od-surface);
     }
 
     .activity-icon.like {
@@ -1326,13 +1326,13 @@
         align-items: center;
         justify-content: center;
         padding: 60px 20px;
-        color: var(--ig-text-secondary);
+        color: var(--od-text-secondary);
     }
 
     .activity-spinner {
         width: 32px;
         height: 32px;
-        border: 3px solid var(--ig-border);
+        border: 3px solid var(--od-border);
         border-top-color: var(--color-primary);
         border-radius: 50%;
         animation: spin 1s linear infinite;
@@ -1358,7 +1358,7 @@
         width: 72px;
         height: 72px;
         border-radius: 50%;
-        background: var(--ig-surface-hover);
+        background: var(--od-surface-hover);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -1368,19 +1368,19 @@
     .activity-empty-icon svg {
         width: 36px;
         height: 36px;
-        color: var(--ig-text-secondary);
+        color: var(--od-text-secondary);
     }
 
     .activity-empty h3 {
         font-size: 18px;
         font-weight: 600;
-        color: var(--ig-text-primary);
+        color: var(--od-text-primary);
         margin-bottom: 8px;
     }
 
     .activity-empty p {
         font-size: 14px;
-        color: var(--ig-text-secondary);
+        color: var(--od-text-secondary);
         max-width: 250px;
     }
 </style>
@@ -1400,7 +1400,7 @@
     function handleMobileSearch(event) {
         const query = event.target.value.trim();
         if (query.length < 2) {
-            document.getElementById('searchResults').innerHTML = '<p style="color: var(--ig-text-secondary); text-align: center; padding: 24px;">Search for users...</p>';
+            document.getElementById('searchResults').innerHTML = '<p style="color: var(--od-text-secondary); text-align: center; padding: 24px;">Search for users...</p>';
             return;
         }
 
@@ -1410,16 +1410,16 @@
                 const container = document.getElementById('searchResults');
                 if (data.users && data.users.length > 0) {
                     container.innerHTML = data.users.map(u => `
-                    <a href="/chat/profile/${u.username}/" style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; text-decoration: none; border-radius: 12px; transition: background 0.2s;" onmouseover="this.style.background='var(--ig-surface-hover)'" onmouseout="this.style.background='transparent'">
+                    <a href="/chat/profile/${u.username}/" style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; text-decoration: none; border-radius: 12px; transition: background 0.2s;" onmouseover="this.style.background='var(--od-surface-hover)'" onmouseout="this.style.background='transparent'">
                         <img src="${u.profile_picture_url || ''}" alt="" style="width: 44px; height: 44px; border-radius: 22%; object-fit: cover;" onerror="this.style.background='var(--brand-gradient)'; this.style.display='flex'">
                         <div>
-                            <div style="font-weight: 600; color: var(--ig-text-primary);">${u.username}</div>
-                            <div style="font-size: 13px; color: var(--ig-text-secondary);">${u.full_name || ''}</div>
+                            <div style="font-weight: 600; color: var(--od-text-primary);">${u.username}</div>
+                            <div style="font-size: 13px; color: var(--od-text-secondary);">${u.full_name || ''}</div>
                         </div>
                     </a>
                 `).join('');
                 } else {
-                    container.innerHTML = '<p style="color: var(--ig-text-secondary); text-align: center; padding: 24px;">No users found</p>';
+                    container.innerHTML = '<p style="color: var(--od-text-secondary); text-align: center; padding: 24px;">No users found</p>';
                 }
                 if (typeof lucide !== 'undefined') lucide.createIcons();
             })
@@ -1662,10 +1662,10 @@
 </script>
 
 <!-- Create Selection Modal -->
-<div id="createSelectionModal" class="ig-modal-overlay"
+<div id="createSelectionModal" class="od-modal-overlay"
     style="display: none; position: fixed; z-index: 10000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6);"
     onclick="closeCreateSelectionModal(event)">
-    <div class="ig-create-modal"
+    <div class="od-create-modal"
         style="max-width: 320px; border-radius: 12px; margin: auto; position: relative; top: 50%; transform: translateY(-50%); background: var(--bg-primary, #fff); padding: 20px;"
         onclick="event.stopPropagation()">
         <header

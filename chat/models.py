@@ -17,16 +17,39 @@ logger = logging.getLogger(__name__)
 class CustomUser(AbstractUser):
     """Custom user model with additional fields"""
     THEME_CHOICES = [
+        # Light themes
         ('light', 'Light'),
+        ('lavender', 'Lavender'),
+        ('rose', 'Rose'),
+        ('mint', 'Mint'),
+        ('peach', 'Peach'),
+        ('sky', 'Sky'),
+        # Dark themes
         ('dark', 'Dark'),
-        ('midnight', 'Midnight Blue'),
-        ('forest', 'Forest Green'),
-        ('sunset', 'Sunset Orange'),
-        ('ocean', 'Ocean Teal'),
-        ('lavender', 'Lavender Purple'),
-        ('rose', 'Rose Pink'),
-        ('charcoal', 'Charcoal'),
+        ('midnight', 'Midnight'),
+        ('amoled', 'AMOLED Black'),
+        ('dracula', 'Dracula'),
         ('nord', 'Nord'),
+        ('tokyo_night', 'Tokyo Night'),
+        ('synthwave', 'Synthwave'),
+        ('cyberpunk', 'Cyberpunk'),
+        # Nature themes
+        ('forest', 'Forest'),
+        ('ocean', 'Ocean'),
+        ('sunset', 'Sunset'),
+        ('aurora', 'Aurora'),
+        ('desert', 'Desert'),
+        # Professional themes
+        ('charcoal', 'Charcoal'),
+        ('slate', 'Slate'),
+        ('graphite', 'Graphite'),
+        ('mocha', 'Mocha'),
+        # Vibrant themes
+        ('neon', 'Neon'),
+        ('coral', 'Coral'),
+        ('amber', 'Amber'),
+        ('emerald', 'Emerald'),
+        ('sapphire', 'Sapphire'),
     ]
 
     GENDER_CHOICES = [
@@ -44,7 +67,7 @@ class CustomUser(AbstractUser):
     is_email_verified = models.BooleanField(default=False)
     is_private = models.BooleanField(default=False)  # Private account feature
     theme = models.CharField(
-        max_length=20, choices=THEME_CHOICES, default='light')  # Theme preference
+        max_length=20, choices=THEME_CHOICES, default='ocean')  # Theme preference
     gender = models.CharField(
         max_length=10, choices=GENDER_CHOICES, default='male')  # Gender preference
 
@@ -493,6 +516,22 @@ class Like(models.Model):
         return f"{self.user.full_name} liked {self.tweet.user.full_name}'s tweet"
 
 
+class Dislike(models.Model):
+    """Model for tweet dislikes"""
+    user = models.ForeignKey(
+        CustomUser, on_delete=models.CASCADE, related_name='user_dislikes')
+    tweet = models.ForeignKey(
+        Tweet, on_delete=models.CASCADE, related_name='tweet_dislikes')
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'tweet')
+        ordering = ['-timestamp']
+
+    def __str__(self):
+        return f"{self.user.full_name} disliked {self.tweet.user.full_name}'s tweet"
+
+
 class SavedPost(models.Model):
     """Model for saved/bookmarked posts"""
     user = models.ForeignKey(
@@ -915,6 +954,18 @@ class OmzoLike(models.Model):
         Omzo, on_delete=models.CASCADE, related_name='likes')
     user = models.ForeignKey(
         CustomUser, on_delete=models.CASCADE, related_name='liked_omzos')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('omzo', 'user')
+
+
+class OmzoDislike(models.Model):
+    """Model for omzo dislikes"""
+    omzo = models.ForeignKey(
+        Omzo, on_delete=models.CASCADE, related_name='dislikes')
+    user = models.ForeignKey(
+        CustomUser, on_delete=models.CASCADE, related_name='disliked_omzos')
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

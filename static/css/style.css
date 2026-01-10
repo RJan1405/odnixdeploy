@@ -281,7 +281,7 @@ body {
 .tweet-avatar {
   background: linear-gradient(135deg, var(--color-primary), #764ba2);
   color: white;
-  border-radius: 50%;
+  border-radius: 22%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1139,7 +1139,7 @@ body {
 .request-avatar {
   width: 50px;
   height: 50px;
-  border-radius: 50%;
+  border-radius: 22%;
   object-fit: cover;
 }
 
@@ -1725,7 +1725,7 @@ body {
 .story-reply-avatar {
   width: 48px;
   height: 48px;
-  border-radius: 50%;
+  border-radius: 22%;
   object-fit: cover;
   border: 3px solid transparent;
   background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark)) border-box;

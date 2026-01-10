@@ -7,7 +7,7 @@
                 const chats = data.chats;
                 chats.forEach(chat => {
                     // Find sidebar item by chat id
-                    const item = document.querySelector('.ig-direct-item[href$="/' + chat.id + '/"]');
+                    const item = document.querySelector('.od-direct-item[href$="/' + chat.id + '/"]');
                     if (!item) return;
                     // Update unread badge
                     const imgWrap = item.querySelector('span[style*="position:relative"]');
@@ -27,7 +27,7 @@
                         badge.style.display = 'none';
                     }
                     // Update last message preview
-                    const preview = item.querySelector('.ig-direct-item-preview');
+                    const preview = item.querySelector('.od-direct-item-preview');
                     if (preview) {
                         preview.textContent = chat.last_message || 'No messages yet';
                     }
@@ -47,24 +47,24 @@
 <style>
     /* Minimal styles to mirror chat layout */
     /* Custom Scrollbar */
-    .ig-direct-list::-webkit-scrollbar {
+    .od-direct-list::-webkit-scrollbar {
         width: 6px;
     }
 
-    .ig-direct-list::-webkit-scrollbar-track {
+    .od-direct-list::-webkit-scrollbar-track {
         background: transparent;
     }
 
-    .ig-direct-list::-webkit-scrollbar-thumb {
-        background: var(--ig-border);
+    .od-direct-list::-webkit-scrollbar-thumb {
+        background: var(--od-border);
         border-radius: 3px;
     }
 
-    .ig-direct-list::-webkit-scrollbar-thumb:hover {
-        background: var(--ig-text-secondary);
+    .od-direct-list::-webkit-scrollbar-thumb:hover {
+        background: var(--od-text-secondary);
     }
 
-    .ig-direct {
+    .od-direct {
         display: flex;
         height: calc(100vh - 70px);
         margin-top: 70px;
@@ -72,77 +72,77 @@
         overflow: hidden;
     }
 
-    .ig-direct-sidebar {
+    .od-direct-sidebar {
         width: 340px;
         max-width: 340px;
-        border-right: 1px solid var(--ig-border);
-        background: var(--ig-surface);
+        border-right: 1px solid var(--od-border);
+        background: var(--od-surface);
         display: flex;
         flex-direction: column;
     }
 
-    .ig-direct-header {
+    .od-direct-header {
         display: flex;
         align-items: center;
         gap: 12px;
         padding: 12px 16px;
-        border-bottom: 1px solid var(--ig-border);
+        border-bottom: 1px solid var(--od-border);
     }
 
-    .ig-direct-back {
+    .od-direct-back {
         background: none;
         border: none;
         cursor: pointer;
         padding: 8px;
         border-radius: 50%;
-        color: var(--ig-text-primary);
+        color: var(--od-text-primary);
     }
 
-    .ig-direct-back:hover {
-        background: var(--ig-surface-hover);
+    .od-direct-back:hover {
+        background: var(--od-surface-hover);
     }
 
-    .ig-direct-header-avatar {
+    .od-direct-header-avatar {
         width: 40px;
         height: 40px;
-        border-radius: 50%;
+        border-radius: 22%;
         object-fit: cover;
     }
 
-    .ig-direct-header-info {
+    .od-direct-header-info {
         flex: 1;
         display: flex;
         flex-direction: column;
     }
 
-    .ig-direct-title {
+    .od-direct-title {
         margin: 0;
         font-weight: 700;
         font-size: 18px;
-        color: var(--ig-text-primary);
+        color: var(--od-text-primary);
         line-height: 1.2;
     }
 
-    .ig-direct-sub {
+    .od-direct-sub {
         margin: 0;
         font-size: 12px;
-        color: var(--ig-text-secondary);
+        color: var(--od-text-secondary);
     }
 
-    .ig-direct-new {
+    .od-direct-new {
         background: none;
         border: none;
         cursor: pointer;
         padding: 8px;
         border-radius: 50%;
-        color: var(--ig-text-primary);
+        color: var(--od-text-primary);
     }
 
-    .ig-direct-new:hover {
-        background: var(--ig-surface-hover);
+    .od-direct-new:hover {
+        background: var(--od-surface-hover);
     }
 
-    .ig-direct-list {
+    .od-direct-list {
         overflow: auto;
         padding: 6px;
         display: flex;
@@ -150,7 +150,7 @@
         gap: 4px;
     }
 
-    .ig-direct-item {
+    .od-direct-item {
         display: flex;
         align-items: center;
         gap: 12px;
@@ -161,22 +161,22 @@
         transition: background .15s;
     }
 
-    .ig-direct-item:hover {
-        background: var(--ig-surface-hover);
+    .od-direct-item:hover {
+        background: var(--od-surface-hover);
     }
 
-    .ig-direct-item.active {
+    .od-direct-item.active {
         background: rgba(102, 126, 234, .12);
     }
 
-    .ig-direct-item-avatar {
+    .od-direct-item-avatar {
         width: 44px;
         height: 44px;
         border-radius: 22%;
         object-fit: cover;
     }
 
-    .ig-direct-item-avatar.placeholder {
+    .od-direct-item-avatar.placeholder {
         display: flex;
         align-items: center;
         justify-content: center;
@@ -185,7 +185,7 @@
         font-weight: 700;
     }
 
-    .ig-direct-item-avatar.group {
+    .od-direct-item-avatar.group {
         display: flex;
         align-items: center;
         justify-content: center;
@@ -196,126 +196,126 @@
         height: 44px;
     }
 
-    .ig-direct-item-info {
+    .od-direct-item-info {
         display: flex;
         flex-direction: column;
         min-width: 0;
     }
 
-    .ig-direct-item-name {
+    .od-direct-item-name {
         font-weight: 600;
-        color: var(--ig-text-primary);
+        color: var(--od-text-primary);
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
     }
 
-    .ig-direct-item-preview {
+    .od-direct-item-preview {
         font-size: 12px;
-        color: var(--ig-text-secondary);
+        color: var(--od-text-secondary);
     }
 
-    .ig-chat {
+    .od-chat {
         flex: 1;
         display: flex;
         flex-direction: column;
-        background: var(--ig-bg);
+        background: var(--od-bg);
     }
 
-    .ig-chat-empty {
+    .od-chat-empty {
         flex: 1;
         display: flex;
         align-items: center;
         justify-content: center;
     }
 
-    .ig-chat-empty-card {
+    .od-chat-empty-card {
         text-align: center;
         padding: 32px;
-        border: 1px solid var(--ig-border);
+        border: 1px solid var(--od-border);
         border-radius: 16px;
-        background: var(--ig-surface);
-        color: var(--ig-text-secondary);
+        background: var(--od-surface);
+        color: var(--od-text-secondary);
     }
 
-    .ig-chat-empty-card h3 {
+    .od-chat-empty-card h3 {
         margin: 0 0 8px;
-        color: var(--ig-text-primary);
+        color: var(--od-text-primary);
     }
 
     /* Search + categories */
-    .ig-direct-controls {
+    .od-direct-controls {
         padding: 10px 12px;
-        border-bottom: 1px solid var(--ig-border);
+        border-bottom: 1px solid var(--od-border);
     }
 
-    .ig-search-bar {
+    .od-search-bar {
         display: flex;
         align-items: center;
         gap: 8px;
-        background: var(--ig-bg);
-        border: 1px solid var(--ig-border);
+        background: var(--od-bg);
+        border: 1px solid var(--od-border);
         border-radius: 12px;
         padding: 10px 12px;
     }
 
-    .ig-search-bar input {
+    .od-search-bar input {
         flex: 1;
         background: transparent;
         border: none;
         outline: none;
-        color: var(--ig-text-primary);
+        color: var(--od-text-primary);
     }
 
-    .ig-categories {
+    .od-categories {
         display: flex;
         gap: 8px;
         margin-top: 10px;
     }
 
-    .ig-cat-btn {
+    .od-cat-btn {
         display: flex;
         align-items: center;
         gap: 6px;
         padding: 8px 12px;
-        background: var(--ig-bg);
-        border: 1px solid var(--ig-border);
+        background: var(--od-bg);
+        border: 1px solid var(--od-border);
         border-radius: 999px;
         font-size: 13px;
-        color: var(--ig-text-secondary);
+        color: var(--od-text-secondary);
         cursor: pointer;
     }
 
-    .ig-cat-btn.active {
+    .od-cat-btn.active {
         background: rgba(102, 126, 234, .12);
-        color: var(--ig-text-primary);
+        color: var(--od-text-primary);
         border-color: transparent;
     }
 
     @media (max-width: 900px) {
-        .ig-direct-sidebar {
+        .od-direct-sidebar {
             width: 100%;
             max-width: 100%;
         }
 
-        .ig-chat {
+        .od-chat {
             display: none;
         }
     }
 
     /* Context Menu Styles */
-    .ig-direct-item {
+    .od-direct-item {
         position: relative;
     }
 
-    .ig-direct-options-btn {
+    .od-direct-options-btn {
         position: absolute;
         right: 8px;
         top: 50%;
         transform: translateY(-50%);
         background: transparent;
         border: none;
-        color: var(--ig-text-secondary);
+        color: var(--od-text-secondary);
         padding: 6px;
         border-radius: 50%;
         cursor: pointer;
@@ -323,22 +323,22 @@
         z-index: 5;
     }
 
-    .ig-direct-item:hover .ig-direct-options-btn {
+    .od-direct-item:hover .od-direct-options-btn {
         display: flex;
         align-items: center;
         justify-content: center;
-        background: var(--ig-bg);
+        background: var(--od-bg);
     }
 
-    .ig-direct-options-btn:hover {
-        background: var(--ig-surface-hover);
-        color: var(--ig-text-primary);
+    .od-direct-options-btn:hover {
+        background: var(--od-surface-hover);
+        color: var(--od-text-primary);
     }
 
-    .ig-direct-context-menu {
+    .od-direct-context-menu {
         position: fixed;
-        background: var(--ig-surface);
-        border: 1px solid var(--ig-border);
+        background: var(--od-surface);
+        border: 1px solid var(--od-border);
         box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
         border-radius: 12px;
         z-index: 12000;
@@ -349,12 +349,12 @@
         overflow: hidden;
     }
 
-    .ig-context-item {
+    .od-context-item {
         padding: 10px 12px;
         border-radius: 6px;
         cursor: pointer;
         font-size: 14px;
-        color: var(--ig-text-primary);
+        color: var(--od-text-primary);
         display: flex;
         align-items: center;
         gap: 10px;
@@ -365,8 +365,8 @@
         text-decoration: none;
     }
 
-    .ig-context-item:hover {
-        background: var(--ig-surface-hover);
+    .od-context-item:hover {
+        background: var(--od-surface-hover);
     }
 </style>
 {% endblock %}
@@ -374,49 +374,49 @@
 {% block title %}Messages - Odnix{% endblock %}
 
 {% block content %}
-<div class="ig-direct">
+<div class="od-direct">
     <!-- Left Sidebar - Conversations List -->
-    <div class="ig-direct-sidebar">
-        <header class="ig-direct-header">
-            <a href="{% url 'dashboard' %}" class="ig-direct-back" title="Back">
+    <div class="od-direct-sidebar">
+        <header class="od-direct-header">
+            <a href="{% url 'dashboard' %}" class="od-direct-back" title="Back">
                 <i data-lucide="arrow-left"></i>
             </a>
             <img src="{{ request.user.profile_picture_url }}" alt="{{ request.user.full_name }}"
-                class="ig-direct-header-avatar" onerror="this.style.display='none';">
-            <div class="ig-direct-header-info">
-                <h2 class="ig-direct-title">Messages</h2>
-                <div class="ig-direct-sub">@{{ request.user.username }}</div>
+                class="od-direct-header-avatar" onerror="this.style.display='none';">
+            <div class="od-direct-header-info">
+                <h2 class="od-direct-title">Messages</h2>
+                <div class="od-direct-sub">@{{ request.user.username }}</div>
             </div>
-            <a class="ig-direct-new" href="javascript:void(0)" onclick="openCreateGroupModal()" title="New Chat">
+            <a class="od-direct-new" href="javascript:void(0)" onclick="openCreateGroupModal()" title="New Chat">
                 <i data-lucide="plus"></i>
             </a>
         </header>
-        <div class="ig-direct-controls">
-            <div class="ig-search-bar">
+        <div class="od-direct-controls">
+            <div class="od-search-bar">
                 <i data-lucide="search"></i>
                 <input id="directSearchInput" type="text" placeholder="Search messages"
                     onkeyup="filterDirectChats(event)">
             </div>
-            <div class="ig-categories">
-                <button class="ig-cat-btn active" onclick="filterDirectCategory('all', this)"><i
+            <div class="od-categories">
+                <button class="od-cat-btn active" onclick="filterDirectCategory('all', this)"><i
                         data-lucide="inbox"></i> All</button>
-                <button class="ig-cat-btn" onclick="filterDirectCategory('private', this)"><i data-lucide="user"></i>
+                <button class="od-cat-btn" onclick="filterDirectCategory('private', this)"><i data-lucide="user"></i>
                     Private</button>
-                <button class="ig-cat-btn" onclick="filterDirectCategory('group', this)"><i data-lucide="users"></i>
+                <button class="od-cat-btn" onclick="filterDirectCategory('group', this)"><i data-lucide="users"></i>
                     Groups</button>
             </div>
         </div>
-        <div class="ig-direct-list">
+        <div class="od-direct-list">
             {% for chat in private_chats %}
-            <a href="{% url 'chat_detail' chat.id %}" class="ig-direct-item" data-type="{{ chat.chat_type }}"
+            <a href="{% url 'chat_detail' chat.id %}" class="od-direct-item" data-type="{{ chat.chat_type }}"
                 data-username="{% for p in chat.participants.all %}{% if p != request.user %}{{ p.username }}{% endif %}{% endfor %}"
                 data-name="{% for p in chat.participants.all %}{% if p != request.user %}{{ p.full_name|default:p.username }}{% endif %}{% endfor %}"
                 data-following="{% if chat.is_private %}true{% endif %}">
                 {% for participant in chat.participants.all %}
                 {% if participant != request.user %}
                 <span style="position:relative;display:inline-block;">
-                    <img src="{{ participant.profile_picture_url }}" alt="" class="ig-direct-item-avatar"
-                        onerror="this.outerHTML='\u003cdiv class='ig-direct-item-avatar placeholder'\u003e{{ participant.initials }}\u003c/div\u003e'">
+                    <img src="{{ participant.profile_picture_url }}" alt="" class="od-direct-item-avatar"
+                        onerror="this.outerHTML='\u003cdiv class='od-direct-item-avatar placeholder'\u003e{{ participant.initials }}\u003c/div\u003e'">
                     {% if chat.unread_count > 0 %}
                     <span
                         style="position:absolute;top:-6px;right:-6px;background:#ff3b3b;color:#fff;border-radius:50%;min-width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:bold;box-shadow:0 0 0 2px #fff;z-index:2;">{{chat.unread_count}}</span>
@@ -424,22 +424,22 @@
                 </span>
                 {% endif %}
                 {% endfor %}
-                <div class="ig-direct-item-info">
-                    <div class="ig-direct-item-name">{% for participant in chat.participants.all %}{% if participant != request.user %}{{ participant.full_name }}{% endif %}{% endfor %}</div>
-                    <div class="ig-direct-item-preview">
+                <div class="od-direct-item-info">
+                    <div class="od-direct-item-name">{% for participant in chat.participants.all %}{% if participant != request.user %}{{ participant.full_name }}{% endif %}{% endfor %}</div>
+                    <div class="od-direct-item-preview">
                         {{ chat.last_message|default:'No messages yet' }}
                     </div>
                 </div>
-                <div class="ig-direct-options-btn" role="button" onclick="toggleDirectOptions(event)">
+                <div class="od-direct-options-btn" role="button" onclick="toggleDirectOptions(event)">
                     <i data-lucide="more-vertical" style="width:16px;height:16px;"></i>
                 </div>
             </a>
             {% endfor %}
             {% for chat in group_chats %}
-            <a href="{% url 'chat_detail' chat.id %}" class="ig-direct-item" data-type="{{ chat.chat_type }}"
+            <a href="{% url 'chat_detail' chat.id %}" class="od-direct-item" data-type="{{ chat.chat_type }}"
                 data-name="{{ chat.name }}">
                 <span style="position:relative;display:inline-block;">
-                    <div class="ig-direct-item-avatar group">
+                    <div class="od-direct-item-avatar group">
                         <i data-lucide="users"></i>
                     </div>
                     {% if chat.unread_count > 0 %}
@@ -448,15 +448,15 @@
                         }}</span>
                     {% endif %}
                 </span>
-                <div class="ig-direct-item-info">
-                    <div class="ig-direct-item-name">{{ chat.name }}</div>
-                    <div class="ig-direct-item-preview">
+                <div class="od-direct-item-info">
+                    <div class="od-direct-item-name">{{ chat.name }}</div>
+                    <div class="od-direct-item-preview">
                         {{ chat.last_message|default:'No messages yet' }}
                     </div>
                 </div>
             </a>
             {% empty %}
-            <div class="ig-direct-item" style="justify-content:center; color:var(--ig-text-secondary);">
+            <div class="od-direct-item" style="justify-content:center; color:var(--od-text-secondary);">
                 No conversations yet
             </div>
             {% endfor %}
@@ -464,9 +464,9 @@
     </div>
 
     <!-- Right Pane - Empty placeholder until a chat is chosen -->
-    <div class="ig-chat">
-        <div class="ig-chat-empty">
-            <div class="ig-chat-empty-card">
+    <div class="od-chat">
+        <div class="od-chat-empty">
+            <div class="od-chat-empty-card">
                 <h3>Select a conversation</h3>
                 <p>Choose a chat from the left to start messaging.</p>
             </div>
@@ -474,28 +474,28 @@
     </div>
 
     <!-- Create Group Modal (reuses existing dashboard modal structure) -->
-    <div id="createGroupModal" class="ig-modal-overlay" style="display: none; z-index: 12000;"
+    <div id="createGroupModal" class="od-modal-overlay" style="display: none; z-index: 12000;"
         onclick="closeCreateGroupModal(event)">
-        <div class="ig-modal" onclick="event.stopPropagation()">
-            <header class="ig-modal-header">
-                <h2 class="ig-modal-title">Create Group</h2>
-                <button class="ig-modal-close" onclick="closeCreateGroupModal()">
+        <div class="od-modal" onclick="event.stopPropagation()">
+            <header class="od-modal-header">
+                <h2 class="od-modal-title">Create Group</h2>
+                <button class="od-modal-close" onclick="closeCreateGroupModal()">
                     <i data-lucide="x"></i>
                 </button>
             </header>
-            <div class="ig-modal-body">
+            <div class="od-modal-body">
                 <form id="createGroupForm">
                     <div style="margin-bottom: 16px;">
-                        <input type="text" id="groupName" class="ig-auth-input" style="padding: 12px;"
+                        <input type="text" id="groupName" class="od-auth-input" style="padding: 12px;"
                             placeholder="Group name" maxlength="100" required>
                     </div>
                     <div style="margin-bottom: 16px;">
-                        <textarea id="groupDescription" class="ig-auth-input"
+                        <textarea id="groupDescription" class="od-auth-input"
                             style="padding: 12px; min-height: 80px; resize: none;" placeholder="Description (optional)"
                             maxlength="500"></textarea>
                     </div>
                     <div style="margin-bottom: 16px;">
-                        <select id="maxParticipants" class="ig-auth-input" style="padding: 12px;">
+                        <select id="maxParticipants" class="od-auth-input" style="padding: 12px;">
                             <option value="10">10 members</option>
                             <option value="25">25 members</option>
                             <option value="50" selected>50 members</option>
@@ -506,14 +506,14 @@
                         <input type="checkbox" id="isPublic" style="width: 18px; height: 18px;">
                         <label for="isPublic" style="font-size: 14px;">Make group publicly discoverable</label>
                     </div>
-                    <button type="button" class="ig-auth-btn" onclick="createGroup()">Create Group</button>
+                    <button type="button" class="od-auth-btn" onclick="createGroup()">Create Group</button>
                 </form>
             </div>
         </div>
     </div>
     <!-- Context Menu for Sidebar -->
-    <div id="directContextMenu" class="ig-direct-context-menu">
-        <button class="ig-context-item" id="ctxAddToPrivate" onclick="handleAddToPrivate()">
+    <div id="directContextMenu" class="od-direct-context-menu">
+        <button class="od-context-item" id="ctxAddToPrivate" onclick="handleAddToPrivate()">
             <i data-lucide="user-plus"></i>
             <span id="ctxAddToPrivateText">Add to Private</span>
         </button>
@@ -533,8 +533,8 @@
             e.stopPropagation();
 
             const btn = e.currentTarget;
-            let item = btn.closest('.ig-direct-item');
-            if (!item) item = btn.parentElement.closest('.ig-direct-item') || btn.parentElement;
+            let item = btn.closest('.od-direct-item');
+            if (!item) item = btn.parentElement.closest('.od-direct-item') || btn.parentElement;
 
             if (!item) {
                 console.warn('Parent item not found');
@@ -606,7 +606,7 @@
                             currentCtxElement.setAttribute('data-following', data.is_private ? 'true' : 'false');
 
                             // Re-run filter in case we are in Private tab
-                            const activeCatBtn = document.querySelector('.ig-cat-btn.active');
+                            const activeCatBtn = document.querySelector('.od-cat-btn.active');
                             if (activeCatBtn) {
                                 const cat = activeCatBtn.textContent.trim().toLowerCase();
                                 if (cat.includes('private')) filterDirectCategory('private');
@@ -623,15 +623,15 @@
 
         function filterDirectChats(event) {
             const term = (event?.target?.value || '').toLowerCase().trim();
-            document.querySelectorAll('.ig-direct-list .ig-direct-item').forEach(item => {
+            document.querySelectorAll('.od-direct-list .od-direct-item').forEach(item => {
                 const name = (item.getAttribute('data-name') || '').toLowerCase();
                 item.style.display = (!term || name.includes(term)) ? 'flex' : 'none';
             });
         }
         function filterDirectCategory(category, btn) {
-            document.querySelectorAll('.ig-categories .ig-cat-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.od-categories .od-cat-btn').forEach(b => b.classList.remove('active'));
             if (btn) btn.classList.add('active');
-            document.querySelectorAll('.ig-direct-list .ig-direct-item').forEach(item => {
+            document.querySelectorAll('.od-direct-list .od-direct-item').forEach(item => {
                 const type = item.getAttribute('data-type');
                 const followingVal = (item.getAttribute('data-following') || '').trim();
                 const isFollowing = followingVal.includes('true'); // Robust check

@@ -68,17 +68,23 @@ WSGI_APPLICATION = 'odnix.wsgi.application'
 ASGI_APPLICATION = 'odnix.asgi.application'
 
 # Channel layers configuration
-CHANNEL_LAYERS = {
-    "default": {
-        "BACKEND": "channels_redis.core.RedisChannelLayer",
-        "CONFIG": {
-            # Use REDIS_URL env var if provided, else localhost
-            "hosts": [
-                os.environ.get("REDIS_URL", "redis://127.0.0.1:6379")
-            ]
+# Use Redis if USE_REDIS_CHANNELS env var is set, otherwise use in-memory for development
+if os.environ.get("USE_REDIS_CHANNELS", "").lower() == "true":
+    CHANNEL_LAYERS = {
+        "default": {
+            "BACKEND": "channels_redis.core.RedisChannelLayer",
+            "CONFIG": {
+                "hosts": [os.environ.get("REDIS_URL", "redis://127.0.0.1:6379")]
+            }
         }
     }
-}
+else:
+    # In-memory channel layer for development (no Redis required)
+    CHANNEL_LAYERS = {
+        "default": {
+            "BACKEND": "channels.layers.InMemoryChannelLayer"
+        }
+    }
 
 DATABASES = {
     'default': {

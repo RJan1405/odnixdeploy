@@ -18,30 +18,30 @@
         display: none !important;
     }
 
-    .ig-profile-container {
+    .od-profile-container {
         padding-top: 90px !important;
         padding-bottom: 100px !important;
     }
 
     /* ===== PROFILE RESPONSIVE STYLES ===== */
     @media (max-width: 1024px) {
-        .ig-profile {
+        .od-profile {
             max-width: 100%;
             padding: 0 20px;
         }
 
-        .ig-profile-header {
+        .od-profile-header {
             gap: 24px;
         }
     }
 
     @media (max-width: 768px) {
-        .ig-profile-container {
+        .od-profile-container {
             padding-top: 20px !important;
             padding-bottom: 80px !important;
         }
 
-        .ig-profile-header {
+        .od-profile-header {
             flex-direction: column;
             align-items: center;
             text-align: center;
@@ -49,62 +49,62 @@
             padding: 20px 16px;
         }
 
-        .ig-profile-avatar-section {
+        .od-profile-avatar-section {
             margin: 0 auto;
         }
 
-        .ig-profile-avatar-container {
+        .od-profile-avatar-container {
             width: 100px;
             height: 100px;
         }
 
-        .ig-profile-avatar-ring {
+        .od-profile-avatar-ring {
             width: 100px;
             height: 100px;
         }
 
-        .ig-profile-avatar {
+        .od-profile-avatar {
             width: 92px;
             height: 92px;
         }
 
-        .ig-profile-info {
+        .od-profile-info {
             width: 100%;
             text-align: center;
         }
 
-        .ig-profile-username-row {
+        .od-profile-username-row {
             flex-direction: column;
             align-items: center;
             gap: 12px;
         }
 
-        .ig-profile-username {
+        .od-profile-username {
             font-size: 20px;
         }
 
-        .ig-profile-stats {
+        .od-profile-stats {
             justify-content: center;
             gap: 24px;
             padding: 16px 0;
-            border-top: 1px solid var(--ig-border);
-            border-bottom: 1px solid var(--ig-border);
+            border-top: 1px solid var(--od-border);
+            border-bottom: 1px solid var(--od-border);
             margin: 16px 0;
         }
 
-        .ig-profile-stat {
+        .od-profile-stat {
             flex-direction: column;
         }
 
-        .ig-stat-count {
+        .od-stat-count {
             font-size: 18px;
         }
 
-        .ig-stat-label {
+        .od-stat-label {
             font-size: 13px;
         }
 
-        .ig-profile-bio {
+        .od-profile-bio {
             text-align: center;
             padding: 0 16px;
         }
@@ -117,128 +117,173 @@
             display: flex !important;
         }
 
-        .ig-profile-posts-grid {
+        .od-profile-posts-grid {
             grid-template-columns: repeat(3, 1fr);
             gap: 3px;
         }
 
-        .ig-profile-post-overlay {
+        .od-profile-post-overlay {
             gap: 8px;
         }
 
-        .ig-profile-post-stat {
+        .od-profile-post-stat {
             font-size: 12px;
         }
     }
 
     @media (max-width: 480px) {
-        .ig-profile-container {
+        .od-profile-container {
             padding-top: 60px !important;
         }
 
-        .ig-profile-header {
+        .od-profile-header {
             padding: 16px 12px;
         }
 
-        .ig-profile-avatar-container {
+        .od-profile-avatar-container {
             width: 80px;
             height: 80px;
         }
 
-        .ig-profile-avatar-ring {
+        .od-profile-avatar-ring {
             width: 80px;
             height: 80px;
         }
 
-        .ig-profile-avatar {
+        .od-profile-avatar {
             width: 74px;
             height: 74px;
         }
 
-        .ig-profile-username {
+        .od-profile-username {
             font-size: 18px;
         }
 
-        .ig-profile-stats {
+        .od-profile-stats {
             gap: 16px;
         }
 
-        .ig-stat-count {
+        .od-stat-count {
             font-size: 16px;
         }
 
-        .ig-profile-btn {
+        .od-profile-btn {
             padding: 8px 16px;
             font-size: 13px;
         }
 
-        .ig-profile-posts-grid {
+        .od-profile-posts-grid {
             gap: 2px;
         }
 
-        .ig-profile-tabs {
+        .od-profile-tabs {
             gap: 0;
         }
 
-        .ig-profile-tab {
+        .od-profile-tab {
             padding: 12px 8px;
             font-size: 12px;
         }
     }
 
     @media (max-width: 374px) {
-        .ig-profile-header {
+        .od-profile-header {
             padding: 12px 8px;
         }
 
-        .ig-profile-avatar-container {
+        .od-profile-avatar-container {
             width: 70px;
             height: 70px;
         }
 
-        .ig-profile-avatar-ring {
+        .od-profile-avatar-ring {
             width: 70px;
             height: 70px;
         }
 
-        .ig-profile-avatar {
+        .od-profile-avatar {
             width: 64px;
             height: 64px;
         }
 
-        .ig-profile-username {
+        .od-profile-username {
             font-size: 16px;
         }
 
-        .ig-profile-stats {
+        .od-profile-stats {
             gap: 12px;
         }
 
-        .ig-stat-count {
+        .od-stat-count {
             font-size: 15px;
         }
 
-        .ig-stat-label {
+        .od-stat-label {
             font-size: 11px;
+        }
+
+        /* Mobile Profile - Smaller screens */
+        .od-mobile-header {
+            padding: 12px;
+            gap: 20px;
+        }
+
+        .od-m-avatar-container {
+            width: 72px;
+            height: 72px;
+        }
+
+        .od-m-stat-number {
+            font-size: 16px;
+        }
+
+        .od-m-stat-label {
+            font-size: 11px;
+        }
+
+        .od-mobile-bio,
+        .od-mobile-buttons,
+        .od-m-followed-by {
+            padding-left: 12px;
+            padding-right: 12px;
+        }
+
+        .od-m-fullname,
+        .od-m-bio-text {
+            font-size: 13px;
+        }
+
+        .od-m-btn {
+            height: 32px;
+            font-size: 13px;
+        }
+
+        .od-m-btn-icon {
+            width: 32px;
+            height: 32px;
+        }
+
+        .od-m-username-group {
+            font-size: 14px;
         }
     }
 
     /* Make bottom nav visible on mobile for profile page */
     @media (max-width: 768px) {
-        .ig-bottom-nav {
+        .od-bottom-nav {
             display: flex !important;
             align-items: center;
             justify-content: space-around;
         }
 
-        .ig-top-nav {
+        .od-top-nav {
             display: none !important;
         }
     }
 
     /* Create Post Modal Responsive */
     @media (max-width: 768px) {
-        .ig-create-modal {
+        .od-create-modal {
             width: 100% !important;
             max-width: 100% !important;
             max-height: 95vh !important;
@@ -247,224 +292,457 @@
     }
 
     @media (max-width: 480px) {
-        .ig-create-modal {
+        .od-create-modal {
             max-height: 100vh !important;
             border-radius: 0 !important;
         }
 
-        /* Mobile Top Bar */
-        .ig-mobile-top-bar {
+        /* ===== INSTAGRAM-STYLE MOBILE PROFILE ===== */
+        
+        /* Mobile Top Bar - Instagram Style */
+        .od-mobile-top-bar {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             height: 44px;
-            background: var(--ig-bg);
+            background: var(--od-bg);
             display: flex;
             align-items: center;
-            justify-content: space-between;
             padding: 0 16px;
             z-index: 100;
-            border-bottom: 0.5px solid var(--ig-border);
+            border-bottom: 0.5px solid var(--od-border);
         }
 
-        .ig-m-username-group {
+        .od-m-back-btn {
+            width: 32px;
+            height: 32px;
             display: flex;
             align-items: center;
-            gap: 4px;
-            font-weight: 700;
-            font-size: 22px;
-            /* Large bold header */
-            color: var(--ig-text-primary);
+            justify-content: center;
+            background: none;
+            border: none;
+            color: var(--od-text-primary);
+            cursor: pointer;
+            margin-left: -8px;
         }
 
-        .ig-m-notification-dot {
+        .od-m-username-group {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            font-weight: 600;
+            font-size: 16px;
+            color: var(--od-text-primary);
+        }
+
+        .od-m-notification-dot {
             width: 8px;
             height: 8px;
             background: #ff3040;
             border-radius: 50%;
         }
 
-        .ig-m-top-actions {
+        .od-m-top-actions {
             display: flex;
             align-items: center;
-            gap: 24px;
-        }
-
-        /* Mobile Header Layout */
-        .ig-mobile-header {
-            display: flex;
-            align-items: center;
-            padding: 14px 16px;
             gap: 20px;
         }
 
-        .ig-mobile-avatar-group {
-            position: relative;
-            margin-right: 10px;
+        .od-m-top-actions i,
+        .od-m-top-actions svg {
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
         }
 
-        .ig-m-avatar-container {
+        /* Mobile Profile Wrapper */
+        .od-mobile-wrapper {
+            margin-top: 44px;
+            padding-bottom: 30px;
+        }
+
+        /* Mobile Header Layout - Avatar + Stats Row */
+        .od-mobile-header {
+            display: flex;
+            align-items: center;
+            padding: 16px;
+            gap: 28px;
+        }
+
+        .od-mobile-avatar-group {
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .od-m-avatar-container {
             width: 86px;
             height: 86px;
-            border-radius: 50%;
-            padding: 2px;
-            background: white;
-            /* Default ring */
+            border-radius: 22%;
+            padding: 3px;
+            background: var(--od-border);
         }
 
-        .ig-m-avatar-container.has-story {
-            background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+        .od-m-avatar-container.has-story {
+            background: var(--brand-gradient);
         }
 
-        .ig-m-avatar {
+        .od-m-avatar {
             width: 100%;
             height: 100%;
-            border-radius: 50%;
-            border: 2px solid var(--ig-bg);
+            border-radius: 22%;
+            border: 3px solid var(--od-bg);
             object-fit: cover;
         }
 
-        .ig-note-bubble {
-            position: absolute;
-            top: -5px;
-            left: 0;
-            background: var(--ig-surface);
-            padding: 4px 10px;
-            border-radius: 12px;
-            font-size: 11px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-            white-space: nowrap;
-            z-index: 10;
+        .od-note-bubble {
+            display: none;
         }
 
-        .ig-plus-badge {
+        .od-plus-badge {
             position: absolute;
-            bottom: 2px;
-            right: 2px;
-            background: #0095f6;
+            bottom: 0;
+            right: 0;
+            background: var(--od-accent);
             color: white;
             border-radius: 50%;
-            width: 24px;
-            height: 24px;
+            width: 22px;
+            height: 22px;
             display: flex;
             align-items: center;
             justify-content: center;
-            border: 2px solid var(--ig-bg);
+            border: 2px solid var(--od-bg);
         }
 
-        .ig-mobile-stats {
+        .od-plus-badge i,
+        .od-plus-badge svg {
+            width: 12px;
+            height: 12px;
+        }
+
+        /* Stats Section - Instagram Style */
+        .od-mobile-stats {
+            flex: 1;
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            flex: 1;
+            justify-content: space-around;
         }
 
-        .ig-m-stat-item {
+        .od-m-stat-item {
             display: flex;
             flex-direction: column;
             align-items: center;
+            cursor: pointer;
         }
 
-        .ig-m-stat-number {
+        .od-m-stat-number {
             font-weight: 600;
-            font-size: 17px;
-            color: var(--ig-text-primary);
+            font-size: 18px;
+            color: var(--od-text-primary);
+            line-height: 1.2;
         }
 
-        .ig-m-stat-label {
+        .od-m-stat-label {
             font-size: 13px;
-            color: var(--ig-text-primary);
+            color: var(--od-text-primary);
+            font-weight: 400;
         }
 
-        .ig-mobile-bio {
-            padding: 0 16px;
-            color: var(--ig-text-primary);
+        /* Username Row with Options */
+        .od-m-username-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 0 16px 4px;
         }
 
-        .ig-m-fullname {
+        .od-m-username-text {
+            font-weight: 400;
+            font-size: 14px;
+            color: var(--od-text-primary);
+        }
+
+        .od-m-options-btn {
+            background: none;
+            border: none;
+            color: var(--od-text-primary);
+            cursor: pointer;
+            padding: 4px;
+        }
+
+        /* Bio Section - Instagram Style */
+        .od-mobile-bio {
+            padding: 0 16px 12px;
+            color: var(--od-text-primary);
+        }
+
+        .od-m-fullname {
             font-weight: 600;
-            font-size: 13px;
+            font-size: 14px;
             margin-bottom: 2px;
+            color: var(--od-text-primary);
         }
 
-        .ig-m-bio-text {
-            font-size: 13px;
+        .od-m-bio-text {
+            font-size: 14px;
             line-height: 1.4;
             white-space: pre-wrap;
+            color: var(--od-text-primary);
         }
 
-        .ig-m-link {
-            color: #E0F1FF;
+        .od-m-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            color: var(--od-accent);
             text-decoration: none;
             font-weight: 500;
+            font-size: 14px;
+            margin-top: 4px;
         }
 
-        .ig-m-link i {
-            transform: rotate(-45deg);
-            vertical-align: middle;
+        .od-m-link i,
+        .od-m-link svg {
+            width: 14px;
+            height: 14px;
         }
 
-        /* Professional Dashboard */
-        .ig-dashboard-card {
-            margin: 16px;
-            padding: 12px;
-            background: #1c1c1c;
-            /* Slightly lighter than black */
-            border-radius: 8px;
+        /* Followed By Section - Instagram Style */
+        .od-m-followed-by {
             display: flex;
             align-items: center;
-            justify-content: space-between;
+            gap: 8px;
+            padding: 8px 16px 16px;
         }
 
-        .ig-dash-info {
+        .od-m-followed-avatars {
+            display: flex;
+            align-items: center;
+        }
+
+        .od-m-followed-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 22%;
+            border: 2px solid var(--od-bg);
+            object-fit: cover;
+            margin-left: -8px;
+        }
+
+        .od-m-followed-avatar:first-child {
+            margin-left: 0;
+        }
+
+        .od-m-followed-text {
+            font-size: 12px;
+            color: var(--od-text-secondary);
+            line-height: 1.3;
+        }
+
+        .od-m-followed-text strong {
+            color: var(--od-text-primary);
+            font-weight: 600;
+        }
+
+        /* Action Buttons - Instagram Style */
+        .od-mobile-buttons {
+            display: flex;
+            gap: 8px;
+            padding: 0 16px 16px;
+        }
+
+        .od-m-btn {
+            flex: 1;
+            height: 34px;
+            background: var(--od-surface);
+            border-radius: 8px;
+            border: 1px solid var(--od-border);
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--od-text-primary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            transition: opacity 0.2s;
+        }
+
+        .od-m-btn:active {
+            opacity: 0.7;
+        }
+
+        .od-m-btn.primary {
+            background: var(--od-accent);
+            color: white;
+            border: none;
+        }
+
+        .od-m-btn.following {
+            background: var(--od-surface);
+            border: 1px solid var(--od-border);
+        }
+
+        .od-m-btn.following i,
+        .od-m-btn.following svg {
+            width: 12px;
+            height: 12px;
+        }
+
+        .od-m-btn-icon {
+            width: 34px;
+            height: 34px;
+            background: var(--od-surface);
+            border-radius: 8px;
+            border: 1px solid var(--od-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--od-text-primary);
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .od-m-btn-icon i,
+        .od-m-btn-icon svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        /* Mobile Highlights Section */
+        .od-m-highlights-section {
+            margin-top: 8px;
+        }
+
+        .od-m-highlights-separator {
+            height: 1px;
+            background: var(--od-border);
+            margin: 0 16px 8px;
+        }
+
+        .od-m-highlights {
+            padding: 8px 16px 12px !important;
+        }
+
+        /* Profile Tabs - Instagram Style */
+        .od-m-profile-tabs {
+            display: flex;
+            border-top: 1px solid var(--od-border);
+            border-bottom: 1px solid var(--od-border);
+            margin-top: 0;
+        }
+
+        /* Hide desktop tabs on mobile */
+        .od-profile-tabs {
+            display: none !important;
+        }
+
+        .od-m-tab {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 0;
+            color: var(--od-text-secondary);
+            cursor: pointer;
+            position: relative;
+            background: none;
+            border: none;
+        }
+
+        .od-m-tab.active {
+            color: var(--od-text-primary);
+        }
+
+        .od-m-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: var(--od-text-primary);
+        }
+
+        .od-m-tab i,
+        .od-m-tab svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        /* Posts Grid - Instagram Style */
+        .od-m-posts-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1px;
+        }
+
+        .od-m-post-item {
+            aspect-ratio: 1;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .od-m-post-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .od-m-post-type-icon {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            color: white;
+            filter: drop-shadow(0 1px 2px rgba(0,0,0,0.5));
+        }
+
+        .od-m-post-type-icon i,
+        .od-m-post-type-icon svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        /* Empty State */
+        .od-m-empty-posts {
             display: flex;
             flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 20px;
+            text-align: center;
         }
 
-        .ig-dash-title {
-            font-size: 13px;
-            font-weight: 600;
-        }
-
-        .ig-dash-subtitle {
-            font-size: 11px;
-            color: var(--ig-text-secondary);
-        }
-
-        /* Mobile Buttons */
-        .ig-mobile-buttons {
-            display: flex;
-            gap: 6px;
-            padding: 0 16px 20px 16px;
-        }
-
-        .ig-m-btn {
-            flex: 1;
-            height: 32px;
-            background: #363636;
-            border-radius: 8px;
-            border: none;
-            font-weight: 600;
-            font-size: 13px;
-            color: white;
-            cursor: pointer;
+        .od-m-empty-icon {
+            width: 62px;
+            height: 62px;
+            border: 2px solid var(--od-text-primary);
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
+            margin-bottom: 16px;
         }
 
-        .ig-m-btn-icon {
-            width: 34px;
+        .od-m-empty-icon i,
+        .od-m-empty-icon svg {
+            width: 32px;
             height: 32px;
-            background: #363636;
-            border-radius: 8px;
-            border: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            cursor: pointer;
+        }
+
+        .od-m-empty-title {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--od-text-primary);
+        }
+
+        .od-m-empty-subtitle {
+            font-size: 14px;
+            color: var(--od-text-secondary);
         }
 
         /* Utility */
@@ -491,26 +769,25 @@
         }
     }
 
-    /* Enhanced Highlights Section */
-    .ig-highlights {
+    /* Enhanced Highlights Section - Instagram Style */
+    .od-highlights {
         display: flex;
-        gap: 20px;
-        padding: 20px 0;
+        gap: 15px;
+        padding: 12px 16px;
         overflow-x: auto;
         scrollbar-width: none;
         -ms-overflow-style: none;
-        margin-bottom: 8px;
     }
 
-    .ig-highlights::-webkit-scrollbar {
+    .od-highlights::-webkit-scrollbar {
         display: none;
     }
 
-    .ig-highlight-item {
+    .od-highlight-item {
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 10px;
+        gap: 6px;
         background: none;
         border: none;
         cursor: pointer;
@@ -518,118 +795,142 @@
         transition: transform 0.2s;
     }
 
-    .ig-highlight-item:hover {
-        transform: scale(1.05);
+    .od-highlight-item:hover {
+        transform: scale(1.02);
     }
 
-    .ig-highlight-add {
-        width: 77px;
-        height: 77px;
+    .od-highlight-add {
+        width: 64px;
+        height: 64px;
         border-radius: 22%;
-        border: 2px dashed var(--ig-border);
+        border: 1px solid var(--od-border);
         display: flex;
         align-items: center;
         justify-content: center;
-        background: var(--ig-surface);
-        transition: all 0.3s;
+        background: transparent;
+        transition: all 0.2s;
     }
 
-    .ig-highlight-add:hover {
-        border-color: var(--color-primary);
-        background: rgba(99, 102, 241, 0.08);
-        border-style: solid;
+    .od-highlight-add:hover {
+        border-color: var(--od-text-secondary);
     }
 
-    .ig-highlight-add svg {
-        width: 28px;
-        height: 28px;
-        color: var(--ig-text-secondary);
-        transition: color 0.3s;
+    .od-highlight-add svg,
+    .od-highlight-add i {
+        width: 24px;
+        height: 24px;
+        color: var(--od-text-primary);
     }
 
-    .ig-highlight-add:hover svg {
-        color: var(--color-primary);
-    }
-
-    .ig-highlight-preview {
-        width: 77px;
-        height: 77px;
+    .od-highlight-preview {
+        width: 64px;
+        height: 64px;
         border-radius: 22%;
-        border: 3px solid transparent;
-        background: linear-gradient(var(--ig-surface), var(--ig-surface)) padding-box,
-            linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888) border-box;
+        padding: 2px;
+        background: var(--brand-gradient);
         display: flex;
         align-items: center;
         justify-content: center;
         overflow: hidden;
-        transition: all 0.3s;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        transition: all 0.2s;
     }
 
-    .ig-highlight-story:hover .ig-highlight-preview {
-        transform: scale(1.08);
-        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    .od-highlight-preview-inner {
+        width: 100%;
+        height: 100%;
+        border-radius: 22%;
+        border: 2px solid var(--od-bg);
+        background-size: cover;
+        background-position: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
     }
 
-    .ig-highlight-text-preview {
-        font-size: 11px;
+    .od-highlight-story:hover .od-highlight-preview {
+        transform: scale(1.05);
+    }
+
+    .od-highlight-text-preview {
+        font-size: 10px;
         color: white;
-        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
         text-align: center;
-        padding: 6px;
+        padding: 4px;
         word-break: break-word;
         font-weight: 500;
     }
 
-    .ig-highlight-label {
+    .od-highlight-label {
         font-size: 12px;
-        color: var(--ig-text-primary);
-        max-width: 77px;
+        color: var(--od-text-primary);
+        max-width: 64px;
         text-overflow: ellipsis;
         overflow: hidden;
         white-space: nowrap;
-        font-weight: 500;
+        font-weight: 400;
+        text-align: center;
+    }
+
+    /* Mobile highlights */
+    @media (max-width: 480px) {
+        .od-highlights {
+            padding: 12px 16px;
+            gap: 12px;
+        }
+
+        .od-highlight-add,
+        .od-highlight-preview {
+            width: 58px;
+            height: 58px;
+        }
+
+        .od-highlight-label {
+            font-size: 11px;
+            max-width: 58px;
+        }
     }
 
     /* ===== IMPROVED CREATE POST MODAL STYLES ===== */
-    #createPostModal .ig-create-modal {
+    #createPostModal .od-create-modal {
         max-width: 580px;
         border-radius: 20px;
     }
 
-    #createPostModal .ig-create-body {
+    #createPostModal .od-create-body {
         display: flex;
         flex-direction: column;
     }
 
-    #createPostModal .ig-create-sidebar {
+    #createPostModal .od-create-sidebar {
         width: 100%;
         padding: 20px;
-        background: var(--ig-surface);
+        background: var(--od-surface);
         box-sizing: border-box;
     }
 
-    .ig-create-user {
+    .od-create-user {
         display: flex;
         align-items: center;
         gap: 12px;
         margin-bottom: 16px;
     }
 
-    .ig-create-avatar {
+    .od-create-avatar {
         width: 48px;
         height: 48px;
-        border-radius: 50%;
+        border-radius: 22%;
         object-fit: cover;
         border: 2px solid transparent;
-        background: linear-gradient(var(--ig-surface), var(--ig-surface)) padding-box,
+        background: linear-gradient(var(--od-surface), var(--od-surface)) padding-box,
             var(--odnix-gradient) border-box;
     }
 
-    .ig-create-avatar-placeholder {
+    .od-create-avatar-placeholder {
         width: 48px;
         height: 48px;
-        border-radius: 50%;
+        border-radius: 22%;
         background: var(--odnix-gradient);
         display: flex;
         align-items: center;
@@ -639,31 +940,31 @@
         font-size: 16px;
     }
 
-    .ig-create-user-info {
+    .od-create-user-info {
         display: flex;
         flex-direction: column;
         gap: 2px;
     }
 
-    .ig-create-username {
+    .od-create-username {
         font-weight: 600;
         font-size: 15px;
-        color: var(--ig-text-primary);
+        color: var(--od-text-primary);
     }
 
-    .ig-create-visibility {
+    .od-create-visibility {
         display: flex;
         align-items: center;
         gap: 4px;
         font-size: 12px;
-        color: var(--ig-text-secondary);
+        color: var(--od-text-secondary);
     }
 
-    .ig-create-textarea-wrapper {
+    .od-create-textarea-wrapper {
         position: relative;
     }
 
-    #createPostModal .ig-create-textarea {
+    #createPostModal .od-create-textarea {
         width: 100%;
         min-height: 120px;
         max-height: 200px;
@@ -671,38 +972,38 @@
         background: transparent;
         resize: none;
         font-size: 18px;
-        color: var(--ig-text-primary);
+        color: var(--od-text-primary);
         padding: 0;
         line-height: 1.5;
         font-family: inherit;
         box-sizing: border-box;
     }
 
-    #createPostModal .ig-create-textarea:focus {
+    #createPostModal .od-create-textarea:focus {
         outline: none;
     }
 
-    #createPostModal .ig-create-textarea::placeholder {
-        color: var(--ig-text-secondary);
+    #createPostModal .od-create-textarea::placeholder {
+        color: var(--od-text-secondary);
     }
 
-    .ig-create-image-preview {
+    .od-create-image-preview {
         position: relative;
         margin-top: 16px;
         border-radius: 16px;
         overflow: hidden;
-        background: var(--ig-bg);
-        border: 1px solid var(--ig-border);
+        background: var(--od-bg);
+        border: 1px solid var(--od-border);
     }
 
-    .ig-create-image-preview img {
+    .od-create-image-preview img {
         width: 100%;
         max-height: 350px;
         object-fit: contain;
         display: block;
     }
 
-    .ig-create-image-remove {
+    .od-create-image-remove {
         position: absolute;
         top: 12px;
         right: 12px;
@@ -719,32 +1020,32 @@
         transition: all 0.2s;
     }
 
-    .ig-create-image-remove:hover {
+    .od-create-image-remove:hover {
         background: rgba(0, 0, 0, 0.85);
         transform: scale(1.1);
     }
 
-    .ig-create-image-remove i {
+    .od-create-image-remove i {
         width: 18px;
         height: 18px;
         color: white;
     }
 
-    .ig-create-actions {
+    .od-create-actions {
         display: flex;
         justify-content: space-between;
         align-items: center;
         padding-top: 16px;
         margin-top: 16px;
-        border-top: 1px solid var(--ig-border);
+        border-top: 1px solid var(--od-border);
     }
 
-    .ig-create-actions-left {
+    .od-create-actions-left {
         display: flex;
         gap: 4px;
     }
 
-    .ig-create-action-btn {
+    .od-create-action-btn {
         display: flex;
         align-items: center;
         justify-content: center;
@@ -758,41 +1059,41 @@
         color: var(--color-primary);
     }
 
-    .ig-create-action-btn:hover {
-        background: var(--ig-surface-hover);
+    .od-create-action-btn:hover {
+        background: var(--od-surface-hover);
         transform: scale(1.1);
     }
 
-    .ig-create-action-btn i {
+    .od-create-action-btn i {
         width: 22px;
         height: 22px;
     }
 
-    .ig-create-actions-right {
+    .od-create-actions-right {
         display: flex;
         align-items: center;
         gap: 12px;
     }
 
-    .ig-create-char-count {
+    .od-create-char-count {
         position: relative;
         width: 30px;
         height: 30px;
     }
 
-    .ig-char-circle {
+    .od-char-circle {
         width: 30px;
         height: 30px;
         transform: rotate(-90deg);
     }
 
-    .ig-char-bg {
+    .od-char-bg {
         fill: none;
-        stroke: var(--ig-border);
+        stroke: var(--od-border);
         stroke-width: 2;
     }
 
-    .ig-char-progress {
+    .od-char-progress {
         fill: none;
         stroke: var(--color-primary);
         stroke-width: 2;
@@ -800,41 +1101,41 @@
         transition: stroke-dasharray 0.2s;
     }
 
-    .ig-char-progress.warning {
+    .od-char-progress.warning {
         stroke: #f59e0b;
     }
 
-    .ig-char-progress.danger {
+    .od-char-progress.danger {
         stroke: #ef4444;
     }
 
-    .ig-char-number {
+    .od-char-number {
         position: absolute;
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
         font-size: 9px;
         font-weight: 600;
-        color: var(--ig-text-secondary);
+        color: var(--od-text-secondary);
         display: none;
     }
 
-    .ig-char-number.show {
+    .od-char-number.show {
         display: block;
     }
 
-    .ig-create-emoji-row {
+    .od-create-emoji-row {
         display: flex;
         flex-wrap: wrap;
         gap: 4px;
         padding: 12px;
         margin-top: 12px;
-        background: var(--ig-bg);
+        background: var(--od-bg);
         border-radius: 12px;
         animation: fadeIn 0.2s ease;
     }
 
-    .ig-create-emoji-row button {
+    .od-create-emoji-row button {
         width: 36px;
         height: 36px;
         border: none;
@@ -845,49 +1146,49 @@
         transition: all 0.2s;
     }
 
-    .ig-create-emoji-row button:hover {
-        background: var(--ig-surface-hover);
+    .od-create-emoji-row button:hover {
+        background: var(--od-surface-hover);
         transform: scale(1.15);
     }
 
     /* GIF Picker Styles */
-    .ig-gif-picker {
+    .od-gif-picker {
         margin-top: 12px;
-        background: var(--ig-bg);
+        background: var(--od-bg);
         border-radius: 14px;
         overflow: hidden;
         animation: fadeIn 0.2s ease;
-        border: 1px solid var(--ig-border);
+        border: 1px solid var(--od-border);
     }
 
-    .ig-gif-search {
+    .od-gif-search {
         display: flex;
         align-items: center;
         gap: 10px;
         padding: 12px 14px;
-        border-bottom: 1px solid var(--ig-border);
+        border-bottom: 1px solid var(--od-border);
     }
 
-    .ig-gif-search i {
+    .od-gif-search i {
         width: 18px;
         height: 18px;
-        color: var(--ig-text-secondary);
+        color: var(--od-text-secondary);
     }
 
-    .ig-gif-search input {
+    .od-gif-search input {
         flex: 1;
         border: none;
         background: transparent;
         font-size: 14px;
-        color: var(--ig-text-primary);
+        color: var(--od-text-primary);
         outline: none;
     }
 
-    .ig-gif-search input::placeholder {
-        color: var(--ig-text-secondary);
+    .od-gif-search input::placeholder {
+        color: var(--od-text-secondary);
     }
 
-    .ig-gif-grid {
+    .od-gif-grid {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
         gap: 4px;
@@ -896,16 +1197,16 @@
         padding: 4px;
     }
 
-    .ig-gif-grid::-webkit-scrollbar {
+    .od-gif-grid::-webkit-scrollbar {
         width: 6px;
     }
 
-    .ig-gif-grid::-webkit-scrollbar-thumb {
-        background: var(--ig-border);
+    .od-gif-grid::-webkit-scrollbar-thumb {
+        background: var(--od-border);
         border-radius: 3px;
     }
 
-    .ig-gif-item {
+    .od-gif-item {
         aspect-ratio: 1;
         overflow: hidden;
         border-radius: 8px;
@@ -914,18 +1215,18 @@
         position: relative;
     }
 
-    .ig-gif-item:hover {
+    .od-gif-item:hover {
         transform: scale(1.03);
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     }
 
-    .ig-gif-item img {
+    .od-gif-item img {
         width: 100%;
         height: 100%;
         object-fit: cover;
     }
 
-    .ig-gif-loading {
+    .od-gif-loading {
         grid-column: 1 / -1;
         display: flex;
         flex-direction: column;
@@ -933,25 +1234,25 @@
         justify-content: center;
         padding: 40px;
         gap: 12px;
-        color: var(--ig-text-secondary);
+        color: var(--od-text-secondary);
         font-size: 13px;
     }
 
-    .ig-gif-spinner {
+    .od-gif-spinner {
         width: 28px;
         height: 28px;
-        border: 3px solid var(--ig-border);
+        border: 3px solid var(--od-border);
         border-top-color: var(--color-primary);
         border-radius: 50%;
         animation: spin 0.8s linear infinite;
     }
 
-    .ig-gif-powered {
+    .od-gif-powered {
         padding: 8px;
         text-align: center;
         font-size: 11px;
-        color: var(--ig-text-secondary);
-        border-top: 1px solid var(--ig-border);
+        color: var(--od-text-secondary);
+        border-top: 1px solid var(--od-border);
     }
 
     @keyframes spin {
@@ -973,7 +1274,7 @@
     }
 
     /* Story Viewer Modal */
-    .ig-story-viewer {
+    .od-story-viewer {
         position: fixed;
         inset: 0;
         background: rgba(0, 0, 0, 0.95);
@@ -984,7 +1285,7 @@
     }
 
     /* Hide bottom navbar when story viewer is open */
-    body.story-viewer-open .ig-bottom-nav {
+    body.story-viewer-open .od-bottom-nav {
         display: none !important;
     }
 
@@ -992,22 +1293,22 @@
         overflow: hidden;
     }
 
-    .ig-story-viewer.show {
+    .od-story-viewer.show {
         display: flex;
     }
 
-    .ig-story-container {
+    .od-story-container {
         position: relative;
         max-width: 420px;
         width: 100%;
         height: 90vh;
         max-height: 750px;
-        background: var(--ig-surface);
+        background: var(--od-surface);
         border-radius: 16px;
         overflow: hidden;
     }
 
-    .ig-story-header {
+    .od-story-header {
         position: absolute;
         top: 0;
         left: 0;
@@ -1017,13 +1318,13 @@
         z-index: 10;
     }
 
-    .ig-story-progress {
+    .od-story-progress {
         display: flex;
         gap: 4px;
         margin-bottom: 12px;
     }
 
-    .ig-story-progress-bar {
+    .od-story-progress-bar {
         flex: 1;
         height: 2px;
         background: rgba(255, 255, 255, 0.3);
@@ -1031,20 +1332,20 @@
         overflow: hidden;
     }
 
-    .ig-story-progress-fill {
+    .od-story-progress-fill {
         height: 100%;
         background: white;
         width: 0;
         transition: width 0.1s linear;
     }
 
-    .ig-story-user {
+    .od-story-user {
         display: flex;
         align-items: center;
         gap: 10px;
     }
 
-    .ig-story-avatar {
+    .od-story-avatar {
         width: 32px;
         height: 32px;
         border-radius: 22%;
@@ -1052,19 +1353,19 @@
         border: 2px solid white;
     }
 
-    .ig-story-username {
+    .od-story-username {
         color: white;
         font-weight: 600;
         font-size: 14px;
     }
 
-    .ig-story-time {
+    .od-story-time {
         color: rgba(255, 255, 255, 0.7);
         font-size: 12px;
         margin-left: 8px;
     }
 
-    .ig-story-close {
+    .od-story-close {
         position: absolute;
         top: 16px;
         right: 16px;
@@ -1075,13 +1376,13 @@
         z-index: 11;
     }
 
-    .ig-story-close svg {
+    .od-story-close svg {
         width: 24px;
         height: 24px;
         color: white;
     }
 
-    .ig-story-content {
+    .od-story-content {
         position: absolute;
         inset: 0;
         display: flex;
@@ -1089,13 +1390,13 @@
         justify-content: center;
     }
 
-    .ig-story-content img {
+    .od-story-content img {
         width: 100%;
         height: 100%;
         object-fit: cover;
     }
 
-    .ig-story-text-content {
+    .od-story-text-content {
         width: 100%;
         height: 100%;
         display: flex;
@@ -1105,14 +1406,14 @@
         text-align: center;
     }
 
-    .ig-story-text-content p {
+    .od-story-text-content p {
         color: white;
         font-size: 24px;
         line-height: 1.4;
         text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
     }
 
-    .ig-story-nav {
+    .od-story-nav {
         position: absolute;
         top: 50%;
         transform: translateY(-50%);
@@ -1130,25 +1431,25 @@
         z-index: 10;
     }
 
-    .ig-story-nav:hover {
+    .od-story-nav:hover {
         background: rgba(255, 255, 255, 0.3);
     }
 
-    .ig-story-nav svg {
+    .od-story-nav svg {
         width: 20px;
         height: 20px;
         color: white;
     }
 
-    .ig-story-prev {
+    .od-story-prev {
         left: 16px;
     }
 
-    .ig-story-next {
+    .od-story-next {
         right: 16px;
     }
 
-    .ig-story-actions {
+    .od-story-actions {
         position: absolute;
         bottom: 0;
         left: 0;
@@ -1160,7 +1461,7 @@
         gap: 12px;
     }
 
-    .ig-story-input {
+    .od-story-input {
         flex: 1;
         background: rgba(255, 255, 255, 0.1);
         border: 1px solid rgba(255, 255, 255, 0.3);
@@ -1170,25 +1471,25 @@
         font-size: 14px;
     }
 
-    .ig-story-input::placeholder {
+    .od-story-input::placeholder {
         color: rgba(255, 255, 255, 0.6);
     }
 
-    .ig-story-action-btn {
+    .od-story-action-btn {
         background: none;
         border: none;
         cursor: pointer;
         padding: 8px;
     }
 
-    .ig-story-action-btn svg {
+    .od-story-action-btn svg {
         width: 24px;
         height: 24px;
         color: white;
     }
 
     @media (max-width: 480px) {
-        .ig-story-container {
+        .od-story-container {
             width: 100%;
             max-width: 100%;
             height: 100vh;
@@ -1200,26 +1501,26 @@
             inset: 0;
         }
 
-        .ig-story-viewer {
+        .od-story-viewer {
             padding: 0;
         }
 
-        .ig-story-header {
+        .od-story-header {
             padding-top: env(safe-area-inset-top, 16px);
         }
 
-        .ig-story-actions {
+        .od-story-actions {
             padding-bottom: env(safe-area-inset-bottom, 16px);
         }
 
-        .ig-story-nav {
+        .od-story-nav {
             opacity: 0;
             /* Hide but keep clickable for touch navigation */
         }
     }
 
     /* Private Profile Styles */
-    .ig-requests-badge {
+    .od-requests-badge {
         position: absolute;
         top: -4px;
         right: -4px;
@@ -1236,47 +1537,47 @@
         padding: 0 5px;
     }
 
-    .ig-profile-btn.requested {
-        background: var(--ig-surface-hover);
-        color: var(--ig-text-primary);
-        border: 1px solid var(--ig-border);
+    .od-profile-btn.requested {
+        background: var(--od-surface-hover);
+        color: var(--od-text-primary);
+        border: 1px solid var(--od-border);
     }
 
-    .ig-profile-btn.requested:hover {
-        background: var(--ig-border);
+    .od-profile-btn.requested:hover {
+        background: var(--od-border);
     }
 
-    .ig-profile-btn.blocked {
-        background: var(--ig-surface-hover);
-        color: var(--ig-text-secondary);
+    .od-profile-btn.blocked {
+        background: var(--od-surface-hover);
+        color: var(--od-text-secondary);
         cursor: not-allowed;
     }
 
     /* Follow Request Item */
-    .ig-follow-request-item {
+    .od-follow-request-item {
         display: flex;
         align-items: center;
         gap: 12px;
         padding: 14px 16px;
-        border-bottom: 1px solid var(--ig-border);
+        border-bottom: 1px solid var(--od-border);
     }
 
-    .ig-follow-request-item:last-child {
+    .od-follow-request-item:last-child {
         border-bottom: none;
     }
 
-    .ig-follow-request-avatar {
+    .od-follow-request-avatar {
         width: 48px;
         height: 48px;
-        border-radius: 50%;
+        border-radius: 22%;
         object-fit: cover;
         flex-shrink: 0;
     }
 
-    .ig-follow-request-avatar-placeholder {
+    .od-follow-request-avatar-placeholder {
         width: 48px;
         height: 48px;
-        border-radius: 50%;
+        border-radius: 22%;
         background: var(--odnix-gradient);
         display: flex;
         align-items: center;
@@ -1287,34 +1588,34 @@
         flex-shrink: 0;
     }
 
-    .ig-follow-request-info {
+    .od-follow-request-info {
         flex: 1;
         min-width: 0;
     }
 
-    .ig-follow-request-name {
+    .od-follow-request-name {
         font-weight: 600;
         font-size: 14px;
-        color: var(--ig-text-primary);
+        color: var(--od-text-primary);
     }
 
-    .ig-follow-request-username {
+    .od-follow-request-username {
         font-size: 13px;
-        color: var(--ig-text-secondary);
+        color: var(--od-text-secondary);
     }
 
-    .ig-follow-request-time {
+    .od-follow-request-time {
         font-size: 12px;
-        color: var(--ig-text-secondary);
+        color: var(--od-text-secondary);
     }
 
-    .ig-follow-request-actions {
+    .od-follow-request-actions {
         display: flex;
         gap: 8px;
         flex-shrink: 0;
     }
 
-    .ig-follow-request-btn {
+    .od-follow-request-btn {
         padding: 8px 16px;
         border-radius: 8px;
         font-size: 13px;
@@ -1324,46 +1625,46 @@
         border: none;
     }
 
-    .ig-follow-request-btn.accept {
+    .od-follow-request-btn.accept {
         background: var(--odnix-gradient);
         color: white;
     }
 
-    .ig-follow-request-btn.accept:hover {
+    .od-follow-request-btn.accept:hover {
         opacity: 0.9;
     }
 
-    .ig-follow-request-btn.decline {
-        background: var(--ig-surface-hover);
-        color: var(--ig-text-primary);
-        border: 1px solid var(--ig-border);
+    .od-follow-request-btn.decline {
+        background: var(--od-surface-hover);
+        color: var(--od-text-primary);
+        border: 1px solid var(--od-border);
     }
 
-    .ig-follow-request-btn.decline:hover {
-        background: var(--ig-border);
+    .od-follow-request-btn.decline:hover {
+        background: var(--od-border);
     }
 
-    .ig-no-requests {
+    .od-no-requests {
         padding: 60px 20px;
         text-align: center;
-        color: var(--ig-text-secondary);
+        color: var(--od-text-secondary);
     }
 
-    .ig-no-requests i {
+    .od-no-requests i {
         width: 48px;
         height: 48px;
         margin-bottom: 16px;
         opacity: 0.5;
     }
 
-    .ig-no-requests h3 {
+    .od-no-requests h3 {
         font-size: 18px;
         font-weight: 600;
-        color: var(--ig-text-primary);
+        color: var(--od-text-primary);
         margin-bottom: 8px;
     }
 
-    .ig-no-requests p {
+    .od-no-requests p {
         font-size: 14px;
     }
 
@@ -1381,30 +1682,30 @@
         display: flex;
         gap: 12px;
         padding: 14px 16px;
-        background: var(--ig-surface);
-        border: 1px solid var(--ig-border);
+        background: var(--od-surface);
+        border: 1px solid var(--od-border);
         border-radius: 14px;
         box-shadow: var(--shadow-sm);
         transition: background 0.2s ease, border-color 0.2s ease;
     }
 
     .scribe-card:hover {
-        background: var(--ig-surface-hover);
-        border-color: var(--ig-border-light);
+        background: var(--od-surface-hover);
+        border-color: var(--od-border-light);
     }
 
     .scribe-avatar {
         width: 44px;
         height: 44px;
-        border-radius: 50%;
+        border-radius: 22%;
         overflow: hidden;
         flex-shrink: 0;
-        background: var(--ig-surface-hover);
-        border: 1px solid var(--ig-border);
+        background: var(--od-surface-hover);
+        border: 1px solid var(--od-border);
         display: grid;
         place-items: center;
         font-weight: 700;
-        color: var(--ig-text-secondary);
+        color: var(--od-text-secondary);
     }
 
     .scribe-avatar img {
@@ -1420,8 +1721,8 @@
         height: 100%;
         align-items: center;
         justify-content: center;
-        background: var(--ig-surface-hover);
-        color: var(--ig-text-secondary);
+        background: var(--od-surface-hover);
+        color: var(--od-text-secondary);
     }
 
     .scribe-main {
@@ -1438,13 +1739,13 @@
 
     .scribe-name {
         font-weight: 700;
-        color: var(--ig-text-primary);
+        color: var(--od-text-primary);
     }
 
     .scribe-username,
     .scribe-time,
     .scribe-dot {
-        color: var(--ig-text-secondary);
+        color: var(--od-text-secondary);
         font-size: 13px;
     }
 
@@ -1455,7 +1756,7 @@
 
     .scribe-text {
         margin: 0 0 10px 0;
-        color: var(--ig-text-primary);
+        color: var(--od-text-primary);
         font-size: 15px;
         line-height: 1.5;
         word-break: break-word;
@@ -1465,8 +1766,8 @@
         margin-top: 8px;
         overflow: hidden;
         border-radius: 12px;
-        border: 1px solid var(--ig-border);
-        background: var(--ig-surface-hover);
+        border: 1px solid var(--od-border);
+        background: var(--od-surface-hover);
     }
 
     .scribe-media img {
@@ -1477,10 +1778,10 @@
 
     .scribe-code {
         margin-top: 8px;
-        border: 1px solid var(--ig-border);
+        border: 1px solid var(--od-border);
         border-radius: 12px;
         overflow: hidden;
-        background: var(--ig-surface-hover);
+        background: var(--od-surface-hover);
     }
 
     .scribe-code iframe {
@@ -1494,7 +1795,7 @@
         gap: 18px;
         align-items: center;
         margin-top: 10px;
-        color: var(--ig-text-secondary);
+        color: var(--od-text-secondary);
         font-size: 13px;
     }
 
@@ -1527,169 +1828,231 @@
 {% include 'chat/partials/navbar.html' %}
 
 <!-- Main Profile Content -->
-<div class="ig-profile-container">
-    <div class="ig-profile">
+<div class="od-profile-container">
+    <div class="od-profile">
         <!-- Profile Header -->
-        <!-- MOBILE VIEW -->
-        <div class="ig-mobile-wrapper mobile-only-block">
-            <!-- Sticky Top Bar -->
-            <div class="ig-mobile-top-bar">
-                <div class="ig-m-username-group">
+        <!-- MOBILE VIEW - Instagram Style -->
+        <div class="od-mobile-wrapper mobile-only-block">
+            <!-- Sticky Top Bar - Instagram Style -->
+            <div class="od-mobile-top-bar">
+                <button class="od-m-back-btn" onclick="history.back()">
+                    <i data-lucide="arrow-left" style="width: 24px; height: 24px;"></i>
+                </button>
+                <div class="od-m-username-group">
                     <span>{{ profile_user.username }}</span>
-                    {% if pending_requests_count > 0 %}
-                    <div class="ig-m-notification-dot"></div>
-                    {% endif %}
                     {% if profile_user.is_private %}
-                    <i data-lucide="lock" style="width: 14px; height: 14px;"></i>
+                    <i data-lucide="lock" style="width: 12px; height: 12px;"></i>
                     {% endif %}
-                    <i data-lucide="chevron-down" style="width: 16px; height: 16px;"></i>
                 </div>
-                <div class="ig-m-top-actions">
-                    <!--<i data-lucide="at-sign" style="width: 24px; height: 24px;"></i>-->
-                    <i data-lucide="plus-square" onclick="openCreateModal()" style="width: 24px; height: 24px;"></i>
-                    <i data-lucide="menu" onclick="openSettingsModal()" style="width: 24px; height: 24px;"></i>
+                <div class="od-m-top-actions">
+                    {% if is_own_profile %}
+                    {% comment %} <i data-lucide="plus-square" onclick="openCreateModal()" style="width: 24px; height: 24px; cursor: pointer;"></i> {% endcomment %}
+                    {% endif %}
+                    <i data-lucide="more-horizontal" onclick="openSettingsModal()" style="width: 24px; height: 24px; cursor: pointer;"></i>
                 </div>
             </div>
 
-            <!-- Mobile Header (Avatar + Stats) -->
-            <div class="ig-mobile-header">
+            <!-- Mobile Header - Avatar + Stats Row (Instagram Style) -->
+            <div class="od-mobile-header">
                 <!-- Avatar Section -->
-                <div class="ig-mobile-avatar-group">
-                    <div class="ig-note-bubble">Note...</div>
-                    <div class="ig-m-avatar-container {% if profile_user.has_active_story %}has-story{% endif %}"
+                <div class="od-mobile-avatar-group">
+                    <div class="od-m-avatar-container {% if profile_user.has_active_story %}has-story{% endif %}"
                         onclick="viewUserStories('{{ profile_user.username }}')">
                         <img src="{{ profile_user.profile_picture_url }}" alt="{{ profile_user.username }}"
-                            class="ig-m-avatar"
-                            onerror="this.outerHTML='<div class=\'ig-profile-avatar-placeholder\'>{{ profile_user.initials }}</div>'">
+                            class="od-m-avatar"
+                            onerror="this.outerHTML='<div class=\'od-profile-avatar-placeholder\' style=\'width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:var(--od-surface);border-radius:22%;font-size:28px;font-weight:600;\'>{{ profile_user.initials }}</div>'">
                     </div>
                     {% if is_own_profile %}
-                    <div class="ig-plus-badge">
-                        <i data-lucide="plus" style="width: 14px; height: 14px;"></i>
+                    <div class="od-plus-badge">
+                        <i data-lucide="plus" style="width: 12px; height: 12px;"></i>
                     </div>
                     {% endif %}
                 </div>
 
-                <!-- Stats Section -->
-                <div class="ig-mobile-stats">
-                    <div class="ig-m-stat-item">
-                        <span class="ig-m-stat-number">{{ tweets|length }}</span>
-                        <span class="ig-m-stat-label">posts</span>
+                <!-- Stats Section - Instagram Style -->
+                <div class="od-mobile-stats">
+                    <div class="od-m-stat-item">
+                        <span class="od-m-stat-number">{{ tweets|length }}</span>
+                        <span class="od-m-stat-label">posts</span>
                     </div>
-                    <div class="ig-m-stat-item" onclick="openFollowersModal()">
-                        <span class="ig-m-stat-number" id="followersCountMobile">{{ profile_user.follower_count}}</span>
-                        <span class="ig-m-stat-label">followers</span>
+                    <div class="od-m-stat-item" onclick="openFollowersModal()">
+                        <span class="od-m-stat-number" id="followersCountMobile">{{ profile_user.follower_count }}</span>
+                        <span class="od-m-stat-label">followers</span>
                     </div>
-                    <div class="ig-m-stat-item" onclick="openFollowingModal()">
-                        <span class="ig-m-stat-number" id="followingCountMobile">{{ profile_user.following_count}}</span>
-                        <span class="ig-m-stat-label">following</span>
+                    <div class="od-m-stat-item" onclick="openFollowingModal()">
+                        <span class="od-m-stat-number" id="followingCountMobile">{{ profile_user.following_count }}</span>
+                        <span class="od-m-stat-label">following</span>
                     </div>
                 </div>
             </div>
 
-            <!-- Bio Section -->
-            <div class="ig-mobile-bio">
-                <div class="ig-m-fullname">{{ profile_user.full_name }}</div>
+            <!-- Bio Section - Instagram Style -->
+            <div class="od-mobile-bio">
+                <div class="od-m-fullname">{{ profile_user.full_name }}</div>
                 {% if profile_user.bio %}
-                <div class="ig-m-bio-text">{{ profile_user.bio|linebreaksbr }}</div>
+                <div class="od-m-bio-text">{{ profile_user.bio|linebreaksbr }}</div>
                 {% endif %}
                 {% if profile_user.location %}
-                <div style="font-size: 13px; color: var(--ig-text-secondary); margin-top: 2px;">{{ profile_user.location
-                    }}</div>
+                <div style="font-size: 14px; color: var(--od-text-secondary); margin-top: 4px;">
+                    <i data-lucide="map-pin" style="width: 12px; height: 12px; display: inline-block; vertical-align: middle; margin-right: 4px;"></i>
+                    {{ profile_user.location }}
+                </div>
                 {% endif %}
-                <!-- Link Placeholder -->
-                <!--<a href="#" class="ig-m-link">
-                    <i data-lucide="link" style="width: 12px; height: 12px;"></i>
-                    odnix.com/{{ profile_user.username }}
-                </a>-->
             </div>
 
-            <!-- Dashboard -->
-           <!-- {% if is_own_profile %}
-            <div class="ig-dashboard-card">
-                <div class="ig-dash-info">
-                    <span class="ig-dash-title">Professional Dashboard</span>
-                    <span class="ig-dash-subtitle">Dashboard Message</span>
+            <!-- Followed By Section (shows mutual followers) -->
+            {% if mutual_followers and not is_own_profile %}
+            <div class="od-m-followed-by">
+                <div class="od-m-followed-avatars">
+                    {% for follower in mutual_followers|slice:":3" %}
+                    <img src="{{ follower.profile_picture_url }}" alt="{{ follower.username }}" class="od-m-followed-avatar"
+                        onerror="this.style.display='none'">
+                    {% endfor %}
+                </div>
+                <div class="od-m-followed-text">
+                    Followed by <strong>{{ mutual_followers.0.username }}</strong>{% if mutual_followers|length > 1 %} + {{ mutual_followers|length|add:"-1" }} more{% endif %}
                 </div>
             </div>
-            {% endif %}-->
+            {% endif %}
 
-            <!-- Action Buttons -->
-            <div class="ig-mobile-buttons" style="margin-top: 12px;">
+            <!-- Action Buttons - Instagram Style -->
+            <div class="od-mobile-buttons">
                 {% if is_own_profile %}
-                <button class="ig-m-btn" onclick="window.location.href='{% url 'update_profile' %}'">Edit
-                    profile</button>
-                <button class="ig-m-btn">Share profile</button>
-                {% elif is_following %}
-                <button class="ig-m-btn" onclick="toggleFollow('{{ profile_user.username }}')"
-                    data-username="{{ profile_user.username }}">Following</button>
-                <button class="ig-m-btn" onclick="startChat('{{ profile_user.username }}')">Message</button>
-                {% else %}
-                <button class="ig-m-btn" style="background: #0095f6;"
-                    onclick="toggleFollow('{{ profile_user.username }}')"
-                    data-username="{{ profile_user.username }}">Follow</button>
-                <button class="ig-m-btn" onclick="startChat('{{ profile_user.username }}')">Message</button>
-                {% endif %}
-                <!--<button class="ig-m-btn-icon">
+                <button class="od-m-btn" onclick="window.location.href='{% url 'update_profile' %}'">Edit profile</button>
+                <button class="od-m-btn">Share profile</button>
+                {% if pending_requests_count > 0 %}
+                <button class="od-m-btn-icon" onclick="openFollowRequestsModal()" style="position: relative;">
                     <i data-lucide="user-plus" style="width: 16px; height: 16px;"></i>
-                </button>-->
+                    <span style="position: absolute; top: -4px; right: -4px; background: #ff3040; color: white; font-size: 10px; font-weight: 600; padding: 2px 5px; border-radius: 10px;">{{ pending_requests_count }}</span>
+                </button>
+                {% endif %}
+                {% elif is_following %}
+                <button class="od-m-btn following" onclick="toggleFollow('{{ profile_user.username }}')"
+                    data-username="{{ profile_user.username }}">
+                    Following
+                    <i data-lucide="chevron-down" style="width: 12px; height: 12px;"></i>
+                </button>
+                <button class="od-m-btn" onclick="startChat('{{ profile_user.username }}')">Message</button>
+                <button class="od-m-btn-icon">
+                    <i data-lucide="user-plus" style="width: 16px; height: 16px;"></i>
+                </button>
+                {% elif follow_request_status == 'pending' %}
+                <button class="od-m-btn" onclick="toggleFollow('{{ profile_user.username }}')"
+                    data-username="{{ profile_user.username }}">Requested</button>
+                <button class="od-m-btn" onclick="startChat('{{ profile_user.username }}')">Message</button>
+                {% else %}
+                <button class="od-m-btn primary" onclick="toggleFollow('{{ profile_user.username }}')"
+                    data-username="{{ profile_user.username }}">Follow</button>
+                <button class="od-m-btn" onclick="startChat('{{ profile_user.username }}')">Message</button>
+                <button class="od-m-btn-icon">
+                    <i data-lucide="user-plus" style="width: 16px; height: 16px;"></i>
+                </button>
+                {% endif %}
+            </div>
+
+            <!-- Mobile Story Highlights Section - Instagram Style -->
+            {% if is_own_profile or user_stories %}
+            <div class="od-m-highlights-section">
+                <div class="od-m-highlights-separator"></div>
+                <div class="od-highlights od-m-highlights">
+                    {% if is_own_profile %}
+                    <!-- Add New Story Button -->
+                    <button class="od-highlight-item" onclick="openStoryModal()">
+                        <div class="od-highlight-add">
+                            <i data-lucide="plus"></i>
+                        </div>
+                        <span class="od-highlight-label">New</span>
+                    </button>
+                    {% endif %}
+
+                    <!-- User's Active Stories -->
+                    {% for story in user_stories %}
+                    <button class="od-highlight-item od-highlight-story" onclick="viewStoryFromProfile({{ story.id }})">
+                        <div class="od-highlight-preview">
+                            <div class="od-highlight-preview-inner" {% if story.media_url %}
+                                style="background-image: url('{{ story.media_url }}');"
+                                {% else %} style="background: {{ story.background_color }};" {% endif %}>
+                                {% if not story.media_url %}
+                                <span class="od-highlight-text-preview">{{ story.content|truncatechars:8 }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <span class="od-highlight-label">{{ story.created_at|timesince|truncatewords:1 }}</span>
+                    </button>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Profile Tabs - Instagram Style -->
+            <div class="od-m-profile-tabs">
+                <button class="od-m-tab active" data-tab="posts">
+                    <i data-lucide="grid-3x3" style="width: 24px; height: 24px;"></i>
+                </button>
+                <button class="od-m-tab" data-tab="reels">
+                    <i data-lucide="film" style="width: 24px; height: 24px;"></i>
+                </button>
+                <button class="od-m-tab" data-tab="tagged">
+                    <i data-lucide="user-square" style="width: 24px; height: 24px;"></i>
+                </button>
             </div>
         </div>
 
         <!-- DESKTOP HEADER (Wrapped to hide on mobile) -->
         <div class="desktop-only-block">
-            <header class="ig-profile-header">
+            <header class="od-profile-header">
                 <!-- Profile Picture -->
-                <div class="ig-profile-avatar-section">
-                    <div class="ig-profile-avatar-container">
+                <div class="od-profile-avatar-section">
+                    <div class="od-profile-avatar-container">
                         {% if profile_user.has_active_story %}
-                        <div class="ig-profile-avatar-ring" onclick="viewUserStories('{{ profile_user.username }}')">
+                        <div class="od-profile-avatar-ring" onclick="viewUserStories('{{ profile_user.username }}')">
                             {% else %}
-                            <div class="ig-profile-avatar-ring no-story">
+                            <div class="od-profile-avatar-ring no-story">
                                 {% endif %}
                                 <img src="{{ profile_user.profile_picture_url }}" alt="{{ profile_user.full_name }}"
-                                    class="ig-profile-avatar"
-                                    onerror="this.outerHTML='<div class=\'ig-profile-avatar-placeholder\'>{{ profile_user.initials }}</div>'">
+                                    class="od-profile-avatar"
+                                    onerror="this.outerHTML='<div class=\'od-profile-avatar-placeholder\'>{{ profile_user.initials }}</div>'">
                             </div>
                         </div>
                     </div>
 
                     <!-- Profile Info -->
-                    <div class="ig-profile-info">
-                        <div class="ig-profile-username-row">
-                            <h1 class="ig-profile-username">
+                    <div class="od-profile-info">
+                        <div class="od-profile-username-row">
+                            <h1 class="od-profile-username">
                                 {{ profile_user.username }}
                                 {% if profile_user.is_private %}
-                                <i data-lucide="lock" class="ig-private-badge" title="Private Account"
-                                    style="width: 16px; height: 16px; margin-left: 6px; color: var(--ig-text-secondary);"></i>
+                                <i data-lucide="lock" class="od-private-badge" title="Private Account"
+                                    style="width: 16px; height: 16px; margin-left: 6px; color: var(--od-text-secondary);"></i>
                                 {% endif %}
                             </h1>
 
                             {% if is_own_profile %}
-                            <a href="{% url 'update_profile' %}" class="ig-profile-btn">Edit Profile</a>
+                            <a href="{% url 'update_profile' %}" class="od-profile-btn">Edit Profile</a>
                             {% if pending_requests_count > 0 %}
-                            <button class="ig-profile-btn secondary" onclick="openFollowRequestsModal()"
+                            <button class="od-profile-btn secondary" onclick="openFollowRequestsModal()"
                                 style="position: relative;">
                                 <i data-lucide="user-plus" style="width: 16px; height: 16px;"></i>
-                                <span class="ig-requests-badge">{{ pending_requests_count }}</span>
+                                <span class="od-requests-badge">{{ pending_requests_count }}</span>
                             </button>
                             {% endif %}
-                            <button class="ig-profile-settings-btn" onclick="openSettingsModal()">
+                            <button class="od-profile-settings-btn" onclick="openSettingsModal()">
                                 <i data-lucide="settings"></i>
                             </button>
                             {% elif is_blocked %}
-                            <button class="ig-profile-btn blocked" disabled>Blocked</button>
+                            <button class="od-profile-btn blocked" disabled>Blocked</button>
                             {% elif is_following %}
-                            <button class="ig-profile-btn following"
+                            <button class="od-profile-btn following"
                                 onclick="toggleFollow('{{ profile_user.username }}')"
                                 data-username="{{ profile_user.username }}" id="followBtn">Following</button>
-                            <button class="ig-profile-btn secondary"
+                            <button class="od-profile-btn secondary"
                                 onclick="startChat('{{ profile_user.username }}')">Message</button>
                             {% elif follow_request_status == 'pending' %}
-                            <button class="ig-profile-btn requested"
+                            <button class="od-profile-btn requested"
                                 onclick="toggleFollow('{{ profile_user.username }}')"
                                 data-username="{{ profile_user.username }}" id="followBtn">Requested</button>
                             {% else %}
-                            <button class="ig-profile-btn primary" onclick="toggleFollow('{{ profile_user.username }}')"
+                            <button class="od-profile-btn primary" onclick="toggleFollow('{{ profile_user.username }}')"
                                 data-username="{{ profile_user.username }}" id="followBtn">
                                 {% if profile_user.is_private%}Request
                                 {% else %}Follow
@@ -1698,29 +2061,29 @@
                         </div>
 
                         <!-- Stats (Desktop) -->
-                        <div class="ig-profile-stats desktop-only">
-                            <div class="ig-profile-stat">
-                                <span class="ig-stat-count">{{ tweets|length }}</span>
-                                <span class="ig-stat-label">scribes</span>
+                        <div class="od-profile-stats desktop-only">
+                            <div class="od-profile-stat">
+                                <span class="od-stat-count">{{ tweets|length }}</span>
+                                <span class="od-stat-label">scribes</span>
                             </div>
-                            <div class="ig-profile-stat" onclick="openFollowersModal()">
-                                <span class="ig-stat-count" id="followersCount">{{ profile_user.follower_count }}</span>
-                                <span class="ig-stat-label">followers</span>
+                            <div class="od-profile-stat" onclick="openFollowersModal()">
+                                <span class="od-stat-count" id="followersCount">{{ profile_user.follower_count }}</span>
+                                <span class="od-stat-label">followers</span>
                             </div>
-                            <div class="ig-profile-stat" onclick="openFollowingModal()">
-                                <span class="ig-stat-count" id="followingCount">{{ profile_user.following_count}}</span>
-                                <span class="ig-stat-label">following</span>
+                            <div class="od-profile-stat" onclick="openFollowingModal()">
+                                <span class="od-stat-count" id="followingCount">{{ profile_user.following_count}}</span>
+                                <span class="od-stat-label">following</span>
                             </div>
                         </div>
 
                         <!-- Bio -->
-                        <div class="ig-profile-bio">
-                            <h2 class="ig-profile-name">{{ profile_user.full_name }}</h2>
+                        <div class="od-profile-bio">
+                            <h2 class="od-profile-name">{{ profile_user.full_name }}</h2>
                             {% if profile_user.bio %}
-                            <p class="ig-profile-bio-text">{{ profile_user.bio|linebreaksbr }}</p>
+                            <p class="od-profile-bio-text">{{ profile_user.bio|linebreaksbr }}</p>
                             {% endif %}
                             {% if profile_user.location %}
-                            <span class="ig-profile-location">
+                            <span class="od-profile-location">
                                 <i data-lucide="map-pin" style="width: 12px; height: 12px;"></i>
                                 {{ profile_user.location }}
                             </span>
@@ -1730,30 +2093,32 @@
             </header>
         </div>
 
-        <!-- Story Highlights Section -->
+        <!-- Story Highlights Section - Instagram Style (Desktop Only) -->
         {% if is_own_profile or user_stories %}
-        <div class="ig-highlights">
+        <div class="od-highlights desktop-only-flex">
             {% if is_own_profile %}
             <!-- Add New Story Button -->
-            <button class="ig-highlight-item" onclick="openStoryModal()">
-                <div class="ig-highlight-add">
+            <button class="od-highlight-item" onclick="openStoryModal()">
+                <div class="od-highlight-add">
                     <i data-lucide="plus"></i>
                 </div>
-                <span class="ig-highlight-label">New</span>
+                <span class="od-highlight-label">New</span>
             </button>
             {% endif %}
 
             <!-- User's Active Stories -->
             {% for story in user_stories %}
-            <button class="ig-highlight-item ig-highlight-story" onclick="viewStoryFromProfile({{ story.id }})">
-                <div class="ig-highlight-preview" {% if story.media_url %}
-                    style="background-image: url('{{ story.media_url }}'); background-size: cover; background-position: center;"
-                    {% else %} style="background: {{ story.background_color }};" {% endif %}>
-                    {% if not story.media_url %}
-                    <span class="ig-highlight-text-preview">{{ story.content|truncatechars:10 }}</span>
-                    {% endif %}
+            <button class="od-highlight-item od-highlight-story" onclick="viewStoryFromProfile({{ story.id }})">
+                <div class="od-highlight-preview">
+                    <div class="od-highlight-preview-inner" {% if story.media_url %}
+                        style="background-image: url('{{ story.media_url }}');"
+                        {% else %} style="background: {{ story.background_color }};" {% endif %}>
+                        {% if not story.media_url %}
+                        <span class="od-highlight-text-preview">{{ story.content|truncatechars:8 }}</span>
+                        {% endif %}
+                    </div>
                 </div>
-                <span class="ig-highlight-label">{{ story.created_at|timesince|truncatewords:1 }}</span>
+                <span class="od-highlight-label">{{ story.created_at|timesince|truncatewords:1 }}</span>
             </button>
             {% empty %}
             {% if not is_own_profile %}
@@ -1764,17 +2129,17 @@
         {% endif %}
 
         <!-- Content Tabs -->
-        <div class="ig-profile-tabs">
-            <button class="ig-profile-tab active" data-tab="posts">
+        <div class="od-profile-tabs">
+            <button class="od-profile-tab active" data-tab="posts">
                 <i data-lucide="grid-3x3"></i>
                 <span class="tab-text">Scribe</span>
             </button>
-            <button class="ig-profile-tab" data-tab="omzo">
+            <button class="od-profile-tab" data-tab="omzo">
                 <i data-lucide="play-square"></i>
                 <span class="tab-text">Omzo</span>
             </button>
             {% if is_own_profile %}
-            <button class="ig-profile-tab" data-tab="saved">
+            <button class="od-profile-tab" data-tab="saved">
                 <i data-lucide="bookmark"></i>
                 <span class="tab-text">Saved</span>
             </button>
@@ -1798,114 +2163,139 @@
                 #profilePostsFeed {
                     max-width: 100%;
                     gap: 20px;
+                    padding: 0 12px;
+                }
+
+                #profilePostsFeed .od-post {
+                    border-radius: 16px;
+                    border: 1px solid var(--od-border);
+                    background: var(--od-surface);
+                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+                    overflow: hidden;
+                }
+            }
+
+            @media (max-width: 480px) {
+                #profilePostsFeed {
+                    padding: 0 8px;
+                    gap: 16px;
+                }
+
+                #profilePostsFeed .od-post {
+                    border-radius: 14px;
                 }
             }
 
             /* Ensure individual cards don’t stretch wider on desktop */
-            #profilePostsFeed .ig-post {
+            #profilePostsFeed .od-post {
                 width: 100%;
                 max-width: 520px;
                 margin: 0 auto;
             }
         </style>
-        <div class="ig-profile-content" id="postsTab">
+        <div class="od-profile-content" id="postsTab">
             {% if tweets %}
-            <section class="ig-posts" id="profilePostsFeed">
+            <!-- Posts Feed -->
+            <section class="od-posts" id="profilePostsFeed">
                 {% for tweet in tweets %}
-                <article class="ig-post" data-tweet-id="{{ tweet.id }}">
+                <article class="od-post" data-tweet-id="{{ tweet.id }}">
                     <!-- Post Header -->
-                    <header class="ig-post-header">
-                        <a href="{% url 'user_profile' tweet.user.username %}" class="ig-post-user">
+                    <header class="od-post-header">
+                        <a href="{% url 'user_profile' tweet.user.username %}" class="od-post-user">
                             <img src="{{ tweet.user.profile_picture_url }}" alt="{{ tweet.user.full_name }}"
-                                class="ig-post-avatar"
-                                onerror="this.outerHTML='<div class=\'ig-post-avatar-placeholder\'>{{ tweet.user.initials }}</div>'">
-                            <div class="ig-post-user-info">
-                                <span class="ig-post-username">{{ tweet.user.username }}</span>
+                                class="od-post-avatar"
+                                onerror="this.outerHTML='<div class=\'od-post-avatar-placeholder\'>{{ tweet.user.initials }}</div>'">
+                            <div class="od-post-user-info">
+                                <span class="od-post-username">{{ tweet.user.username }}</span>
                             </div>
                         </a>
-                        <button class="ig-post-more" onclick="openPostDetail({{ tweet.id }})">
+                        <button class="od-post-more" onclick="openPostDetail({{ tweet.id }})">
                             <i data-lucide="more-horizontal"></i>
                         </button>
                     </header>
 
                     <!-- Post Media -->
                     {% if tweet.content_type == 'code_scribe' %}
-                    <div class="ig-post-media">
-                        <iframe class="ig-code-scribe-view" title="Code Scribe"
-                            style="width: 100%; min-height: 260px; border: none; background: var(--ig-bg);"
+                    <div class="od-post-media">
+                        <iframe class="od-code-scribe-view" title="Code Scribe"
+                            style="width: 100%; min-height: 260px; border: none; background: var(--od-bg);"
                             data-code-bundle="{{ tweet.code_bundle|urlencode }}"
                             data-code-html="{{ tweet.code_html|default:''|urlencode }}"
                             data-code-css="{{ tweet.code_css|default:''|urlencode }}"
                             data-code-js="{{ tweet.code_js|default:''|urlencode }}"></iframe>
                     </div>
                     {% elif tweet.image_url %}
-                    <div class="ig-post-media" onclick="openImageModal('{{ tweet.image_url }}')">
+                    <div class="od-post-media" onclick="openImageModal('{{ tweet.image_url }}')">
                         <img src="{{ tweet.image_url }}" alt="Post image">
                     </div>
                     {% endif %}
 
                     <!-- Post Actions -->
-                    <div class="ig-post-actions">
-                        <div class="ig-post-actions-left">
-                            <button class="ig-post-action-btn {% if tweet.is_liked %}liked{% endif %}"
+                    <div class="od-post-actions">
+                        <div class="od-post-actions-left">
+                            <button class="od-post-action-btn like-btn {% if tweet.is_liked %}liked{% endif %}"
                                 onclick="toggleLike({{ tweet.id }})" data-tweet-id="{{ tweet.id }}">
-                                <i data-lucide="heart"></i>
+                                <i data-lucide="thumbs-up"></i>
                             </button>
-                            <button class="ig-post-action-btn" onclick="toggleComments({{ tweet.id }})">
+                            <button class="od-post-action-btn dislike-btn {% if tweet.is_disliked %}disliked{% endif %}"
+                                onclick="toggleDislike({{ tweet.id }})" data-tweet-id="{{ tweet.id }}">
+                                <i data-lucide="thumbs-down"></i>
+                            </button>
+                            <button class="od-post-action-btn" onclick="toggleComments({{ tweet.id }})">
                                 <i data-lucide="message-circle"></i>
                             </button>
                         </div>
                     </div>
 
                     <!-- Post Details -->
-                    <div class="ig-post-details">
-                        <div class="ig-post-likes">
+                    <div class="od-post-details">
+                        <div class="od-post-likes">
                             <span class="like-count" data-tweet-id="{{ tweet.id }}">{{ tweet.like_count }}</span> likes
                         </div>
 
                         {% if tweet.content %}
-                        <div class="ig-post-caption">
+                        <div class="od-post-caption">
                             <span class="username">{{ tweet.user.username }}</span>
                             <span>{{ tweet.content|linkify_hashtags_mentions }}</span>
                         </div>
                         {% endif %}
 
                         {% if tweet.comment_count > 0 %}
-                        <div class="ig-post-view-comments" onclick="openPostDetail({{ tweet.id }})">
+                        <div class="od-post-view-comments" onclick="openPostDetail({{ tweet.id }})">
                             View all {{ tweet.comment_count }} comments
                         </div>
                         {% endif %}
 
-                        <time class="ig-post-time">{{ tweet.timestamp|timesince }} ago</time>
+                        <time class="od-post-time">{{ tweet.timestamp|timesince }} ago</time>
                     </div>
 
                     <!-- Comment Input -->
-                    <div class="ig-post-comment-input">
+                    <div class="od-post-comment-input">
                         <input type="text" placeholder="Add a comment..." id="comment-input-{{ tweet.id }}"
                             maxlength="500" onkeypress="handleCommentKeypress(event, {{ tweet.id }})">
                         <button onclick="addComment({{ tweet.id }})">Post</button>
                     </div>
 
                     <!-- Comments Section (Hidden by default) -->
-                    <div id="comments-{{ tweet.id }}" class="ig-comments-section" style="display: none;">
-                        <div class="ig-comments-list" id="comments-list-{{ tweet.id }}"></div>
+                    <div id="comments-{{ tweet.id }}" class="od-comments-section" style="display: none;">
+                        <div class="od-comments-list" id="comments-list-{{ tweet.id }}"></div>
                     </div>
                 </article>
                 {% endfor %}
             </section>
             {% else %}
             <!-- No Scribes -->
-            <div class="ig-no-posts">
+            <div class="od-no-posts">
                 {% if is_own_profile %}
-                <div class="ig-no-posts-icon">
+                <div class="od-no-posts-icon">
                     <i data-lucide="camera"></i>
                 </div>
                 <h3>Share Scribes</h3>
                 <p>When you share scribes, they will appear in your profile timeline.</p>
-                <button class="ig-auth-btn" onclick="openCreatePostModal()"
+                <button class="od-auth-btn" onclick="openCreatePostModal()"
                     style="width: auto; padding: 8px 16px; margin-top: 16px;">Share your first scribe</button>
                 {% else %}
-                <div class="ig-no-posts-icon">
+                <div class="od-no-posts-icon">
                     <i data-lucide="camera-off"></i>
                 </div>
                 <h3>No Scribes Yet</h3>
@@ -1915,13 +2305,13 @@
         </div>
 
         <!-- Omzo Tab Content -->
-        <div class="ig-profile-content" id="omzoTab" style="display: none;">
+        <div class="od-profile-content" id="omzoTab" style="display: none;">
             {% if omzo %}
-            <div class="ig-posts-grid">
+            <div class="od-posts-grid">
                 {% for omzo in omzo %}
-                <div class="ig-grid-item" onclick="window.location.href='{% url 'omzo' %}?omzo_id={{ omzo.id }}'"
+                <div class="od-grid-item" onclick="window.location.href='{% url 'omzo' %}?omzo_id={{ omzo.id }}'"
                     style="position: relative;">
-                    <video src="{{ omzo.video_file.url }}" class="ig-grid-video"
+                    <video src="{{ omzo.video_file.url }}" class="od-grid-video"
                         style="width: 100%; height: 100%; object-fit: cover;" preload="metadata"></video>
 
                     <!-- Permanent View Count Overlay -->
@@ -1931,8 +2321,8 @@
                         <span>{{ omzo.views_count|default:"0" }}</span>
                     </div>
 
-                    <div class="ig-grid-overlay">
-                        <div class="ig-grid-stats">
+                    <div class="od-grid-overlay">
+                        <div class="od-grid-stats">
                             <span><i data-lucide="heart"></i> {{ omzo.likes.count }}</span>
                             <span><i data-lucide="message-circle"></i> {{ omzo.comments.count }}</span>
                         </div>
@@ -1941,14 +2331,14 @@
                 {% endfor %}
             </div>
             {% else %}
-            <div class="ig-no-posts">
-                <div class="ig-no-posts-icon">
+            <div class="od-no-posts">
+                <div class="od-no-posts-icon">
                     <i data-lucide="video-off"></i>
                 </div>
                 <h3>No Omzo Yet</h3>
                 {% if is_own_profile %}
                 <p>Record and share short videos.</p>
-                <button class="ig-auth-btn" onclick="document.getElementById('globalOmzoInput').click()"
+                <button class="od-auth-btn" onclick="document.getElementById('globalOmzoInput').click()"
                     style="width: auto; padding: 8px 16px; margin-top: 16px;">Create Omzo</button>
                 {% endif %}
             </div>
@@ -1958,16 +2348,16 @@
 
         <!-- Saved Posts Grid (Only for own profile) -->
         {% if is_own_profile %}
-        <div class="ig-profile-content" id="savedTab" style="display: none;">
+        <div class="od-profile-content" id="savedTab" style="display: none;">
             {% if saved_posts %}
-            <div class="ig-posts-grid">
+            <div class="od-posts-grid">
                 {% for post in saved_posts %}
-                <div class="ig-grid-item" onclick="openPostDetail({{ post.id }})">
+                <div class="od-grid-item" onclick="openPostDetail({{ post.id }})">
                     {% if post.content_type == 'code_scribe' %}
                     <!-- Code Scribe Display -->
                     <div
-                        style="width: 100%; height: 100%; background: var(--ig-surface); display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden;">
-                        <iframe class="ig-code-scribe-view" sandbox="allow-scripts allow-modals"
+                        style="width: 100%; height: 100%; background: var(--od-surface); display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden;">
+                        <iframe class="od-code-scribe-view" sandbox="allow-scripts allow-modals"
                             data-code-bundle="{{ post.code_bundle|urlencode }}"
                             data-code-html="{{ post.code_html|default:''|urlencode }}"
                             data-code-css="{{ post.code_css|default:''|urlencode }}"
@@ -1977,12 +2367,12 @@
                     {% elif post.image_url %}
                     <img src="{{ post.image_url }}" alt="" loading="lazy">
                     {% else %}
-                    <div class="ig-grid-text-post">
+                    <div class="od-grid-text-post">
                         <p>{{ post.content|truncatechars:100 }}</p>
                     </div>
                     {% endif %}
-                    <div class="ig-grid-overlay">
-                        <div class="ig-grid-stats">
+                    <div class="od-grid-overlay">
+                        <div class="od-grid-stats">
                             <span><i data-lucide="heart"></i> {{ post.like_count }}</span>
                             <span><i data-lucide="message-circle"></i> {{ post.comment_count }}</span>
                         </div>
@@ -1992,8 +2382,8 @@
             </div>
             {% else %}
             <!-- No Saved Posts -->
-            <div class="ig-no-posts">
-                <div class="ig-no-posts-icon">
+            <div class="od-no-posts">
+                <div class="od-no-posts-icon">
                     <i data-lucide="bookmark"></i>
                 </div>
                 <h3>Save</h3>
@@ -2007,15 +2397,15 @@
 
         {% else %}
         <!-- Private/Blocked Account -->
-        <div class="ig-private-profile">
+        <div class="od-private-profile">
             {% if is_blocked %}
-            <div class="ig-private-icon">
+            <div class="od-private-icon">
                 <i data-lucide="ban"></i>
             </div>
             <h3>Profile Unavailable</h3>
             <p>This profile is not available.</p>
             {% else %}
-            <div class="ig-private-icon">
+            <div class="od-private-icon">
                 <i data-lucide="lock"></i>
             </div>
             <h3>This Account is Private</h3>
@@ -2027,44 +2417,44 @@
 </div>
 
 <!-- Chats Panel (Same as Dashboard) -->
-<div id="chatsPanel" class="ig-modal-overlay" style="display: none;" onclick="closeChatsPanel(event)">
-    <div class="ig-direct" style="margin: 0; margin-left: auto; height: 100vh; border-radius: 0; max-width: 400px;"
+<div id="chatsPanel" class="od-modal-overlay" style="display: none;" onclick="closeChatsPanel(event)">
+    <div class="od-direct" style="margin: 0; margin-left: auto; height: 100vh; border-radius: 0; max-width: 400px;"
         onclick="event.stopPropagation()">
-        <div class="ig-direct-sidebar" style="width: 100%;">
-            <header class="ig-direct-header">
+        <div class="od-direct-sidebar" style="width: 100%;">
+            <header class="od-direct-header">
                 <button onclick="closeChatsPanel()"
                     style="background: none; border: none; cursor: pointer; padding: 8px;">
                     <i data-lucide="arrow-left" style="width: 24px; height: 24px;"></i>
                 </button>
-                <h2 class="ig-direct-title">{{ current_user.username }}</h2>
-                <button class="ig-direct-new">
+                <h2 class="od-direct-title">{{ current_user.username }}</h2>
+                <button class="od-direct-new">
                     <i data-lucide="edit"></i>
                 </button>
             </header>
-            <div class="ig-direct-list">
+            <div class="od-direct-list">
                 {% for chat in private_chats %}
                 {% for participant in chat.participants.all %}
                 {% if participant != current_user %}
-                <a href="{% url 'chat_detail' chat.id %}" class="ig-direct-item">
+                <a href="{% url 'chat_detail' chat.id %}" class="od-direct-item">
                     <img src="{{ participant.profile_picture_url }}" alt="{{ participant.full_name }}"
-                        class="ig-direct-item-avatar">
-                    <div class="ig-direct-item-info">
-                        <div class="ig-direct-item-name">{{ participant.full_name }}</div>
-                        <div class="ig-direct-item-preview">@{{ participant.username }}</div>
+                        class="od-direct-item-avatar">
+                    <div class="od-direct-item-info">
+                        <div class="od-direct-item-name">{{ participant.full_name }}</div>
+                        <div class="od-direct-item-preview">@{{ participant.username }}</div>
                     </div>
                 </a>
                 {% endif %}
                 {% endfor %}
                 {% endfor %}
                 {% for chat in group_chats %}
-                <a href="{% url 'chat_detail' chat.id %}" class="ig-direct-item">
+                <a href="{% url 'chat_detail' chat.id %}" class="od-direct-item">
                     <div
-                        style="width: 56px; height: 56px; border-radius: 50%; background: var(--brand-gradient); display: flex; align-items: center; justify-content: center;">
+                        style="width: 56px; height: 56px; border-radius: 22%; background: var(--brand-gradient); display: flex; align-items: center; justify-content: center;">
                         <i data-lucide="users" style="color: white; width: 24px; height: 24px;"></i>
                     </div>
-                    <div class="ig-direct-item-info">
-                        <div class="ig-direct-item-name">{{ chat.name }}</div>
-                        <div class="ig-direct-item-preview">{{ chat.participant_count }} members</div>
+                    <div class="od-direct-item-info">
+                        <div class="od-direct-item-name">{{ chat.name }}</div>
+                        <div class="od-direct-item-preview">{{ chat.participant_count }} members</div>
                     </div>
                 </a>
                 {% endfor %}
@@ -2074,35 +2464,35 @@
 </div>
 
 <!-- Create Post Modal (Same as Dashboard) -->
-<div id="createPostModal" class="ig-modal-overlay" style="display: none;" onclick="closeCreatePostModal(event)">
-    <div class="ig-create-modal" onclick="event.stopPropagation()">
-        <header class="ig-create-header">
-            <button class="ig-create-back" onclick="closeCreatePostModal()">
+<div id="createPostModal" class="od-modal-overlay" style="display: none;" onclick="closeCreatePostModal(event)">
+    <div class="od-create-modal" onclick="event.stopPropagation()">
+        <header class="od-create-header">
+            <button class="od-create-back" onclick="closeCreatePostModal()">
                 <i data-lucide="x"></i>
             </button>
-            <h2 class="ig-create-title">Create Scribe</h2>
-            <button class="ig-create-next" onclick="submitPost()" id="sharePostBtn">Share</button>
+            <h2 class="od-create-title">Create Scribe</h2>
+            <button class="od-create-next" onclick="submitPost()" id="sharePostBtn">Share</button>
         </header>
-        <div class="ig-create-body">
+        <div class="od-create-body">
             <!-- User info and text input -->
-            <div class="ig-create-sidebar" id="createSidebar">
-                <div class="ig-create-user">
-                    <img src="{{ current_user.profile_picture_url }}" alt="" class="ig-create-avatar"
-                        onerror="this.outerHTML='<div class=\'ig-create-avatar-placeholder\'>{{ current_user.initials }}</div>'">
-                    <div class="ig-create-user-info">
-                        <span class="ig-create-username">{{ current_user.username }}</span>
-                        <span class="ig-create-visibility"><i data-lucide="globe"
+            <div class="od-create-sidebar" id="createSidebar">
+                <div class="od-create-user">
+                    <img src="{{ current_user.profile_picture_url }}" alt="" class="od-create-avatar"
+                        onerror="this.outerHTML='<div class=\'od-create-avatar-placeholder\'>{{ current_user.initials }}</div>'">
+                    <div class="od-create-user-info">
+                        <span class="od-create-username">{{ current_user.username }}</span>
+                        <span class="od-create-visibility"><i data-lucide="globe"
                                 style="width: 12px; height: 12px;"></i> Public</span>
                     </div>
                 </div>
 
-                <div class="ig-create-textarea-wrapper">
-                    <textarea class="ig-create-textarea" id="postCaption" placeholder="What's happening?"
+                <div class="od-create-textarea-wrapper">
+                    <textarea class="od-create-textarea" id="postCaption" placeholder="What's happening?"
                         maxlength="280" oninput="updateCharCount()"></textarea>
 
                     <!-- Image Preview Area -->
-                    <div id="postImagePreview" class="ig-create-image-preview" style="display: none;">
-                        <button class="ig-create-image-remove" onclick="removePostImage()">
+                    <div id="postImagePreview" class="od-create-image-preview" style="display: none;">
+                        <button class="od-create-image-remove" onclick="removePostImage()">
                             <i data-lucide="x"></i>
                         </button>
                         <img id="postPreviewImg" src="" alt="Preview">
@@ -2110,59 +2500,59 @@
                 </div>
 
                 <!-- Action Row -->
-                <div class="ig-create-actions">
-                    <div class="ig-create-actions-left">
-                        <label class="ig-create-action-btn" title="Add photo">
+                <div class="od-create-actions">
+                    <div class="od-create-actions-left">
+                        <label class="od-create-action-btn" title="Add photo">
                             <i data-lucide="image"></i>
                             <input type="file" accept="image/*" id="postImageInput" style="display: none;"
                                 onchange="handlePostImageSelect(event)">
                         </label>
-                        <button type="button" class="ig-create-action-btn" onclick="toggleGifPicker()" title="Add GIF">
+                        <button type="button" class="od-create-action-btn" onclick="toggleGifPicker()" title="Add GIF">
                             <i data-lucide="sparkles"></i>
                         </button>
-                        <button type="button" class="ig-create-action-btn emoji-btn" onclick="toggleEmojiPicker()"
+                        <button type="button" class="od-create-action-btn emoji-btn" onclick="toggleEmojiPicker()"
                             title="Add emoji">
                             <i data-lucide="smile"></i>
                         </button>
-                        <button type="button" class="ig-create-action-btn" onclick="#" title="Create web code snippet">
-                            <i data-lucide="code-editor"></i>
+                        <button type="button" class="od-create-action-btn" onclick="#" title="Create web code snippet">
+                            <i data-lucide="code-2"></i>
                         </button>
                     </div>
-                    <div class="ig-create-actions-right">
-                        <div class="ig-create-char-count">
-                            <svg viewBox="0 0 36 36" class="ig-char-circle">
-                                <path class="ig-char-bg"
+                    <div class="od-create-actions-right">
+                        <div class="od-create-char-count">
+                            <svg viewBox="0 0 36 36" class="od-char-circle">
+                                <path class="od-char-bg"
                                     d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831">
                                 </path>
-                                <path class="ig-char-progress" id="charCircle" stroke-dasharray="0, 100"
+                                <path class="od-char-progress" id="charCircle" stroke-dasharray="0, 100"
                                     d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831">
                                 </path>
                             </svg>
-                            <span id="captionCharCount" class="ig-char-number">0</span>
+                            <span id="captionCharCount" class="od-char-number">0</span>
                         </div>
                     </div>
                 </div>
 
                 <!-- GIF Picker -->
-                <div class="ig-gif-picker" id="gifPicker" style="display: none;">
-                    <div class="ig-gif-search">
+                <div class="od-gif-picker" id="gifPicker" style="display: none;">
+                    <div class="od-gif-search">
                         <i data-lucide="search"></i>
                         <input type="text" id="gifSearchInput" placeholder="Search GIFs..."
                             oninput="searchGifs(this.value)">
                     </div>
-                    <div class="ig-gif-grid" id="gifGrid">
-                        <div class="ig-gif-loading">
-                            <div class="ig-gif-spinner"></div>
+                    <div class="od-gif-grid" id="gifGrid">
+                        <div class="od-gif-loading">
+                            <div class="od-gif-spinner"></div>
                             <span>Loading GIFs...</span>
                         </div>
                     </div>
-                    <div class="ig-gif-powered">
+                    <div class="od-gif-powered">
                         <span>Powered by GIPHY</span>
                     </div>
                 </div>
 
                 <!-- Quick Emoji Row -->
-                <div class="ig-create-emoji-row" id="emojiPicker" style="display: none;">
+                <div class="od-create-emoji-row" id="emojiPicker" style="display: none;">
                     <button type="button" onclick="insertEmoji('😊')">😊</button>
                     <button type="button" onclick="insertEmoji('❤️')">❤️</button>
                     <button type="button" onclick="insertEmoji('🔥')">🔥</button>
@@ -2182,29 +2572,29 @@
 </div>
 
 <!-- Create Story Modal - Professional Design -->
-<div id="storyModal" class="ig-modal-overlay" style="display: none;" onclick="closeStoryModal(event)">
-    <div class="ig-story-create-wrapper" onclick="event.stopPropagation()">
-        <header class="ig-story-create-header">
-            <button class="ig-story-close-btn" onclick="closeStoryModal()">
+<div id="storyModal" class="od-modal-overlay" style="display: none;" onclick="closeStoryModal(event)">
+    <div class="od-story-create-wrapper" onclick="event.stopPropagation()">
+        <header class="od-story-create-header">
+            <button class="od-story-close-btn" onclick="closeStoryModal()">
                 <i data-lucide="x"></i>
             </button>
-            <h2 class="ig-story-create-title">Create Story</h2>
-            <button class="ig-story-share-btn" onclick="createStory()">
+            <h2 class="od-story-create-title">Create Story</h2>
+            <button class="od-story-share-btn" onclick="createStory()">
                 <i data-lucide="send"></i>
                 Share
             </button>
         </header>
 
-        <div class="ig-story-create-body">
+        <div class="od-story-create-body">
             <!-- Story Preview Canvas -->
-            <div class="ig-story-canvas-wrapper">
-                <div class="ig-story-canvas" id="storyPreviewContainer">
+            <div class="od-story-canvas-wrapper">
+                <div class="od-story-canvas" id="storyPreviewContainer">
                     <!-- Image Layer -->
-                    <div id="storyPreviewImage" class="ig-story-preview-img" style="display: none;">
+                    <div id="storyPreviewImage" class="od-story-preview-img" style="display: none;">
                         <img id="storyPreviewImg" src="" alt="Preview" draggable="false">
                     </div>
                     <!-- Draggable Text Layer -->
-                    <div id="storyPreviewText" class="ig-story-canvas-text" contenteditable="true"
+                    <div id="storyPreviewText" class="od-story-canvas-text" contenteditable="true"
                         data-placeholder="Tap to add text..."
                         style="top: 50%; left: 50%; transform: translate(-50%, -50%);"
                         onclick="event.stopPropagation()"></div>
@@ -2212,97 +2602,97 @@
             </div>
 
             <!-- Story Controls Panel -->
-            <div class="ig-story-controls-panel">
-                <h3 class="ig-story-panel-title">
+            <div class="od-story-controls-panel">
+                <h3 class="od-story-panel-title">
                     <i data-lucide="wand-2"></i>
                     Customize Your Story
                 </h3>
 
-                <div class="ig-story-control-group">
+                <div class="od-story-control-group">
                     <!-- Add Photo -->
-                    <label class="ig-story-control-item">
-                        <div class="ig-story-control-icon photo">
+                    <label class="od-story-control-item">
+                        <div class="od-story-control-icon photo">
                             <i data-lucide="image-plus"></i>
                         </div>
-                        <div class="ig-story-control-info">
-                            <span class="ig-story-control-label">Add Photo</span>
-                            <span class="ig-story-control-desc">Upload from gallery</span>
+                        <div class="od-story-control-info">
+                            <span class="od-story-control-label">Add Photo</span>
+                            <span class="od-story-control-desc">Upload from gallery</span>
                         </div>
                         <input type="file" accept="image/*" id="storyImageInput" style="display: none;"
                             onchange="handleStoryImageSelect(event)">
                     </label>
 
                     <!-- Image Controls (shown when image is added) -->
-                    <div id="storyImageControls" class="ig-story-image-controls" style="display: none;">
-                        <button type="button" class="ig-story-remove-img" onclick="removeStoryImage()">
+                    <div id="storyImageControls" class="od-story-image-controls" style="display: none;">
+                        <button type="button" class="od-story-remove-img" onclick="removeStoryImage()">
                             <i data-lucide="trash-2"></i>
                             Remove Image
                         </button>
                     </div>
 
-                    <div class="ig-story-control-divider"></div>
+                    <div class="od-story-control-divider"></div>
 
                     <!-- Text Position Controls -->
-                    <div class="ig-story-text-position">
-                        <span class="ig-story-preset-label">Text Position</span>
-                        <div class="ig-story-position-btns">
-                            <button type="button" class="ig-story-pos-btn" onclick="setTextPosition('top')" title="Top">
+                    <div class="od-story-text-position">
+                        <span class="od-story-preset-label">Text Position</span>
+                        <div class="od-story-position-btns">
+                            <button type="button" class="od-story-pos-btn" onclick="setTextPosition('top')" title="Top">
                                 <i data-lucide="align-start-vertical"></i>
                             </button>
-                            <button type="button" class="ig-story-pos-btn active" onclick="setTextPosition('center')"
+                            <button type="button" class="od-story-pos-btn active" onclick="setTextPosition('center')"
                                 title="Center">
                                 <i data-lucide="align-center-vertical"></i>
                             </button>
-                            <button type="button" class="ig-story-pos-btn" onclick="setTextPosition('bottom')"
+                            <button type="button" class="od-story-pos-btn" onclick="setTextPosition('bottom')"
                                 title="Bottom">
                                 <i data-lucide="align-end-vertical"></i>
                             </button>
-                            <button type="button" class="ig-story-pos-btn" onclick="enableTextDrag()" title="Custom"
+                            <button type="button" class="od-story-pos-btn" onclick="enableTextDrag()" title="Custom"
                                 id="customPosBtn">
                                 <i data-lucide="move"></i>
                             </button>
                         </div>
                     </div>
 
-                    <div class="ig-story-control-divider"></div>
+                    <div class="od-story-control-divider"></div>
 
                     <!-- Gradient Presets -->
-                    <div class="ig-story-preset-colors">
-                        <span class="ig-story-preset-label">Background</span>
-                        <div class="ig-story-preset-grid">
-                            <button type="button" class="ig-story-preset active"
+                    <div class="od-story-preset-colors">
+                        <span class="od-story-preset-label">Background</span>
+                        <div class="od-story-preset-grid">
+                            <button type="button" class="od-story-preset active"
                                 style="background: linear-gradient(135deg, #667eea, #764ba2);"
                                 onclick="setStoryGradient('#667eea', '#764ba2', this)"></button>
-                            <button type="button" class="ig-story-preset"
+                            <button type="button" class="od-story-preset"
                                 style="background: linear-gradient(135deg, #f093fb, #f5576c);"
                                 onclick="setStoryGradient('#f093fb', '#f5576c', this)"></button>
-                            <button type="button" class="ig-story-preset"
+                            <button type="button" class="od-story-preset"
                                 style="background: linear-gradient(135deg, #4facfe, #00f2fe);"
                                 onclick="setStoryGradient('#4facfe', '#00f2fe', this)"></button>
-                            <button type="button" class="ig-story-preset"
+                            <button type="button" class="od-story-preset"
                                 style="background: linear-gradient(135deg, #43e97b, #38f9d7);"
                                 onclick="setStoryGradient('#43e97b', '#38f9d7', this)"></button>
-                            <button type="button" class="ig-story-preset"
+                            <button type="button" class="od-story-preset"
                                 style="background: linear-gradient(135deg, #fa709a, #fee140);"
                                 onclick="setStoryGradient('#fa709a', '#fee140', this)"></button>
-                            <button type="button" class="ig-story-preset"
+                            <button type="button" class="od-story-preset"
                                 style="background: linear-gradient(135deg, #a8edea, #fed6e3);"
                                 onclick="setStoryGradient('#a8edea', '#fed6e3', this)"></button>
-                            <button type="button" class="ig-story-preset"
+                            <button type="button" class="od-story-preset"
                                 style="background: linear-gradient(135deg, #ff9a9e, #fecfef);"
                                 onclick="setStoryGradient('#ff9a9e', '#fecfef', this)"></button>
-                            <button type="button" class="ig-story-preset" style="background: #000000;"
+                            <button type="button" class="od-story-preset" style="background: #000000;"
                                 onclick="setStoryBackground('#000000', this)"></button>
                         </div>
                     </div>
 
-                    <div class="ig-story-control-divider"></div>
+                    <div class="od-story-control-divider"></div>
 
                     <!-- Text Color -->
-                    <div class="ig-story-color-row">
-                        <label class="ig-story-color-label">
+                    <div class="od-story-color-row">
+                        <label class="od-story-color-label">
                             <span>Text Color</span>
-                            <div class="ig-story-color-preview" id="textColorPreview" style="background: #ffffff;">
+                            <div class="od-story-color-preview" id="textColorPreview" style="background: #ffffff;">
                             </div>
                             <input type="color" id="storyTextColor" value="#ffffff"
                                 onchange="changeStoryTextColor(this.value)">
@@ -2316,12 +2706,12 @@
 
 <style>
     /* Professional Create Story Modal for Profile Page */
-    #storyModal.ig-modal-overlay {
+    #storyModal.od-modal-overlay {
         z-index: 9999 !important;
     }
 
-    .ig-story-create-wrapper {
-        background: var(--ig-surface);
+    .od-story-create-wrapper {
+        background: var(--od-surface);
         border-radius: 24px;
         overflow: hidden;
         width: 95%;
@@ -2345,40 +2735,40 @@
         }
     }
 
-    .ig-story-create-header {
+    .od-story-create-header {
         display: flex;
         align-items: center;
         justify-content: space-between;
         padding: 16px 24px;
-        border-bottom: 1px solid var(--ig-border);
+        border-bottom: 1px solid var(--od-border);
         background: linear-gradient(135deg, rgba(102, 126, 234, 0.08), rgba(118, 75, 162, 0.08));
     }
 
-    .ig-story-close-btn {
+    .od-story-close-btn {
         width: 40px;
         height: 40px;
         border-radius: 50%;
         border: none;
-        background: var(--ig-bg);
+        background: var(--od-bg);
         cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
         transition: all 0.2s;
-        color: var(--ig-text-primary);
+        color: var(--od-text-primary);
     }
 
-    .ig-story-close-btn:hover {
-        background: var(--ig-surface-hover);
+    .od-story-close-btn:hover {
+        background: var(--od-surface-hover);
         transform: scale(1.1);
     }
 
-    .ig-story-close-btn i {
+    .od-story-close-btn i {
         width: 22px;
         height: 22px;
     }
 
-    .ig-story-create-title {
+    .od-story-create-title {
         font-size: 18px;
         font-weight: 700;
         background: var(--odnix-gradient);
@@ -2387,7 +2777,7 @@
         background-clip: text;
     }
 
-    .ig-story-share-btn {
+    .od-story-share-btn {
         display: flex;
         align-items: center;
         gap: 8px;
@@ -2403,17 +2793,17 @@
         box-shadow: 0 4px 15px rgba(102, 126, 234, 0.35);
     }
 
-    .ig-story-share-btn:hover {
+    .od-story-share-btn:hover {
         transform: translateY(-2px);
         box-shadow: 0 6px 25px rgba(102, 126, 234, 0.45);
     }
 
-    .ig-story-share-btn i {
+    .od-story-share-btn i {
         width: 18px;
         height: 18px;
     }
 
-    .ig-story-create-body {
+    .od-story-create-body {
         display: flex;
         gap: 24px;
         padding: 24px;
@@ -2422,14 +2812,14 @@
     }
 
     /* Story Canvas Styles */
-    .ig-story-canvas-wrapper {
+    .od-story-canvas-wrapper {
         display: flex;
         align-items: center;
         justify-content: center;
         padding: 20px;
     }
 
-    .ig-story-canvas {
+    .od-story-canvas {
         position: relative;
         width: 320px;
         aspect-ratio: 9/16;
@@ -2439,22 +2829,22 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        border: 2px solid var(--ig-border);
+        border: 2px solid var(--od-border);
         box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
     }
 
-    .ig-story-preview-img {
+    .od-story-preview-img {
         position: absolute;
         inset: 0;
     }
 
-    .ig-story-preview-img img {
+    .od-story-preview-img img {
         width: 100%;
         height: 100%;
         object-fit: cover;
     }
 
-    .ig-story-canvas-text {
+    .od-story-canvas-text {
         position: absolute;
         width: 90%;
         text-align: center;
@@ -2469,13 +2859,13 @@
         cursor: move;
     }
 
-    .ig-story-canvas-text:empty:before {
+    .od-story-canvas-text:empty:before {
         content: attr(data-placeholder);
         color: rgba(255, 255, 255, 0.5);
         pointer-events: none;
     }
 
-    .ig-story-controls-panel {
+    .od-story-controls-panel {
         flex: 1;
         display: flex;
         flex-direction: column;
@@ -2484,61 +2874,61 @@
         -webkit-overflow-scrolling: touch;
     }
 
-    .ig-story-preset-colors {
+    .od-story-preset-colors {
         display: flex;
         flex-direction: column;
         gap: 12px;
         pointer-events: auto;
     }
 
-    .ig-story-preset-grid {
+    .od-story-preset-grid {
         display: flex;
         gap: 10px;
         flex-wrap: wrap;
         pointer-events: auto;
     }
 
-    .ig-story-panel-title {
+    .od-story-panel-title {
         display: flex;
         align-items: center;
         gap: 10px;
         font-size: 16px;
         font-weight: 600;
-        color: var(--ig-text-primary);
+        color: var(--od-text-primary);
         margin-bottom: 8px;
     }
 
-    .ig-story-panel-title i {
+    .od-story-panel-title i {
         width: 20px;
         height: 20px;
         color: var(--color-primary);
     }
 
-    .ig-story-control-group {
+    .od-story-control-group {
         display: flex;
         flex-direction: column;
         gap: 16px;
     }
 
-    .ig-story-control-item {
+    .od-story-control-item {
         display: flex;
         align-items: center;
         gap: 16px;
         padding: 16px;
-        background: var(--ig-bg);
+        background: var(--od-bg);
         border-radius: 16px;
         cursor: pointer;
         transition: all 0.2s;
-        border: 1px solid var(--ig-border);
+        border: 1px solid var(--od-border);
     }
 
-    .ig-story-control-item:hover {
-        background: var(--ig-surface-hover);
+    .od-story-control-item:hover {
+        background: var(--od-surface-hover);
         border-color: var(--color-primary);
         transform: translateY(-2px);
     }
 
-    .ig-story-control-icon {
+    .od-story-control-icon {
         width: 48px;
         height: 48px;
         border-radius: 14px;
@@ -2548,46 +2938,46 @@
         flex-shrink: 0;
     }
 
-    .ig-story-control-icon.photo {
+    .od-story-control-icon.photo {
         background: linear-gradient(135deg, #667eea, #764ba2);
     }
 
-    .ig-story-control-icon i {
+    .od-story-control-icon i {
         width: 24px;
         height: 24px;
         color: white;
     }
 
-    .ig-story-control-info {
+    .od-story-control-info {
         display: flex;
         flex-direction: column;
         gap: 2px;
     }
 
-    .ig-story-control-label {
+    .od-story-control-label {
         font-weight: 600;
         font-size: 15px;
-        color: var(--ig-text-primary);
+        color: var(--od-text-primary);
     }
 
-    .ig-story-control-desc {
+    .od-story-control-desc {
         font-size: 13px;
-        color: var(--ig-text-secondary);
+        color: var(--od-text-secondary);
     }
 
-    .ig-story-control-divider {
+    .od-story-control-divider {
         height: 1px;
-        background: var(--ig-border);
+        background: var(--od-border);
         margin: 4px 0;
     }
 
-    .ig-story-preset-label {
+    .od-story-preset-label {
         font-size: 13px;
         font-weight: 500;
-        color: var(--ig-text-secondary);
+        color: var(--od-text-secondary);
     }
 
-    .ig-story-preset {
+    .od-story-preset {
         width: 44px;
         height: 44px;
         border-radius: 12px;
@@ -2601,20 +2991,20 @@
         outline: none;
     }
 
-    .ig-story-preset:hover {
+    .od-story-preset:hover {
         transform: scale(1.1);
         border-color: white;
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
     }
 
-    .ig-story-preset.active {
+    .od-story-preset.active {
         border-color: var(--color-primary);
         transform: scale(1.05);
         box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.3);
     }
 
     /* Draggable Text */
-    .ig-story-text-draggable {
+    .od-story-text-draggable {
         position: absolute;
         cursor: move;
         padding: 12px 16px;
@@ -2624,61 +3014,61 @@
         max-width: 90%;
     }
 
-    .ig-story-text-draggable:focus {
+    .od-story-text-draggable:focus {
         cursor: text;
         background: rgba(0, 0, 0, 0.2);
         outline: 2px dashed rgba(255, 255, 255, 0.5);
     }
 
-    .ig-story-text-draggable.dragging {
+    .od-story-text-draggable.dragging {
         cursor: grabbing;
         background: rgba(0, 0, 0, 0.3);
         outline: 2px solid rgba(255, 255, 255, 0.8);
     }
 
     /* Image Controls */
-    .ig-story-image-controls {
+    .od-story-image-controls {
         display: flex;
         flex-direction: column;
         gap: 14px;
         padding: 16px;
-        background: var(--ig-bg);
+        background: var(--od-bg);
         border-radius: 14px;
-        border: 1px solid var(--ig-border);
+        border: 1px solid var(--od-border);
     }
 
-    .ig-story-slider-control {
+    .od-story-slider-control {
         display: flex;
         align-items: center;
         gap: 12px;
     }
 
-    .ig-story-slider-control label {
+    .od-story-slider-control label {
         display: flex;
         align-items: center;
         gap: 6px;
         font-size: 13px;
         font-weight: 500;
-        color: var(--ig-text-primary);
+        color: var(--od-text-primary);
         min-width: 70px;
     }
 
-    .ig-story-slider-control label i {
+    .od-story-slider-control label i {
         width: 16px;
         height: 16px;
     }
 
-    .ig-story-slider-control input[type="range"] {
+    .od-story-slider-control input[type="range"] {
         flex: 1;
         height: 6px;
         -webkit-appearance: none;
         appearance: none;
-        background: var(--ig-border);
+        background: var(--od-border);
         border-radius: 3px;
         outline: none;
     }
 
-    .ig-story-slider-control input[type="range"]::-webkit-slider-thumb {
+    .od-story-slider-control input[type="range"]::-webkit-slider-thumb {
         -webkit-appearance: none;
         appearance: none;
         width: 18px;
@@ -2690,14 +3080,14 @@
         box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
     }
 
-    .ig-story-slider-control span {
+    .od-story-slider-control span {
         font-size: 12px;
-        color: var(--ig-text-secondary);
+        color: var(--od-text-secondary);
         min-width: 45px;
         text-align: right;
     }
 
-    .ig-story-remove-img {
+    .od-story-remove-img {
         display: flex;
         align-items: center;
         justify-content: center;
@@ -2713,111 +3103,111 @@
         transition: all 0.2s;
     }
 
-    .ig-story-remove-img:hover {
+    .od-story-remove-img:hover {
         background: rgba(239, 68, 68, 0.2);
     }
 
-    .ig-story-remove-img i {
+    .od-story-remove-img i {
         width: 16px;
         height: 16px;
     }
 
     /* Text Position Controls */
-    .ig-story-text-position {
+    .od-story-text-position {
         display: flex;
         flex-direction: column;
         gap: 10px;
     }
 
-    .ig-story-position-btns {
+    .od-story-position-btns {
         display: flex;
         gap: 8px;
     }
 
-    .ig-story-pos-btn {
+    .od-story-pos-btn {
         flex: 1;
         display: flex;
         align-items: center;
         justify-content: center;
         padding: 12px;
-        background: var(--ig-bg);
-        border: 1px solid var(--ig-border);
+        background: var(--od-bg);
+        border: 1px solid var(--od-border);
         border-radius: 10px;
         cursor: pointer;
         transition: all 0.2s;
-        color: var(--ig-text-primary);
+        color: var(--od-text-primary);
     }
 
-    .ig-story-pos-btn:hover {
-        background: var(--ig-surface-hover);
+    .od-story-pos-btn:hover {
+        background: var(--od-surface-hover);
         border-color: var(--color-primary);
     }
 
-    .ig-story-pos-btn.active {
+    .od-story-pos-btn.active {
         background: var(--odnix-gradient);
         color: white;
         border-color: transparent;
     }
 
-    .ig-story-pos-btn i {
+    .od-story-pos-btn i {
         width: 20px;
         height: 20px;
     }
 
     /* Color Row */
-    .ig-story-color-row {
+    .od-story-color-row {
         display: flex;
         gap: 12px;
     }
 
-    .ig-story-color-label {
+    .od-story-color-label {
         display: flex;
         align-items: center;
         gap: 12px;
         padding: 14px 16px;
-        background: var(--ig-bg);
+        background: var(--od-bg);
         border-radius: 12px;
         cursor: pointer;
         transition: all 0.2s;
-        border: 1px solid var(--ig-border);
+        border: 1px solid var(--od-border);
         flex: 1;
     }
 
-    .ig-story-color-label:hover {
+    .od-story-color-label:hover {
         border-color: var(--color-primary);
     }
 
-    .ig-story-color-label span {
+    .od-story-color-label span {
         flex: 1;
         font-size: 14px;
         font-weight: 500;
-        color: var(--ig-text-primary);
+        color: var(--od-text-primary);
     }
 
-    .ig-story-color-label input[type="color"] {
+    .od-story-color-label input[type="color"] {
         width: 0;
         height: 0;
         opacity: 0;
         position: absolute;
     }
 
-    .ig-story-color-preview {
+    .od-story-color-preview {
         width: 28px;
         height: 28px;
         border-radius: 50%;
-        border: 2px solid var(--ig-border);
+        border: 2px solid var(--od-border);
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
     }
 
     @media (max-width: 768px) {
-        .ig-story-create-wrapper {
+        .od-story-create-wrapper {
             max-width: 100%;
             max-height: 100vh;
             border-radius: 0;
             height: 100vh;
         }
 
-        .ig-story-create-body {
+        .od-story-create-body {
             flex-direction: column;
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
@@ -2825,33 +3215,33 @@
             padding-bottom: 100px;
         }
 
-        .ig-story-canvas-wrapper {
+        .od-story-canvas-wrapper {
             padding: 10px;
             flex-shrink: 0;
         }
 
-        .ig-story-canvas {
+        .od-story-canvas {
             width: 200px;
             border-radius: 12px;
         }
 
-        .ig-story-canvas-text {
+        .od-story-canvas-text {
             font-size: 14px;
         }
 
-        .ig-story-controls-panel {
+        .od-story-controls-panel {
             padding: 0 16px 20px;
             flex-shrink: 0;
             overflow: visible;
         }
 
-        .ig-story-preset-grid {
+        .od-story-preset-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 12px;
         }
 
-        .ig-story-preset {
+        .od-story-preset {
             width: 100%;
             aspect-ratio: 1;
             height: auto;
@@ -2859,15 +3249,15 @@
             cursor: pointer;
         }
 
-        .ig-story-control-item {
+        .od-story-control-item {
             padding: 12px;
         }
 
-        .ig-story-text-position .ig-story-position-btns {
+        .od-story-text-position .od-story-position-btns {
             gap: 8px;
         }
 
-        .ig-story-pos-btn {
+        .od-story-pos-btn {
             padding: 10px;
             min-width: 44px;
             min-height: 44px;
@@ -2876,120 +3266,120 @@
 </style>
 
 <!-- Post Detail Modal -->
-<div id="postDetailModal" class="ig-modal-overlay" style="display: none;" onclick="closePostDetail(event)">
-    <button class="ig-detail-close-btn" onclick="closePostDetail()">
+<div id="postDetailModal" class="od-modal-overlay" style="display: none;" onclick="closePostDetail(event)">
+    <button class="od-detail-close-btn" onclick="closePostDetail()">
         <i data-lucide="x"></i>
     </button>
-    <div class="ig-post-detail-wrapper" onclick="event.stopPropagation()">
-        <div class="ig-post-detail-media" id="postDetailMedia"></div>
-        <div class="ig-post-detail-sidebar">
-            <header class="ig-detail-header" id="postDetailHeader"></header>
-            <div class="ig-detail-comments" id="postDetailComments">
-                <div class="ig-detail-caption" id="postDetailCaption"></div>
+    <div class="od-post-detail-wrapper" onclick="event.stopPropagation()">
+        <div class="od-post-detail-media" id="postDetailMedia"></div>
+        <div class="od-post-detail-sidebar">
+            <header class="od-detail-header" id="postDetailHeader"></header>
+            <div class="od-detail-comments" id="postDetailComments">
+                <div class="od-detail-caption" id="postDetailCaption"></div>
             </div>
-            <div class="ig-detail-actions" id="postDetailActions"></div>
-            <div class="ig-detail-info" id="postDetailInfo"></div>
-            <div class="ig-detail-comment-form">
-                <button class="ig-emoji-btn"><i data-lucide="smile"></i></button>
+            <div class="od-detail-actions" id="postDetailActions"></div>
+            <div class="od-detail-info" id="postDetailInfo"></div>
+            <div class="od-detail-comment-form">
+                <button class="od-emoji-btn"><i data-lucide="smile"></i></button>
                 <input type="text" id="postDetailCommentInput" placeholder="Add a comment..."
-                    class="ig-detail-comment-input">
-                <button class="ig-post-comment-btn" id="postCommentBtn" onclick="postCommentFromDetail()">Post</button>
+                    class="od-detail-comment-input">
+                <button class="od-post-comment-btn" id="postCommentBtn" onclick="postCommentFromDetail()">Post</button>
             </div>
         </div>
     </div>
 </div>
 
 <!-- Followers Modal -->
-<div id="followersModal" class="ig-modal-overlay" style="display: none;" onclick="closeFollowersModal(event)">
-    <div class="ig-modal" onclick="event.stopPropagation()">
-        <header class="ig-modal-header">
-            <h2 class="ig-modal-title">Followers</h2>
-            <button class="ig-modal-close" onclick="closeFollowersModal()">
+<div id="followersModal" class="od-modal-overlay" style="display: none;" onclick="closeFollowersModal(event)">
+    <div class="od-modal" onclick="event.stopPropagation()">
+        <header class="od-modal-header">
+            <h2 class="od-modal-title">Followers</h2>
+            <button class="od-modal-close" onclick="closeFollowersModal()">
                 <i data-lucide="x"></i>
             </button>
         </header>
-        <div class="ig-modal-body" id="followersList">
-            <div class="ig-loading">
-                <div class="ig-spinner"></div>
+        <div class="od-modal-body" id="followersList">
+            <div class="od-loading">
+                <div class="od-spinner"></div>
             </div>
         </div>
     </div>
 </div>
 
 <!-- Following Modal -->
-<div id="followingModal" class="ig-modal-overlay" style="display: none;" onclick="closeFollowingModal(event)">
-    <div class="ig-modal" onclick="event.stopPropagation()">
-        <header class="ig-modal-header">
-            <h2 class="ig-modal-title">Following</h2>
-            <button class="ig-modal-close" onclick="closeFollowingModal()">
+<div id="followingModal" class="od-modal-overlay" style="display: none;" onclick="closeFollowingModal(event)">
+    <div class="od-modal" onclick="event.stopPropagation()">
+        <header class="od-modal-header">
+            <h2 class="od-modal-title">Following</h2>
+            <button class="od-modal-close" onclick="closeFollowingModal()">
                 <i data-lucide="x"></i>
             </button>
         </header>
-        <div class="ig-modal-body" id="followingList">
-            <div class="ig-loading">
-                <div class="ig-spinner"></div>
+        <div class="od-modal-body" id="followingList">
+            <div class="od-loading">
+                <div class="od-spinner"></div>
             </div>
         </div>
     </div>
 </div>
 
 <!-- Follow Requests Modal -->
-<div id="followRequestsModal" class="ig-modal-overlay" style="display: none;" onclick="closeFollowRequestsModal(event)">
-    <div class="ig-modal" onclick="event.stopPropagation()" style="max-width: 400px;">
-        <header class="ig-modal-header">
-            <h2 class="ig-modal-title">Follow Requests</h2>
-            <button class="ig-modal-close" onclick="closeFollowRequestsModal()">
+<div id="followRequestsModal" class="od-modal-overlay" style="display: none;" onclick="closeFollowRequestsModal(event)">
+    <div class="od-modal" onclick="event.stopPropagation()" style="max-width: 400px;">
+        <header class="od-modal-header">
+            <h2 class="od-modal-title">Follow Requests</h2>
+            <button class="od-modal-close" onclick="closeFollowRequestsModal()">
                 <i data-lucide="x"></i>
             </button>
         </header>
-        <div class="ig-modal-body" id="followRequestsList" style="padding: 0; max-height: 60vh; overflow-y: auto;">
-            <div class="ig-loading">
-                <div class="ig-spinner"></div>
+        <div class="od-modal-body" id="followRequestsList" style="padding: 0; max-height: 60vh; overflow-y: auto;">
+            <div class="od-loading">
+                <div class="od-spinner"></div>
             </div>
         </div>
     </div>
 </div>
 
 <!-- Settings Modal -->
-<div id="settingsModal" class="ig-modal-overlay" style="display: none;" onclick="closeSettingsModal(event)">
-    <div class="ig-modal" onclick="event.stopPropagation()" style="max-width: 400px;">
-        <header class="ig-modal-header">
-            <h2 class="ig-modal-title">Settings</h2>
-            <button class="ig-modal-close" onclick="closeSettingsModal()">
+<div id="settingsModal" class="od-modal-overlay" style="display: none;" onclick="closeSettingsModal(event)">
+    <div class="od-modal" onclick="event.stopPropagation()" style="max-width: 400px;">
+        <header class="od-modal-header">
+            <h2 class="od-modal-title">Settings</h2>
+            <button class="od-modal-close" onclick="closeSettingsModal()">
                 <i data-lucide="x"></i>
             </button>
         </header>
-        <div class="ig-settings-list">
-            <a href="{% url 'update_profile' %}" class="ig-settings-item">
+        <div class="od-settings-list">
+            <a href="{% url 'update_profile' %}" class="od-settings-item">
                 <i data-lucide="user"></i>
                 <span>Edit Profile</span>
             </a>
 
             <!-- Theme Section -->
-            <div class="ig-settings-section">
-                <h3 class="ig-settings-section-title">Appearance</h3>
-                <a href="{% url 'update_profile' %}#theme-section" class="ig-settings-item">
+            <div class="od-settings-section">
+                <h3 class="od-settings-section-title">Appearance</h3>
+                <a href="{% url 'update_profile' %}#theme-section" class="od-settings-item">
                     <i data-lucide="palette"></i>
                     <span>Customize Theme</span>
-                    <span class="ig-settings-value">{{ user.theme|default:"light"|title }}</span>
+                    <span class="od-settings-value">{{ user.theme|default:"light"|title }}</span>
                     <i data-lucide="chevron-right" style="width: 16px; height: 16px; opacity: 0.5;"></i>
                 </a>
             </div>
 
             <!-- Privacy Section -->
-            <div class="ig-settings-section">
-                <h3 class="ig-settings-section-title">Privacy</h3>
-                <button class="ig-settings-item" onclick="togglePrivacy()">
+            <div class="od-settings-section">
+                <h3 class="od-settings-section-title">Privacy</h3>
+                <button class="od-settings-item" onclick="togglePrivacy()">
                     <i data-lucide="lock"></i>
                     <span>Private Account</span>
-                    <div class="ig-toggle {% if current_user.is_private %}active{% endif %}" id="privacyToggle"></div>
+                    <div class="od-toggle {% if current_user.is_private %}active{% endif %}" id="privacyToggle"></div>
                 </button>
             </div>
 
             <!-- Account Section -->
-            <div class="ig-settings-section">
-                <h3 class="ig-settings-section-title">Account</h3>
-                <a href="{% url 'logout' %}" class="ig-settings-item danger">
+            <div class="od-settings-section">
+                <h3 class="od-settings-section-title">Account</h3>
+                <a href="{% url 'logout' %}" class="od-settings-item danger">
                     <i data-lucide="log-out"></i>
                     <span>Log Out</span>
                 </a>
@@ -2999,22 +3389,22 @@
 </div>
 
 <!-- Search Modal -->
-<div id="searchModal" class="ig-modal-overlay" style="display: none;" onclick="closeSearchModal(event)">
-    <div class="ig-modal" style="max-width: 500px; height: 80vh; max-height: 600px;" onclick="event.stopPropagation()">
-        <header class="ig-modal-header" style="flex-direction: column; gap: 12px; align-items: stretch;">
+<div id="searchModal" class="od-modal-overlay" style="display: none;" onclick="closeSearchModal(event)">
+    <div class="od-modal" style="max-width: 500px; height: 80vh; max-height: 600px;" onclick="event.stopPropagation()">
+        <header class="od-modal-header" style="flex-direction: column; gap: 12px; align-items: stretch;">
             <div style="display: flex; align-items: center; justify-content: space-between;">
-                <h2 class="ig-modal-title">Search</h2>
-                <button class="ig-modal-close" onclick="closeSearchModal()">
+                <h2 class="od-modal-title">Search</h2>
+                <button class="od-modal-close" onclick="closeSearchModal()">
                     <i data-lucide="x"></i>
                 </button>
             </div>
-            <div class="ig-search-bar" style="width: 100%; display: flex;">
+            <div class="od-search-bar" style="width: 100%; display: flex;">
                 <i data-lucide="search" class="search-icon"></i>
                 <input type="text" placeholder="Search users..." id="mobileSearchInput"
                     onkeyup="handleMobileSearch(event)" style="width: 100%;">
             </div>
         </header>
-        <div class="ig-modal-body" style="padding: 0; overflow-y: auto;">
+        <div class="od-modal-body" style="padding: 0; overflow-y: auto;">
             <div id="searchResults">
                 <div style="text-align: center; padding: 40px 20px; color: var(--color-text-secondary);">
                     <i data-lucide="search" style="width: 40px; height: 40px; margin-bottom: 12px;"></i>
@@ -3026,21 +3416,21 @@
 </div>
 
 <!-- Create Post Modal -->
-<div id="createPostModal" class="ig-modal-overlay" style="display: none;" onclick="closeCreatePostModal(event)">
-    <div class="ig-create-modal" onclick="event.stopPropagation()">
-        <header class="ig-create-header">
-            <button class="ig-create-back" onclick="closeCreatePostModal()">
+<div id="createPostModal" class="od-modal-overlay" style="display: none;" onclick="closeCreatePostModal(event)">
+    <div class="od-create-modal" onclick="event.stopPropagation()">
+        <header class="od-create-header">
+            <button class="od-create-back" onclick="closeCreatePostModal()">
                 <i data-lucide="x"></i>
             </button>
-            <h2 class="ig-create-title">Create new scribe</h2>
-            <button class="ig-create-next" onclick="submitPost()" id="sharePostBtn">Share</button>
+            <h2 class="od-create-title">Create new scribe</h2>
+            <button class="od-create-next" onclick="submitPost()" id="sharePostBtn">Share</button>
         </header>
-        <div class="ig-create-body">
-            <div class="ig-create-media" id="createMediaArea">
-                <div class="ig-create-dropzone" id="createDropzone">
+        <div class="od-create-body">
+            <div class="od-create-media" id="createMediaArea">
+                <div class="od-create-dropzone" id="createDropzone">
                     <i data-lucide="image"></i>
                     <h3>Drag photos here</h3>
-                    <label class="ig-create-select-btn">
+                    <label class="od-create-select-btn">
                         Select from computer
                         <input type="file" accept="image/*" id="postImageInput" style="display: none;"
                             onchange="handlePostImageSelect(event)">
@@ -3051,13 +3441,13 @@
                         style="max-width: 100%; max-height: 400px; object-fit: contain;">
                 </div>
             </div>
-            <div class="ig-create-sidebar" id="createSidebar" style="display: none;">
-                <div class="ig-create-user">
-                    <img src="{{ current_user.profile_picture_url }}" alt="" class="ig-post-avatar"
-                        onerror="this.outerHTML='<div class=\'ig-post-avatar-placeholder\'>{{ current_user.initials }}</div>'">
-                    <span class="ig-post-username">{{ current_user.username }}</span>
+            <div class="od-create-sidebar" id="createSidebar" style="display: none;">
+                <div class="od-create-user">
+                    <img src="{{ current_user.profile_picture_url }}" alt="" class="od-post-avatar"
+                        onerror="this.outerHTML='<div class=\'od-post-avatar-placeholder\'>{{ current_user.initials }}</div>'">
+                    <span class="od-post-username">{{ current_user.username }}</span>
                 </div>
-                <textarea class="ig-create-textarea" id="postCaption" placeholder="Write a caption..."
+                <textarea class="od-create-textarea" id="postCaption" placeholder="Write a caption..."
                     maxlength="280"></textarea>
                 <div style="padding: 0 16px; font-size: 12px; color: var(--color-text-secondary);">
                     <span id="captionCharCount">0</span>/280
@@ -3068,42 +3458,42 @@
 </div>
 
 <!-- Story Viewer Modal -->
-<div id="storyViewerModal" class="ig-story-viewer" onclick="closeStoryViewer(event)">
-    <div class="ig-story-container" onclick="event.stopPropagation()">
-        <div class="ig-story-header">
-            <div class="ig-story-progress" id="storyProgressBars"></div>
-            <div class="ig-story-user">
-                <img src="" alt="" class="ig-story-avatar" id="storyViewerAvatar">
-                <span class="ig-story-username" id="storyViewerUsername"></span>
-                <span class="ig-story-time" id="storyViewerTime"></span>
+<div id="storyViewerModal" class="od-story-viewer" onclick="closeStoryViewer(event)">
+    <div class="od-story-container" onclick="event.stopPropagation()">
+        <div class="od-story-header">
+            <div class="od-story-progress" id="storyProgressBars"></div>
+            <div class="od-story-user">
+                <img src="" alt="" class="od-story-avatar" id="storyViewerAvatar">
+                <span class="od-story-username" id="storyViewerUsername"></span>
+                <span class="od-story-time" id="storyViewerTime"></span>
             </div>
         </div>
-        <button class="ig-story-close" onclick="closeStoryViewer()">
+        <button class="od-story-close" onclick="closeStoryViewer()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M18 6L6 18M6 6l12 12" />
             </svg>
         </button>
-        <div class="ig-story-content" id="storyViewerContent"></div>
-        <button class="ig-story-nav ig-story-prev" onclick="navigateStory(-1)">
+        <div class="od-story-content" id="storyViewerContent"></div>
+        <button class="od-story-nav od-story-prev" onclick="navigateStory(-1)">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M15 18l-6-6 6-6" />
             </svg>
         </button>
-        <button class="ig-story-nav ig-story-next" onclick="navigateStory(1)">
+        <button class="od-story-nav od-story-next" onclick="navigateStory(1)">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M9 18l6-6-6-6" />
             </svg>
         </button>
-        <div class="ig-story-actions">
-            <input type="text" class="ig-story-input" id="storyReplyInput" placeholder="Send message...">
-            <button class="ig-story-action-btn" onclick="toggleStoryLike()">
+        <div class="od-story-actions">
+            <input type="text" class="od-story-input" id="storyReplyInput" placeholder="Send message...">
+            <button class="od-story-action-btn" onclick="toggleStoryLike()">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" id="storyLikeIcon">
                     <path
                         d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z">
                     </path>
                 </svg>
             </button>
-            <button class="ig-story-action-btn" onclick="sendStoryReply()">
+            <button class="od-story-action-btn" onclick="sendStoryReply()">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <line x1="22" y1="2" x2="11" y2="13"></line>
                     <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
@@ -3326,7 +3716,7 @@
         const grid = document.getElementById('gifGrid');
         if (!grid) return;
 
-        grid.innerHTML = '<div class="ig-gif-loading"><div class="ig-gif-spinner"></div><span>Loading GIFs...</span></div>';
+        grid.innerHTML = '<div class="od-gif-loading"><div class="od-gif-spinner"></div><span>Loading GIFs...</span></div>';
 
         fetch(`https://api.giphy.com/v1/gifs/trending?api_key=${GIPHY_API_KEY}&limit=20&rating=g`)
             .then(response => response.json())
@@ -3334,7 +3724,7 @@
                 displayGifs(data.data);
             })
             .catch(err => {
-                grid.innerHTML = '<div class="ig-gif-loading"><span>Failed to load GIFs</span></div>';
+                grid.innerHTML = '<div class="od-gif-loading"><span>Failed to load GIFs</span></div>';
             });
     }
 
@@ -3349,7 +3739,7 @@
         }
 
         gifSearchTimeout = setTimeout(() => {
-            grid.innerHTML = '<div class="ig-gif-loading"><div class="ig-gif-spinner"></div><span>Searching...</span></div>';
+            grid.innerHTML = '<div class="od-gif-loading"><div class="od-gif-spinner"></div><span>Searching...</span></div>';
 
             fetch(`https://api.giphy.com/v1/gifs/search?api_key=${GIPHY_API_KEY}&q=${encodeURIComponent(query)}&limit=20&rating=g`)
                 .then(response => response.json())
@@ -3357,7 +3747,7 @@
                     displayGifs(data.data);
                 })
                 .catch(err => {
-                    grid.innerHTML = '<div class="ig-gif-loading"><span>Search failed</span></div>';
+                    grid.innerHTML = '<div class="od-gif-loading"><span>Search failed</span></div>';
                 });
         }, 300);
     }
@@ -3365,12 +3755,12 @@
     function displayGifs(gifs) {
         const grid = document.getElementById('gifGrid');
         if (!gifs || gifs.length === 0) {
-            grid.innerHTML = '<div class="ig-gif-loading"><span>No GIFs found</span></div>';
+            grid.innerHTML = '<div class="od-gif-loading"><span>No GIFs found</span></div>';
             return;
         }
 
         grid.innerHTML = gifs.map(gif => `
-        <div class="ig-gif-item" onclick="selectGif('${gif.images.original.url}')">
+        <div class="od-gif-item" onclick="selectGif('${gif.images.original.url}')">
             <img src="${gif.images.fixed_height_small.url}" alt="${gif.title}" loading="lazy">
         </div>
     `).join('');
@@ -3471,7 +3861,7 @@
         document.getElementById('storyModal').style.display = 'flex';
 
         // Hide bottom nav on mobile
-        const bottomNav = document.querySelector('.ig-bottom-nav');
+        const bottomNav = document.querySelector('.od-bottom-nav');
         if (bottomNav) bottomNav.style.display = 'none';
 
         // Reset the form
@@ -3492,12 +3882,12 @@
         if (imgControls) imgControls.style.display = 'none';
 
         // Reset position buttons
-        document.querySelectorAll('.ig-story-pos-btn').forEach(btn => btn.classList.remove('active'));
-        document.querySelectorAll('.ig-story-pos-btn')[1]?.classList.add('active');
+        document.querySelectorAll('.od-story-pos-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.od-story-pos-btn')[1]?.classList.add('active');
 
         // Reset gradient presets
-        document.querySelectorAll('.ig-story-preset').forEach(p => p.classList.remove('active'));
-        document.querySelector('.ig-story-preset')?.classList.add('active');
+        document.querySelectorAll('.od-story-preset').forEach(p => p.classList.remove('active'));
+        document.querySelector('.od-story-preset')?.classList.add('active');
 
         storyTextPosition = 'center';
 
@@ -3514,7 +3904,7 @@
             document.getElementById('storyModal').style.display = 'none';
 
             // Show bottom nav again on mobile
-            const bottomNav = document.querySelector('.ig-bottom-nav');
+            const bottomNav = document.querySelector('.od-bottom-nav');
             if (bottomNav && window.innerWidth <= 768) {
                 bottomNav.style.display = 'flex';
             }
@@ -3555,8 +3945,8 @@
         if (!textEl) return;
 
         // Update active button
-        document.querySelectorAll('.ig-story-pos-btn').forEach(btn => btn.classList.remove('active'));
-        event.target.closest('.ig-story-pos-btn')?.classList.add('active');
+        document.querySelectorAll('.od-story-pos-btn').forEach(btn => btn.classList.remove('active'));
+        event.target.closest('.od-story-pos-btn')?.classList.add('active');
 
         // Reset custom position
         textEl.style.left = '50%';
@@ -3579,7 +3969,7 @@
 
     function enableTextDrag() {
         storyTextPosition = 'custom';
-        document.querySelectorAll('.ig-story-pos-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.od-story-pos-btn').forEach(btn => btn.classList.remove('active'));
         document.getElementById('customPosBtn')?.classList.add('active');
         showIGToast('Drag text to any position', 'info');
     }
@@ -3641,7 +4031,7 @@
         textEl.style.transform = 'translate(-50%, -50%)';
 
         storyTextPosition = 'custom';
-        document.querySelectorAll('.ig-story-pos-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.od-story-pos-btn').forEach(btn => btn.classList.remove('active'));
         document.getElementById('customPosBtn')?.classList.add('active');
     }
 
@@ -3661,7 +4051,7 @@
         if (preview) {
             preview.style.background = `linear-gradient(135deg, ${color1} 0%, ${color2} 100%)`;
         }
-        document.querySelectorAll('.ig-story-preset').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.od-story-preset').forEach(p => p.classList.remove('active'));
         if (btn) btn.classList.add('active');
     }
 
@@ -3670,7 +4060,7 @@
         if (preview) {
             preview.style.background = color;
         }
-        document.querySelectorAll('.ig-story-preset').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.od-story-preset').forEach(p => p.classList.remove('active'));
         if (btn) btn.classList.add('active');
     }
 
@@ -3735,11 +4125,11 @@
 
                             if (!hasMsgBtn) {
                                 const msgBtn = document.createElement('button');
-                                msgBtn.className = 'ig-profile-btn secondary';
-                                // Adjust class for mobile if needed, but 'ig-profile-btn secondary' might be desktop specific?
-                                // Mobile uses 'ig-m-btn'. We need to check context.
-                                if (btn.classList.contains('ig-m-btn')) {
-                                    msgBtn.className = 'ig-m-btn';
+                                msgBtn.className = 'od-profile-btn secondary';
+                                // Adjust class for mobile if needed, but 'od-profile-btn secondary' might be desktop specific?
+                                // Mobile uses 'od-m-btn'. We need to check context.
+                                if (btn.classList.contains('od-m-btn')) {
+                                    msgBtn.className = 'od-m-btn';
                                 }
 
                                 msgBtn.textContent = 'Message';
@@ -3772,7 +4162,7 @@
                             btn.textContent = isPrivate ? 'Request' : 'Follow';
                             btn.classList.add('primary');
                             // Ensure background color for mobile 'Follow' button
-                            if (btn.classList.contains('ig-m-btn')) {
+                            if (btn.classList.contains('od-m-btn')) {
                                 btn.style.background = '#0095f6';
                             }
 
@@ -3829,28 +4219,28 @@
 
     function loadFollowRequests() {
         const listContainer = document.getElementById('followRequestsList');
-        listContainer.innerHTML = '<div class="ig-loading"><div class="ig-spinner"></div></div>';
+        listContainer.innerHTML = '<div class="od-loading"><div class="od-spinner"></div></div>';
 
         fetch('{% url "get_follow_requests" %}')
             .then(response => response.json())
             .then(data => {
                 if (data.success && data.requests.length > 0) {
                     listContainer.innerHTML = data.requests.map(req => `
-                <div class="ig-follow-request-item" id="request-${req.username}">
+                <div class="od-follow-request-item" id="request-${req.username}">
                     ${req.profile_pic
-                            ? `<img src="${req.profile_pic}" alt="${req.username}" class="ig-follow-request-avatar">`
-                            : `<div class="ig-follow-request-avatar-placeholder">${req.full_name.charAt(0).toUpperCase()}</div>`
+                            ? `<img src="${req.profile_pic}" alt="${req.username}" class="od-follow-request-avatar">`
+                            : `<div class="od-follow-request-avatar-placeholder">${req.full_name.charAt(0).toUpperCase()}</div>`
                         }
-                    <div class="ig-follow-request-info">
-                        <div class="ig-follow-request-name">${req.full_name}</div>
-                        <div class="ig-follow-request-username">@${req.username}</div>
-                        <div class="ig-follow-request-time">${req.requested_at}</div>
+                    <div class="od-follow-request-info">
+                        <div class="od-follow-request-name">${req.full_name}</div>
+                        <div class="od-follow-request-username">@${req.username}</div>
+                        <div class="od-follow-request-time">${req.requested_at}</div>
                     </div>
-                    <div class="ig-follow-request-actions">
-                        <button class="ig-follow-request-btn accept" onclick="handleFollowRequest('${req.username}', 'accept')">
+                    <div class="od-follow-request-actions">
+                        <button class="od-follow-request-btn accept" onclick="handleFollowRequest('${req.username}', 'accept')">
                             Confirm
                         </button>
-                        <button class="ig-follow-request-btn decline" onclick="handleFollowRequest('${req.username}', 'decline')">
+                        <button class="od-follow-request-btn decline" onclick="handleFollowRequest('${req.username}', 'decline')">
                             Delete
                         </button>
                     </div>
@@ -3858,7 +4248,7 @@
             `).join('');
                 } else {
                     listContainer.innerHTML = `
-                <div class="ig-no-requests">
+                <div class="od-no-requests">
                     <i data-lucide="user-check"></i>
                     <h3>No Follow Requests</h3>
                     <p>When someone requests to follow you, you'll see it here.</p>
@@ -3870,7 +4260,7 @@
             .catch(err => {
                 console.error('Error loading follow requests:', err);
                 listContainer.innerHTML = `
-            <div class="ig-no-requests">
+            <div class="od-no-requests">
                 <i data-lucide="alert-circle"></i>
                 <h3>Error</h3>
                 <p>Could not load follow requests. Try again later.</p>
@@ -3885,7 +4275,7 @@
         if (!requestItem) return;
 
         // Show loading state
-        const buttons = requestItem.querySelectorAll('.ig-follow-request-btn');
+        const buttons = requestItem.querySelectorAll('.od-follow-request-btn');
         buttons.forEach(btn => {
             btn.disabled = true;
             btn.style.opacity = '0.5';
@@ -3912,9 +4302,9 @@
 
                         // Check if list is now empty
                         const listContainer = document.getElementById('followRequestsList');
-                        if (!listContainer.querySelector('.ig-follow-request-item')) {
+                        if (!listContainer.querySelector('.od-follow-request-item')) {
                             listContainer.innerHTML = `
-                        <div class="ig-no-requests">
+                        <div class="od-no-requests">
                             <i data-lucide="user-check"></i>
                             <h3>No Follow Requests</h3>
                             <p>When someone requests to follow you, you'll see it here.</p>
@@ -3962,7 +4352,7 @@
             .then(data => {
                 if (data.success) {
                     const count = data.requests.length;
-                    const badge = document.querySelector('.ig-requests-badge');
+                    const badge = document.querySelector('.od-requests-badge');
                     const badgeBtn = badge?.parentElement;
 
                     if (count === 0 && badgeBtn) {
@@ -4012,7 +4402,7 @@
                         mediaDiv.classList.remove('text-only');
                     } else {
                         mediaDiv.innerHTML = `
-                    <div class="ig-detail-text-post">
+                    <div class="od-detail-text-post">
                         <p>${tweet.content}</p>
                     </div>`;
                         mediaDiv.classList.add('text-only');
@@ -4020,26 +4410,26 @@
 
                     // Header
                     document.getElementById('postDetailHeader').innerHTML = `
-                <a href="/profile/${tweet.username}/" class="ig-detail-user">
-                    <img src="${tweet.avatar}" alt="${tweet.username}" class="ig-detail-avatar">
-                    <div class="ig-detail-user-info">
-                        <span class="ig-detail-username">${tweet.username}</span>
-                        <span class="ig-detail-location">Original Post</span>
+                <a href="/profile/${tweet.username}/" class="od-detail-user">
+                    <img src="${tweet.avatar}" alt="${tweet.username}" class="od-detail-avatar">
+                    <div class="od-detail-user-info">
+                        <span class="od-detail-username">${tweet.username}</span>
+                        <span class="od-detail-location">Original Post</span>
                     </div>
                 </a>
-                <button class="ig-detail-more-btn">
+                <button class="od-detail-more-btn">
                     <i data-lucide="more-horizontal"></i>
                 </button>
             `;
 
                     // Caption in comments section
                     document.getElementById('postDetailCaption').innerHTML = tweet.content ? `
-                <div class="ig-detail-caption-content">
-                    <img src="${tweet.avatar}" alt="" class="ig-detail-caption-avatar">
-                    <div class="ig-detail-caption-text">
-                        <span class="ig-detail-caption-username">${tweet.username}</span>
-                        <span class="ig-detail-caption-body">${tweet.content}</span>
-                        <span class="ig-detail-caption-time">${tweet.time_ago}</span>
+                <div class="od-detail-caption-content">
+                    <img src="${tweet.avatar}" alt="" class="od-detail-caption-avatar">
+                    <div class="od-detail-caption-text">
+                        <span class="od-detail-caption-username">${tweet.username}</span>
+                        <span class="od-detail-caption-body">${tweet.content}</span>
+                        <span class="od-detail-caption-time">${tweet.time_ago}</span>
                     </div>
                 </div>
             ` : '';
@@ -4049,19 +4439,19 @@
 
                     // Actions
                     document.getElementById('postDetailActions').innerHTML = `
-                <div class="ig-detail-actions-row">
-                    <div class="ig-detail-actions-left">
-                        <button class="ig-detail-action-btn ${tweet.is_liked ? 'liked' : ''}" onclick="toggleLikeFromDetail(${tweet.id})" id="detailLikeBtn">
+                <div class="od-detail-actions-row">
+                    <div class="od-detail-actions-left">
+                        <button class="od-detail-action-btn ${tweet.is_liked ? 'liked' : ''}" onclick="toggleLikeFromDetail(${tweet.id})" id="detailLikeBtn">
                             <i data-lucide="${tweet.is_liked ? 'heart' : 'heart'}"></i>
                         </button>
-                        <button class="ig-detail-action-btn" onclick="document.getElementById('postDetailCommentInput').focus()">
+                        <button class="od-detail-action-btn" onclick="document.getElementById('postDetailCommentInput').focus()">
                             <i data-lucide="message-circle"></i>
                         </button>
-                        <button class="ig-detail-action-btn">
+                        <button class="od-detail-action-btn">
                             <i data-lucide="send"></i>
                         </button>
                     </div>
-                    <button class="ig-detail-action-btn">
+                    <button class="od-detail-action-btn">
                         <i data-lucide="bookmark"></i>
                     </button>
                 </div>
@@ -4069,10 +4459,10 @@
 
                     // Info section
                     document.getElementById('postDetailInfo').innerHTML = `
-                <div class="ig-detail-likes" id="detailLikesSection">
-                    <span class="ig-detail-like-count" id="detailLikeCount">${tweet.like_count.toLocaleString()}</span> likes
+                <div class="od-detail-likes" id="detailLikesSection">
+                    <span class="od-detail-like-count" id="detailLikeCount">${tweet.like_count.toLocaleString()}</span> likes
                 </div>
-                <time class="ig-detail-time">${tweet.time_ago}</time>
+                <time class="od-detail-time">${tweet.time_ago}</time>
             `;
 
                     lucide.createIcons();
@@ -4091,25 +4481,25 @@
 
                 if (data.success && data.comments && data.comments.length > 0) {
                     const commentsHtml = data.comments.map(comment => `
-                <div class="ig-detail-comment">
-                    <img src="${comment.avatar}" alt="" class="ig-detail-comment-avatar">
-                    <div class="ig-detail-comment-content">
-                        <span class="ig-detail-comment-username">${comment.username}</span>
-                        <span class="ig-detail-comment-text">${comment.content}</span>
-                        <div class="ig-detail-comment-meta">
-                            <span class="ig-detail-comment-time">${comment.time_ago}</span>
-                            <button class="ig-detail-comment-reply">Reply</button>
+                <div class="od-detail-comment">
+                    <img src="${comment.avatar}" alt="" class="od-detail-comment-avatar">
+                    <div class="od-detail-comment-content">
+                        <span class="od-detail-comment-username">${comment.username}</span>
+                        <span class="od-detail-comment-text">${comment.content}</span>
+                        <div class="od-detail-comment-meta">
+                            <span class="od-detail-comment-time">${comment.time_ago}</span>
+                            <button class="od-detail-comment-reply">Reply</button>
                         </div>
                     </div>
-                    <button class="ig-detail-comment-like">
+                    <button class="od-detail-comment-like">
                         <i data-lucide="heart"></i>
                     </button>
                 </div>
             `).join('');
-                    commentsDiv.innerHTML = `<div class="ig-detail-caption" id="postDetailCaption">${captionDiv}</div>${commentsHtml}`;
+                    commentsDiv.innerHTML = `<div class="od-detail-caption" id="postDetailCaption">${captionDiv}</div>${commentsHtml}`;
                 } else {
-                    commentsDiv.innerHTML = `<div class="ig-detail-caption" id="postDetailCaption">${captionDiv}</div>
-                <div class="ig-detail-no-comments">
+                    commentsDiv.innerHTML = `<div class="od-detail-caption" id="postDetailCaption">${captionDiv}</div>
+                <div class="od-detail-no-comments">
                     <p>No comments yet.</p>
                     <span>Start the conversation.</span>
                 </div>`;
@@ -4174,7 +4564,7 @@
         document.getElementById('followersModal').style.display = 'flex';
         followersPage = 1;
         followersHasMore = true;
-        document.getElementById('followersList').innerHTML = `<div class="ig-loading"><div class="ig-spinner"></div></div>`;
+        document.getElementById('followersList').innerHTML = `<div class="od-loading"><div class="od-spinner"></div></div>`;
         loadFollowers(true);
     }
 
@@ -4200,13 +4590,13 @@
                         const el = document.createElement('a');
                         el.href = `/profile/${f.username}/`;
                         el.style = 'display: flex; align-items: center; gap: 12px; padding: 12px 16px; text-decoration: none; color: inherit;';
-                        el.innerHTML = `<img src="${f.avatar}" alt="" style="width: 44px; height: 44px; border-radius: 22%;"><div style="flex: 1;"><div style="font-weight: 600;">${f.username}</div><div style="color: var(--ig-text-secondary); font-size: 14px;">${f.full_name}</div></div>`;
+                        el.innerHTML = `<img src="${f.avatar}" alt="" style="width: 44px; height: 44px; border-radius: 22%;"><div style="flex: 1;"><div style="font-weight: 600;">${f.username}</div><div style="color: var(--od-text-secondary); font-size: 14px;">${f.full_name}</div></div>`;
                         list.appendChild(el);
                     });
                     followersHasMore = data.has_more;
                     followersPage++;
                 } else if (isFirstLoad) {
-                    list.innerHTML = '<p style="text-align: center; padding: 24px; color: var(--ig-text-secondary);">No followers yet</p>';
+                    list.innerHTML = '<p style="text-align: center; padding: 24px; color: var(--od-text-secondary);">No followers yet</p>';
                 }
             })
             .finally(() => { followersLoading = false; });
@@ -4223,7 +4613,7 @@
         document.getElementById('followingModal').style.display = 'flex';
         followingPage = 1;
         followingHasMore = true;
-        document.getElementById('followingList').innerHTML = `<div class="ig-loading"><div class="ig-spinner"></div></div>`;
+        document.getElementById('followingList').innerHTML = `<div class="od-loading"><div class="od-spinner"></div></div>`;
         loadFollowing(true);
     }
 
@@ -4249,13 +4639,13 @@
                         const el = document.createElement('a');
                         el.href = `/profile/${f.username}/`;
                         el.style = 'display: flex; align-items: center; gap: 12px; padding: 12px 16px; text-decoration: none; color: inherit;';
-                        el.innerHTML = `<img src="${f.avatar}" alt="" style="width: 44px; height: 44px; border-radius: 22%;"><div style="flex: 1;"><div style="font-weight: 600;">${f.username}</div><div style="color: var(--ig-text-secondary); font-size: 14px;">${f.full_name}</div></div>`;
+                        el.innerHTML = `<img src="${f.avatar}" alt="" style="width: 44px; height: 44px; border-radius: 22%;"><div style="flex: 1;"><div style="font-weight: 600;">${f.username}</div><div style="color: var(--od-text-secondary); font-size: 14px;">${f.full_name}</div></div>`;
                         list.appendChild(el);
                     });
                     followingHasMore = data.has_more;
                     followingPage++;
                 } else if (isFirstLoad) {
-                    list.innerHTML = '<p style="text-align: center; padding: 24px; color: var(--ig-text-secondary);">Not following anyone yet</p>';
+                    list.innerHTML = '<p style="text-align: center; padding: 24px; color: var(--od-text-secondary);">Not following anyone yet</p>';
                 }
             })
             .finally(() => { followingLoading = false; });
@@ -4387,14 +4777,14 @@
         document.body.classList.add('story-viewer-open');
 
         // Hide bottom navbar when story viewer is open
-        const bottomNav = document.querySelector('.ig-bottom-nav');
+        const bottomNav = document.querySelector('.od-bottom-nav');
         if (bottomNav) bottomNav.style.display = 'none';
 
         // Create progress bars
         const progressContainer = document.getElementById('storyProgressBars');
         progressContainer.innerHTML = currentStories.map((_, i) => `
-        <div class="ig-story-progress-bar">
-            <div class="ig-story-progress-fill" id="storyProgress${i}"></div>
+        <div class="od-story-progress-bar">
+            <div class="od-story-progress-fill" id="storyProgress${i}"></div>
         </div>
     `).join('');
     }
@@ -4422,7 +4812,7 @@
         } else {
             contentDiv.style.background = story.background_color || '#6366f1';
             contentDiv.innerHTML = `
-            <div class="ig-story-text-content">
+            <div class="od-story-text-content">
                 <p style="color: ${story.text_color || '#ffffff'}">${story.content || ''}</p>
             </div>
         `;
@@ -4511,7 +4901,7 @@
         document.body.classList.remove('story-viewer-open');
 
         // Restore bottom navbar on mobile
-        const bottomNav = document.querySelector('.ig-bottom-nav');
+        const bottomNav = document.querySelector('.od-bottom-nav');
         if (bottomNav && window.innerWidth <= 768) {
             bottomNav.style.display = 'flex';
         }
@@ -4585,37 +4975,58 @@
             });
     }
 
-    // Profile Tab Switching
+    // Profile Tab Switching (Desktop + Mobile)
     document.addEventListener('DOMContentLoaded', () => {
-        const tabs = document.querySelectorAll('.ig-profile-tab');
+        // Desktop tabs
+        const tabs = document.querySelectorAll('.od-profile-tab');
+        // Mobile tabs
+        const mobileTabs = document.querySelectorAll('.od-m-tab');
+        
         const contents = {
             'posts': document.getElementById('postsTab'),
             'omzo': document.getElementById('omzoTab'),
-            'saved': document.getElementById('savedTab')
+            'reels': document.getElementById('omzoTab'), // Mobile "reels" maps to omzo
+            'saved': document.getElementById('savedTab'),
+            'tagged': document.getElementById('savedTab') // Mobile "tagged" maps to saved for now
         };
 
+        function switchTab(target, allTabs) {
+            // Update active tab
+            allTabs.forEach(t => t.classList.remove('active'));
+            
+            // Show content
+            Object.entries(contents).forEach(([key, content]) => {
+                if (content) {
+                    if (key === target || (target === 'reels' && key === 'omzo') || (target === 'tagged' && key === 'saved')) {
+                        content.style.display = 'block';
+                    } else if (key !== 'reels' && key !== 'tagged') {
+                        content.style.display = 'none';
+                    }
+                }
+            });
+        }
+
+        // Desktop tab click handlers
         tabs.forEach(tab => {
             tab.addEventListener('click', () => {
                 const target = tab.dataset.tab;
-
-                // Update active tab
-                tabs.forEach(t => t.classList.remove('active'));
+                switchTab(target, tabs);
                 tab.classList.add('active');
+            });
+        });
 
-                // Show content
-                Object.values(contents).forEach(content => {
-                    if (content) content.style.display = 'none';
-                });
-
-                if (contents[target]) {
-                    contents[target].style.display = 'block';
-                }
+        // Mobile tab click handlers
+        mobileTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const target = tab.dataset.tab;
+                switchTab(target, mobileTabs);
+                tab.classList.add('active');
             });
         });
     });
 
     function initCodeScribePreviews() {
-        const frames = document.querySelectorAll('.ig-code-scribe-view');
+        const frames = document.querySelectorAll('.od-code-scribe-view');
         frames.forEach(frame => {
             let encoded = frame.getAttribute('data-code-bundle') || '';
             let html = encoded ? decodeURIComponent(encoded) : '';
@@ -4642,10 +5053,10 @@
 
     // ===== Profile Feed: Like & Comments (match homepage) =====
     function showIGToast(message, type = 'info') {
-        const container = document.getElementById('ig-toast-container') || document.body;
+        const container = document.getElementById('od-toast-container') || document.body;
         const toast = document.createElement('div');
-        toast.className = 'ig-notification';
-        toast.style.cssText = 'position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: ' + (type === 'error' ? '#ed4956' : type === 'success' ? '#00a884' : 'var(--ig-text-primary)') + '; color: white; padding: 12px 24px; border-radius: 8px; z-index: 9999; box-shadow: 0 4px 12px rgba(0,0,0,0.3); font-size: 14px;';
+        toast.className = 'od-notification';
+        toast.style.cssText = 'position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: ' + (type === 'error' ? '#ed4956' : type === 'success' ? '#00a884' : 'var(--od-text-primary)') + '; color: white; padding: 12px 24px; border-radius: 8px; z-index: 9999; box-shadow: 0 4px 12px rgba(0,0,0,0.3); font-size: 14px;';
         toast.textContent = message;
         container.appendChild(toast);
         setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.3s'; setTimeout(() => toast.remove(), 300); }, 3000);
@@ -4659,11 +5070,15 @@
     }
 
     function toggleLike(tweetId) {
-        const btn = document.querySelector(`.ig-post-action-btn[data-tweet-id="${tweetId}"]`);
+        const btn = document.querySelector(`.od-post-action-btn.like-btn[data-tweet-id="${tweetId}"]`);
         const countEl = document.querySelector(`.like-count[data-tweet-id="${tweetId}"]`);
+        const dislikeBtn = document.querySelector(`.od-post-action-btn.dislike-btn[data-tweet-id="${tweetId}"]`);
 
         const wasLiked = btn && btn.classList.contains('liked');
         if (btn) btn.classList.toggle('liked');
+        // Remove dislike if was disliked
+        if (dislikeBtn) dislikeBtn.classList.remove('disliked');
+        
         if (countEl) {
             const currentCount = parseInt(countEl.textContent) || 0;
             countEl.textContent = wasLiked ? currentCount - 1 : currentCount + 1;
@@ -4688,6 +5103,42 @@
                     countEl.textContent = wasLiked ? currentCount + 1 : currentCount - 1;
                 }
                 showIGToast(err.message || 'Failed to like post', 'error');
+            });
+    }
+
+    function toggleDislike(tweetId) {
+        const btn = document.querySelector(`.od-post-action-btn.dislike-btn[data-tweet-id="${tweetId}"]`);
+        const likeBtn = document.querySelector(`.od-post-action-btn.like-btn[data-tweet-id="${tweetId}"]`);
+        const countEl = document.querySelector(`.like-count[data-tweet-id="${tweetId}"]`);
+
+        const wasDisliked = btn && btn.classList.contains('disliked');
+        if (btn) btn.classList.toggle('disliked');
+        
+        // Remove like if was liked
+        if (likeBtn && likeBtn.classList.contains('liked')) {
+            likeBtn.classList.remove('liked');
+            if (countEl) {
+                const currentCount = parseInt(countEl.textContent) || 0;
+                countEl.textContent = Math.max(0, currentCount - 1);
+            }
+        }
+        
+        if (!wasDisliked && btn) { btn.style.transform = 'scale(1.2)'; setTimeout(() => btn.style.transform = 'scale(1)', 200); }
+
+        fetch('{% url "toggle_dislike" %}', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCSRFToken() },
+            body: JSON.stringify({ tweet_id: tweetId })
+        })
+            .then(r => r.json())
+            .then(data => {
+                if (!data.success) throw new Error(data.error || 'Failed to dislike');
+                if (btn) btn.classList.toggle('disliked', data.is_disliked === true);
+                if (countEl) countEl.textContent = data.like_count;
+            })
+            .catch(err => {
+                if (btn) btn.classList.toggle('disliked');
+                showIGToast(err.message || 'Failed to dislike post', 'error');
             });
     }
 
@@ -4729,17 +5180,17 @@
                 if (!list) return;
                 if (data.comments && data.comments.length) {
                     list.innerHTML = data.comments.map(c => `
-                        <div class="ig-comment" style="display:flex;gap:12px;padding:12px 16px;">
+                        <div class="od-comment" style="display:flex;gap:12px;padding:12px 16px;">
                             <img src="${c.user_profile_picture || ''}" alt="" style="width:32px;height:32px;border-radius:22%;object-fit:cover;" onerror="this.outerHTML='\\
 <div style=\\'width:32px;height:32px;border-radius:22%;background:var(--odnix-gradient);display:flex;align-items:center;justify-content:center;color:white;font-size:12px;font-weight:600;\\'>${c.user_initials || 'U'}<\\/div>'">
                             <div style="flex:1;">
-                                <span style="font-weight:600;font-size:14px;color:var(--ig-text-primary);">${c.user_username || 'User'}</span>
-                                <span style="font-size:14px;margin-left:4px;color:var(--ig-text-primary);">${c.content}</span>
-                                <div style="font-size:12px;color:var(--ig-text-secondary);margin-top:4px;">${c.timestamp || ''}</div>
+                                <span style="font-weight:600;font-size:14px;color:var(--od-text-primary);">${c.user_username || 'User'}</span>
+                                <span style="font-size:14px;margin-left:4px;color:var(--od-text-primary);">${c.content}</span>
+                                <div style="font-size:12px;color:var(--od-text-secondary);margin-top:4px;">${c.timestamp || ''}</div>
                             </div>
                         </div>`).join('');
                 } else {
-                    list.innerHTML = '<p style="text-align:center;color:var(--ig-text-secondary);padding:16px;">No comments yet</p>';
+                    list.innerHTML = '<p style="text-align:center;color:var(--od-text-secondary);padding:16px;">No comments yet</p>';
                 }
             })
             .catch(() => { });

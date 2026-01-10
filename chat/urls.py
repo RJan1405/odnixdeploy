@@ -63,6 +63,7 @@ urlpatterns = [
     # Tweet URLs - Enhanced
     path('api/post-tweet/', views.post_tweet, name='post_tweet'),
     path('api/toggle-like/', views.toggle_like, name='toggle_like'),
+    path('api/toggle-dislike/', views.toggle_dislike, name='toggle_dislike'),
     path('api/toggle-save-post/', views.toggle_save_post, name='toggle_save_post'),
     path('api/delete-post/', views.delete_post, name='delete_post'),
     path('api/report-post/', views.report_post, name='report_post'),
@@ -210,6 +211,7 @@ urlpatterns = [
     path('omzo/', views.omzo_view, name='omzo'),
     path('api/omzo/upload/', views.upload_omzo, name='upload_omzo'),
     path('api/omzo/like/', views.toggle_omzo_like, name='toggle_omzo_like'),
+    path('api/omzo/dislike/', views.toggle_omzo_dislike, name='toggle_omzo_dislike'),
     path('api/omzo/track-view/', views.track_omzo_view, name='track_omzo_view'),
     path('api/omzo/<int:omzo_id>/comments/',
          views.get_omzo_comments, name='get_omzo_comments'),

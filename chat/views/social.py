@@ -16,9 +16,9 @@ import re
 from django.db import models as db_models
 
 from chat.models import (
-    CustomUser, Chat, Tweet, Comment, Like, Follow, Block, FollowRequest,
+    CustomUser, Chat, Tweet, Comment, Like, Dislike, Follow, Block, FollowRequest,
     Hashtag, TweetHashtag, Mention, StoryReply, StoryLike, Story,
-    SavedPost, PostReport, Omzo, OmzoLike, OmzoComment, OmzoReport,
+    SavedPost, PostReport, Omzo, OmzoLike, OmzoDislike, OmzoComment, OmzoReport,
     ProfileView, PinnedChat
 )
 from chat.forms import TweetForm, ProfileUpdateForm
@@ -669,6 +669,9 @@ def toggle_like(request):
         except Tweet.DoesNotExist:
             return JsonResponse({'success': False, 'error': 'Tweet not found'})
 
+        # Remove dislike if exists
+        Dislike.objects.filter(user=request.user, tweet=tweet).delete()
+
         # Toggle like
         like_obj = Like.objects.filter(user=request.user, tweet=tweet).first()
 
@@ -690,6 +693,48 @@ def toggle_like(request):
     except Exception as e:
         logger.error(f"Error in toggle_like: {str(e)}")
         return JsonResponse({'success': False, 'error': 'Failed to toggle like'})
+
+
+@login_required
+@require_POST
+def toggle_dislike(request):
+    """Toggle dislike on a tweet"""
+    try:
+        data = json.loads(request.body)
+        tweet_id = data.get('tweet_id')
+
+        if not tweet_id:
+            return JsonResponse({'success': False, 'error': 'Tweet ID is required'})
+
+        try:
+            tweet = Tweet.objects.get(id=tweet_id)
+        except Tweet.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Tweet not found'})
+
+        # Remove like if exists
+        Like.objects.filter(user=request.user, tweet=tweet).delete()
+
+        # Toggle dislike
+        dislike_obj = Dislike.objects.filter(user=request.user, tweet=tweet).first()
+
+        if dislike_obj:
+            dislike_obj.delete()
+            is_disliked = False
+        else:
+            Dislike.objects.create(user=request.user, tweet=tweet)
+            is_disliked = True
+
+        like_count = Like.objects.filter(tweet=tweet).count()
+
+        return JsonResponse({
+            'success': True,
+            'is_disliked': is_disliked,
+            'like_count': like_count
+        })
+
+    except Exception as e:
+        logger.error(f"Error in toggle_dislike: {str(e)}")
+        return JsonResponse({'success': False, 'error': 'Failed to toggle dislike'})
 
 
 @login_required
@@ -2432,6 +2477,9 @@ def toggle_omzo_like(request):
         omzo_id = data.get('omzo_id')
         omzo = get_object_or_404(Omzo, id=omzo_id)
 
+        # Remove dislike if exists
+        OmzoDislike.objects.filter(omzo=omzo, user=request.user).delete()
+
         like = OmzoLike.objects.filter(omzo=omzo, user=request.user).first()
         if like:
             like.delete()
@@ -2447,6 +2495,36 @@ def toggle_omzo_like(request):
         })
     except Exception as e:
         logger.error(f"Error toggling omzo like: {str(e)}")
+        return JsonResponse({'success': False, 'error': 'Action failed'})
+
+
+@login_required
+@require_POST
+def toggle_omzo_dislike(request):
+    """API to dislike/undislike a omzo"""
+    try:
+        data = json.loads(request.body)
+        omzo_id = data.get('omzo_id')
+        omzo = get_object_or_404(Omzo, id=omzo_id)
+
+        # Remove like if exists
+        OmzoLike.objects.filter(omzo=omzo, user=request.user).delete()
+
+        dislike = OmzoDislike.objects.filter(omzo=omzo, user=request.user).first()
+        if dislike:
+            dislike.delete()
+            is_disliked = False
+        else:
+            OmzoDislike.objects.create(omzo=omzo, user=request.user)
+            is_disliked = True
+
+        return JsonResponse({
+            'success': True,
+            'is_disliked': is_disliked,
+            'likes_count': omzo.like_count
+        })
+    except Exception as e:
+        logger.error(f"Error toggling omzo dislike: {str(e)}")
         return JsonResponse({'success': False, 'error': 'Action failed'})
 
 

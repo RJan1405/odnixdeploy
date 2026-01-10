@@ -11,56 +11,56 @@
 .bottom-navbar { display: none !important; }
 
 /* Edit Profile Container */
-.ig-edit-profile-container {
+.od-edit-profile-container {
     padding-top: 90px;
     padding-bottom: 100px;
     min-height: 100vh;
-    background: var(--ig-bg);
+    background: var(--od-bg);
 }
 
-.ig-edit-profile {
+.od-edit-profile {
     max-width: 600px;
     margin: 0 auto;
     padding: 20px;
 }
 
 /* Card Style */
-.ig-edit-card {
-    background: var(--ig-surface);
+.od-edit-card {
+    background: var(--od-surface);
     border-radius: 16px;
-    border: 1px solid var(--ig-border);
+    border: 1px solid var(--od-border);
     overflow: hidden;
 }
 
 /* Header */
-.ig-edit-header {
+.od-edit-header {
     display: flex;
     align-items: center;
     gap: 16px;
     padding: 24px;
-    border-bottom: 1px solid var(--ig-border);
-    background: var(--ig-surface);
+    border-bottom: 1px solid var(--od-border);
+    background: var(--od-surface);
 }
 
-.ig-edit-avatar-section {
+.od-edit-avatar-section {
     position: relative;
     flex-shrink: 0;
 }
 
-.ig-edit-avatar {
+.od-edit-avatar {
     width: 80px;
     height: 80px;
-    border-radius: 50%;
+    border-radius: 22%;
     object-fit: cover;
     border: 3px solid transparent;
-    background: linear-gradient(var(--ig-surface), var(--ig-surface)) padding-box,
+    background: linear-gradient(var(--od-surface), var(--od-surface)) padding-box,
                 var(--odnix-gradient) border-box;
 }
 
-.ig-edit-avatar-fallback {
+.od-edit-avatar-fallback {
     width: 80px;
     height: 80px;
-    border-radius: 50%;
+    border-radius: 22%;
     background: var(--odnix-gradient);
     display: flex;
     align-items: center;
@@ -70,11 +70,11 @@
     color: white;
 }
 
-.ig-edit-avatar-overlay {
+.od-edit-avatar-overlay {
     position: absolute;
     inset: 0;
     background: rgba(0, 0, 0, 0.4);
-    border-radius: 50%;
+    border-radius: 22%;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -83,28 +83,28 @@
     cursor: pointer;
 }
 
-.ig-edit-avatar-section:hover .ig-edit-avatar-overlay {
+.od-edit-avatar-section:hover .od-edit-avatar-overlay {
     opacity: 1;
 }
 
-.ig-edit-avatar-overlay svg {
+.od-edit-avatar-overlay svg {
     width: 24px;
     height: 24px;
     color: white;
 }
 
-.ig-edit-user-info {
+.od-edit-user-info {
     flex: 1;
 }
 
-.ig-edit-username {
+.od-edit-username {
     font-size: 20px;
     font-weight: 600;
-    color: var(--ig-text-primary);
+    color: var(--od-text-primary);
     margin-bottom: 4px;
 }
 
-.ig-change-photo-btn {
+.od-change-photo-btn {
     background: none;
     border: none;
     color: var(--color-primary);
@@ -114,152 +114,152 @@
     padding: 0;
 }
 
-.ig-change-photo-btn:hover {
+.od-change-photo-btn:hover {
     text-decoration: underline;
 }
 
 /* Form Styles */
-.ig-edit-form {
+.od-edit-form {
     padding: 0;
 }
 
-.ig-form-section {
+.od-form-section {
     padding: 20px 24px;
-    border-bottom: 1px solid var(--ig-border);
+    border-bottom: 1px solid var(--od-border);
 }
 
-.ig-form-section:last-child {
+.od-form-section:last-child {
     border-bottom: none;
 }
 
-.ig-form-section-title {
+.od-form-section-title {
     font-size: 16px;
     font-weight: 600;
-    color: var(--ig-text-primary);
+    color: var(--od-text-primary);
     margin-bottom: 16px;
     display: flex;
     align-items: center;
     gap: 8px;
 }
 
-.ig-form-section-title svg {
+.od-form-section-title svg {
     width: 18px;
     height: 18px;
     color: var(--color-primary);
 }
 
-.ig-form-group {
+.od-form-group {
     margin-bottom: 20px;
 }
 
-.ig-form-group:last-child {
+.od-form-group:last-child {
     margin-bottom: 0;
 }
 
-.ig-form-label {
+.od-form-label {
     display: block;
     font-size: 14px;
     font-weight: 500;
-    color: var(--ig-text-secondary);
+    color: var(--od-text-secondary);
     margin-bottom: 8px;
 }
 
-.ig-form-input {
+.od-form-input {
     width: 100%;
     padding: 14px 16px;
-    background: var(--ig-bg);
-    border: 1px solid var(--ig-border);
+    background: var(--od-bg);
+    border: 1px solid var(--od-border);
     border-radius: 12px;
     font-size: 16px;
-    color: var(--ig-text-primary);
+    color: var(--od-text-primary);
     transition: all 0.2s;
 }
 
-.ig-form-input:focus {
+.od-form-input:focus {
     outline: none;
     border-color: var(--color-primary);
-    background: var(--ig-surface);
+    background: var(--od-surface);
     box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
 }
 
-.ig-form-input::placeholder {
-    color: var(--ig-text-secondary);
+.od-form-input::placeholder {
+    color: var(--od-text-secondary);
 }
 
-.ig-form-hint {
+.od-form-hint {
     font-size: 12px;
-    color: var(--ig-text-secondary);
+    color: var(--od-text-secondary);
     margin-top: 6px;
 }
 
-.ig-form-row {
+.od-form-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 16px;
 }
 
 /* Toggle Switch */
-.ig-toggle-row {
+.od-toggle-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 16px 0;
-    border-bottom: 1px solid var(--ig-border-light);
+    border-bottom: 1px solid var(--od-border-light);
 }
 
-.ig-toggle-row:last-child {
+.od-toggle-row:last-child {
     border-bottom: none;
 }
 
-.ig-toggle-info {
+.od-toggle-info {
     flex: 1;
 }
 
-.ig-toggle-title {
+.od-toggle-title {
     font-size: 15px;
     font-weight: 500;
-    color: var(--ig-text-primary);
+    color: var(--od-text-primary);
     margin-bottom: 4px;
 }
 
-.ig-toggle-desc {
+.od-toggle-desc {
     font-size: 13px;
-    color: var(--ig-text-secondary);
+    color: var(--od-text-secondary);
 }
 
-.ig-toggle-switch {
+.od-toggle-switch {
     position: relative;
     width: 50px;
     height: 28px;
-    background: var(--ig-border);
+    background: var(--od-border);
     border-radius: 14px;
     cursor: pointer;
     transition: background 0.3s;
 }
 
-.ig-toggle-switch input {
+.od-toggle-switch input {
     opacity: 0;
     width: 0;
     height: 0;
 }
 
-.ig-toggle-switch input:checked + .ig-toggle-slider {
+.od-toggle-switch input:checked + .od-toggle-slider {
     background: var(--color-primary);
 }
 
-.ig-toggle-switch input:checked + .ig-toggle-slider::before {
+.od-toggle-switch input:checked + .od-toggle-slider::before {
     transform: translateX(22px);
 }
 
-.ig-toggle-slider {
+.od-toggle-slider {
     position: absolute;
     inset: 0;
-    background: var(--ig-border);
+    background: var(--od-border);
     border-radius: 14px;
     transition: background 0.3s;
 }
 
-.ig-toggle-slider::before {
+.od-toggle-slider::before {
     content: '';
     position: absolute;
     width: 24px;
@@ -274,12 +274,12 @@
 
 /* ===== THEME PICKER STYLES ===== */
 .theme-section {
-    background: var(--ig-surface);
+    background: var(--od-surface);
 }
 
 .theme-section-desc {
     font-size: 14px;
-    color: var(--ig-text-secondary);
+    color: var(--od-text-secondary);
     margin-bottom: 20px;
     line-height: 1.5;
 }
@@ -299,21 +299,21 @@
 }
 
 .theme-category-tabs::-webkit-scrollbar-track {
-    background: var(--ig-bg);
+    background: var(--od-bg);
     border-radius: 2px;
 }
 
 .theme-category-tabs::-webkit-scrollbar-thumb {
-    background: var(--ig-border);
+    background: var(--od-border);
     border-radius: 2px;
 }
 
 .theme-tab {
     padding: 8px 16px;
     border-radius: 20px;
-    background: var(--ig-bg);
-    border: 1px solid var(--ig-border);
-    color: var(--ig-text-secondary);
+    background: var(--od-bg);
+    border: 1px solid var(--od-border);
+    color: var(--od-text-secondary);
     font-size: 13px;
     font-weight: 500;
     cursor: pointer;
@@ -322,8 +322,8 @@
 }
 
 .theme-tab:hover {
-    background: var(--ig-surface-hover);
-    color: var(--ig-text-primary);
+    background: var(--od-surface-hover);
+    color: var(--od-text-primary);
 }
 
 .theme-tab.active {
@@ -348,17 +348,17 @@
 }
 
 .theme-grid::-webkit-scrollbar-track {
-    background: var(--ig-bg);
+    background: var(--od-bg);
     border-radius: 3px;
 }
 
 .theme-grid::-webkit-scrollbar-thumb {
-    background: var(--ig-border);
+    background: var(--od-border);
     border-radius: 3px;
 }
 
 .theme-grid::-webkit-scrollbar-thumb:hover {
-    background: var(--ig-text-secondary);
+    background: var(--od-text-secondary);
 }
 
 /* Theme Card */
@@ -368,8 +368,8 @@
     overflow: hidden;
     cursor: pointer;
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    border: 2px solid var(--ig-border);
-    background: var(--ig-surface);
+    border: 2px solid var(--od-border);
+    background: var(--od-surface);
 }
 
 .theme-card:hover {
@@ -652,14 +652,14 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: var(--ig-surface);
-    border-top: 1px solid var(--ig-border-light);
+    background: var(--od-surface);
+    border-top: 1px solid var(--od-border-light);
 }
 
 .theme-name {
     font-size: 13px;
     font-weight: 600;
-    color: var(--ig-text-primary);
+    color: var(--od-text-primary);
 }
 
 .theme-badge {
@@ -726,11 +726,11 @@
 
 .current-theme-indicator span {
     font-size: 14px;
-    color: var(--ig-text-secondary);
+    color: var(--od-text-secondary);
 }
 
 .current-theme-indicator strong {
-    color: var(--ig-text-primary);
+    color: var(--od-text-primary);
 }
 
 /* Hidden class for filtering */
@@ -756,15 +756,15 @@
 }
 
 /* Form Actions */
-.ig-form-actions {
+.od-form-actions {
     display: flex;
     gap: 12px;
     padding: 24px;
-    background: var(--ig-surface);
-    border-top: 1px solid var(--ig-border);
+    background: var(--od-surface);
+    border-top: 1px solid var(--od-border);
 }
 
-.ig-btn {
+.od-btn {
     flex: 1;
     padding: 14px 24px;
     border-radius: 12px;
@@ -779,44 +779,44 @@
     border: none;
 }
 
-.ig-btn-cancel {
-    background: var(--ig-bg);
-    color: var(--ig-text-primary);
-    border: 1px solid var(--ig-border);
+.od-btn-cancel {
+    background: var(--od-bg);
+    color: var(--od-text-primary);
+    border: 1px solid var(--od-border);
 }
 
-.ig-btn-cancel:hover {
-    background: var(--ig-surface-hover);
+.od-btn-cancel:hover {
+    background: var(--od-surface-hover);
 }
 
-.ig-btn-save {
+.od-btn-save {
     background: var(--color-primary);
     color: white;
 }
 
-.ig-btn-save:hover {
+.od-btn-save:hover {
     background: var(--color-primary-dark, #4f46e5);
     transform: translateY(-1px);
 }
 
-.ig-btn svg {
+.od-btn svg {
     width: 18px;
     height: 18px;
 }
 
 /* Danger Zone */
-.ig-danger-zone {
+.od-danger-zone {
     margin-top: 24px;
 }
 
-.ig-danger-card {
-    background: var(--ig-surface);
+.od-danger-card {
+    background: var(--od-surface);
     border: 1px solid rgba(239, 68, 68, 0.3);
     border-radius: 12px;
     padding: 20px;
 }
 
-.ig-danger-title {
+.od-danger-title {
     font-size: 14px;
     font-weight: 600;
     color: #ef4444;
@@ -826,12 +826,12 @@
     gap: 8px;
 }
 
-.ig-danger-title svg {
+.od-danger-title svg {
     width: 16px;
     height: 16px;
 }
 
-.ig-logout-btn {
+.od-logout-btn {
     display: flex;
     align-items: center;
     gap: 8px;
@@ -847,19 +847,19 @@
     text-decoration: none;
 }
 
-.ig-logout-btn:hover {
+.od-logout-btn:hover {
     background: #ef4444;
     color: white;
     border-color: #ef4444;
 }
 
-.ig-logout-btn svg {
+.od-logout-btn svg {
     width: 18px;
     height: 18px;
 }
 
 /* Cropper Modal */
-.ig-crop-modal {
+.od-crop-modal {
     display: none;
     position: fixed;
     inset: 0;
@@ -870,12 +870,12 @@
     padding: 20px;
 }
 
-.ig-crop-modal.show {
+.od-crop-modal.show {
     display: flex;
 }
 
-.ig-crop-dialog {
-    background: var(--ig-surface);
+.od-crop-dialog {
+    background: var(--od-surface);
     border-radius: 16px;
     width: 100%;
     max-width: 500px;
@@ -885,29 +885,29 @@
     flex-direction: column;
 }
 
-.ig-crop-header {
+.od-crop-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 16px 20px;
-    border-bottom: 1px solid var(--ig-border);
+    border-bottom: 1px solid var(--od-border);
 }
 
-.ig-crop-header h3 {
+.od-crop-header h3 {
     font-size: 16px;
     font-weight: 600;
     margin: 0;
 }
 
-.ig-crop-close {
+.od-crop-close {
     background: none;
     border: none;
     cursor: pointer;
     padding: 4px;
-    color: var(--ig-text-secondary);
+    color: var(--od-text-secondary);
 }
 
-.ig-crop-body {
+.od-crop-body {
     flex: 1;
     overflow: hidden;
     display: flex;
@@ -917,25 +917,25 @@
     min-height: 300px;
 }
 
-.ig-crop-body img {
+.od-crop-body img {
     max-width: 100%;
     display: block;
 }
 
-.ig-crop-controls {
+.od-crop-controls {
     display: flex;
     justify-content: center;
     gap: 8px;
     padding: 12px;
-    border-top: 1px solid var(--ig-border);
+    border-top: 1px solid var(--od-border);
 }
 
-.ig-crop-tool-btn {
+.od-crop-tool-btn {
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background: var(--ig-bg);
-    border: 1px solid var(--ig-border);
+    background: var(--od-bg);
+    border: 1px solid var(--od-border);
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -943,24 +943,24 @@
     transition: all 0.2s;
 }
 
-.ig-crop-tool-btn:hover {
-    background: var(--ig-surface-hover);
+.od-crop-tool-btn:hover {
+    background: var(--od-surface-hover);
 }
 
-.ig-crop-tool-btn svg {
+.od-crop-tool-btn svg {
     width: 18px;
     height: 18px;
-    color: var(--ig-text-primary);
+    color: var(--od-text-primary);
 }
 
-.ig-crop-footer {
+.od-crop-footer {
     display: flex;
     gap: 12px;
     padding: 16px 20px;
-    border-top: 1px solid var(--ig-border);
+    border-top: 1px solid var(--od-border);
 }
 
-.ig-crop-btn {
+.od-crop-btn {
     flex: 1;
     padding: 12px;
     border-radius: 10px;
@@ -974,23 +974,23 @@
     gap: 6px;
 }
 
-.ig-crop-cancel {
-    background: var(--ig-bg);
-    color: var(--ig-text-primary);
+.od-crop-cancel {
+    background: var(--od-bg);
+    color: var(--od-text-primary);
 }
 
-.ig-crop-apply {
+.od-crop-apply {
     background: var(--color-primary);
     color: white;
 }
 
 /* Hidden file input */
-.ig-hidden-input {
+.od-hidden-input {
     display: none;
 }
 
 /* Success/Error Messages */
-.ig-message {
+.od-message {
     padding: 14px 20px;
     border-radius: 12px;
     margin-bottom: 20px;
@@ -1000,19 +1000,19 @@
     font-size: 14px;
 }
 
-.ig-message-success {
+.od-message-success {
     background: rgba(34, 197, 94, 0.1);
     color: #22c55e;
     border: 1px solid rgba(34, 197, 94, 0.3);
 }
 
-.ig-message-error {
+.od-message-error {
     background: rgba(239, 68, 68, 0.1);
     color: #ef4444;
     border: 1px solid rgba(239, 68, 68, 0.3);
 }
 
-.ig-message svg {
+.od-message svg {
     width: 18px;
     height: 18px;
     flex-shrink: 0;
@@ -1020,53 +1020,53 @@
 
 /* Responsive */
 @media (max-width: 768px) {
-    .ig-edit-profile-container {
+    .od-edit-profile-container {
         padding-top: 20px;
         padding-bottom: 80px;
     }
     
-    .ig-edit-profile {
+    .od-edit-profile {
         padding: 12px;
     }
     
-    .ig-edit-card {
+    .od-edit-card {
         border-radius: 0;
         border-left: none;
         border-right: none;
     }
     
-    .ig-form-row {
+    .od-form-row {
         grid-template-columns: 1fr;
     }
     
-    .ig-edit-header {
+    .od-edit-header {
         flex-direction: column;
         text-align: center;
     }
     
-    .ig-edit-user-info {
+    .od-edit-user-info {
         text-align: center;
     }
     
-    .ig-form-actions {
+    .od-form-actions {
         flex-direction: column;
     }
     
-    .ig-btn {
+    .od-btn {
         width: 100%;
     }
 }
 
 @media (max-width: 480px) {
-    .ig-edit-header {
+    .od-edit-header {
         padding: 20px 16px;
     }
     
-    .ig-form-section {
+    .od-form-section {
         padding: 16px;
     }
     
-    .ig-form-actions {
+    .od-form-actions {
         padding: 16px;
     }
 }
@@ -1077,12 +1077,12 @@
 <!-- Include Shared Navbar -->
 {% include 'chat/partials/navbar.html' %}
 
-<div class="ig-edit-profile-container">
-    <div class="ig-edit-profile">
+<div class="od-edit-profile-container">
+    <div class="od-edit-profile">
         <!-- Messages -->
         {% if messages %}
         {% for message in messages %}
-        <div class="ig-message ig-message-{{ message.tags }}">
+        <div class="od-message od-message-{{ message.tags }}">
             {% if message.tags == 'success' %}
             <i data-lucide="check-circle"></i>
             {% else %}
@@ -1093,80 +1093,80 @@
         {% endfor %}
         {% endif %}
         
-        <form method="post" enctype="multipart/form-data" id="profileForm" class="ig-edit-card">
+        <form method="post" enctype="multipart/form-data" id="profileForm" class="od-edit-card">
             {% csrf_token %}
             
             <!-- Header with Avatar -->
-            <div class="ig-edit-header">
-                <div class="ig-edit-avatar-section">
+            <div class="od-edit-header">
+                <div class="od-edit-avatar-section">
                     {% if request.user.profile_picture %}
-                    <img src="{{ request.user.profile_picture_url }}" alt="" class="ig-edit-avatar" id="avatarPreview"
+                    <img src="{{ request.user.profile_picture_url }}" alt="" class="od-edit-avatar" id="avatarPreview"
                          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                     {% endif %}
-                    <div class="ig-edit-avatar-fallback" id="avatarFallback" {% if request.user.profile_picture %}style="display: none;"{% endif %}>
+                    <div class="od-edit-avatar-fallback" id="avatarFallback" {% if request.user.profile_picture %}style="display: none;"{% endif %}>
                         {{ request.user.name.0 }}{{ request.user.lastname.0 }}
                     </div>
-                    <label class="ig-edit-avatar-overlay" for="profilePictureInput">
+                    <label class="od-edit-avatar-overlay" for="profilePictureInput">
                         <i data-lucide="camera"></i>
                     </label>
                 </div>
-                <div class="ig-edit-user-info">
-                    <div class="ig-edit-username">{{ request.user.username }}</div>
-                    <button type="button" class="ig-change-photo-btn" onclick="document.getElementById('profilePictureInput').click()">
+                <div class="od-edit-user-info">
+                    <div class="od-edit-username">{{ request.user.username }}</div>
+                    <button type="button" class="od-change-photo-btn" onclick="document.getElementById('profilePictureInput').click()">
                         Change profile photo
                     </button>
                 </div>
-                <input type="file" id="profilePictureInput" class="ig-hidden-input" accept="image/*" onchange="handleImageSelect(event)">
+                <input type="file" id="profilePictureInput" class="od-hidden-input" accept="image/*" onchange="handleImageSelect(event)">
                 <input type="hidden" name="profile_picture_cropped" id="croppedImageData">
             </div>
             
             <!-- Personal Information -->
-            <div class="ig-form-section">
-                <div class="ig-form-section-title">
+            <div class="od-form-section">
+                <div class="od-form-section-title">
                     <i data-lucide="user"></i>
                     Personal Information
                 </div>
                 
-                <div class="ig-form-row">
-                    <div class="ig-form-group">
-                        <label class="ig-form-label">First Name</label>
-                        <input type="text" name="name" class="ig-form-input" value="{{ request.user.name }}" placeholder="First name">
+                <div class="od-form-row">
+                    <div class="od-form-group">
+                        <label class="od-form-label">First Name</label>
+                        <input type="text" name="name" class="od-form-input" value="{{ request.user.name }}" placeholder="First name">
                     </div>
-                    <div class="ig-form-group">
-                        <label class="ig-form-label">Last Name</label>
-                        <input type="text" name="lastname" class="ig-form-input" value="{{ request.user.lastname }}" placeholder="Last name">
+                    <div class="od-form-group">
+                        <label class="od-form-label">Last Name</label>
+                        <input type="text" name="lastname" class="od-form-input" value="{{ request.user.lastname }}" placeholder="Last name">
                     </div>
                 </div>
                 
-                <div class="ig-form-group">
-                    <label class="ig-form-label">Username</label>
-                    <input type="text" name="username" class="ig-form-input" value="{{ request.user.username }}" placeholder="Username">
-                    <div class="ig-form-hint">People can find you with @{{ request.user.username }}</div>
+                <div class="od-form-group">
+                    <label class="od-form-label">Username</label>
+                    <input type="text" name="username" class="od-form-input" value="{{ request.user.username }}" placeholder="Username">
+                    <div class="od-form-hint">People can find you with @{{ request.user.username }}</div>
                 </div>
             </div>
             
             <!-- Privacy Settings -->
-            <div class="ig-form-section">
-                <div class="ig-form-section-title">
+            <div class="od-form-section">
+                <div class="od-form-section-title">
                     <i data-lucide="shield"></i>
                     Privacy
                 </div>
                 
-                <div class="ig-toggle-row">
-                    <div class="ig-toggle-info">
-                        <div class="ig-toggle-title">Private Account</div>
-                        <div class="ig-toggle-desc">Only approved followers can see your posts and stories</div>
+                <div class="od-toggle-row">
+                    <div class="od-toggle-info">
+                        <div class="od-toggle-title">Private Account</div>
+                        <div class="od-toggle-desc">Only approved followers can see your posts and stories</div>
                     </div>
-                    <label class="ig-toggle-switch">
+                    <label class="od-toggle-switch">
                         <input type="checkbox" name="is_private" {% if request.user.is_private %}checked{% endif %}>
-                        <span class="ig-toggle-slider"></span>
+                        <span class="od-toggle-slider"></span>
                     </label>
                 </div>
             </div>
             
             <!-- Theme Settings Section -->
-            <div id="theme-section" class="ig-form-section theme-section">
-                <div class="ig-form-section-title">
+            <div id="theme-section" class="od-form-section theme-section">
+                <div class="od-form-section-title">
                     <i data-lucide="palette"></i>
                     Appearance
                 </div>
@@ -1591,12 +1591,12 @@
             </div>
             
             <!-- Form Actions -->
-            <div class="ig-form-actions">
-                <a href="{% url 'profile' %}" class="ig-btn ig-btn-cancel">
+            <div class="od-form-actions">
+                <a href="{% url 'profile' %}" class="od-btn od-btn-cancel">
                     <i data-lucide="x"></i>
                     Cancel
                 </a>
-                <button type="submit" class="ig-btn ig-btn-save">
+                <button type="submit" class="od-btn od-btn-save">
                     <i data-lucide="check"></i>
                     Save Changes
                 </button>
@@ -1604,13 +1604,13 @@
         </form>
         
         <!-- Danger Zone -->
-        <div class="ig-danger-zone">
-            <div class="ig-danger-card">
-                <div class="ig-danger-title">
+        <div class="od-danger-zone">
+            <div class="od-danger-card">
+                <div class="od-danger-title">
                     <i data-lucide="alert-triangle"></i>
                     Account Actions
                 </div>
-                <a href="{% url 'logout' %}" class="ig-logout-btn">
+                <a href="{% url 'logout' %}" class="od-logout-btn">
                     <i data-lucide="log-out"></i>
                     Sign Out
                 </a>
@@ -1620,34 +1620,34 @@
 </div>
 
 <!-- Image Crop Modal -->
-<div id="cropModal" class="ig-crop-modal">
-    <div class="ig-crop-dialog">
-        <div class="ig-crop-header">
+<div id="cropModal" class="od-crop-modal">
+    <div class="od-crop-dialog">
+        <div class="od-crop-header">
             <h3>Crop Profile Picture</h3>
-            <button type="button" class="ig-crop-close" onclick="closeCropper()">
+            <button type="button" class="od-crop-close" onclick="closeCropper()">
                 <i data-lucide="x"></i>
             </button>
         </div>
-        <div class="ig-crop-body">
+        <div class="od-crop-body">
             <img id="cropperImage" src="" alt="">
         </div>
-        <div class="ig-crop-controls">
-            <button type="button" class="ig-crop-tool-btn" onclick="zoomImage(-0.1)" title="Zoom Out">
+        <div class="od-crop-controls">
+            <button type="button" class="od-crop-tool-btn" onclick="zoomImage(-0.1)" title="Zoom Out">
                 <i data-lucide="zoom-out"></i>
             </button>
-            <button type="button" class="ig-crop-tool-btn" onclick="zoomImage(0.1)" title="Zoom In">
+            <button type="button" class="od-crop-tool-btn" onclick="zoomImage(0.1)" title="Zoom In">
                 <i data-lucide="zoom-in"></i>
             </button>
-            <button type="button" class="ig-crop-tool-btn" onclick="rotateImage(-90)" title="Rotate Left">
+            <button type="button" class="od-crop-tool-btn" onclick="rotateImage(-90)" title="Rotate Left">
                 <i data-lucide="rotate-ccw"></i>
             </button>
-            <button type="button" class="ig-crop-tool-btn" onclick="rotateImage(90)" title="Rotate Right">
+            <button type="button" class="od-crop-tool-btn" onclick="rotateImage(90)" title="Rotate Right">
                 <i data-lucide="rotate-cw"></i>
             </button>
         </div>
-        <div class="ig-crop-footer">
-            <button type="button" class="ig-crop-btn ig-crop-cancel" onclick="closeCropper()">Cancel</button>
-            <button type="button" class="ig-crop-btn ig-crop-apply" onclick="applyCrop()">
+        <div class="od-crop-footer">
+            <button type="button" class="od-crop-btn od-crop-cancel" onclick="closeCropper()">Cancel</button>
+            <button type="button" class="od-crop-btn od-crop-apply" onclick="applyCrop()">
                 <i data-lucide="check"></i>
                 Apply
             </button>
@@ -1947,6 +1947,8 @@ async function saveThemeToServer(theme) {
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || 
                           getCookie('csrftoken');
         
+        console.log('Saving theme:', theme, 'CSRF:', csrfToken ? 'present' : 'missing');
+        
         const response = await fetch('/api/user/update-theme/', {
             method: 'POST',
             headers: {
@@ -1956,16 +1958,19 @@ async function saveThemeToServer(theme) {
             body: JSON.stringify({ theme: theme })
         });
         
+        console.log('Response status:', response.status);
         const data = await response.json();
+        console.log('Response data:', data);
         
         if (data.success) {
             showToast(`Theme changed to ${themeNames[theme]}`, 'success');
         } else {
-            showToast('Failed to save theme preference', 'error');
+            showToast('Failed to save theme preference: ' + (data.error || 'Unknown error'), 'error');
+            console.error('Theme save failed:', data.error);
         }
     } catch (error) {
         console.error('Error saving theme:', error);
-        // Theme still applied locally even if server save fails
+        showToast('Error saving theme: ' + error.message, 'error');
     }
 }
 

@@ -119,11 +119,19 @@
         transition: background 0.2s, transform 0.2s;
         min-width: 56px;
         min-height: 56px;
+        outline: none;
+        -webkit-tap-highlight-color: transparent;
     }
 
+    .action-btn:focus {
+        outline: none;
+    }
+
+    /* Commented out - looks bad
     .action-btn:hover {
         background: rgba(255, 255, 255, 0.1);
     }
+    */
 
     .action-btn i,
     .action-btn svg {
@@ -141,6 +149,22 @@
     .action-btn:active i,
     .action-btn:active svg {
         transform: scale(0.9);
+    }
+
+    /* Liked thumb style - Brand color with subtle glow */
+    .liked-thumb {
+        color: #667eea !important;
+        stroke: #667eea !important;
+        fill: none !important;
+        filter: drop-shadow(0 0 6px rgba(102, 126, 234, 0.5));
+    }
+
+    /* Disliked thumb style - Red */
+    .disliked-thumb {
+        color: #ff6b6b !important;
+        stroke: #ff6b6b !important;
+        fill: none !important;
+        filter: drop-shadow(0 0 4px rgba(255, 107, 107, 0.4));
     }
 
     /* Desktop improvements for action buttons */
@@ -174,7 +198,7 @@
     .omzo-avatar {
         width: 36px;
         height: 36px;
-        border-radius: 30%;
+        border-radius: 22%;
         border: 2px solid white;
     }
 
@@ -222,8 +246,22 @@
 
     /* Adjust bottom nav for mobile immersion */
     .liked-heart {
-        fill: #ff3040;
-        color: #ff3040;
+        fill: #ff3040 !important;
+        color: #ff3040 !important;
+        stroke: #ff3040 !important;
+        animation: heartPop 0.3s ease;
+    }
+
+    @keyframes heartPop {
+        0% {
+            transform: scale(1);
+        }
+        50% {
+            transform: scale(1.3);
+        }
+        100% {
+            transform: scale(1);
+        }
     }
 
     /* ===== Custom Toast Notifications for Omzo ===== */
@@ -846,9 +884,12 @@
                     title="Toggle sound">
                     <i data-lucide="volume-x"></i>
                 </button>
-                <button class="action-btn" onclick="toggleOmzoLike({{ omzo.id }}, this)" title="Like">
-                    <i data-lucide="heart" class="{% if omzo.is_liked %}liked-heart{% endif %}"></i>
+                <button class="action-btn like-btn" onclick="toggleOmzoLike({{ omzo.id }}, this)" title="Like">
+                    <i data-lucide="thumbs-up" class="{% if omzo.is_liked %}liked-thumb{% endif %}"></i>
                     <span class="like-count">{{ omzo.likes }}</span>
+                </button>
+                <button class="action-btn dislike-btn" onclick="toggleOmzoDislike({{ omzo.id }}, this)" title="Dislike">
+                    <i data-lucide="thumbs-down" class="{% if omzo.is_disliked %}disliked-thumb{% endif %}"></i>
                 </button>
                 <button class="action-btn" onclick="openOmzoComments({{ omzo.id }})" title="Comments">
                     <i data-lucide="message-circle"></i>
@@ -1615,15 +1656,69 @@
                     const count = btn.querySelector('.like-count');
 
                     if (data.is_liked) {
-                        icon.style.fill = '#ff3040';
-                        icon.style.color = '#ff3040';
-                        icon.classList.add('liked-heart');
+                        icon.style.fill = '#3ea6ff';
+                        icon.style.color = '#3ea6ff';
+                        icon.style.stroke = '#3ea6ff';
+                        icon.classList.add('liked-thumb');
+                        // Remove dislike if active
+                        const dislikeBtn = btn.parentElement.querySelector('.dislike-btn');
+                        if (dislikeBtn) {
+                            const dislikeIcon = dislikeBtn.querySelector('svg') || dislikeBtn.querySelector('i');
+                            dislikeIcon.style.fill = 'none';
+                            dislikeIcon.style.color = 'white';
+                            dislikeIcon.style.stroke = 'currentColor';
+                            dislikeIcon.classList.remove('disliked-thumb');
+                        }
                     } else {
                         icon.style.fill = 'none';
                         icon.style.color = 'white';
-                        icon.classList.remove('liked-heart');
+                        icon.style.stroke = 'currentColor';
+                        icon.classList.remove('liked-thumb');
                     }
                     count.textContent = data.likes_count;
+                }
+            });
+    }
+
+    // ===== Dislike Functionality =====
+    function toggleOmzoDislike(omzoId, btn) {
+        fetch('/chat/api/omzo/dislike/', {
+            method: 'POST',
+            body: JSON.stringify({ omzo_id: omzoId }),
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    const icon = btn.querySelector('svg') || btn.querySelector('i');
+
+                    if (data.is_disliked) {
+                        icon.style.fill = '#ff6b6b';
+                        icon.style.color = '#ff6b6b';
+                        icon.style.stroke = '#ff6b6b';
+                        icon.classList.add('disliked-thumb');
+                        // Remove like if active
+                        const likeBtn = btn.parentElement.querySelector('.like-btn');
+                        if (likeBtn) {
+                            const likeIcon = likeBtn.querySelector('svg') || likeBtn.querySelector('i');
+                            const likeCount = likeBtn.querySelector('.like-count');
+                            likeIcon.style.fill = 'none';
+                            likeIcon.style.color = 'white';
+                            likeIcon.style.stroke = 'currentColor';
+                            likeIcon.classList.remove('liked-thumb');
+                            if (data.likes_count !== undefined) {
+                                likeCount.textContent = data.likes_count;
+                            }
+                        }
+                    } else {
+                        icon.style.fill = 'none';
+                        icon.style.color = 'white';
+                        icon.style.stroke = 'currentColor';
+                        icon.classList.remove('disliked-thumb');
+                    }
                 }
             });
     }

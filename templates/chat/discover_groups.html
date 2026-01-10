@@ -16,39 +16,39 @@
         display: none !important;
     }
 
-    .ig-discover-container {
+    .od-discover-container {
         padding-top: 90px;
         padding-bottom: 100px;
         min-height: 100vh;
-        background: var(--ig-bg);
+        background: var(--od-bg);
     }
 
-    .ig-discover-content {
+    .od-discover-content {
         max-width: 1100px;
         margin: 0 auto;
         padding: 0 var(--spacing-lg);
     }
 
-    .ig-discover-header {
+    .od-discover-header {
         margin-bottom: var(--spacing-xl);
         display: flex;
         flex-direction: column;
         gap: 8px;
     }
 
-    .ig-discover-title {
+    .od-discover-title {
         font-size: 28px;
         font-weight: 700;
-        color: var(--ig-text-primary);
+        color: var(--od-text-primary);
         margin: 0;
     }
 
-    .ig-discover-subtitle {
-        color: var(--ig-text-secondary);
+    .od-discover-subtitle {
+        color: var(--od-text-secondary);
         margin: 0;
     }
 
-    .ig-explore-grid {
+    .od-explore-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, 300px);
         gap: var(--spacing-lg);
@@ -56,8 +56,8 @@
     }
 
     .explore-card {
-        background: var(--ig-surface);
-        border: 1px solid var(--ig-border);
+        background: var(--od-surface);
+        border: 1px solid var(--od-border);
         border-radius: 16px;
         padding: 0;
         display: flex;
@@ -117,6 +117,65 @@
         font-size: 11px;
         font-weight: 600;
         margin-bottom: 8px;
+        min-width: fit-content;
+    }
+
+    .explore-card-tag:empty {
+        display: none;
+    }
+
+    .explore-card-user {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 8px;
+    }
+
+    .explore-card-user-avatar {
+        width: 28px;
+        height: 28px;
+        border-radius: 22%;
+        object-fit: cover;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        flex-shrink: 0;
+    }
+
+    .explore-card-user-avatar-placeholder {
+        width: 28px;
+        height: 28px;
+        border-radius: 22%;
+        background: var(--brand-gradient);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+        font-weight: 600;
+        color: white;
+        flex-shrink: 0;
+    }
+
+    .explore-card-user-info {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+    }
+
+    .explore-card-user-name {
+        font-size: 12px;
+        font-weight: 600;
+        color: white;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+    }
+
+    .explore-card-user-handle {
+        font-size: 10px;
+        color: rgba(255, 255, 255, 0.7);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .explore-card-caption {
@@ -177,76 +236,76 @@
         display: block;
     }
 
-    .ig-empty-state {
+    .od-empty-state {
         text-align: center;
         padding: 60px 20px;
-        color: var(--ig-text-secondary);
-        border: 1px solid var(--ig-border);
+        color: var(--od-text-secondary);
+        border: 1px solid var(--od-border);
         border-radius: 16px;
-        background: var(--ig-surface);
+        background: var(--od-surface);
         display: flex;
         flex-direction: column;
         gap: 12px;
         align-items: center;
     }
 
-    .ig-empty-state h3 {
+    .od-empty-state h3 {
         margin: 0;
-        color: var(--ig-text-primary);
+        color: var(--od-text-primary);
     }
 
-    .ig-empty-state p {
+    .od-empty-state p {
         margin: 0;
     }
 
-    .ig-empty-state i,
-    .ig-empty-state svg {
+    .od-empty-state i,
+    .od-empty-state svg {
         width: 28px;
         height: 28px;
-        color: var(--ig-text-secondary);
+        color: var(--od-text-secondary);
     }
 
-    .ig-discover-search {
+    .od-discover-search {
         display: flex;
         align-items: center;
         gap: 12px;
-        background: var(--ig-input-bg);
-        border: 1px solid var(--ig-border);
+        background: var(--od-input-bg);
+        border: 1px solid var(--od-border);
         border-radius: 24px;
         padding: 10px 16px;
         margin-top: 16px;
     }
 
-    .ig-discover-search i,
-    .ig-discover-search svg {
+    .od-discover-search i,
+    .od-discover-search svg {
         width: 18px;
         height: 18px;
-        color: var(--ig-text-secondary);
+        color: var(--od-text-secondary);
         flex-shrink: 0;
     }
 
-    .ig-discover-search input {
+    .od-discover-search input {
         flex: 1;
         background: none;
         border: none;
         outline: none;
-        color: var(--ig-text-primary);
+        color: var(--od-text-primary);
         font-size: 14px;
         font-family: inherit;
     }
 
-    .ig-discover-search input::placeholder {
-        color: var(--ig-text-secondary);
+    .od-discover-search input::placeholder {
+        color: var(--od-text-secondary);
     }
 
-    .ig-search-no-results {
+    .od-search-no-results {
         text-align: center;
         padding: 40px 20px;
-        color: var(--ig-text-secondary);
+        color: var(--od-text-secondary);
     }
 
-    .ig-search-no-results i,
-    .ig-search-no-results svg {
+    .od-search-no-results i,
+    .od-search-no-results svg {
         width: 40px;
         height: 40px;
         opacity: 0.5;
@@ -274,7 +333,7 @@
     }
 
     .post-modal-content {
-        background: var(--ig-surface);
+        background: var(--od-surface);
         border-radius: 16px;
         width: 100%;
         max-width: 600px;
@@ -289,8 +348,8 @@
         position: absolute;
         top: 16px;
         right: 16px;
-        background: var(--ig-surface-hover);
-        border: 1px solid var(--ig-border);
+        background: var(--od-surface-hover);
+        border: 1px solid var(--od-border);
         border-radius: 50%;
         width: 36px;
         height: 36px;
@@ -303,14 +362,14 @@
     }
 
     .post-modal-close:hover {
-        background: var(--ig-bg);
+        background: var(--od-bg);
     }
 
     .post-modal-close i,
     .post-modal-close svg {
         width: 20px;
         height: 20px;
-        color: var(--ig-text-primary);
+        color: var(--od-text-primary);
     }
 
     .post-modal-body {
@@ -334,7 +393,7 @@
     .post-modal-actions {
         flex-shrink: 0;
         padding: 12px 16px;
-        border-top: 1px solid var(--ig-border);
+        border-top: 1px solid var(--od-border);
         display: flex;
         gap: 0;
     }
@@ -348,14 +407,14 @@
         padding: 12px;
         background: none;
         border: none;
-        color: var(--ig-text-primary);
+        color: var(--od-text-primary);
         cursor: pointer;
         font-size: 13px;
         transition: background 0.2s;
     }
 
     .post-modal-action-btn:hover {
-        background: var(--ig-surface-hover);
+        background: var(--od-surface-hover);
     }
 
     .post-modal-action-btn.liked {
@@ -366,13 +425,13 @@
         flex: 1;
         overflow-y: auto;
         padding: 16px;
-        border-top: 1px solid var(--ig-border);
+        border-top: 1px solid var(--od-border);
         max-height: 300px;
     }
 
     .post-modal-comment-item {
         padding: 12px 0;
-        border-bottom: 1px solid var(--ig-border);
+        border-bottom: 1px solid var(--od-border);
     }
 
     .post-modal-comment-item:last-child {
@@ -382,7 +441,7 @@
     .post-modal-comment-input {
         flex-shrink: 0;
         padding: 12px 16px;
-        border-top: 1px solid var(--ig-border);
+        border-top: 1px solid var(--od-border);
         display: flex;
         gap: 8px;
         align-items: center;
@@ -390,23 +449,23 @@
 
     .post-modal-comment-input input {
         flex: 1;
-        background: var(--ig-bg);
-        border: 1px solid var(--ig-border);
+        background: var(--od-bg);
+        border: 1px solid var(--od-border);
         border-radius: 20px;
         padding: 8px 16px;
-        color: var(--ig-text-primary);
+        color: var(--od-text-primary);
         font-size: 13px;
         outline: none;
     }
 
     .post-modal-comment-input input::placeholder {
-        color: var(--ig-text-secondary);
+        color: var(--od-text-secondary);
     }
 
     .post-modal-comment-input button {
         background: none;
         border: none;
-        color: var(--ig-link);
+        color: var(--od-link);
         font-weight: 600;
         font-size: 13px;
         cursor: pointer;
@@ -425,7 +484,7 @@
         align-items: center;
         margin-bottom: 16px;
         padding-bottom: 16px;
-        border-bottom: 1px solid var(--ig-border);
+        border-bottom: 1px solid var(--od-border);
     }
 
     .post-modal-avatar {
@@ -441,12 +500,12 @@
 
     .post-modal-username {
         font-weight: 700;
-        color: var(--ig-text-primary);
+        color: var(--od-text-primary);
         font-size: 14px;
     }
 
     .post-modal-time {
-        color: var(--ig-text-secondary);
+        color: var(--od-text-secondary);
         font-size: 12px;
     }
 
@@ -457,7 +516,7 @@
     }
 
     .post-modal-caption {
-        color: var(--ig-text-primary);
+        color: var(--od-text-primary);
         line-height: 1.5;
         margin-bottom: 16px;
     }
@@ -466,47 +525,47 @@
         display: flex;
         gap: 20px;
         padding-top: 16px;
-        border-top: 1px solid var(--ig-border);
-        color: var(--ig-text-secondary);
+        border-top: 1px solid var(--od-border);
+        color: var(--od-text-secondary);
         font-size: 13px;
     }
 
     .post-modal-loading {
         text-align: center;
         padding: 40px 20px;
-        color: var(--ig-text-secondary);
+        color: var(--od-text-secondary);
     }
 
     @media (max-width: 768px) {
-        .ig-discover-container {
+        .od-discover-container {
             padding-top: 60px;
             padding-bottom: 80px;
         }
 
-        .ig-discover-content {
+        .od-discover-content {
             padding: 0;
             max-width: 100%;
         }
 
-        .ig-discover-header {
+        .od-discover-header {
             padding: 0 16px;
             margin-bottom: 12px;
         }
 
-        .ig-discover-search {
+        .od-discover-search {
             display: flex;
         }
 
-        .ig-discover-title {
+        .od-discover-title {
             font-size: 22px;
             margin-bottom: 8px;
         }
 
-        .ig-discover-subtitle {
+        .od-discover-subtitle {
             display: none;
         }
 
-        .ig-explore-grid {
+        .od-explore-grid {
             grid-template-columns: repeat(3, 1fr);
             gap: 1px;
             margin: 0;
@@ -519,24 +578,24 @@
             border: none;
         }
 
-        .ig-bottom-nav {
+        .od-bottom-nav {
             display: flex !important;
             align-items: center;
             justify-content: space-around;
         }
 
-        .ig-top-nav {
+        .od-top-nav {
             display: none !important;
         }
     }
 
     @media (max-width: 480px) {
-        .ig-explore-grid {
+        .od-explore-grid {
             grid-template-columns: repeat(2, 1fr);
             gap: 1px;
         }
 
-        .ig-discover-title {
+        .od-discover-title {
             font-size: 20px;
         }
 
@@ -554,18 +613,18 @@
 {% block content %}
 {% include 'chat/partials/navbar.html' %}
 
-<div class="ig-discover-container">
-    <div class="ig-discover-content">
-        <header class="ig-discover-header">
-            <h1 class="ig-discover-title">Explore</h1>
-            <p class="ig-discover-subtitle">Dive into random Scribes and Omzo picks.</p>
-            <div class="ig-discover-search">
+<div class="od-discover-container">
+    <div class="od-discover-content">
+        <header class="od-discover-header">
+            <h1 class="od-discover-title">Explore</h1>
+            <p class="od-discover-subtitle">Dive into random Scribes and Omzo picks.</p>
+            <div class="od-discover-search">
                 <i data-lucide="search"></i>
                 <input type="text" id="exploreSearchInput" placeholder="Search people, groups, scribes, omzo..."
                     onkeyup="debounceGlobalSearch(this.value)" onfocus="activateSearch()">
             </div>
             <!-- Search Results Container (Hidden by default) -->
-            <div id="searchResultsContainer" class="ig-explore-grid" style="display: none; margin-top: 20px;">
+            <div id="searchResultsContainer" class="od-explore-grid" style="display: none; margin-top: 20px;">
                 <!-- Results injected here -->
             </div>
 
@@ -574,14 +633,14 @@
             </div>
 
             <div id="searchNoResults"
-                style="display: none; text-align: center; padding: 40px; color: var(--ig-text-secondary);">
+                style="display: none; text-align: center; padding: 40px; color: var(--od-text-secondary);">
                 <i data-lucide="search" style="width: 48px; height: 48px; opacity: 0.5;"></i>
                 <p>No results found matching your query.</p>
             </div>
         </header>
 
         {% if mixed_content %}
-        <div class="ig-explore-grid" id="exploreGrid">
+        <div class="od-explore-grid" id="exploreGrid">
             {% for item in mixed_content %}
             {% if item.type == 'scribe' %}
             {% with scribe=item.object %}
@@ -605,7 +664,7 @@
                     </iframe>
                     {% else %}
                     <div class="explore-card-media"
-                        style="background: var(--ig-surface-hover); display: flex; align-items: center; justify-content: center;">
+                        style="background: var(--od-surface-hover); display: flex; align-items: center; justify-content: center;">
                         <i data-lucide="file-text" style="width: 48px; height: 48px; opacity: 0.3;"></i>
                     </div>
                     {% endif %}
@@ -613,6 +672,17 @@
                             data-lucide="code" style="width: 10px; height: 10px; display: inline-block;"></i>
                         Code</span>{% endif %}
                     <div class="explore-card-overlay">
+                        <div class="explore-card-user">
+                            {% if scribe.user.profile_picture %}
+                            <img src="{{ scribe.user.profile_picture.url }}" alt="{{ scribe.user.username }}" class="explore-card-user-avatar" onerror="this.outerHTML='<div class=\'explore-card-user-avatar-placeholder\'>{{ scribe.user.initials }}</div>'">
+                            {% else %}
+                            <div class="explore-card-user-avatar-placeholder">{{ scribe.user.initials }}</div>
+                            {% endif %}
+                            <div class="explore-card-user-info">
+                                <span class="explore-card-user-name">{{ scribe.user.full_name|default:scribe.user.username }}</span>
+                                <span class="explore-card-user-handle">@{{ scribe.user.username }}</span>
+                            </div>
+                        </div>
                         <div class="explore-card-tag">{% if scribe.code_bundle or scribe.code_html %}Code Scribe{% else
                             %}Scribe{% endif %}</div>
                         {% if scribe.content %}
@@ -639,11 +709,22 @@
                     </div>
                     {% else %}
                     <div class="explore-card-media"
-                        style="background: var(--ig-surface-hover); display: flex; align-items: center; justify-content: center;">
+                        style="background: var(--od-surface-hover); display: flex; align-items: center; justify-content: center;">
                         <i data-lucide="video" style="width: 48px; height: 48px; opacity: 0.3;"></i>
                     </div>
                     {% endif %}
                     <div class="explore-card-overlay">
+                        <div class="explore-card-user">
+                            {% if omzo.user.profile_picture %}
+                            <img src="{{ omzo.user.profile_picture.url }}" alt="{{ omzo.user.username }}" class="explore-card-user-avatar" onerror="this.outerHTML='<div class=\'explore-card-user-avatar-placeholder\'>{{ omzo.user.initials }}</div>'">
+                            {% else %}
+                            <div class="explore-card-user-avatar-placeholder">{{ omzo.user.initials }}</div>
+                            {% endif %}
+                            <div class="explore-card-user-info">
+                                <span class="explore-card-user-name">{{ omzo.user.full_name|default:omzo.user.username }}</span>
+                                <span class="explore-card-user-handle">@{{ omzo.user.username }}</span>
+                            </div>
+                        </div>
                         <div class="explore-card-tag">Omzo</div>
                         {% if omzo.caption %}
                         <div class="explore-card-caption">{{ omzo.caption|truncatewords:15 }}</div>
@@ -662,18 +743,18 @@
                     <div style="text-align: center;">
                         {% if person.profile_picture %}
                         <img src="{{ person.profile_picture.url }}" alt="{{ person.full_name }}"
-                            style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; margin-bottom: 12px;"
+                            style="width: 80px; height: 80px; border-radius: 22%; object-fit: cover; margin-bottom: 12px;"
                             onerror="this.style.display='none';">
                         {% else %}
                         <div
-                            style="width: 80px; height: 80px; border-radius: 50%; background-color: var(--ig-surface); margin: 0 auto 12px; display: flex; align-items: center; justify-content: center; color: var(--ig-text-secondary);">
+                            style="width: 80px; height: 80px; border-radius: 22%; background-color: var(--od-surface); margin: 0 auto 12px; display: flex; align-items: center; justify-content: center; color: var(--od-text-secondary);">
                             <i data-lucide="user" style="width: 36px; height: 36px;"></i>
                         </div>
                         {% endif %}
                         <div
-                            style="font-weight: 600; color: var(--ig-text-primary); font-size: 14px; margin-bottom: 4px;">
+                            style="font-weight: 600; color: var(--od-text-primary); font-size: 14px; margin-bottom: 4px;">
                             {{ person.full_name|default:person.username }}</div>
-                        <div style="color: var(--ig-text-secondary); font-size: 12px;">@{{ person.username }}</div>
+                        <div style="color: var(--od-text-secondary); font-size: 12px;">@{{ person.username }}</div>
                     </div>
                 </div>
             </article>
@@ -686,14 +767,14 @@
                     style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); display: flex; align-items: center; justify-content: center;">
                     <div style="text-align: center;">
                         <div
-                            style="width: 80px; height: 80px; border-radius: 50%; background-color: var(--ig-surface); margin: 0 auto 12px; display: flex; align-items: center; justify-content: center;">
+                            style="width: 80px; height: 80px; border-radius: 50%; background-color: var(--od-surface); margin: 0 auto 12px; display: flex; align-items: center; justify-content: center;">
                             <i data-lucide="users"
-                                style="width: 36px; height: 36px; color: var(--ig-text-secondary);"></i>
+                                style="width: 36px; height: 36px; color: var(--od-text-secondary);"></i>
                         </div>
                         <div
-                            style="font-weight: 600; color: var(--ig-text-primary); font-size: 14px; margin-bottom: 4px;">
+                            style="font-weight: 600; color: var(--od-text-primary); font-size: 14px; margin-bottom: 4px;">
                             {{ group.name }}</div>
-                        <div style="color: var(--ig-text-secondary); font-size: 12px;">Group</div>
+                        <div style="color: var(--od-text-secondary); font-size: 12px;">Group</div>
                     </div>
                 </div>
             </article>
@@ -702,7 +783,7 @@
             {% endfor %}
         </div>
         {% else %}
-        <div class="ig-empty-state">
+        <div class="od-empty-state">
             <i data-lucide="sparkles"></i>
             <h3>Nothing to explore yet</h3>
             <p>Post a Scribe or Omzo to be featured here.</p>
@@ -772,7 +853,7 @@
                             escapeHtml(`<style>${tweet.code_css || ''}</style>${tweet.code_html}<script>${tweet.code_js || ''}<\/script>`);
                         mediaSection = `<iframe style="width: 100%; height: 400px; border: none;" sandbox="allow-scripts" srcdoc="${srcContent}"></iframe>`;
                     } else {
-                        mediaSection = `<div style="width: 100%; height: 250px; background: var(--ig-surface-hover); display: flex; align-items: center; justify-content: center; color: var(--ig-text-secondary);"><i data-lucide="file-text" style="width: 48px; height: 48px; opacity: 0.3;"></i></div>`;
+                        mediaSection = `<div style="width: 100%; height: 250px; background: var(--od-surface-hover); display: flex; align-items: center; justify-content: center; color: var(--od-text-secondary);"><i data-lucide="file-text" style="width: 48px; height: 48px; opacity: 0.3;"></i></div>`;
                     }
 
                     body.innerHTML = `
@@ -783,19 +864,19 @@
                             
                             <div class="post-modal-info" style="flex-shrink: 0;">
                                 <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-                                    <img src="${tweet.avatar || 'https://ui-avatars.com/api/?name=' + tweet.username}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;" onerror="this.style.display='none';">
+                                    <img src="${tweet.avatar || 'https://ui-avatars.com/api/?name=' + tweet.username}" style="width: 32px; height: 32px; border-radius: 22%; object-fit: cover;" onerror="this.style.display='none';">
                                     <div>
-                                        <div style="font-weight: 600; color: var(--ig-text-primary); font-size: 13px;">${tweet.full_name || tweet.username}</div>
-                                        <div style="color: var(--ig-text-secondary); font-size: 12px;">@${tweet.username}</div>
+                                        <div style="font-weight: 600; color: var(--od-text-primary); font-size: 13px;">${tweet.full_name || tweet.username}</div>
+                                        <div style="color: var(--od-text-secondary); font-size: 12px;">@${tweet.username}</div>
                                     </div>
                                 </div>
                                 
-                                ${tweet.content ? `<div style="color: var(--ig-text-primary); font-size: 14px; line-height: 1.5; margin-bottom: 12px;">${tweet.content}</div>` : ''}
+                                ${tweet.content ? `<div style="color: var(--od-text-primary); font-size: 14px; line-height: 1.5; margin-bottom: 12px;">${tweet.content}</div>` : ''}
                                 
-                                <div style="display: flex; gap: 16px; font-size: 13px; color: var(--ig-text-secondary);">
-                                    <span id="likeCount${postId}"><strong style="color: var(--ig-text-primary);">${tweet.like_count || 0}</strong> Likes</span>
-                                    <span id="commentCount${postId}"><strong style="color: var(--ig-text-primary);">${tweet.comment_count || 0}</strong> Comments</span>
-                                    <span style="color: var(--ig-text-secondary); font-size: 11px;">${tweet.time_ago}</span>
+                                <div style="display: flex; gap: 16px; font-size: 13px; color: var(--od-text-secondary);">
+                                    <span id="likeCount${postId}"><strong style="color: var(--od-text-primary);">${tweet.like_count || 0}</strong> Likes</span>
+                                    <span id="commentCount${postId}"><strong style="color: var(--od-text-primary);">${tweet.comment_count || 0}</strong> Comments</span>
+                                    <span style="color: var(--od-text-secondary); font-size: 11px;">${tweet.time_ago}</span>
                                 </div>
                             </div>
                             
@@ -811,7 +892,7 @@
                             </div>
                             
                             <div class="post-modal-comments-section" id="commentsSection${postId}">
-                                <div style="text-align: center; padding: 20px; color: var(--ig-text-secondary);">
+                                <div style="text-align: center; padding: 20px; color: var(--od-text-secondary);">
                                     <i data-lucide="loader" style="width: 24px; height: 24px; animation: spin 1s linear infinite;"></i>
                                 </div>
                             </div>
@@ -870,7 +951,7 @@
 
                     const likeCountEl = document.getElementById('likeCount' + postId);
                     if (likeCountEl && data.like_count !== undefined) {
-                        likeCountEl.innerHTML = `<strong style="color: var(--ig-text-primary);">${data.like_count}</strong> Likes`;
+                        likeCountEl.innerHTML = `<strong style="color: var(--od-text-primary);">${data.like_count}</strong> Likes`;
                     }
                 }
             })
@@ -887,7 +968,7 @@
                 if (data.success && data.comments) {
                     if (data.comments.length === 0) {
                         commentsSection.innerHTML = `
-                            <div style="text-align: center; padding: 20px; color: var(--ig-text-secondary);">
+                            <div style="text-align: center; padding: 20px; color: var(--od-text-secondary);">
                                 <i data-lucide="message-circle" style="width: 24px; height: 24px; opacity: 0.3; margin-bottom: 8px;"></i>
                                 <div style="font-size: 13px;">No comments yet</div>
                             </div>
@@ -896,26 +977,26 @@
                         commentsSection.innerHTML = data.comments.map(comment => `
                             <div class="post-modal-comment-item">
                                 <div style="display: flex; gap: 10px;">
-                                    <img src="${comment.avatar || 'https://ui-avatars.com/api/?name=' + comment.username}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; flex-shrink: 0;" onerror="this.style.display='none';">
+                                    <img src="${comment.avatar || 'https://ui-avatars.com/api/?name=' + comment.username}" style="width: 32px; height: 32px; border-radius: 22%; object-fit: cover; flex-shrink: 0;" onerror="this.style.display='none';">
                                     <div style="flex: 1;">
                                         <div style="margin-bottom: 4px;">
-                                            <span style="font-weight: 600; color: var(--ig-text-primary); font-size: 13px;">${comment.full_name || comment.username}</span>
-                                            <span style="color: var(--ig-text-secondary); font-size: 12px; margin-left: 6px;">@${comment.username}</span>
+                                            <span style="font-weight: 600; color: var(--od-text-primary); font-size: 13px;">${comment.full_name || comment.username}</span>
+                                            <span style="color: var(--od-text-secondary); font-size: 12px; margin-left: 6px;">@${comment.username}</span>
                                         </div>
-                                        <div style="color: var(--ig-text-primary); font-size: 13px; line-height: 1.4;">${comment.content || ''}</div>
-                                        <div style="color: var(--ig-text-secondary); font-size: 11px; margin-top: 6px;">${comment.time_ago || ''}</div>
+                                        <div style="color: var(--od-text-primary); font-size: 13px; line-height: 1.4;">${comment.content || ''}</div>
+                                        <div style="color: var(--od-text-secondary); font-size: 11px; margin-top: 6px;">${comment.time_ago || ''}</div>
                                     </div>
                                 </div>
                             </div>
                         `).join('');
                     }
                 } else {
-                    commentsSection.innerHTML = `<div style="text-align: center; padding: 20px; font-size:13px; color: var(--ig-text-secondary);">Failed to load comments</div>`;
+                    commentsSection.innerHTML = `<div style="text-align: center; padding: 20px; font-size:13px; color: var(--od-text-secondary);">Failed to load comments</div>`;
                 }
                 if (typeof lucide !== 'undefined') lucide.createIcons();
             })
             .catch(() => {
-                commentsSection.innerHTML = `<div style="text-align: center; padding: 20px; font-size:13px; color: var(--ig-text-secondary);">Error loading comments</div>`;
+                commentsSection.innerHTML = `<div style="text-align: center; padding: 20px; font-size:13px; color: var(--od-text-secondary);">Error loading comments</div>`;
             });
     }
 
@@ -935,7 +1016,7 @@
                     loadCommentsInModal(postId);
                     const commentCountEl = document.getElementById('commentCount' + postId);
                     if (commentCountEl && data.comment_count !== undefined) {
-                        commentCountEl.innerHTML = `<strong style="color: var(--ig-text-primary);">${data.comment_count}</strong> Comments`;
+                        commentCountEl.innerHTML = `<strong style="color: var(--od-text-primary);">${data.comment_count}</strong> Comments`;
                     }
                 } else {
                     alert('Failed to post comment');
@@ -988,10 +1069,10 @@
             if (!noResults) {
                 noResults = document.createElement('div');
                 noResults.id = 'exploreNoResults';
-                noResults.className = 'ig-search-no-results';
+                noResults.className = 'od-search-no-results';
                 noResults.innerHTML = `
                     <i data-lucide="search"></i>
-                    <h3 style="color: var(--ig-text-primary); margin: 12px 0 8px 0;">No results found</h3>
+                    <h3 style="color: var(--od-text-primary); margin: 12px 0 8px 0;">No results found</h3>
                     <p>Try searching for different keywords</p>
                 `;
                 grid.parentNode.insertBefore(noResults, grid.nextSibling);
@@ -1140,16 +1221,27 @@
                 const escapedDoc = escapeHtml(rawDoc);
                 mediaHTML = `<iframe class="explore-card-media" srcdoc="${escapedDoc}" style="border: none; width: 100%; height: 100%; pointer-events: none;" sandbox="allow-scripts" loading="lazy"></iframe>`;
             } else {
-                mediaHTML = `<div class="explore-card-media" style="background: var(--ig-surface-hover); display: flex; align-items: center; justify-content: center;"><i data-lucide="file-text" style="width: 48px; height: 48px; opacity: 0.3;"></i></div>`;
+                mediaHTML = `<div class="explore-card-media" style="background: var(--od-surface-hover); display: flex; align-items: center; justify-content: center;"><i data-lucide="file-text" style="width: 48px; height: 48px; opacity: 0.3;"></i></div>`;
             }
 
             article.setAttribute('data-has-code', isCode ? 'true' : 'false');
+
+            const userAvatarHTML = item.user.profile_picture 
+                ? `<img src="${item.user.profile_picture}" alt="${item.user.username}" class="explore-card-user-avatar" onerror="this.outerHTML='<div class=\\'explore-card-user-avatar-placeholder\\'>${item.user.initials || item.user.username.charAt(0).toUpperCase()}</div>'">`
+                : `<div class="explore-card-user-avatar-placeholder">${item.user.initials || item.user.username.charAt(0).toUpperCase()}</div>`;
 
             content = `
                 <div class="explore-card-media-container">
                     ${mediaHTML}
                     ${isCode ? '<span class="explore-code-badge"><i data-lucide="code" style="width: 10px; height: 10px; display: inline-block;"></i> Code</span>' : ''}
                     <div class="explore-card-overlay">
+                        <div class="explore-card-user">
+                            ${userAvatarHTML}
+                            <div class="explore-card-user-info">
+                                <span class="explore-card-user-name">${item.user.full_name || item.user.username}</span>
+                                <span class="explore-card-user-handle">@${item.user.username}</span>
+                            </div>
+                        </div>
                         <div class="explore-card-tag">${tag}</div>
                         ${item.content ? `<div class="explore-card-caption">${truncateText(item.content, 15)}</div>` : ''}
                     </div>
@@ -1162,12 +1254,23 @@
 
             const mediaHTML = item.video_url ?
                 `<video class="explore-card-media" muted autoplay loop playsinline onclick="event.stopPropagation(); openOmzoInOmzo(${item.id})"><source src="${item.video_url}" type="video/mp4"></video><div class="explore-omzo-play-icon" onclick="event.stopPropagation(); openOmzoInOmzo(${item.id})"><i data-lucide="play"></i></div>` :
-                `<div class="explore-card-media" style="background: var(--ig-surface-hover); display: flex; align-items: center; justify-content: center;"><i data-lucide="video" style="width: 48px; height: 48px; opacity: 0.3;"></i></div>`;
+                `<div class="explore-card-media" style="background: var(--od-surface-hover); display: flex; align-items: center; justify-content: center;"><i data-lucide="video" style="width: 48px; height: 48px; opacity: 0.3;"></i></div>`;
+
+            const omzoUserAvatarHTML = item.user.profile_picture 
+                ? `<img src="${item.user.profile_picture}" alt="${item.user.username}" class="explore-card-user-avatar" onerror="this.outerHTML='<div class=\\'explore-card-user-avatar-placeholder\\'>${item.user.initials || item.user.username.charAt(0).toUpperCase()}</div>'">`
+                : `<div class="explore-card-user-avatar-placeholder">${item.user.initials || item.user.username.charAt(0).toUpperCase()}</div>`;
 
             content = `
                 <div class="explore-card-media-container">
                     ${mediaHTML}
                     <div class="explore-card-overlay">
+                        <div class="explore-card-user">
+                            ${omzoUserAvatarHTML}
+                            <div class="explore-card-user-info">
+                                <span class="explore-card-user-name">${item.user.full_name || item.user.username}</span>
+                                <span class="explore-card-user-handle">@${item.user.username}</span>
+                            </div>
+                        </div>
                         <div class="explore-card-tag">Omzo</div>
                         ${item.caption ? `<div class="explore-card-caption">${truncateText(item.caption, 15)}</div>` : ''}
                     </div>
@@ -1178,15 +1281,15 @@
             article.onclick = () => window.location.href = `/chat/profile/${item.username}/`;
 
             const avatarHTML = item.profile_picture ?
-                `<img src="${item.profile_picture}" alt="${item.full_name}" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; margin-bottom: 12px;">` :
-                `<div style="width: 80px; height: 80px; border-radius: 50%; background-color: var(--ig-surface); margin: 0 auto 12px; display: flex; align-items: center; justify-content: center; color: var(--ig-text-secondary);"><i data-lucide="user" style="width: 36px; height: 36px;"></i></div>`;
+                `<img src="${item.profile_picture}" alt="${item.full_name}" style="width: 80px; height: 80px; border-radius: 22%; object-fit: cover; margin-bottom: 12px;">` :
+                `<div style="width: 80px; height: 80px; border-radius: 22%; background-color: var(--od-surface); margin: 0 auto 12px; display: flex; align-items: center; justify-content: center; color: var(--od-text-secondary);"><i data-lucide="user" style="width: 36px; height: 36px;"></i></div>`;
 
             content = `
                 <div class="explore-card-media-container" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); display: flex; align-items: center; justify-content: center;">
                     <div style="text-align: center;">
                         ${avatarHTML}
-                        <div style="font-weight: 600; color: var(--ig-text-primary); font-size: 14px; margin-bottom: 4px;">${item.full_name || item.username}</div>
-                        <div style="color: var(--ig-text-secondary); font-size: 12px;">@${item.username}</div>
+                        <div style="font-weight: 600; color: var(--od-text-primary); font-size: 14px; margin-bottom: 4px;">${item.full_name || item.username}</div>
+                        <div style="color: var(--od-text-secondary); font-size: 12px;">@${item.username}</div>
                     </div>
                 </div>
             `;
@@ -1197,9 +1300,9 @@
             content = `
                 <div class="explore-card-media-container" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); display: flex; align-items: center; justify-content: center;">
                     <div style="text-align: center;">
-                        <div style="width: 80px; height: 80px; border-radius: 50%; background-color: var(--ig-surface); margin: 0 auto 12px; display: flex; align-items: center; justify-content: center;"><i data-lucide="users" style="width: 36px; height: 36px; color: var(--ig-text-secondary);"></i></div>
-                        <div style="font-weight: 600; color: var(--ig-text-primary); font-size: 14px; margin-bottom: 4px;">${item.name}</div>
-                        <div style="color: var(--ig-text-secondary); font-size: 12px;">Group</div>
+                        <div style="width: 80px; height: 80px; border-radius: 50%; background-color: var(--od-surface); margin: 0 auto 12px; display: flex; align-items: center; justify-content: center;"><i data-lucide="users" style="width: 36px; height: 36px; color: var(--od-text-secondary);"></i></div>
+                        <div style="font-weight: 600; color: var(--od-text-primary); font-size: 14px; margin-bottom: 4px;">${item.name}</div>
+                        <div style="color: var(--od-text-secondary); font-size: 12px;">Group</div>
                     </div>
                 </div>
             `;
@@ -1232,8 +1335,8 @@
         if (!indicator) {
             indicator = document.createElement('div');
             indicator.id = 'loadingIndicator';
-            indicator.style.cssText = 'position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%); background: var(--ig-surface); border: 1px solid var(--ig-border); border-radius: 8px; padding: 12px 20px; display: flex; align-items: center; gap: 12px; z-index: 100; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);';
-            indicator.innerHTML = '<i data-lucide="loader" style="width: 20px; height: 20px; animation: spin 1s linear infinite;"></i><span style="color: var(--ig-text-primary); font-size: 14px;">Loading more content...</span>';
+            indicator.style.cssText = 'position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%); background: var(--od-surface); border: 1px solid var(--od-border); border-radius: 8px; padding: 12px 20px; display: flex; align-items: center; gap: 12px; z-index: 100; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);';
+            indicator.innerHTML = '<i data-lucide="loader" style="width: 20px; height: 20px; animation: spin 1s linear infinite;"></i><span style="color: var(--od-text-primary); font-size: 14px;">Loading more content...</span>';
             document.body.appendChild(indicator);
             if (typeof lucide !== 'undefined') lucide.createIcons();
         }
@@ -1380,7 +1483,7 @@
                             loadMoreDiv.style.textAlign = 'center';
                             loadMoreDiv.style.padding = '20px';
                             // Use currentQuery global instead of embedding string
-                            loadMoreDiv.innerHTML = `<button onclick="performGlobalSearch(currentQuery, ${page + 1})" style="background:var(--ig-primary);color:#fff;border:none;padding:10px 20px;border-radius:20px;cursor:pointer;">Load More Results</button>`;
+                            loadMoreDiv.innerHTML = `<button onclick="performGlobalSearch(currentQuery, ${page + 1})" style="background:var(--od-primary);color:#fff;border:none;padding:10px 20px;border-radius:20px;cursor:pointer;">Load More Results</button>`;
 
                             const oldLoad = document.getElementById('search-load-more');
                             if (oldLoad) oldLoad.remove();
@@ -1406,7 +1509,16 @@
     function createSearchResultCard(item) {
         const article = document.createElement('article');
         article.className = 'explore-card';
-        let clickAction = '', icon = '', imageHtml = '', tag = '';
+        let clickAction = '', icon = '', imageHtml = '', tag = 'Post', userHtml = '';
+
+        // Helper to generate user HTML
+        const getUserHtml = (userData) => {
+            if (!userData) return '';
+            const avatarHtml = userData.profile_picture 
+                ? `<img src="${userData.profile_picture}" alt="${userData.username}" class="explore-card-user-avatar" onerror="this.outerHTML='<div class=\\'explore-card-user-avatar-placeholder\\'>${(userData.initials || userData.username.charAt(0).toUpperCase())}</div>'">`
+                : `<div class="explore-card-user-avatar-placeholder">${userData.initials || userData.username.charAt(0).toUpperCase()}</div>`;
+            return `<div class="explore-card-user">${avatarHtml}<div class="explore-card-user-info"><span class="explore-card-user-name">${userData.full_name || userData.username}</span><span class="explore-card-user-handle">@${userData.username}</span></div></div>`;
+        };
 
         if (item.type === 'person') {
             clickAction = `window.location.href='/profile/${item.data.username}/'`;
@@ -1418,19 +1530,22 @@
             imageHtml = `<div class="explore-card-media" style="background:#e0f2f1;display:flex;align-items:center;justify-content:center;"><i data-lucide="users" style="width:48px;height:48px;opacity:0.3;color:#26a69a;"></i></div>`;
         } else if (item.type === 'scribe' || item.type === 'post') {
             clickAction = `openScribePost(${item.id})`;
-            icon = 'file-text'; tag = item.type === 'scribe' ? 'Code Scribe' : 'Post';
+            icon = 'file-text'; 
+            tag = (item.data && item.data.has_code) ? 'Code Scribe' : 'Scribe';
+            if (item.data && item.data.user) userHtml = getUserHtml(item.data.user);
             if (item.image_url) { imageHtml = `<img src="${item.image_url}" class="explore-card-media">`; }
             else if (item.data.has_code) { imageHtml = `<div class="explore-card-media" style="background:#263238;display:flex;align-items:center;justify-content:center;"><i data-lucide="code" style="width:48px;height:48px;color:#fff;opacity:0.8;"></i></div>`; }
             else { imageHtml = `<div class="explore-card-media" style="background:#f0f2f5;display:flex;align-items:center;justify-content:center;"><div style="padding:20px;font-size:12px;overflow:hidden;">${item.data.content || 'Text Post'}</div></div>`; }
         } else if (item.type === 'omzo') {
             clickAction = `openOmzoInOmzo(${item.id})`;
             icon = 'video'; tag = 'Omzo';
+            if (item.data && item.data.user) userHtml = getUserHtml(item.data.user);
             if (item.image_url) { imageHtml = `<video src="${item.image_url}" class="explore-card-media" muted></video>`; }
             else { imageHtml = `<div class="explore-card-media" style="background:#000;display:flex;align-items:center;justify-content:center;"><i data-lucide="video" style="width:48px;height:48px;color:#fff;"></i></div>`; }
         }
 
         article.setAttribute('onclick', clickAction);
-        article.innerHTML = `<div class="explore-card-media-container">${imageHtml}<div class="explore-card-overlay" style="opacity:1; background:linear-gradient(0deg, rgba(0,0,0,0.8), transparent 40%); justify-content:flex-end;"><div class="explore-card-tag">${tag}</div><div style="color:white;font-weight:600;font-size:14px;">${item.title}</div><div style="color:rgba(255,255,255,0.7);font-size:12px;">${item.subtitle}</div></div></div>`;
+        article.innerHTML = `<div class="explore-card-media-container">${imageHtml}<div class="explore-card-overlay" style="opacity:1; background:linear-gradient(0deg, rgba(0,0,0,0.8), transparent 40%); justify-content:flex-end;">${userHtml}${tag ? `<div class="explore-card-tag">${tag}</div>` : ''}<div style="color:white;font-weight:600;font-size:14px;">${item.title}</div><div style="color:rgba(255,255,255,0.7);font-size:12px;">${item.subtitle}</div></div></div>`;
         return article;
     }
 </script>
