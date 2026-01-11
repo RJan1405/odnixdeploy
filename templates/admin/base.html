@@ -1,0 +1,29 @@
+{% extends "admin/base.html" %}
+
+{% block extrahead %}
+{{ block.super }}
+{# CRITICAL: Prevent white flash on dark theme - must run synchronously before any rendering #}
+<script>
+(function() {
+    var theme = localStorage.getItem('odnix-admin-theme');
+    if (theme === 'dark') {
+        document.documentElement.classList.add('dark-theme');
+        document.documentElement.classList.remove('light-theme');
+        document.documentElement.setAttribute('data-theme', 'dark');
+    } else {
+        document.documentElement.classList.add('light-theme');
+        document.documentElement.classList.remove('dark-theme');
+        document.documentElement.setAttribute('data-theme', 'light');
+    }
+})();
+</script>
+<style>
+/* Immediate dark background if dark theme is set - prevents white flash */
+html.dark-theme {
+    background-color: #222222 !important;
+}
+html.dark-theme body {
+    background-color: #222222 !important;
+}
+</style>
+{% endblock %}

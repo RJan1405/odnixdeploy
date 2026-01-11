@@ -23,6 +23,7 @@ ALLOWED_HOSTS = ['localhost', '127.0.0.1', '*']
 SITE_DOMAIN = 'http://127.0.0.1:8000'
 
 INSTALLED_APPS = [
+    'jazzmin',  # Must be before django.contrib.admin
     'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -228,3 +229,272 @@ OMZO_AUDIO_BITRATE = os.getenv(
 OMZO_SMART_FALLBACK = os.getenv(
     'OMZO_SMART_FALLBACK', '1') in ('1', 'true', 'True')
 OMZO_FORCE_MP4 = os.getenv('OMZO_FORCE_MP4', '1') in ('1', 'true', 'True')
+
+# ============================================================================
+# JAZZMIN ADMIN THEME CONFIGURATION
+# ============================================================================
+
+JAZZMIN_SETTINGS = {
+    # Title on the login screen (19 chars max)
+    "site_title": "Odnix Admin",
+    
+    # Title on the brand (19 chars max)
+    "site_header": "Odnix",
+    
+    # Title on the brand in sidebar
+    "site_brand": "Odnix",
+    
+    # Logo to use for your site, must be present in static files
+    "site_logo": "img/logo.png",
+    
+    # Logo to use for your site on login page
+    "login_logo": "img/logo.png",
+    
+    # Logo to use for login form in dark themes
+    "login_logo_dark": "img/logo.png",
+    
+    # CSS classes applied to the logo
+    "site_logo_classes": "",
+    
+    # Relative path to a favicon, will default to site_logo if absent
+    "site_icon": "img/logo.png",
+    
+    # Welcome text on the login screen
+    "welcome_sign": "Welcome to Odnix Admin Panel",
+    
+    # Copyright on the footer
+    "copyright": "Odnix Social Platform",
+    
+    # List of model admins to search from the search bar
+    "search_model": ["chat.CustomUser", "chat.Chat", "chat.Tweet", "chat.Omzo"],
+    
+    # Field name on user model that contains avatar ImageField/URLField/Charfield
+    "user_avatar": "profile_picture",
+
+    ############
+    # Top Menu #
+    ############
+    "topmenu_links": [
+        # Url that gets reversed (Alarm those those those names are valid)
+        {"name": "Home", "url": "admin:index", "permissions": ["auth.view_user"]},
+        
+        # External url that opens in a new window
+        {"name": "View Site", "url": "/dashboard/", "new_window": True},
+        
+        # Model admin to link to (Alarm those names to valid ones)
+        {"model": "chat.CustomUser"},
+        
+        # App with dropdown menu to all its models pages
+        {"app": "chat"},
+    ],
+
+    #############
+    # User Menu #
+    #############
+    "usermenu_links": [
+        {"name": "View Site", "url": "/dashboard/", "new_window": True, "icon": "fas fa-globe"},
+        {"model": "chat.customuser"},
+    ],
+
+    #############
+    # Side Menu #
+    #############
+    # Whether to display the side menu
+    "show_sidebar": True,
+    
+    # Whether to auto expand the menu
+    "navigation_expanded": True,
+    
+    # Hide these apps when generating side menu
+    "hide_apps": [],
+    
+    # Hide these models when generating side menu
+    "hide_models": [],
+    
+    # List of apps (and/or models) to base side menu ordering off of
+    "order_with_respect_to": [
+        "chat",
+        "chat.CustomUser",
+        "chat.Follow",
+        "chat.Chat",
+        "chat.Message",
+        "chat.GroupJoinRequest",
+        "chat.Tweet",
+        "chat.Like",
+        "chat.Dislike",
+        "chat.Comment",
+        "chat.SavedPost",
+        "chat.Story",
+        "chat.Omzo",
+        "chat.OmzoLike",
+        "chat.OmzoDislike",
+        "chat.OmzoComment",
+        "chat.PostReport",
+        "chat.OmzoReport",
+        "chat.EmailVerificationToken",
+        "auth",
+        "auth.Group",
+    ],
+    
+    # Custom links to append to app groups
+    # Note: Commented out - "Analytics Dashboard" pointed to /admin/ (same as main Dashboard)
+    # "custom_links": {
+    #     "chat": [{
+    #         "name": "Analytics Dashboard",
+    #         "url": "/admin/",
+    #         "icon": "fas fa-chart-line",
+    #         "permissions": ["chat.view_customuser"]
+    #     }]
+    # },
+    "custom_links": {},
+
+    #############
+    # Icons     #
+    #############
+    # Icons that are used when one is not manually specified
+    "default_icon_parents": "fas fa-chevron-circle-right",
+    "default_icon_children": "fas fa-circle",
+    
+    # Custom icons for apps/models
+    "icons": {
+        # Auth app
+        "auth": "fas fa-users-cog",
+        "auth.user": "fas fa-user",
+        "auth.Group": "fas fa-users",
+        
+        # Chat app - Users & Auth
+        "chat.CustomUser": "fas fa-user-circle",
+        "chat.EmailVerificationToken": "fas fa-envelope-open-text",
+        "chat.Follow": "fas fa-user-friends",
+        
+        # Chat app - Messaging
+        "chat.Chat": "fas fa-comments",
+        "chat.Message": "fas fa-envelope",
+        "chat.GroupJoinRequest": "fas fa-user-plus",
+        
+        # Chat app - Posts/Tweets
+        "chat.Tweet": "fas fa-feather-alt",
+        "chat.Like": "fas fa-heart",
+        "chat.Dislike": "fas fa-thumbs-down",
+        "chat.Comment": "fas fa-comment-dots",
+        "chat.SavedPost": "fas fa-bookmark",
+        
+        # Chat app - Stories
+        "chat.Story": "fas fa-book-open",
+        "chat.StoryView": "fas fa-eye",
+        "chat.StoryLike": "fas fa-star",
+        "chat.StoryReply": "fas fa-reply",
+        
+        # Chat app - Omzos (Reels/Videos)
+        "chat.Omzo": "fas fa-video",
+        "chat.OmzoLike": "fas fa-heart",
+        "chat.OmzoDislike": "fas fa-thumbs-down",
+        "chat.OmzoComment": "fas fa-comment",
+        
+        # Chat app - Reports & Moderation
+        "chat.PostReport": "fas fa-flag",
+        "chat.OmzoReport": "fas fa-exclamation-triangle",
+        
+        # Other models
+        "chat.Hashtag": "fas fa-hashtag",
+        "chat.P2PSignal": "fas fa-phone",
+        "chat.ProfileView": "fas fa-eye",
+        "chat.TypingStatus": "fas fa-keyboard",
+        "chat.StarredMessage": "fas fa-star",
+    },
+
+    #################
+    # Related Modal #
+    #################
+    # Use modals instead of popups for related objects
+    "related_modal_active": True,
+
+    #############
+    # UI Tweaks #
+    #############
+    # Enable the UI customizer (to change themes live)
+    "show_ui_builder": True,
+
+    ###############
+    # Change view #
+    ###############
+    # Render out the change view as a single form, or in tabs (horizontal/vertical/collapsible/carousel)
+    "changeform_format": "horizontal_tabs",
+    
+    # Override change forms on a per model basis
+    "changeform_format_overrides": {
+        "chat.customuser": "collapsible",
+        "chat.chat": "horizontal_tabs",
+        "chat.tweet": "vertical_tabs",
+        "chat.omzo": "vertical_tabs",
+        "chat.postreport": "collapsible",
+        "chat.omzoreport": "collapsible",
+    },
+
+    # Language chooser (if i18n is enabled)
+    "language_chooser": False,
+    
+    #################
+    # Custom CSS/JS #
+    #################
+    # Add custom CSS for professional styling
+    "custom_css": "css/admin-custom.css",
+    # Add custom JS for theme switcher
+    "custom_js": "js/admin-theme-switcher.js",
+}
+
+# ============================================================================
+# JAZZMIN UI TWEAKS - DARK & LIGHT THEME OPTIONS
+# ============================================================================
+
+JAZZMIN_UI_TWEAKS = {
+    # ===== DARK THEME (Default) =====
+    # Uncomment below for DARK theme
+    
+    "navbar_small_text": False,
+    "footer_small_text": False,
+    "body_small_text": False,
+    "brand_small_text": False,
+    "brand_colour": "navbar-dark",
+    "accent": "accent-primary",
+    "navbar": "navbar-dark navbar-primary",
+    "no_navbar_border": False,
+    "navbar_fixed": True,
+    "layout_boxed": False,
+    "footer_fixed": False,
+    "sidebar_fixed": True,
+    "sidebar": "sidebar-light-primary",
+    "sidebar_nav_small_text": False,
+    "sidebar_disable_expand": False,
+    "sidebar_nav_child_indent": True,
+    "sidebar_nav_compact_style": False,
+    "sidebar_nav_legacy_style": False,
+    "sidebar_nav_flat_style": False,
+    "theme": "flatly",  # Light theme from bootswatch
+    "dark_mode_theme": "darkly",
+    
+    # ===== LIGHT THEME (Alternative) =====
+    # Comment out the DARK theme above and uncomment below for LIGHT theme
+    
+    # "navbar_small_text": False,
+    # "footer_small_text": False,
+    # "body_small_text": False,
+    # "brand_small_text": False,
+    # "brand_colour": "navbar-light",
+    # "accent": "accent-primary",
+    # "navbar": "navbar-light navbar-white",
+    # "no_navbar_border": False,
+    # "navbar_fixed": True,
+    # "layout_boxed": False,
+    # "footer_fixed": False,
+    # "sidebar_fixed": True,
+    # "sidebar": "sidebar-light-primary",
+    # "sidebar_nav_small_text": False,
+    # "sidebar_disable_expand": False,
+    # "sidebar_nav_child_indent": True,
+    # "sidebar_nav_compact_style": False,
+    # "sidebar_nav_legacy_style": False,
+    # "sidebar_nav_flat_style": False,
+    # "theme": "flatly",  # Light theme from bootswatch
+    # "dark_mode_theme": None,
+}

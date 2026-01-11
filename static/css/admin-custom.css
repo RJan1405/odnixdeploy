@@ -1,0 +1,1220 @@
+/* ============================================================================
+   ODNIX ADMIN CUSTOM STYLES - DUAL THEME ARCHITECTURE
+   Professional styling for Django Jazzmin Admin Panel
+   Zero-Flash Theme System - Both themes defined explicitly
+   ============================================================================ */
+
+/* ============================================================================
+   CRITICAL: FLASH PREVENTION - Applied immediately before JS runs
+   This prevents white flash when navigating in dark mode
+   ============================================================================ */
+
+/* Hide everything until theme is determined, then JS will show it */
+html:not(.dark-theme):not(.light-theme) body {
+    visibility: hidden;
+}
+
+/* Ensure dark theme background is applied immediately when class exists */
+html.dark-theme,
+html.dark-theme body,
+html.dark-theme .wrapper,
+html.dark-theme .content-wrapper,
+html.dark-theme .main-sidebar {
+    background-color: #222222 !important;
+}
+
+/* 
+   CSS VARIABLES SYSTEM - NEUTRAL BASE
+   Brand colors only, no theme-specific backgrounds
+*/
+:root {
+    /* Brand Colors (same for both themes) */
+    --primary: #6366f1;
+    --primary-hover: #4f46e5;
+    --secondary: #6b7280;
+    --success: #10b981;
+    --info: #3b82f6;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+    --cyan: #17a2b8;
+}
+
+/* LIGHT THEME - Applied when html.light-theme or body.light-theme exists */
+html.light-theme,
+html.light-theme body,
+body.light-theme {
+    /* Backgrounds - LIGHT */
+    --bg-body: #f3f4f6;
+    --bg-card: #ffffff;
+    --bg-header: #ffffff;
+    --bg-sidebar: #f8f9fa;
+    --bg-input: #f9fafb;
+    --bg-hover: #f1f5f9;
+    --bg-selected: #e0e7ff;
+    
+    /* Text Colors - LIGHT */
+    --text-main: #1f2937;
+    --text-secondary: #4b5563;
+    --text-muted: #6b7280;
+    --text-on-primary: #ffffff;
+    
+    /* Borders */
+    --border-color: #e5e7eb;
+    --border-light: #f3f4f6;
+    
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+/* DARK THEME - Applied when html.dark-theme or body.dark-theme exists */
+html.dark-theme,
+html.dark-theme body,
+body.dark-theme {
+    /* Backgrounds - DARK */
+    --bg-body: #222222;
+    --bg-card: #2b3035;
+    --bg-header: #303030;
+    --bg-sidebar: #1e2227;
+    --bg-input: #2b3035;
+    --bg-hover: rgba(255, 255, 255, 0.05);
+    --bg-selected: rgba(99, 102, 241, 0.25);
+    
+    /* Text Colors - DARK */
+    --text-main: #e0e0e0;
+    --text-secondary: #adb5bd;
+    --text-muted: #6c757d;
+    --text-on-primary: #ffffff;
+    
+    /* Borders */
+    --border-color: #444;
+    --border-light: #555;
+    
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.6);
+}
+
+/* ============================================================================
+   GLOBAL RESETS & UNIFIED STYLES
+   ============================================================================ */
+
+/* Force body and wrappers to respect theme variables */
+body, 
+.wrapper, 
+.content-wrapper {
+    background-color: var(--bg-body) !important;
+    color: var(--text-main) !important;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+}
+
+/* Fix Headings */
+h1, h2, h3, h4, h5, h6, 
+.h1, .h2, .h3, .h4, .h5, .h6,
+.content-header h1,
+.card-title {
+    color: var(--text-main) !important;
+}
+
+/* Links */
+a {
+    color: var(--primary);
+    text-decoration: none;
+}
+a:hover {
+    color: var(--primary-hover);
+    text-decoration: none;
+}
+
+/* ============================================================================
+   LAYOUT COMPONENTS
+   ============================================================================ */
+
+/* Header & Footer - Default styling (overridden by navbar variants) */
+.main-header, .main-footer {
+    background-color: var(--bg-header);
+    color: var(--text-main);
+    border-color: var(--border-color) !important;
+}
+
+/* Navbar Variant Support - Allow Jazzmin color variants to work */
+.main-header.navbar-dark {
+    background-color: inherit;
+}
+.main-header.navbar-light {
+    background-color: inherit;
+}
+.main-header[class*="navbar-primary"],
+.main-header[class*="navbar-secondary"],
+.main-header[class*="navbar-info"],
+.main-header[class*="navbar-success"],
+.main-header[class*="navbar-danger"],
+.main-header[class*="navbar-warning"],
+.main-header[class*="navbar-indigo"],
+.main-header[class*="navbar-purple"],
+.main-header[class*="navbar-pink"],
+.main-header[class*="navbar-navy"],
+.main-header[class*="navbar-lightblue"],
+.main-header[class*="navbar-teal"],
+.main-header[class*="navbar-cyan"],
+.main-header[class*="navbar-orange"],
+.main-header[class*="navbar-white"],
+.main-header.navbar-dark,
+.main-header.navbar-light {
+    background-color: unset !important;
+}
+
+/* Navbar link colors - respect dark/light navbar variants */
+.main-header .nav-link {
+    color: var(--text-secondary);
+}
+.main-header.navbar-dark .nav-link {
+    color: rgba(255, 255, 255, 0.85) !important;
+}
+.main-header.navbar-light .nav-link {
+    color: rgba(0, 0, 0, 0.6) !important;
+}
+.main-header .nav-link:hover {
+    color: var(--primary) !important;
+}
+
+/* Navbar Search Bars & Inputs */
+.navbar .form-control,
+.navbar-search .form-control,
+.navbar input[type="text"],
+.navbar input[type="search"],
+.navbar-nav input {
+    background-color: var(--bg-input) !important;
+    border: 1px solid var(--border-color) !important;
+    color: var(--text-main) !important;
+    padding: 6px 12px !important;
+}
+
+/* Gap between search boxes in navbar */
+.navbar-nav .nav-item,
+.navbar .form-inline,
+.navbar form {
+    margin-right: 12px !important;
+}
+.navbar-nav .nav-item:last-child,
+.navbar form:last-child {
+    margin-right: 0 !important;
+}
+
+/* Search button spacing */
+.navbar .input-group .btn,
+.navbar .form-inline .btn,
+.navbar form .btn {
+    margin-left: 6px !important;
+}
+
+.navbar .form-control::placeholder,
+.navbar input::placeholder {
+    color: var(--text-muted) !important;
+    opacity: 0.7;
+}
+.navbar .form-control:focus {
+    border-color: var(--primary) !important;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15) !important;
+}
+
+/* Navbar buttons and icons */
+.navbar .btn,
+.navbar button {
+    color: var(--text-secondary) !important;
+    background-color: transparent !important;
+    border-color: var(--border-color) !important;
+}
+.navbar .btn:hover,
+.navbar button:hover {
+    color: var(--primary) !important;
+    background-color: var(--bg-hover) !important;
+}
+.navbar .btn-primary {
+    background-color: var(--primary) !important;
+    color: white !important;
+}
+.navbar i, .navbar .fas, .navbar .far {
+    color: var(--text-secondary) !important;
+}
+
+/* Sidebar */
+.main-sidebar {
+    background-color: var(--bg-sidebar) !important;
+    box-shadow: 1px 0 0 var(--border-color) !important;
+}
+.sidebar, .sidebar a {
+    color: var(--text-secondary) !important;
+}
+.sidebar a:hover {
+    color: var(--primary) !important;
+    background-color: rgba(99, 102, 241, 0.1) !important;
+}
+
+/* Sidebar active/selected items */
+.nav-sidebar .nav-link.active,
+.nav-sidebar .nav-link.active:hover {
+    background-color: var(--primary) !important;
+    color: white !important;
+    font-weight: 600 !important;
+}
+.nav-sidebar .nav-link.active i,
+.nav-sidebar .nav-link.active:hover i {
+    color: white !important;
+}
+
+.brand-link {
+    background-color: var(--bg-sidebar) !important;
+    color: var(--text-main) !important;
+    border-bottom: 1px solid var(--border-color) !important;
+}
+
+/* Sidebar Nav Headers - Always Visible */
+.nav-header {
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    font-size: 0.75rem !important;
+    letter-spacing: 0.5px !important;
+}
+html.dark-theme .nav-header,
+body.dark-theme .nav-header {
+    color: #ffffff !important;
+}
+html.light-theme .nav-header,
+body.light-theme .nav-header {
+    color: #1f2937 !important;
+}
+
+/* Content Header */
+.content-header {
+    background-color: transparent !important;
+}
+
+/* ============================================================================
+   BUTTONS
+   ============================================================================ */
+
+.btn {
+    border-radius: 6px !important;
+    box-shadow: var(--shadow-sm) !important;
+    transition: all 0.2s ease !important;
+}
+
+/* Dashboard Add/Change buttons spacing */
+.dashboard-app-list .btn,
+.module tbody .btn,
+table .btn {
+    margin: 2px 4px !important;
+}
+
+/* Button group spacing (Add | Change buttons) */
+.btn-group .btn + .btn,
+td .btn + .btn,
+.model-row .btn + .btn {
+    margin-left: 8px !important;
+}
+
+/* Ensure proper button alignment in table cells */
+td .btn:first-child {
+    margin-left: 0 !important;
+}
+
+/* Primary */
+.btn-primary { background-color: var(--primary) !important; border-color: var(--primary) !important; color: #ffffff !important; }
+.btn-primary:hover, .btn-primary:focus { background-color: var(--primary-hover) !important; border-color: var(--primary-hover) !important; color: #ffffff !important; transform: translateY(-1px); box-shadow: var(--shadow-md) !important; }
+.btn-primary a, .btn-primary:hover a, .btn-primary:focus a { color: #ffffff !important; }
+
+.btn-success { background-color: var(--success) !important; border-color: var(--success) !important; color: #ffffff !important; }
+.btn-success:hover, .btn-success:focus { background-color: #059669 !important; border-color: #059669 !important; color: #ffffff !important; transform: translateY(-1px); }
+.btn-success a, .btn-success:hover a, .btn-success:focus a { color: #ffffff !important; }
+
+.btn-info { background-color: var(--info) !important; border-color: var(--info) !important; color: #ffffff !important; }
+.btn-info:hover, .btn-info:focus { background-color: #2563eb !important; border-color: #2563eb !important; color: #ffffff !important; transform: translateY(-1px); }
+.btn-info a, .btn-info:hover a, .btn-info:focus a { color: #ffffff !important; }
+
+.btn-warning { background-color: var(--warning) !important; border-color: var(--warning) !important; color: #ffffff !important; }
+.btn-warning:hover, .btn-warning:focus { background-color: #d97706 !important; border-color: #d97706 !important; color: #ffffff !important; transform: translateY(-1px); }
+.btn-warning a, .btn-warning:hover a, .btn-warning:focus a { color: #ffffff !important; }
+
+.btn-danger { background-color: var(--danger) !important; border-color: var(--danger) !important; color: #ffffff !important; }
+.btn-danger:hover, .btn-danger:focus { background-color: #dc2626 !important; border-color: #dc2626 !important; color: #ffffff !important; transform: translateY(-1px); }
+.btn-danger a, .btn-danger:hover a, .btn-danger:focus a { color: #ffffff !important; }
+
+/* Secondary (Cancel/Back) */
+.btn-secondary, .btn-default, .btn-light {
+    background-color: var(--secondary) !important;
+    border-color: var(--secondary) !important;
+    color: white !important;
+}
+.btn-secondary:hover, .btn-default:hover, .btn-light:hover {
+    background-color: #4b5563 !important;
+    color: white !important;
+    transform: translateY(-1px);
+}
+
+/* Submit Row */
+.submit-row input[type=submit] {
+    background: var(--primary) !important;
+    color: white !important;
+    border: none !important;
+    padding: 10px 20px !important;
+    border-radius: 6px !important;
+    text-transform: uppercase !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+}
+
+/* ============================================================================
+   CARDS & CONTAINERS
+   ============================================================================ */
+
+.card {
+    background-color: var(--bg-card) !important;
+    color: var(--text-main) !important;
+    border: 1px solid var(--border-color) !important;
+    box-shadow: var(--shadow-sm) !important;
+}
+.card-header {
+    background-color: var(--bg-card) !important;
+    border-bottom: 1px solid var(--border-color) !important;
+}
+.card-body, .card-footer {
+    background-color: var(--bg-card) !important;
+}
+
+/* Collapsible Header Icons */
+.card-header.collapsible-header {
+    cursor: pointer;
+    position: relative;
+    padding-right: 2.5rem !important;
+}
+.card-header.collapsible-header::after {
+    content: '';
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 1.2rem;
+    height: 1.2rem;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a0aec0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position: center;
+    transition: transform 0.3s ease;
+    opacity: 0.7;
+}
+.card-header.collapsible-header.collapsed::after,
+.card.collapsed-card .card-header.collapsible-header::after {
+    transform: translateY(-50%) rotate(-90deg);
+}
+
+/* ============================================================================
+   TIMELINE (FIXED)
+   ============================================================================ */
+
+.timeline > div > .timeline-item {
+    background-color: var(--bg-card) !important;
+    color: var(--text-main) !important;
+    border: 1px solid var(--border-color) !important;
+    box-shadow: var(--shadow-sm) !important;
+}
+.timeline > div > .timeline-item > .timeline-header {
+    border-bottom-color: var(--border-color) !important;
+    color: var(--text-main) !important;
+}
+.timeline > div > .timeline-item > .timeline-body,
+.timeline > div > .timeline-item > .timeline-footer {
+    color: var(--text-main) !important;
+}
+.timeline > div > .fa, .timeline > div > .fas {
+    background-color: var(--bg-card) !important;
+    color: var(--text-secondary) !important;
+}
+
+/* ============================================================================
+   FORMS & INPUTS
+   ============================================================================ */
+
+.form-control, input, select, textarea {
+    background-color: var(--bg-input) !important;
+    border: 1px solid var(--border-color) !important;
+    color: var(--text-main) !important;
+    border-radius: 6px !important;
+}
+.form-control:focus {
+    border-color: var(--primary) !important;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25) !important;
+}
+
+/* Select Dropdown Arrow */
+select:not([multiple]) {
+    appearance: none; -webkit-appearance: none; -moz-appearance: none;
+    padding-right: 2.5rem !important;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a0aec0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e") !important;
+    background-repeat: no-repeat !important;
+    background-position: right 1rem center !important;
+    background-size: 1em !important;
+}
+
+/* Select2 */
+.select2-container--default .select2-selection--single,
+.select2-container--default .select2-selection--multiple {
+    background-color: var(--bg-input) !important;
+    border-color: var(--border-color) !important;
+}
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+    color: var(--text-main) !important;
+}
+.select2-dropdown {
+    background-color: var(--bg-card) !important;
+    border-color: var(--border-color) !important;
+}
+.select2-results__option {
+    background-color: var(--bg-card) !important;
+    color: var(--text-main) !important;
+}
+.select2-container--default .select2-results__option--highlighted[aria-selected] {
+    background-color: var(--primary) !important;
+    color: white !important;
+}
+
+/* ============================================================================
+   TABLES & LISTS
+   ============================================================================ */
+
+.table {
+    color: var(--text-main) !important;
+    background-color: transparent !important;
+}
+.table thead th {
+    background-color: var(--bg-header) !important;
+    color: var(--text-secondary) !important;
+    border-bottom: 2px solid var(--border-color) !important;
+}
+.table tbody tr {
+    background-color: var(--bg-card) !important;
+}
+.table td {
+    border-top: 1px solid var(--border-color) !important;
+    background-color: transparent !important;
+}
+.table tbody tr:hover {
+    background-color: var(--bg-hover) !important;
+}
+.table tbody tr.selected,
+.table tbody tr.selected td {
+    background-color: var(--bg-selected) !important;
+}
+
+/* Table links styling for dark mode - white without underline */
+/* EXCLUDE buttons from these rules using :not(.btn) */
+html.dark-theme .table a:not(.btn),
+html.dark-theme .table-sm a:not(.btn),
+html.dark-theme .table td a:not(.btn),
+html.dark-theme #result_list a:not(.btn),
+html.dark-theme .dashboard-app-list a:not(.btn),
+html.dark-theme .module table a:not(.btn),
+body.dark-theme .table a:not(.btn),
+body.dark-theme .table-sm a:not(.btn),
+body.dark-theme .table td a:not(.btn),
+body.dark-theme #result_list a:not(.btn),
+body.dark-theme .dashboard-app-list a:not(.btn),
+body.dark-theme .module table a:not(.btn) {
+    color: #ffffff !important;
+    text-decoration: none !important;
+}
+
+html.dark-theme .table a:not(.btn):hover,
+html.dark-theme .table-sm a:not(.btn):hover,
+html.dark-theme .table td a:not(.btn):hover,
+html.dark-theme #result_list a:not(.btn):hover,
+html.dark-theme .dashboard-app-list a:not(.btn):hover,
+html.dark-theme .module table a:not(.btn):hover,
+body.dark-theme .table a:not(.btn):hover,
+body.dark-theme .table-sm a:not(.btn):hover,
+body.dark-theme .table td a:not(.btn):hover,
+body.dark-theme #result_list a:not(.btn):hover,
+body.dark-theme .dashboard-app-list a:not(.btn):hover,
+body.dark-theme .module table a:not(.btn):hover {
+    color: var(--primary) !important;
+    text-decoration: none !important;
+}
+
+/* BUTTON LINKS - Force white text on all button states */
+.btn.btn-success,
+.btn.btn-info,
+.btn.btn-primary,
+.btn.btn-warning,
+.btn.btn-danger,
+a.btn.btn-success,
+a.btn.btn-info,
+a.btn.btn-primary,
+a.btn.btn-warning,
+a.btn.btn-danger {
+    color: #ffffff !important;
+}
+
+.btn.btn-success:hover,
+.btn.btn-success:focus,
+.btn.btn-success:active,
+.btn.btn-info:hover,
+.btn.btn-info:focus,
+.btn.btn-info:active,
+.btn.btn-primary:hover,
+.btn.btn-primary:focus,
+.btn.btn-primary:active,
+.btn.btn-warning:hover,
+.btn.btn-warning:focus,
+.btn.btn-warning:active,
+.btn.btn-danger:hover,
+.btn.btn-danger:focus,
+.btn.btn-danger:active,
+a.btn:hover,
+a.btn:focus,
+a.btn:active {
+    color: #ffffff !important;
+}
+
+/* Dark theme specific button overrides */
+html.dark-theme .btn,
+html.dark-theme a.btn,
+body.dark-theme .btn,
+body.dark-theme a.btn,
+html.dark-theme .table .btn,
+html.dark-theme .table a.btn,
+body.dark-theme .table .btn,
+body.dark-theme .table a.btn {
+    color: #ffffff !important;
+}
+
+html.dark-theme .btn:hover,
+html.dark-theme a.btn:hover,
+body.dark-theme .btn:hover,
+body.dark-theme a.btn:hover,
+html.dark-theme .table .btn:hover,
+html.dark-theme .table a.btn:hover,
+body.dark-theme .table .btn:hover,
+body.dark-theme .table a.btn:hover {
+    color: #ffffff !important;
+}
+
+/* CRITICAL FIX: Selected row hover state - darker background for better text visibility */
+.table tbody tr.selected:hover,
+.table tbody tr.selected:hover td,
+#result_list tbody tr.selected:hover,
+#result_list tbody tr.selected:hover td {
+    background-color: var(--primary) !important;
+    color: white !important;
+}
+.table tbody tr.selected:hover a,
+#result_list tbody tr.selected:hover a {
+    color: white !important;
+    text-decoration: underline;
+}
+
+/* Django admin specific table selections */
+.results table tbody tr.selected,
+#result_list tbody tr.selected {
+    background-color: var(--bg-selected) !important;
+}
+#result_list tbody tr {
+    background-color: var(--bg-card) !important;
+}
+#changelist-filter {
+    background-color: var(--bg-sidebar) !important;
+    border-left: 1px solid var(--border-color) !important;
+}
+#changelist-filter h3 {
+    background-color: var(--primary) !important;
+    color: white !important;
+    padding: 8px 12px !important;
+    font-weight: 600 !important;
+}
+#changelist-filter a {
+    color: var(--text-secondary) !important;
+    display: block;
+    padding: 6px 12px !important;
+    transition: all 0.2s ease;
+}
+#changelist-filter a:hover {
+    color: var(--primary) !important;
+    background-color: rgba(99, 102, 241, 0.1) !important;
+    padding-left: 16px !important;
+}
+#changelist-filter li.selected a {
+    color: var(--primary) !important;
+    font-weight: 600 !important;
+    background-color: rgba(99, 102, 241, 0.15) !important;
+}
+
+/* Modal */
+.modal-content {
+    background-color: var(--bg-card) !important;
+    border: 1px solid var(--border-color) !important;
+    color: var(--text-main) !important;
+}
+.close {
+    color: var(--text-main) !important;
+    opacity: 0.5;
+}
+.close:hover { opacity: 1; }
+/* ============================================================================
+   CONTROL SIDEBAR (Jazzmin UI Customizer)
+   ============================================================================ */
+
+/* Control sidebar panel background */
+.control-sidebar,
+.control-sidebar-dark,
+.control-sidebar-light {
+    background-color: var(--bg-sidebar) !important;
+    color: var(--text-main) !important;
+    border-left: 1px solid var(--border-color) !important;
+}
+
+/* Remove the middle scrollbar on control-sidebar wrapper */
+.control-sidebar.control-sidebar-dark,
+.control-sidebar.control-sidebar-light,
+.control-sidebar.ui-customiser {
+    overflow: hidden !important;
+    overflow-y: hidden !important;
+}
+
+/* Let only the inner content scroll */
+.control-sidebar-content,
+.p-3.control-sidebar-content {
+    background-color: var(--bg-sidebar) !important;
+    color: var(--text-main) !important;
+    overflow-y: auto !important;
+    max-height: 100vh !important;
+}
+
+/* Headings inside the customizer sidebar */
+.control-sidebar h5,
+.control-sidebar h6,
+.control-sidebar-content h5,
+.control-sidebar-content h6,
+.p-3.control-sidebar-content h5,
+.p-3.control-sidebar-content h6 {
+    color: var(--text-main) !important;
+    font-weight: 600 !important;
+}
+
+/* Labels and text in the customizer */
+.control-sidebar label,
+.control-sidebar span,
+.control-sidebar p,
+.control-sidebar-content label,
+.control-sidebar-content span,
+.control-sidebar-content p {
+    color: var(--text-secondary) !important;
+}
+
+/* Form controls in the customizer sidebar */
+.control-sidebar .form-control,
+.control-sidebar select,
+.control-sidebar input,
+.control-sidebar-content .form-control,
+.control-sidebar-content select,
+.control-sidebar-content input {
+    background-color: var(--bg-input) !important;
+    border: 1px solid var(--border-color) !important;
+    color: var(--text-main) !important;
+}
+
+/* Custom switches/checkboxes in the sidebar */
+.control-sidebar .custom-control-label,
+.control-sidebar-content .custom-control-label {
+    color: var(--text-secondary) !important;
+}
+
+/* Buttons in the customizer */
+.control-sidebar .btn,
+.control-sidebar-content .btn {
+    border-color: var(--border-color) !important;
+}
+
+/* Theme color swatches - keep their original colors but add border */
+.control-sidebar [data-sidebarskin],
+.control-sidebar [data-navbarskin],
+.control-sidebar-content [data-sidebarskin],
+.control-sidebar-content [data-navbarskin] {
+    border: 2px solid var(--border-color) !important;
+}
+
+/* Dividers/separators */
+.control-sidebar hr,
+.control-sidebar-content hr {
+    border-color: var(--border-color) !important;
+}
+
+/* LIGHT THEME specific overrides for control sidebar */
+html.light-theme .control-sidebar,
+html.light-theme .control-sidebar-dark,
+html.light-theme .control-sidebar-light,
+body.light-theme .control-sidebar,
+body.light-theme .control-sidebar-dark,
+body.light-theme .control-sidebar-light {
+    background-color: #f8f9fa !important;
+}
+
+html.light-theme .control-sidebar-content,
+html.light-theme .p-3.control-sidebar-content,
+body.light-theme .control-sidebar-content,
+body.light-theme .p-3.control-sidebar-content {
+    background-color: #f8f9fa !important;
+}
+
+html.light-theme .control-sidebar h5,
+html.light-theme .control-sidebar-content h5,
+html.light-theme .p-3.control-sidebar-content h5,
+body.light-theme .control-sidebar h5,
+body.light-theme .control-sidebar-content h5,
+body.light-theme .p-3.control-sidebar-content h5 {
+    color: #1f2937 !important;
+}
+
+html.light-theme .control-sidebar label,
+html.light-theme .control-sidebar span,
+html.light-theme .control-sidebar-content label,
+html.light-theme .control-sidebar-content span,
+body.light-theme .control-sidebar label,
+body.light-theme .control-sidebar span,
+body.light-theme .control-sidebar-content label,
+body.light-theme .control-sidebar-content span {
+    color: #4b5563 !important;
+}
+
+/* DARK THEME specific overrides for control sidebar */
+html.dark-theme .control-sidebar,
+html.dark-theme .control-sidebar-dark,
+html.dark-theme .control-sidebar-light,
+body.dark-theme .control-sidebar,
+body.dark-theme .control-sidebar-dark,
+body.dark-theme .control-sidebar-light {
+    background-color: #1e2227 !important;
+}
+
+html.dark-theme .control-sidebar-content,
+html.dark-theme .p-3.control-sidebar-content,
+body.dark-theme .control-sidebar-content,
+body.dark-theme .p-3.control-sidebar-content {
+    background-color: #1e2227 !important;
+}
+
+html.dark-theme .control-sidebar h5,
+html.dark-theme .control-sidebar-content h5,
+html.dark-theme .p-3.control-sidebar-content h5,
+body.dark-theme .control-sidebar h5,
+body.dark-theme .control-sidebar-content h5,
+body.dark-theme .p-3.control-sidebar-content h5 {
+    color: #e0e0e0 !important;
+}
+
+html.dark-theme .control-sidebar label,
+html.dark-theme .control-sidebar span,
+html.dark-theme .control-sidebar-content label,
+html.dark-theme .control-sidebar-content span,
+body.dark-theme .control-sidebar label,
+body.dark-theme .control-sidebar span,
+body.dark-theme .control-sidebar-content label,
+body.dark-theme .control-sidebar-content span {
+    color: #adb5bd !important;
+}
+
+/* ============================================================================
+   SIDEBAR WIDTH & OVERFLOW FIX
+   Prevents horizontal scroll for long text like "Authentication and Authorization"
+   ============================================================================ */
+
+/* Increase sidebar width to accommodate longer text */
+.main-sidebar {
+    width: 280px !important;
+    transition: width 0.3s ease-in-out, transform 0.3s ease-in-out, margin-left 0.3s ease-in-out !important;
+}
+
+/* Adjust content wrapper margin for wider sidebar */
+.content-wrapper,
+.main-footer,
+.main-header {
+    margin-left: 280px !important;
+    transition: margin-left 0.3s ease-in-out !important;
+}
+
+/* When sidebar is collapsed - mini sidebar mode */
+.sidebar-collapse .main-sidebar {
+    width: 4.6rem !important;
+}
+
+.sidebar-collapse .main-sidebar .brand-link {
+    width: 4.6rem !important;
+}
+
+.sidebar-collapse .content-wrapper,
+.sidebar-collapse .main-footer,
+.sidebar-collapse .main-header {
+    margin-left: 4.6rem !important;
+}
+
+/* Hide text when sidebar is collapsed */
+.sidebar-collapse .main-sidebar .nav-link p,
+.sidebar-collapse .main-sidebar .brand-text,
+.sidebar-collapse .main-sidebar .user-panel .info,
+.sidebar-collapse .main-sidebar .nav-header {
+    opacity: 0 !important;
+    visibility: hidden !important;
+    width: 0 !important;
+    display: none !important;
+}
+
+/* Center icons when collapsed */
+.sidebar-collapse .main-sidebar .nav-link {
+    text-align: center !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+
+.sidebar-collapse .main-sidebar .nav-link .nav-icon {
+    margin-right: 0 !important;
+    font-size: 1.2rem !important;
+}
+
+/* User panel when collapsed */
+.sidebar-collapse .main-sidebar .user-panel {
+    justify-content: center !important;
+}
+
+.sidebar-collapse .main-sidebar .user-panel .image {
+    padding-left: 0 !important;
+}
+
+/* Hover effect on collapsed sidebar - expand on hover */
+.sidebar-collapse .main-sidebar:hover {
+    width: 280px !important;
+}
+
+.sidebar-collapse .main-sidebar:hover .nav-link p,
+.sidebar-collapse .main-sidebar:hover .brand-text,
+.sidebar-collapse .main-sidebar:hover .user-panel .info,
+.sidebar-collapse .main-sidebar:hover .nav-header {
+    opacity: 1 !important;
+    visibility: visible !important;
+    width: auto !important;
+    display: block !important;
+}
+
+.sidebar-collapse .main-sidebar:hover .nav-link {
+    text-align: left !important;
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+}
+
+.sidebar-collapse .main-sidebar:hover .nav-link .nav-icon {
+    margin-right: 0.5rem !important;
+}
+
+.sidebar-collapse .main-sidebar:hover .brand-link {
+    width: 280px !important;
+}
+
+/* Prevent horizontal scroll in sidebar */
+.sidebar {
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+}
+
+/* Nav header text - allow wrapping for long text */
+.nav-header {
+    white-space: normal !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+    line-height: 1.4 !important;
+    padding: 0.75rem 1rem 0.5rem !important;
+}
+
+/* Nav item text - prevent overflow */
+.nav-sidebar .nav-link p,
+.nav-sidebar > .nav-item > .nav-link p {
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
+/* User panel info */
+.user-panel .info a {
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    display: block !important;
+    max-width: 180px !important;
+}
+
+/* Brand link - wider sidebar */
+.brand-link {
+    width: 280px !important;
+    transition: width 0.3s ease-in-out !important;
+}
+
+/* ============================================================================
+   RESPONSIVE STYLES
+   ============================================================================ */
+
+/* Large screens (1200px and up) */
+@media (min-width: 1200px) {
+    .main-sidebar {
+        width: 280px !important;
+    }
+    .content-wrapper,
+    .main-footer,
+    .main-header {
+        margin-left: 280px !important;
+    }
+    .brand-link {
+        width: 280px !important;
+    }
+    
+    /* Collapsed state for large screens */
+    .sidebar-collapse .main-sidebar {
+        width: 4.6rem !important;
+    }
+    .sidebar-collapse .content-wrapper,
+    .sidebar-collapse .main-footer,
+    .sidebar-collapse .main-header {
+        margin-left: 4.6rem !important;
+    }
+    .sidebar-collapse .brand-link {
+        width: 4.6rem !important;
+    }
+    .sidebar-collapse .main-sidebar:hover {
+        width: 280px !important;
+    }
+    .sidebar-collapse .main-sidebar:hover .brand-link {
+        width: 280px !important;
+    }
+}
+
+/* Medium screens (992px to 1199px) */
+@media (min-width: 992px) and (max-width: 1199px) {
+    .main-sidebar {
+        width: 260px !important;
+    }
+    .content-wrapper,
+    .main-footer,
+    .main-header {
+        margin-left: 260px !important;
+    }
+    .brand-link {
+        width: 260px !important;
+    }
+    .user-panel .info a {
+        max-width: 160px !important;
+    }
+    
+    /* Collapsed state for medium screens */
+    .sidebar-collapse .main-sidebar {
+        width: 4.6rem !important;
+    }
+    .sidebar-collapse .content-wrapper,
+    .sidebar-collapse .main-footer,
+    .sidebar-collapse .main-header {
+        margin-left: 4.6rem !important;
+    }
+    .sidebar-collapse .brand-link {
+        width: 4.6rem !important;
+    }
+    .sidebar-collapse .main-sidebar:hover {
+        width: 260px !important;
+    }
+    .sidebar-collapse .main-sidebar:hover .brand-link {
+        width: 260px !important;
+    }
+}
+
+/* Tablet screens (768px to 991px) */
+@media (min-width: 768px) and (max-width: 991px) {
+    .main-sidebar {
+        width: 250px !important;
+    }
+    .content-wrapper,
+    .main-footer,
+    .main-header {
+        margin-left: 250px !important;
+    }
+    .brand-link {
+        width: 250px !important;
+    }
+    
+    /* Slightly smaller font for nav items */
+    .nav-sidebar .nav-link p {
+        font-size: 0.9rem !important;
+    }
+    .nav-header {
+        font-size: 0.7rem !important;
+    }
+    .user-panel .info a {
+        max-width: 150px !important;
+    }
+    
+    /* Collapsed state for tablet screens */
+    .sidebar-collapse .main-sidebar {
+        width: 4.6rem !important;
+    }
+    .sidebar-collapse .content-wrapper,
+    .sidebar-collapse .main-footer,
+    .sidebar-collapse .main-header {
+        margin-left: 4.6rem !important;
+    }
+    .sidebar-collapse .brand-link {
+        width: 4.6rem !important;
+    }
+    .sidebar-collapse .main-sidebar:hover {
+        width: 250px !important;
+    }
+    .sidebar-collapse .main-sidebar:hover .brand-link {
+        width: 250px !important;
+    }
+}
+
+/* Small screens (576px to 767px) - Sidebar overlay mode */
+@media (max-width: 767px) {
+    .main-sidebar {
+        width: 280px !important;
+        left: -280px !important;
+        transition: left 0.3s ease !important;
+    }
+    
+    .sidebar-open .main-sidebar {
+        left: 0 !important;
+    }
+    
+    .content-wrapper,
+    .main-footer,
+    .main-header {
+        margin-left: 0 !important;
+    }
+    
+    .brand-link {
+        width: 280px !important;
+    }
+    
+    /* Overlay when sidebar is open */
+    .sidebar-open .content-wrapper::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1030;
+    }
+    
+    /* Card and table adjustments */
+    .card {
+        margin: 0.5rem !important;
+    }
+    
+    .table-responsive {
+        overflow-x: auto !important;
+    }
+    
+    /* Form layout adjustments */
+    .form-group {
+        margin-bottom: 1rem !important;
+    }
+    
+    /* Content padding */
+    .content {
+        padding: 0.5rem !important;
+    }
+    
+    .content-header {
+        padding: 0.5rem 1rem !important;
+    }
+}
+
+/* Extra small screens (under 576px) */
+@media (max-width: 575px) {
+    .main-sidebar {
+        width: 260px !important;
+        left: -260px !important;
+    }
+    
+    .sidebar-open .main-sidebar {
+        left: 0 !important;
+    }
+    
+    .brand-link {
+        width: 260px !important;
+    }
+    
+    /* Compact nav items */
+    .nav-sidebar .nav-link {
+        padding: 0.5rem 0.75rem !important;
+    }
+    
+    .nav-sidebar .nav-link p {
+        font-size: 0.85rem !important;
+    }
+    
+    .nav-header {
+        font-size: 0.65rem !important;
+        padding: 0.5rem 0.75rem !important;
+    }
+    
+    /* User panel compact */
+    .user-panel {
+        padding: 0.5rem !important;
+    }
+    
+    .user-panel .image img {
+        width: 2rem !important;
+        height: 2rem !important;
+    }
+    
+    .user-panel .info a {
+        max-width: 140px !important;
+        font-size: 0.85rem !important;
+    }
+    
+    /* Smaller headings */
+    .content-header h1 {
+        font-size: 1.25rem !important;
+    }
+    
+    /* Table adjustments for mobile */
+    #result_list th,
+    #result_list td {
+        padding: 0.5rem !important;
+        font-size: 0.85rem !important;
+    }
+    
+    /* Button adjustments */
+    .btn {
+        padding: 0.375rem 0.75rem !important;
+        font-size: 0.85rem !important;
+    }
+    
+    /* Card body padding */
+    .card-body {
+        padding: 0.75rem !important;
+    }
+}
+
+/* Fix for admin footer on mobile */
+@media (max-width: 767px) {
+    .main-footer {
+        padding: 0.75rem 1rem !important;
+        font-size: 0.85rem !important;
+    }
+}
+
+/* Ensure proper scrolling behavior */
+html, body {
+    overflow-x: hidden !important;
+}
+
+.wrapper {
+    overflow-x: hidden !important;
+}
