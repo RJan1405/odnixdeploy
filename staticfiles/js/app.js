@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     initializeAuth();
-    initializeTweets();
+    initializeScribes();
     initializeNavigation();
     initializeUserInteractions();
 });
@@ -61,54 +61,54 @@ function initializeAuth() {
     }
 }
 
-function initializeTweets() {
-    console.log('initializeTweets called');
+function initializeScribes() {
+    console.log('initializeScribes called');
     
-    // Handle tweet posting - only attach submit listener if not on profile page
-    const tweetForm = document.getElementById('tweetForm');
-    console.log('tweetForm element:', tweetForm);
+    // Handle scribe posting - only attach submit listener if not on profile page
+    const scribeForm = document.getElementById('scribeForm');
+    console.log('scribeForm element:', scribeForm);
     
-    if (tweetForm && !window.location.pathname.includes('/profile')) {
-        console.log('Attaching submit event listener to tweetForm (not profile page)');
-        tweetForm.addEventListener('submit', function(e) {
+    if (scribeForm && !window.location.pathname.includes('/profile')) {
+        console.log('Attaching submit event listener to scribeForm (not profile page)');
+        scribeForm.addEventListener('submit', function(e) {
             console.log('Form submit event triggered');
             e.preventDefault();
             console.log('Default prevented');
             
-            const tweetContent = document.getElementById('tweetContent');
-            console.log('tweetContent element:', tweetContent);
-            console.log('tweetContent value:', tweetContent ? tweetContent.value : 'null');
+            const scribeContent = document.getElementById('scribeContent');
+            console.log('scribeContent element:', scribeContent);
+            console.log('scribeContent value:', scribeContent ? scribeContent.value : 'null');
             
-            const content = tweetContent.value.trim();
+            const content = scribeContent.value.trim();
             console.log('Trimmed content:', content);
             console.log('Content length:', content.length);
 
             if (!content) {
                 console.log('Content is empty, showing error');
-                showNotification('Please enter some content for your tweet', 'error');
+                showNotification('Please enter some content for your scribe', 'error');
                 return;
             }
 
             if (content.length > 280) {
                 console.log('Content too long, showing error');
-                showNotification('Tweet must be 280 characters or less', 'error');
+                showNotification('Scribe must be 280 characters or less', 'error');
                 return;
             }
 
-            console.log('Calling postTweet with content');
-            postTweet(content, tweetContent);
+            console.log('Calling postScribe with content');
+            postScribe(content, scribeContent);
         });
-    } else if (tweetForm && window.location.pathname.includes('/profile')) {
+    } else if (scribeForm && window.location.pathname.includes('/profile')) {
         console.log('On profile page - using onclick handler instead of submit listener');
     } else {
-        console.log('tweetForm not found on this page');
+        console.log('scribeForm not found on this page');
     }
 
-        // Enhanced character counter for tweets
-        const tweetContent = document.getElementById('tweetContent');
-        if (tweetContent) {
-            console.log('Setting up character counter for tweetContent');
-            tweetContent.addEventListener('input', function() {
+        // Enhanced character counter for scribes
+        const scribeContent = document.getElementById('scribeContent');
+        if (scribeContent) {
+            console.log('Setting up character counter for scribeContent');
+            scribeContent.addEventListener('input', function() {
                 const remaining = 280 - this.value.length;
                 const charCounter = document.getElementById('charCounter');
 
@@ -192,12 +192,12 @@ function initializeUserInteractions() {
 }
 
 // API Functions with enhanced error handling
-function postTweet(content, inputElement) {
-    console.log('postTweet called with content:', content);
+function postScribe(content, inputElement) {
+    console.log('postScribe called with content:', content);
     console.log('Content length:', content.length);
     console.log('Content trimmed:', content.trim());
     
-    const submitBtn = document.querySelector('#tweetForm button[type="submit"]');
+    const submitBtn = document.querySelector('#scribeForm button[type="submit"]');
     const originalText = submitBtn.textContent;
 
     submitBtn.textContent = 'Posting...';
@@ -212,8 +212,8 @@ function postTweet(content, inputElement) {
     formData.append('content', content);
     console.log('FormData created with content:', content);
 
-    console.log('Sending fetch request to /api/post-tweet/');
-    fetch('/api/post-tweet/', {
+    console.log('Sending fetch request to /api/post-scribe/');
+    fetch('/api/post-scribe/', {
         method: 'POST',
         headers: {
             'X-CSRFToken': csrfToken,
@@ -232,31 +232,31 @@ function postTweet(content, inputElement) {
     .then(data => {
         console.log('Response data:', data);
         if (data.success) {
-            console.log('Tweet posted successfully');
+            console.log('Scribe posted successfully');
             inputElement.value = '';
             // Trigger input event to update character counter
             inputElement.dispatchEvent(new Event('input'));
-            showNotification('Tweet posted successfully!', 'success');
+            showNotification('Scribe posted successfully!', 'success');
 
-            // Add the new tweet to the page dynamically if we're on the profile page
-            const tweetsContainer = document.getElementById('tweets-container');
-            if (tweetsContainer) {
-                addTweetToPage(data.tweet);
+            // Add the new scribe to the page dynamically if we're on the profile page
+            const scribesContainer = document.getElementById('scribes-container');
+            if (scribesContainer) {
+                addScribeToPage(data.scribe);
                 
-                // Update tweet count if on profile page
-                const tweetCountEl = document.getElementById('tweetCount');
-                if (tweetCountEl) {
-                    const currentCount = parseInt(tweetCountEl.textContent.replace(/[()]/g, '')) || 0;
-                    tweetCountEl.textContent = `(${currentCount + 1})`;
+                // Update scribe count if on profile page
+                const scribeCountEl = document.getElementById('scribeCount');
+                if (scribeCountEl) {
+                    const currentCount = parseInt(scribeCountEl.textContent.replace(/[()]/g, '')) || 0;
+                    scribeCountEl.textContent = `(${currentCount + 1})`;
                 }
             }
         } else {
             console.error('Server returned error:', data.error);
-            showNotification('Failed to post tweet: ' + (data.error || 'Unknown error'), 'error');
+            showNotification('Failed to post scribe: ' + (data.error || 'Unknown error'), 'error');
         }
     })
     .catch(error => {
-        console.error('Error posting tweet:', error);
+        console.error('Error posting scribe:', error);
         showNotification('Network error. Please check your connection and try again.', 'error');
     })
     .finally(() => {
@@ -266,37 +266,37 @@ function postTweet(content, inputElement) {
     });
 }
 
-function postTweetFromProfile() {
-    console.log('postTweetFromProfile called');
+function postScribeFromProfile() {
+    console.log('postScribeFromProfile called');
     
-    const tweetContent = document.getElementById('tweetContent');
-    const tweetBtn = document.getElementById('tweetBtn');
+    const scribeContent = document.getElementById('scribeContent');
+    const scribeBtn = document.getElementById('scribeBtn');
     
-    if (!tweetContent || !tweetBtn) {
+    if (!scribeContent || !scribeBtn) {
         console.error('Form elements not found');
         showNotification('Form elements not found. Please refresh the page.', 'error');
         return;
     }
     
-    const content = tweetContent.value.trim();
+    const content = scribeContent.value.trim();
     console.log('Content to post:', content);
     
     // Validation
     if (!content) {
         console.log('Content is empty');
-        showNotification('Please enter some content for your tweet', 'error');
+        showNotification('Please enter some content for your scribe', 'error');
         return;
     }
     
     if (content.length > 280) {
         console.log('Content too long');
-        showNotification('Tweet must be 280 characters or less', 'error');
+        showNotification('Scribe must be 280 characters or less', 'error');
         return;
     }
     
     // Set posting state
-    tweetBtn.disabled = true;
-    tweetBtn.textContent = 'Posting...';
+    scribeBtn.disabled = true;
+    scribeBtn.textContent = 'Posting...';
     
     console.log('Preparing form data...');
     
@@ -311,10 +311,10 @@ function postTweetFromProfile() {
             throw new Error('No CSRF token found');
         }
         
-        console.log('Sending request to /api/post-tweet/');
+        console.log('Sending request to /api/post-scribe/');
         
         // Make request
-        fetch('/api/post-tweet/', {
+        fetch('/api/post-scribe/', {
             method: 'POST',
             headers: {
                 'X-CSRFToken': csrfToken,
@@ -332,95 +332,95 @@ function postTweetFromProfile() {
             console.log('Response data:', data);
             if (data.success) {
                 // Clear form
-                tweetContent.value = '';
+                scribeContent.value = '';
                 document.getElementById('charCounter').textContent = '280 characters remaining';
                 document.getElementById('charCounter').className = 'char-counter';
-                showNotification('Tweet posted successfully!', 'success');
+                showNotification('Scribe posted successfully!', 'success');
 
-                // Add the new tweet to the page dynamically
-                const tweetsContainer = document.getElementById('my-tweets-content');
-                if (tweetsContainer) {
-                    addTweetToPage(data.tweet);
+                // Add the new scribe to the page dynamically
+                const scribesContainer = document.getElementById('my-scribes-content');
+                if (scribesContainer) {
+                    addScribeToPage(data.scribe);
                     
-                    // Update tweet count
-                    const tweetCountEl = document.getElementById('tweetCount');
-                    if (tweetCountEl) {
-                        const currentCount = parseInt(tweetCountEl.textContent.replace(/[()]/g, '')) || 0;
-                        tweetCountEl.textContent = `(${currentCount + 1})`;
+                    // Update scribe count
+                    const scribeCountEl = document.getElementById('scribeCount');
+                    if (scribeCountEl) {
+                        const currentCount = parseInt(scribeCountEl.textContent.replace(/[()]/g, '')) || 0;
+                        scribeCountEl.textContent = `(${currentCount + 1})`;
                     }
                 }
             } else {
-                showNotification('Failed to post tweet: ' + (data.error || 'Unknown error'), 'error');
+                showNotification('Failed to post scribe: ' + (data.error || 'Unknown error'), 'error');
             }
         })
         .catch(error => {
-            console.error('Error posting tweet:', error);
+            console.error('Error posting scribe:', error);
             showNotification('Network error. Please check your connection and try again.', 'error');
         })
         .finally(() => {
-            tweetBtn.textContent = 'Tweet';
-            tweetBtn.disabled = false;
-            tweetContent.focus();
+            scribeBtn.textContent = 'Scribe';
+            scribeBtn.disabled = false;
+            scribeContent.focus();
         });
         
     } catch (error) {
-        console.error('Error in postTweetFromProfile:', error);
+        console.error('Error in postScribeFromProfile:', error);
         showNotification('An error occurred. Please try again.', 'error');
-        tweetBtn.textContent = 'Tweet';
-        tweetBtn.disabled = false;
+        scribeBtn.textContent = 'Scribe';
+        scribeBtn.disabled = false;
     }
 }
 
-function addTweetToPage(tweetData) {
+function addScribeToPage(scribeData) {
     // Determine the correct container based on current page/tab
-    let tweetsContainer;
+    let scribesContainer;
     
     // Check if we're on profile page
     if (window.location.pathname.includes('/profile')) {
-        tweetsContainer = document.getElementById('my-tweets-content');
+        scribesContainer = document.getElementById('my-scribes-content');
     } else {
-        tweetsContainer = document.getElementById('tweets-container');
+        scribesContainer = document.getElementById('scribes-container');
     }
     
-    if (!tweetsContainer) {
-        console.warn('Tweets container not found');
+    if (!scribesContainer) {
+        console.warn('Scribes container not found');
         return;
     }
 
-    const emptyState = tweetsContainer.querySelector('.empty-state, .empty-state-tweets');
+    const emptyState = scribesContainer.querySelector('.empty-state, .empty-state-scribes');
 
     // Remove empty state if it exists
     if (emptyState) {
         emptyState.remove();
     }
 
-    // Create new tweet element
-    const tweetDiv = document.createElement('div');
-    tweetDiv.className = 'tweet-item';
-    tweetDiv.style.animation = 'fadeInUp 0.3s ease-out';
+    // Create new scribe element
+    const scribeDiv = document.createElement('div');
+    scribeDiv.className = 'scribe-item';
+    scribeDiv.style.animation = 'fadeInUp 0.3s ease-out';
 
     const currentUser = getCurrentUser(); // This would need to be available globally
 
-    tweetDiv.innerHTML = `
-        <div class="tweet-header">
-            <div class="tweet-avatar">${currentUser?.initials || 'U'}</div>
-            <div class="tweet-info">
-                <span class="tweet-author">${currentUser?.name || 'User'}</span>
-                <span class="tweet-username">@${currentUser?.username || 'user'}</span>
-                <span class="tweet-time">just now</span>
+    scribeDiv.innerHTML = `
+        <div class="scribe-header">
+            <div class="scribe-avatar">${currentUser?.initials || 'U'}</div>
+            <div class="scribe-info">
+                <span class="scribe-author">${currentUser?.name || 'User'}</span>
+                <span class="scribe-username">@${currentUser?.username || 'user'}</span>
+                <span class="scribe-time">just now</span>
             </div>
         </div>
-        <div class="tweet-content">
-            ${escapeHtml(tweetData.content).replace(/\n/g, '<br>')}
+        <div class="scribe-content">
+            ${escapeHtml(scribeData.content).replace(/\n/g, '<br>')}
         </div>
-        <div class="tweet-actions">
-            <span class="tweet-likes">❤️ 0</span>
-            <span class="tweet-timestamp">just now</span>
+        <div class="scribe-actions">
+            <span class="scribe-likes">❤️ 0</span>
+            <span class="scribe-timestamp">just now</span>
         </div>
     `;
 
-    // Add to beginning of tweets list
-    tweetsContainer.insertBefore(tweetDiv, tweetsContainer.firstChild);
+    // Add to beginning of scribes list
+    scribesContainer.insertBefore(scribeDiv, scribesContainer.firstChild);
 }
 
 function startChat(username) {

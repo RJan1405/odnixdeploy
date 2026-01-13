@@ -16,21 +16,21 @@ import re
 from django.db import models as db_models
 
 from chat.models import (
-    CustomUser, Chat, Tweet, Comment, Like, Dislike, Follow, Block, FollowRequest,
-    Hashtag, TweetHashtag, Mention, StoryReply, StoryLike, Story,
+    CustomUser, Chat, Scribe, Comment, Like, Dislike, Follow, Block, FollowRequest,
+    Hashtag, ScribeHashtag, Mention, StoryReply, StoryLike, Story,
     SavedPost, PostReport, Omzo, OmzoLike, OmzoDislike, OmzoComment, OmzoReport,
     ProfileView, PinnedChat
 )
-from chat.forms import TweetForm, ProfileUpdateForm
+from chat.forms import ScribeForm, ProfileUpdateForm
 
 logger = logging.getLogger(__name__)
 
-# Global cache for preventing duplicate tweets
-TWEET_CACHE_PREFIX = "prevent_duplicate_tweet_"
-TWEET_COOLDOWN = 5  # 5 seconds between identical tweets
+# Global cache for preventing duplicate scribes
+SCRIBE_CACHE_PREFIX = "prevent_duplicate_scribe_"
+SCRIBE_COOLDOWN = 5  # 5 seconds between identical scribes
 
 
-def generate_tweet_hash(user_id, content, has_image):
+def generate_scribe_hash(user_id, content, has_image):
     """Generate unique hash for duplicate detection"""
     content_hash = hashlib.md5(
         f"{user_id}_{content.strip()}_{has_image}".encode()).hexdigest()
@@ -105,50 +105,50 @@ def profile_view(request, username=None):
             defaults={'viewed_at': timezone.now()}
         )
 
-    # Get user's tweets (only if profile is accessible)
-    tweets = []
+    # Get user's scribes (only if profile is accessible)
+    scribes = []
     if can_view_profile:
-        tweets_queryset = Tweet.objects.filter(user=profile_user).select_related(
+        scribes_queryset = Scribe.objects.filter(user=profile_user).select_related(
             'user').distinct().order_by('-id', '-timestamp')
-        processed_tweet_ids = set()
+        processed_scribe_ids = set()
 
-        for tweet in tweets_queryset:
-            if tweet.id in processed_tweet_ids:
+        for scribe in scribes_queryset:
+            if scribe.id in processed_scribe_ids:
                 continue
-            processed_tweet_ids.add(tweet.id)
+            processed_scribe_ids.add(scribe.id)
 
-            like_count = Like.objects.filter(tweet=tweet).count()
-            is_liked = Like.objects.filter(tweet=tweet, user=request.user).exists(
+            like_count = Like.objects.filter(scribe=scribe).count()
+            is_liked = Like.objects.filter(scribe=scribe, user=request.user).exists(
             ) if request.user.is_authenticated else False
 
             # Get comment count
-            comment_count = Comment.objects.filter(tweet=tweet).count()
+            comment_count = Comment.objects.filter(scribe=scribe).count()
 
             # Get recent comments (latest 3)
             recent_comments = Comment.objects.filter(
-                tweet=tweet,
+                scribe=scribe,
                 parent__isnull=True
             ).select_related('user').order_by('-timestamp')[:3]
 
-            tweet_data = {
-                'id': tweet.id,
-                'content': tweet.content,
-                'timestamp': tweet.timestamp,
-                'user': tweet.user,
+            scribe_data = {
+                'id': scribe.id,
+                'content': scribe.content,
+                'timestamp': scribe.timestamp,
+                'user': scribe.user,
                 'like_count': like_count,
                 'is_liked': is_liked,
                 'comment_count': comment_count,
-                'image_url': tweet.image_url,
-                'has_media': tweet.has_media,
+                'image_url': scribe.image_url,
+                'has_media': scribe.has_media,
                 'recent_comments': recent_comments,
                 # Code Scribe fields
-                'content_type': getattr(tweet, 'content_type', ''),
-                'code_bundle': getattr(tweet, 'code_bundle', ''),
-                'code_html': getattr(tweet, 'code_html', ''),
-                'code_css': getattr(tweet, 'code_css', ''),
-                'code_js': getattr(tweet, 'code_js', ''),
+                'content_type': getattr(scribe, 'content_type', ''),
+                'code_bundle': getattr(scribe, 'code_bundle', ''),
+                'code_html': getattr(scribe, 'code_html', ''),
+                'code_css': getattr(scribe, 'code_css', ''),
+                'code_js': getattr(scribe, 'code_js', ''),
             }
-            tweets.append(tweet_data)
+            scribes.append(scribe_data)
 
     # Check if there's an existing chat
     existing_chat = None
@@ -177,8 +177,8 @@ def profile_view(request, username=None):
     other_users = CustomUser.objects.exclude(
         id=request.user.id).distinct().order_by('name', 'lastname')
 
-    # Create tweet form for profile page
-    tweet_form = TweetForm()
+    # Create scribe form for profile page
+    scribe_form = ScribeForm()
 
     # Get user's chats for mobile bottom nav (same as dashboard)
     private_chats = Chat.objects.filter(
@@ -256,29 +256,29 @@ def profile_view(request, username=None):
     saved_posts = []
     if is_own_profile:
         saved_items = SavedPost.objects.filter(user=request.user).select_related(
-            'tweet', 'tweet__user').order_by('-created_at')
+            'scribe', 'scribe__user').order_by('-created_at')
         for saved in saved_items:
-            tweet = saved.tweet
-            like_count = Like.objects.filter(tweet=tweet).count()
+            scribe = saved.scribe
+            like_count = Like.objects.filter(scribe=scribe).count()
             is_liked = Like.objects.filter(
-                tweet=tweet, user=request.user).exists()
-            comment_count = Comment.objects.filter(tweet=tweet).count()
+                scribe=scribe, user=request.user).exists()
+            comment_count = Comment.objects.filter(scribe=scribe).count()
 
             saved_posts.append({
-                'id': tweet.id,
-                'content': tweet.content,
-                'timestamp': tweet.timestamp,
-                'user': tweet.user,
+                'id': scribe.id,
+                'content': scribe.content,
+                'timestamp': scribe.timestamp,
+                'user': scribe.user,
                 'like_count': like_count,
                 'is_liked': is_liked,
                 'comment_count': comment_count,
-                'image_url': tweet.image_url,
-                'has_media': tweet.has_media,
-                'content_type': tweet.content_type,
-                'code_bundle': tweet.code_bundle,
-                'code_html': tweet.code_html,
-                'code_css': tweet.code_css,
-                'code_js': tweet.code_js,
+                'image_url': scribe.image_url,
+                'has_media': scribe.has_media,
+                'content_type': scribe.content_type,
+                'code_bundle': scribe.code_bundle,
+                'code_html': scribe.code_html,
+                'code_css': scribe.code_css,
+                'code_js': scribe.code_js,
                 'saved_at': saved.created_at,
             })
 
@@ -289,13 +289,13 @@ def profile_view(request, username=None):
 
     context = {
         'profile_user': profile_user,
-        'tweets': tweets,
+        'scribes': scribes,
         'omzo': omzo,
         'is_own_profile': is_own_profile,
         'existing_chat': existing_chat,
         'is_following': is_following,
         'other_users': other_users,
-        'tweet_form': tweet_form,
+        'scribe_form': scribe_form,
         'can_view_profile': can_view_profile,
         'is_blocked': is_blocked,
         'follow_request_status': follow_request_status,
@@ -464,9 +464,9 @@ def update_profile(request):
 
 @login_required
 @require_POST
-def post_tweet(request):
-    """Post a tweet with proper duplicate prevention and validation"""
-    logger.info(f"Tweet post attempt by user {request.user.id}")
+def post_scribe(request):
+    """Post a scribe with proper duplicate prevention and validation"""
+    logger.info(f"Scribe post attempt by user {request.user.id}")
 
     try:
         # Parse form data properly
@@ -490,25 +490,25 @@ def post_tweet(request):
                 return JsonResponse({'success': False, 'error': 'Code scribe cannot be empty. Add HTML, CSS, JS, or a caption.'})
         else:
             if not content and not image_file:
-                return JsonResponse({'success': False, 'error': 'Tweet cannot be empty. Please add text or an image.'})
+                return JsonResponse({'success': False, 'error': 'Scribe cannot be empty. Please add text or an image.'})
 
         if content and len(content) > 280:
-            return JsonResponse({'success': False, 'error': 'Tweet must be 280 characters or less.'})
+            return JsonResponse({'success': False, 'error': 'Scribe must be 280 characters or less.'})
 
         # Duplicate prevention
-        tweet_hash = generate_tweet_hash(
+        scribe_hash = generate_scribe_hash(
             request.user.id, (content or code_bundle or ''), bool(image_file))
-        cache_key = f"{TWEET_CACHE_PREFIX}{tweet_hash}"
+        cache_key = f"{SCRIBE_CACHE_PREFIX}{scribe_hash}"
 
         # Check cache for recent duplicate
         if cache.get(cache_key):
             logger.warning(
-                f"Duplicate tweet attempt blocked for user {request.user.id}")
-            return JsonResponse({'success': False, 'error': f'Please wait {TWEET_COOLDOWN} seconds before posting the same tweet again.'})
+                f"Duplicate scribe attempt blocked for user {request.user.id}")
+            return JsonResponse({'success': False, 'error': f'Please wait {SCRIBE_COOLDOWN} seconds before posting the same scribe again.'})
 
         # Check database for recent duplicates (last 3 minutes)
         three_minutes_ago = timezone.now() - timezone.timedelta(minutes=3)
-        recent_duplicate = Tweet.objects.filter(
+        recent_duplicate = Scribe.objects.filter(
             user=request.user,
             content=content or '',
             timestamp__gte=three_minutes_ago
@@ -524,11 +524,11 @@ def post_tweet(request):
         if recent_duplicate.exists():
             logger.warning(
                 f"Recent duplicate found in database for user {request.user.id}")
-            return JsonResponse({'success': False, 'error': 'You already posted this tweet recently. Please wait before posting again.'})
+            return JsonResponse({'success': False, 'error': 'You already posted this scribe recently. Please wait before posting again.'})
 
-        # For code scribe posts, skip TweetForm and construct manually
+        # For code scribe posts, skip ScribeForm and construct manually
         if content_type == 'code_scribe':
-            tweet = Tweet(
+            scribe = Scribe(
                 user=request.user,
                 content=content or '',
                 content_type='code_scribe',
@@ -539,26 +539,26 @@ def post_tweet(request):
             )
             # image_file is ignored for code scribe unless provided
             if image_file:
-                tweet.image = image_file
-            tweet.save()
-            process_tweet_hashtags_mentions(tweet)
-            cache.set(cache_key, True, timeout=TWEET_COOLDOWN)
+                scribe.image = image_file
+            scribe.save()
+            process_scribe_hashtags_mentions(scribe)
+            cache.set(cache_key, True, timeout=SCRIBE_COOLDOWN)
             logger.info(
-                f"Code Scribe Tweet {tweet.id} created successfully by user {request.user.id}")
+                f"Code Scribe {scribe.id} created successfully by user {request.user.id}")
             return JsonResponse({
                 'success': True,
                 'message': 'Code scribe posted successfully!',
-                'tweet': {
-                    'id': tweet.id,
-                    'content': tweet.content,
-                    'timestamp': tweet.timestamp.strftime('%B %d, %Y at %H:%M'),
+                'scribe': {
+                    'id': scribe.id,
+                    'content': scribe.content,
+                    'timestamp': scribe.timestamp.strftime('%B %d, %Y at %H:%M'),
                     'time_ago': 'now',
                     'like_count': 0,
                     'comment_count': 0,
-                    'image_url': tweet.image_url,
-                    'has_media': tweet.has_media,
-                    'content_type': tweet.content_type,
-                    'code_bundle': tweet.code_bundle,
+                    'image_url': scribe.image_url,
+                    'has_media': scribe.has_media,
+                    'content_type': scribe.content_type,
+                    'code_bundle': scribe.code_bundle,
                 }
             })
 
@@ -566,10 +566,10 @@ def post_tweet(request):
         form_data = {'content': content} if content else {}
         files_data = {'image': image_file} if image_file else {}
 
-        form = TweetForm(form_data, files_data)
+        form = ScribeForm(form_data, files_data)
         if form.is_valid():
-            # Create tweet using form
-            tweet = form.save(commit=False)
+            # Create scribe using form
+            scribe = form.save(commit=False)
 
             # Compress image if present
             if image_file:
@@ -602,36 +602,36 @@ def post_tweet(request):
                     new_filename = f"{original_name}_opt.webp"
 
                     if output_io.tell() > 0:
-                        tweet.image = ContentFile(
+                        scribe.image = ContentFile(
                             output_io.getvalue(), name=new_filename)
                 except Exception as e:
-                    logger.error(f"Tweet image compression failed: {e}")
+                    logger.error(f"Scribe image compression failed: {e}")
                     # If compression fails, it will just use the original file from form.save logic (managed by Django)
 
-            tweet.user = request.user
-            tweet.save()
+            scribe.user = request.user
+            scribe.save()
 
             # Process hashtags and mentions
-            process_tweet_hashtags_mentions(tweet)
+            process_scribe_hashtags_mentions(scribe)
 
             # Set cache to prevent immediate duplicates
-            cache.set(cache_key, True, timeout=TWEET_COOLDOWN)
+            cache.set(cache_key, True, timeout=SCRIBE_COOLDOWN)
 
             logger.info(
-                f"Tweet {tweet.id} created successfully by user {request.user.id}")
+                f"Scribe {scribe.id} created successfully by user {request.user.id}")
 
             return JsonResponse({
                 'success': True,
-                'message': 'Tweet posted successfully!',
-                'tweet': {
-                    'id': tweet.id,
-                    'content': tweet.content,
-                    'timestamp': tweet.timestamp.strftime('%B %d, %Y at %H:%M'),
+                'message': 'Scribe posted successfully!',
+                'scribe': {
+                    'id': scribe.id,
+                    'content': scribe.content,
+                    'timestamp': scribe.timestamp.strftime('%B %d, %Y at %H:%M'),
                     'time_ago': 'now',
                     'like_count': 0,
                     'comment_count': 0,
-                    'image_url': tweet.image_url,
-                    'has_media': tweet.has_media,
+                    'image_url': scribe.image_url,
+                    'has_media': scribe.has_media,
                     'user': {
                         'username': request.user.username,
                         'fullname': request.user.full_name,
@@ -650,7 +650,7 @@ def post_tweet(request):
             return JsonResponse({'success': False, 'error': '. '.join(error_messages)})
 
     except Exception as e:
-        logger.error(f"Error in post_tweet: {str(e)}", exc_info=True)
+        logger.error(f"Error in post_scribe: {str(e)}", exc_info=True)
         return JsonResponse({'success': False, 'error': 'An unexpected error occurred. Please try again.'})
 
 
@@ -659,30 +659,30 @@ def post_tweet(request):
 def toggle_like(request):
     try:
         data = json.loads(request.body)
-        tweet_id = data.get('tweet_id')
+        scribe_id = data.get('scribe_id') or data.get('tweet_id')  # Support both for backward compatibility
 
-        if not tweet_id:
-            return JsonResponse({'success': False, 'error': 'Tweet ID is required'})
+        if not scribe_id:
+            return JsonResponse({'success': False, 'error': 'Scribe ID is required'})
 
         try:
-            tweet = Tweet.objects.get(id=tweet_id)
-        except Tweet.DoesNotExist:
-            return JsonResponse({'success': False, 'error': 'Tweet not found'})
+            scribe = Scribe.objects.get(id=scribe_id)
+        except Scribe.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Scribe not found'})
 
         # Remove dislike if exists
-        Dislike.objects.filter(user=request.user, tweet=tweet).delete()
+        Dislike.objects.filter(user=request.user, scribe=scribe).delete()
 
         # Toggle like
-        like_obj = Like.objects.filter(user=request.user, tweet=tweet).first()
+        like_obj = Like.objects.filter(user=request.user, scribe=scribe).first()
 
         if like_obj:
             like_obj.delete()
             is_liked = False
         else:
-            Like.objects.create(user=request.user, tweet=tweet)
+            Like.objects.create(user=request.user, scribe=scribe)
             is_liked = True
 
-        like_count = Like.objects.filter(tweet=tweet).count()
+        like_count = Like.objects.filter(scribe=scribe).count()
 
         return JsonResponse({
             'success': True,
@@ -698,33 +698,33 @@ def toggle_like(request):
 @login_required
 @require_POST
 def toggle_dislike(request):
-    """Toggle dislike on a tweet"""
+    """Toggle dislike on a scribe"""
     try:
         data = json.loads(request.body)
-        tweet_id = data.get('tweet_id')
+        scribe_id = data.get('scribe_id') or data.get('tweet_id')  # Support both for backward compatibility
 
-        if not tweet_id:
-            return JsonResponse({'success': False, 'error': 'Tweet ID is required'})
+        if not scribe_id:
+            return JsonResponse({'success': False, 'error': 'Scribe ID is required'})
 
         try:
-            tweet = Tweet.objects.get(id=tweet_id)
-        except Tweet.DoesNotExist:
-            return JsonResponse({'success': False, 'error': 'Tweet not found'})
+            scribe = Scribe.objects.get(id=scribe_id)
+        except Scribe.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Scribe not found'})
 
         # Remove like if exists
-        Like.objects.filter(user=request.user, tweet=tweet).delete()
+        Like.objects.filter(user=request.user, scribe=scribe).delete()
 
         # Toggle dislike
-        dislike_obj = Dislike.objects.filter(user=request.user, tweet=tweet).first()
+        dislike_obj = Dislike.objects.filter(user=request.user, scribe=scribe).first()
 
         if dislike_obj:
             dislike_obj.delete()
             is_disliked = False
         else:
-            Dislike.objects.create(user=request.user, tweet=tweet)
+            Dislike.objects.create(user=request.user, scribe=scribe)
             is_disliked = True
 
-        like_count = Like.objects.filter(tweet=tweet).count()
+        like_count = Like.objects.filter(scribe=scribe).count()
 
         return JsonResponse({
             'success': True,
@@ -743,26 +743,26 @@ def toggle_save_post(request):
     """Toggle save/bookmark a post"""
     try:
         data = json.loads(request.body)
-        tweet_id = data.get('tweet_id')
+        scribe_id = data.get('scribe_id') or data.get('tweet_id')  # Support both for backward compatibility
 
-        if not tweet_id:
-            return JsonResponse({'success': False, 'error': 'Tweet ID is required'})
+        if not scribe_id:
+            return JsonResponse({'success': False, 'error': 'Scribe ID is required'})
 
         try:
-            tweet = Tweet.objects.get(id=tweet_id)
-        except Tweet.DoesNotExist:
+            scribe = Scribe.objects.get(id=scribe_id)
+        except Scribe.DoesNotExist:
             return JsonResponse({'success': False, 'error': 'Post not found'})
 
         # Toggle save
         saved_obj = SavedPost.objects.filter(
-            user=request.user, tweet=tweet).first()
+            user=request.user, scribe=scribe).first()
 
         if saved_obj:
             saved_obj.delete()
             is_saved = False
             message = 'Post removed from saved'
         else:
-            SavedPost.objects.create(user=request.user, tweet=tweet)
+            SavedPost.objects.create(user=request.user, scribe=scribe)
             is_saved = True
             message = 'Post saved'
 
@@ -783,28 +783,28 @@ def delete_post(request):
     """Delete a user's own post"""
     try:
         data = json.loads(request.body)
-        tweet_id = data.get('tweet_id')
+        scribe_id = data.get('scribe_id') or data.get('tweet_id')  # Support both for backward compatibility
 
-        if not tweet_id:
-            return JsonResponse({'success': False, 'error': 'Tweet ID is required'})
+        if not scribe_id:
+            return JsonResponse({'success': False, 'error': 'Scribe ID is required'})
 
         try:
-            tweet = Tweet.objects.get(id=tweet_id)
-        except Tweet.DoesNotExist:
+            scribe = Scribe.objects.get(id=scribe_id)
+        except Scribe.DoesNotExist:
             return JsonResponse({'success': False, 'error': 'Post not found'})
 
         # Only allow owner to delete
-        if tweet.user != request.user:
+        if scribe.user != request.user:
             return JsonResponse({'success': False, 'error': 'You can only delete your own posts'})
 
         # Delete the image file if it exists
-        if tweet.image:
+        if scribe.image:
             try:
-                tweet.image.delete(save=False)
+                scribe.image.delete(save=False)
             except Exception:
                 pass
 
-        tweet.delete()
+        scribe.delete()
 
         return JsonResponse({
             'success': True,
@@ -822,14 +822,14 @@ def report_post(request):
     """Report a post for inappropriate content"""
     try:
         data = json.loads(request.body)
-        tweet_id = data.get('tweet_id')
+        scribe_id = data.get('scribe_id') or data.get('tweet_id')  # Support both for backward compatibility
         reason = data.get('reason')
         description = data.get('description', '').strip()
         copyright_description = data.get('copyright_description', '').strip()
         copyright_type = data.get('copyright_type', '').strip()
 
-        if not tweet_id or not reason:
-            return JsonResponse({'success': False, 'error': 'Tweet ID and reason are required'})
+        if not scribe_id or not reason:
+            return JsonResponse({'success': False, 'error': 'Scribe ID and reason are required'})
 
         valid_reasons = ['spam', 'inappropriate', 'harassment',
                          'violence', 'hate_speech', 'false_info', 'copyright', 'other']
@@ -837,17 +837,17 @@ def report_post(request):
             return JsonResponse({'success': False, 'error': 'Invalid report reason'})
 
         try:
-            tweet = Tweet.objects.get(id=tweet_id)
-        except Tweet.DoesNotExist:
+            scribe = Scribe.objects.get(id=scribe_id)
+        except Scribe.DoesNotExist:
             return JsonResponse({'success': False, 'error': 'Post not found'})
 
         # Can't report your own posts
-        if tweet.user == request.user:
+        if scribe.user == request.user:
             return JsonResponse({'success': False, 'error': 'You cannot report your own post'})
 
         # Check if already reported by this user
         existing_report = PostReport.objects.filter(
-            reporter=request.user, tweet=tweet).first()
+            reporter=request.user, scribe=scribe).first()
         if existing_report:
             return JsonResponse({'success': False, 'error': 'You have already reported this post'})
 
@@ -859,7 +859,7 @@ def report_post(request):
 
         PostReport.objects.create(
             reporter=request.user,
-            tweet=tweet,
+            scribe=scribe,
             reason=reason,
             description=description,
             copyright_description=copyright_description if reason == 'copyright' else None,
@@ -881,21 +881,21 @@ def get_saved_posts(request):
     """Get all saved posts for the current user"""
     try:
         saved = SavedPost.objects.filter(
-            user=request.user).select_related('tweet', 'tweet__user')
+            user=request.user).select_related('scribe', 'scribe__user')
 
         posts = []
         for saved_post in saved:
-            tweet = saved_post.tweet
+            scribe = saved_post.scribe
             posts.append({
-                'id': tweet.id,
-                'content': tweet.content,
-                'image_url': tweet.image_url,
-                'user_username': tweet.user.username,
-                'user_full_name': tweet.user.full_name,
-                'user_profile_picture': tweet.user.profile_picture_url,
-                'like_count': tweet.like_count,
-                'comment_count': tweet.comment_count,
-                'timestamp': tweet.timestamp.strftime('%b %d, %Y'),
+                'id': scribe.id,
+                'content': scribe.content,
+                'image_url': scribe.image_url,
+                'user_username': scribe.user.username,
+                'user_full_name': scribe.user.full_name,
+                'user_profile_picture': scribe.user.profile_picture_url,
+                'like_count': scribe.like_count,
+                'comment_count': scribe.comment_count,
+                'timestamp': scribe.timestamp.strftime('%b %d, %Y'),
                 'saved_at': saved_post.created_at.strftime('%b %d, %Y'),
             })
 
@@ -915,20 +915,20 @@ def copy_post_link(request):
     """Get the shareable link for a post"""
     try:
         data = json.loads(request.body)
-        tweet_id = data.get('tweet_id')
+        scribe_id = data.get('scribe_id') or data.get('tweet_id')  # Support both for backward compatibility
 
-        if not tweet_id:
-            return JsonResponse({'success': False, 'error': 'Tweet ID is required'})
+        if not scribe_id:
+            return JsonResponse({'success': False, 'error': 'Scribe ID is required'})
 
         try:
-            tweet = Tweet.objects.get(id=tweet_id)
-        except Tweet.DoesNotExist:
+            scribe = Scribe.objects.get(id=scribe_id)
+        except Scribe.DoesNotExist:
             return JsonResponse({'success': False, 'error': 'Post not found'})
 
         # Generate the post link using the request's host
         scheme = 'https' if request.is_secure() else 'http'
         host = request.get_host()
-        post_link = f"{scheme}://{host}/post/{tweet_id}/"
+        post_link = f"{scheme}://{host}/post/{scribe_id}/"
 
         return JsonResponse({
             'success': True,
@@ -944,33 +944,33 @@ def copy_post_link(request):
 @login_required
 @require_POST
 def add_comment(request):
-    """Add a comment to a tweet"""
+    """Add a comment to a scribe"""
     try:
         data = json.loads(request.body)
-        tweet_id = data.get('tweet_id')
+        scribe_id = data.get('scribe_id') or data.get('tweet_id')  # Support both for backward compatibility
         content = data.get('content', '').strip()
         parent_id = data.get('parent_id')  # For replies
 
-        if not tweet_id or not content:
-            return JsonResponse({'success': False, 'error': 'Tweet ID and content are required'})
+        if not scribe_id or not content:
+            return JsonResponse({'success': False, 'error': 'Scribe ID and content are required'})
 
         if len(content) > 500:
             return JsonResponse({'success': False, 'error': 'Comment too long (max 500 characters)'})
 
         try:
-            tweet = Tweet.objects.get(id=tweet_id)
-        except Tweet.DoesNotExist:
-            return JsonResponse({'success': False, 'error': 'Tweet not found'})
+            scribe = Scribe.objects.get(id=scribe_id)
+        except Scribe.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Scribe not found'})
 
         parent_comment = None
         if parent_id:
             try:
-                parent_comment = Comment.objects.get(id=parent_id, tweet=tweet)
+                parent_comment = Comment.objects.get(id=parent_id, scribe=scribe)
             except Comment.DoesNotExist:
                 return JsonResponse({'success': False, 'error': 'Parent comment not found'})
 
         comment = Comment.objects.create(
-            tweet=tweet,
+            scribe=scribe,
             user=request.user,
             content=content,
             parent=parent_comment
@@ -996,43 +996,43 @@ def add_comment(request):
 
 
 @login_required
-def get_tweet(request, tweet_id):
-    """Get a single tweet by ID"""
+def get_scribe(request, scribe_id):
+    """Get a single scribe by ID"""
     try:
         from django.utils.timesince import timesince
-        tweet = get_object_or_404(Tweet, id=tweet_id)
+        scribe = get_object_or_404(Scribe, id=scribe_id)
 
-        # Check if user has liked this tweet
-        is_liked = Like.objects.filter(user=request.user, tweet=tweet).exists()
+        # Check if user has liked this scribe
+        is_liked = Like.objects.filter(user=request.user, scribe=scribe).exists()
 
-        tweet_data = {
-            'id': tweet.id,
-            'content': tweet.content,
-            'image_url': tweet.image_url,
-            'username': tweet.user.username,
-            'avatar': tweet.user.profile_picture_url,
-            'full_name': tweet.user.full_name,
-            'like_count': tweet.tweet_likes.count(),
-            'comment_count': tweet.comments.count(),
+        scribe_data = {
+            'id': scribe.id,
+            'content': scribe.content,
+            'image_url': scribe.image_url,
+            'username': scribe.user.username,
+            'avatar': scribe.user.profile_picture_url,
+            'full_name': scribe.user.full_name,
+            'like_count': scribe.scribe_likes.count(),
+            'comment_count': scribe.comments.count(),
             'is_liked': is_liked,
-            'time_ago': timesince(tweet.timestamp) + ' ago',
-            'timestamp': tweet.timestamp.isoformat(),
+            'time_ago': timesince(scribe.timestamp) + ' ago',
+            'timestamp': scribe.timestamp.isoformat(),
         }
 
         return JsonResponse({
             'success': True,
-            'tweet': tweet_data
+            'scribe': scribe_data
         })
 
     except Exception as e:
-        logger.error(f"Error in get_tweet: {str(e)}")
-        return JsonResponse({'success': False, 'error': 'Failed to get tweet'})
+        logger.error(f"Error in get_scribe: {str(e)}")
+        return JsonResponse({'success': False, 'error': 'Failed to get scribe'})
 
 
 def view_post(request, post_id):
     """View a single post - accessible without login for sharing"""
     try:
-        tweet = get_object_or_404(Tweet, id=post_id)
+        scribe = get_object_or_404(Scribe, id=post_id)
 
         # If user is logged in, redirect to dashboard with the post highlighted
         if request.user.is_authenticated:
@@ -1047,13 +1047,13 @@ def view_post(request, post_id):
 
 
 @login_required
-def get_tweet_comments(request, tweet_id):
-    """Get comments for a tweet"""
+def get_scribe_comments(request, scribe_id):
+    """Get comments for a scribe"""
     try:
-        tweet = get_object_or_404(Tweet, id=tweet_id)
+        scribe = get_object_or_404(Scribe, id=scribe_id)
 
         comments = Comment.objects.filter(
-            tweet=tweet,
+            scribe=scribe,
             parent__isnull=True
         ).select_related('user').prefetch_related('replies__user').order_by('timestamp')
 
@@ -1093,7 +1093,7 @@ def get_tweet_comments(request, tweet_id):
         })
 
     except Exception as e:
-        logger.error(f"Error in get_tweet_comments: {str(e)}")
+        logger.error(f"Error in get_scribe_comments: {str(e)}")
         return JsonResponse({'success': False, 'error': 'Failed to load comments'})
 
 
@@ -1483,33 +1483,33 @@ def extract_mentions(content):
     return list(set(re.findall(mention_pattern, content.lower())))
 
 
-def process_tweet_hashtags_mentions(tweet):
-    """Process hashtags and mentions in a tweet after creation"""
+def process_scribe_hashtags_mentions(scribe):
+    """Process hashtags and mentions in a scribe after creation"""
 
-    if not tweet.content:
+    if not scribe.content:
         return
 
     # Process hashtags
-    hashtags = extract_hashtags(tweet.content)
+    hashtags = extract_hashtags(scribe.content)
     for tag_name in hashtags:
         hashtag, _ = Hashtag.objects.get_or_create(name=tag_name.lower())
-        TweetHashtag.objects.get_or_create(tweet=tweet, hashtag=hashtag)
+        ScribeHashtag.objects.get_or_create(scribe=scribe, hashtag=hashtag)
 
     # Process mentions
-    mentions = extract_mentions(tweet.content)
+    mentions = extract_mentions(scribe.content)
     for username in mentions:
         try:
             mentioned_user = CustomUser.objects.get(username__iexact=username)
-            if mentioned_user != tweet.user:  # Don't mention yourself
+            if mentioned_user != scribe.user:  # Don't mention yourself
                 Mention.objects.get_or_create(
-                    tweet=tweet, mentioned_user=mentioned_user)
+                    scribe=scribe, mentioned_user=mentioned_user)
         except CustomUser.DoesNotExist:
             pass  # User doesn't exist, skip
 
 
 @login_required
-def get_hashtag_tweets(request, hashtag):
-    """Get all tweets with a specific hashtag"""
+def get_hashtag_scribes(request, hashtag):
+    """Get all scribes with a specific hashtag"""
     try:
         # Clean hashtag (remove # if present)
         hashtag_name = hashtag.lower().lstrip('#')
@@ -1520,53 +1520,53 @@ def get_hashtag_tweets(request, hashtag):
             return JsonResponse({
                 'success': True,
                 'hashtag': hashtag_name,
-                'tweets': [],
+                'scribes': [],
                 'count': 0
             })
 
-        tweet_links = TweetHashtag.objects.filter(
+        scribe_links = ScribeHashtag.objects.filter(
             hashtag=hashtag_obj
-        ).select_related('tweet__user').order_by('-tweet__timestamp')[:50]
+        ).select_related('scribe__user').order_by('-scribe__timestamp')[:50]
 
-        tweets_data = []
-        for link in tweet_links:
-            tweet = link.tweet
-            tweets_data.append({
-                'id': tweet.id,
-                'content': tweet.content,
+        scribes_data = []
+        for link in scribe_links:
+            scribe = link.scribe
+            scribes_data.append({
+                'id': scribe.id,
+                'content': scribe.content,
                 'user': {
-                    'id': tweet.user.id,
-                    'username': tweet.user.username,
-                    'full_name': tweet.user.full_name,
-                    'profile_picture_url': tweet.user.profile_picture_url
+                    'id': scribe.user.id,
+                    'username': scribe.user.username,
+                    'full_name': scribe.user.full_name,
+                    'profile_picture_url': scribe.user.profile_picture_url
                 },
-                'timestamp': tweet.timestamp.isoformat(),
-                'like_count': tweet.like_count,
-                'comment_count': tweet.comment_count,
-                'image_url': tweet.image_url,
-                'is_liked': tweet.is_liked_by(request.user)
+                'timestamp': scribe.timestamp.isoformat(),
+                'like_count': scribe.like_count,
+                'comment_count': scribe.comment_count,
+                'image_url': scribe.image_url,
+                'is_liked': scribe.is_liked_by(request.user)
             })
 
         return JsonResponse({
             'success': True,
             'hashtag': hashtag_name,
-            'tweets': tweets_data,
-            'count': len(tweets_data)
+            'scribes': scribes_data,
+            'count': len(scribes_data)
         })
 
     except Exception as e:
-        logger.error(f"Error getting hashtag tweets: {str(e)}")
-        return JsonResponse({'success': False, 'error': 'Failed to get hashtag tweets'})
+        logger.error(f"Error getting hashtag scribes: {str(e)}")
+        return JsonResponse({'success': False, 'error': 'Failed to get hashtag scribes'})
 
 
 @login_required
 def get_trending_hashtags(request):
     """Get trending hashtags (most used in last 24 hours)"""
     try:
-        # Get hashtags from tweets in last 24 hours
+        # Get hashtags from scribes in last 24 hours
         yesterday = timezone.now() - timezone.timedelta(days=1)
 
-        trending = TweetHashtag.objects.filter(
+        trending = ScribeHashtag.objects.filter(
             created_at__gte=yesterday
         ).values('hashtag__name').annotate(
             count=Count('id')
@@ -1576,7 +1576,7 @@ def get_trending_hashtags(request):
         for item in trending:
             hashtags_data.append({
                 'name': item['hashtag__name'],
-                'tweet_count': item['count']
+                'scribe_count': item['count']
             })
 
         return JsonResponse({
@@ -1595,25 +1595,25 @@ def get_user_mentions(request):
     try:
         mentions = Mention.objects.filter(
             mentioned_user=request.user
-        ).select_related('tweet__user').order_by('-created_at')[:50]
+        ).select_related('scribe__user').order_by('-created_at')[:50]
 
         mentions_data = []
         for mention in mentions:
-            tweet = mention.tweet
+            scribe = mention.scribe
             mentions_data.append({
                 'id': mention.id,
-                'tweet': {
-                    'id': tweet.id,
-                    'content': tweet.content,
+                'scribe': {
+                    'id': scribe.id,
+                    'content': scribe.content,
                     'user': {
-                        'id': tweet.user.id,
-                        'username': tweet.user.username,
-                        'full_name': tweet.user.full_name,
-                        'profile_picture_url': tweet.user.profile_picture_url
+                        'id': scribe.user.id,
+                        'username': scribe.user.username,
+                        'full_name': scribe.user.full_name,
+                        'profile_picture_url': scribe.user.profile_picture_url
                     },
-                    'timestamp': tweet.timestamp.isoformat(),
-                    'like_count': tweet.like_count,
-                    'image_url': tweet.image_url
+                    'timestamp': scribe.timestamp.isoformat(),
+                    'like_count': scribe.like_count,
+                    'image_url': scribe.image_url
                 },
                 'is_read': mention.is_read,
                 'created_at': mention.created_at.isoformat()
@@ -1670,7 +1670,7 @@ def search_users_for_mention(request):
 
 @login_required
 def global_search(request):
-    """Global search across Users, Groups, Tweets, Omzo, and Scribes"""
+    """Global search across Users, Groups, Scribes, and Omzo"""
     try:
         query = request.GET.get('q', '').strip()
         page = int(request.GET.get('page', 1))
@@ -1697,8 +1697,8 @@ def global_search(request):
             name__icontains=query
         )
 
-        # 3. Scribes/Tweets
-        tweets_qs = Tweet.objects.filter(
+        # 3. Scribes
+        scribes_qs = Scribe.objects.filter(
             db_models.Q(content__icontains=query) |
             db_models.Q(code_html__icontains=query) |
             db_models.Q(code_css__icontains=query) |
@@ -1723,7 +1723,7 @@ def global_search(request):
 
         users = list(users_qs[:limit])
         groups = list(groups_qs[:limit])
-        tweets = list(tweets_qs[:limit])
+        scribes = list(scribes_qs[:limit])
         omzos = list(omzo_qs[:limit])
 
         # Normalize to standard dict format
@@ -1753,19 +1753,19 @@ def global_search(request):
                 'score': 90
             })
 
-        for t in tweets:
+        for s in scribes:
             # Determine if scribe or post
-            is_scribe = t.content_type == 'code_scribe' or t.code_bundle or t.code_html
+            is_code_scribe = s.content_type == 'code_scribe' or s.code_bundle or s.code_html
             combined.append({
-                'type': 'scribe' if is_scribe else 'post',
-                'id': t.id,
-                'title': t.user.full_name or t.user.username,
-                'subtitle': t.content[:50] if t.content else 'Media content',
-                'image_url': t.image_url if t.image_url else None,
+                'type': 'scribe' if is_code_scribe else 'post',
+                'id': s.id,
+                'title': s.user.full_name or s.user.username,
+                'subtitle': s.content[:50] if s.content else 'Media content',
+                'image_url': s.image_url if s.image_url else None,
                 'data': {
-                    'content': t.content,
-                    'has_code': is_scribe,
-                    'time_ago': t.timestamp.strftime('%b %d')
+                    'content': s.content,
+                    'has_code': is_code_scribe,
+                    'time_ago': s.timestamp.strftime('%b %d')
                 },
                 'score': 80
             })
@@ -1841,8 +1841,8 @@ def get_all_activity(request):
 
         # 1. Post likes - people who liked MY posts (excluding my own likes)
         post_likes = Like.objects.filter(
-            tweet__user=request.user
-        ).exclude(user=request.user).select_related('user', 'tweet').order_by('-timestamp')[:20]
+            scribe__user=request.user
+        ).exclude(user=request.user).select_related('user', 'scribe').order_by('-timestamp')[:20]
 
         for like in post_likes:
             activity_items.append({
@@ -1854,17 +1854,17 @@ def get_all_activity(request):
                     'full_name': like.user.full_name,
                     'profile_picture_url': like.user.profile_picture_url,
                 },
-                'tweet': {
-                    'id': like.tweet.id,
-                    'content': like.tweet.content[:50] + '...' if len(like.tweet.content) > 50 else like.tweet.content,
-                    'image_url': like.tweet.image_url,
+                'scribe': {
+                    'id': like.scribe.id,
+                    'content': like.scribe.content[:50] + '...' if len(like.scribe.content) > 50 else like.scribe.content,
+                    'image_url': like.scribe.image_url,
                 }
             })
 
         # 2. Post comments - people who commented on MY posts (excluding my own comments)
         post_comments = Comment.objects.filter(
-            tweet__user=request.user
-        ).exclude(user=request.user).select_related('user', 'tweet').order_by('-timestamp')[:20]
+            scribe__user=request.user
+        ).exclude(user=request.user).select_related('user', 'scribe').order_by('-timestamp')[:20]
 
         for comment in post_comments:
             activity_items.append({
@@ -1876,9 +1876,9 @@ def get_all_activity(request):
                     'full_name': comment.user.full_name,
                     'profile_picture_url': comment.user.profile_picture_url,
                 },
-                'tweet': {
-                    'id': comment.tweet.id,
-                    'content': comment.tweet.content[:50] + '...' if len(comment.tweet.content) > 50 else comment.tweet.content,
+                'scribe': {
+                    'id': comment.scribe.id,
+                    'content': comment.scribe.content[:50] + '...' if len(comment.scribe.content) > 50 else comment.scribe.content,
                 },
                 'comment_content': comment.content[:80] + '...' if len(comment.content) > 80 else comment.content,
             })
@@ -1989,8 +1989,8 @@ def get_all_activity(request):
 
         # 8. Post Reports - Notify the user that they have been reported
         post_reports = PostReport.objects.filter(
-            tweet__user=request.user
-        ).select_related('reporter', 'tweet').order_by('-created_at')[:20]
+            scribe__user=request.user
+        ).select_related('reporter', 'scribe').order_by('-created_at')[:20]
 
         for report in post_reports:
             reason_display = report.get_reason_display()
@@ -2007,9 +2007,9 @@ def get_all_activity(request):
                     'full_name': report.reporter.full_name,
                     'profile_picture_url': report.reporter.profile_picture_url,
                 },
-                'tweet': {
-                    'id': report.tweet.id,
-                    'content': report.tweet.content[:50] + '...' if len(report.tweet.content) > 50 else report.tweet.content,
+                'scribe': {
+                    'id': report.scribe.id,
+                    'content': report.scribe.content[:50] + '...' if len(report.scribe.content) > 50 else report.scribe.content,
                 },
                 'reason': reason_display,
             })
@@ -2044,21 +2044,21 @@ def get_all_activity(request):
         # 10. My Reports - Content the current user reported (show for reporter)
         my_post_reports = PostReport.objects.filter(
             reporter=request.user
-        ).select_related('tweet', 'tweet__user').order_by('-created_at')[:20]
+        ).select_related('scribe', 'scribe__user').order_by('-created_at')[:20]
 
         for report in my_post_reports:
             activity_items.append({
                 'type': 'my_post_report',
                 'timestamp': report.created_at,
                 'user': {  # target content owner
-                    'id': report.tweet.user.id,
-                    'username': report.tweet.user.username,
-                    'full_name': report.tweet.user.full_name,
-                    'profile_picture_url': report.tweet.user.profile_picture_url,
+                    'id': report.scribe.user.id,
+                    'username': report.scribe.user.username,
+                    'full_name': report.scribe.user.full_name,
+                    'profile_picture_url': report.scribe.user.profile_picture_url,
                 },
-                'tweet': {
-                    'id': report.tweet.id,
-                    'content': report.tweet.content[:50] + '...' if len(report.tweet.content) > 50 else report.tweet.content,
+                'scribe': {
+                    'id': report.scribe.id,
+                    'content': report.scribe.content[:50] + '...' if len(report.scribe.content) > 50 else report.scribe.content,
                 },
                 'reason': report.get_reason_display(),
             })

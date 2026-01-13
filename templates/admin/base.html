@@ -2,28 +2,47 @@
 
 {% block extrahead %}
 {{ block.super }}
-{# CRITICAL: Prevent white flash on dark theme - must run synchronously before any rendering #}
+{# CRITICAL: Prevent white flash - DEFAULT TO DARK THEME #}
 <script>
 (function() {
     var theme = localStorage.getItem('odnix-admin-theme');
+    var html = document.documentElement;
+    // DEFAULT TO DARK if no theme is set
+    if (!theme) {
+        theme = 'dark';
+        localStorage.setItem('odnix-admin-theme', 'dark');
+    }
     if (theme === 'dark') {
-        document.documentElement.classList.add('dark-theme');
-        document.documentElement.classList.remove('light-theme');
-        document.documentElement.setAttribute('data-theme', 'dark');
+        html.classList.add('dark-theme');
+        html.classList.remove('light-theme');
+        html.setAttribute('data-theme', 'dark');
     } else {
-        document.documentElement.classList.add('light-theme');
-        document.documentElement.classList.remove('dark-theme');
-        document.documentElement.setAttribute('data-theme', 'light');
+        html.classList.add('light-theme');
+        html.classList.remove('dark-theme');
+        html.setAttribute('data-theme', 'light');
     }
 })();
 </script>
 <style>
-/* Immediate dark background if dark theme is set - prevents white flash */
-html.dark-theme {
-    background-color: #222222 !important;
+/* Immediate theme background - prevents white flash */
+/* DEFAULT: Dark theme background */
+html,
+html:not(.light-theme),
+html.dark-theme,
+html.dark-theme body,
+html.dark-theme .wrapper,
+html.dark-theme .content-wrapper {
+    background-color: #0f172a !important;
 }
-html.dark-theme body {
-    background-color: #222222 !important;
+html.light-theme,
+html.light-theme body,
+html.light-theme .wrapper,
+html.light-theme .content-wrapper {
+    background-color: #f1f5f9 !important;
 }
 </style>
+<!-- Inter font for professional look -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 {% endblock %}

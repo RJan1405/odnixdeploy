@@ -60,8 +60,8 @@ urlpatterns = [
     path('api/user-stories/<str:username>/',
          views.get_user_stories, name='get_user_stories'),
 
-    # Tweet URLs - Enhanced
-    path('api/post-tweet/', views.post_tweet, name='post_tweet'),
+    # Scribe URLs - Enhanced
+    path('api/post-scribe/', views.post_scribe, name='post_scribe'),
     path('api/toggle-like/', views.toggle_like, name='toggle_like'),
     path('api/toggle-dislike/', views.toggle_dislike, name='toggle_dislike'),
     path('api/toggle-save-post/', views.toggle_save_post, name='toggle_save_post'),
@@ -75,9 +75,9 @@ urlpatterns = [
 
     # Comment URLs
     path('api/add-comment/', views.add_comment, name='add_comment'),
-    path('api/tweet/<int:tweet_id>/', views.get_tweet, name='get_tweet'),
-    path('api/tweet/<int:tweet_id>/comments/',
-         views.get_tweet_comments, name='get_tweet_comments'),
+    path('api/scribe/<int:scribe_id>/', views.get_scribe, name='get_scribe'),
+    path('api/scribe/<int:scribe_id>/comments/',
+         views.get_scribe_comments, name='get_scribe_comments'),
 
     # Chat API endpoints - FIXED
     path('api/chats/', views.get_chats_api, name='get_chats_api'),
@@ -152,7 +152,7 @@ urlpatterns = [
 
     # Hashtag & Mention features
     path('api/hashtag/<str:hashtag>/',
-         views.get_hashtag_tweets, name='get_hashtag_tweets'),
+         views.get_hashtag_scribes, name='get_hashtag_scribes'),
     path('api/trending-hashtags/', views.get_trending_hashtags,
          name='get_trending_hashtags'),
     path('api/mentions/', views.get_user_mentions, name='get_user_mentions'),

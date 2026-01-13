@@ -1,7 +1,7 @@
 # forms.py - SECURE VERSION
 from django import forms
 from django.core.exceptions import ValidationError
-from .models import CustomUser, Tweet
+from .models import CustomUser, Scribe
 from chat.security import validate_media_file
 import os
 from django.core.files.uploadedfile import UploadedFile
@@ -125,16 +125,16 @@ class LoginForm(forms.Form):
     )
 
 
-class TweetForm(forms.ModelForm):
-    """FIXED - Tweet form with image support"""
+class ScribeForm(forms.ModelForm):
+    """FIXED - Scribe form with image support"""
 
     class Meta:
-        model = Tweet
+        model = Scribe
         fields = ['content', 'image']
         widgets = {
             'content': forms.Textarea(attrs={
                 'id': 'id_content',
-                'class': 'form-control tweet-textarea',
+                'class': 'form-control scribe-textarea',
                 'placeholder': "What's happening?",
                 'rows': 4,
                 'maxlength': 280,
@@ -151,7 +151,7 @@ class TweetForm(forms.ModelForm):
     def clean_content(self):
         content = self.cleaned_data.get('content', '').strip()
         if content and len(content) > 280:
-            raise ValidationError("Tweet must be 280 characters or less")
+            raise ValidationError("Scribe must be 280 characters or less")
         return content
 
     def clean_image(self):
@@ -187,7 +187,7 @@ class TweetForm(forms.ModelForm):
 
         if not content and not image:
             raise ValidationError(
-                "Tweet must have either text content or an image.")
+                "Scribe must have either text content or an image.")
 
         return cleaned_data
 

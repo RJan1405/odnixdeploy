@@ -1,4 +1,4 @@
-# models.py - FIXED VERSION with proper Tweet model
+# models.py - FIXED VERSION with proper Scribe model
 
 from django.db import models
 from django.contrib.auth import get_user_model
@@ -423,17 +423,17 @@ class StoryReply(models.Model):
         return f"Reply to {self.story.user.username}'s story by {self.replier.username}"
 
 
-class Tweet(models.Model):
-    """Model for user tweets/posts with FIXED image support"""
+class Scribe(models.Model):
+    """Model for user scribes/posts with FIXED image support"""
     user = models.ForeignKey(
-        CustomUser, on_delete=models.CASCADE, related_name='tweets')
-    # Allow blank content for image-only tweets
+        CustomUser, on_delete=models.CASCADE, related_name='scribes')
+    # Allow blank content for image-only scribes
     content = models.TextField(max_length=280, blank=True)
     timestamp = models.DateTimeField(auto_now_add=True)
 
-    # FIXED: Enhanced media support for tweets
+    # FIXED: Enhanced media support for scribes
     image = models.ImageField(
-        upload_to='tweet_images/', blank=True, null=True)  # Direct image upload
+        upload_to='scribe_images/', blank=True, null=True)  # Direct image upload
 
     # Code Scribe fields (optional)
     content_type = models.CharField(max_length=32, default='text')
@@ -446,41 +446,41 @@ class Tweet(models.Model):
         ordering = ['-timestamp']
 
     def __str__(self):
-        return f"{self.user.username}: {self.content[:50]}..." if self.content else f"{self.user.username}: [Image Tweet]"
+        return f"{self.user.username}: {self.content[:50]}..." if self.content else f"{self.user.username}: [Image Scribe]"
 
     @property
     def like_count(self):
-        """Get the count of likes for this tweet"""
-        return self.tweet_likes.count()
+        """Get the count of likes for this scribe"""
+        return self.scribe_likes.count()
 
     @property
     def comment_count(self):
-        """Get the count of comments for this tweet"""
+        """Get the count of comments for this scribe"""
         return self.comments.count()
 
     def is_liked_by(self, user):
-        """Check if a specific user has liked this tweet"""
+        """Check if a specific user has liked this scribe"""
         if not user.is_authenticated:
             return False
-        return self.tweet_likes.filter(user=user).exists()
+        return self.scribe_likes.filter(user=user).exists()
 
     @property
     def has_media(self):
-        """Check if tweet has media attachment"""
+        """Check if scribe has media attachment"""
         return bool(self.image)
 
     @property
     def image_url(self):
-        """Get tweet image URL"""
+        """Get scribe image URL"""
         if self.image and hasattr(self.image, 'url'):
             return self.image.url
         return None
 
 
 class Comment(models.Model):
-    """Model for tweet comments"""
-    tweet = models.ForeignKey(
-        Tweet, on_delete=models.CASCADE, related_name='comments')
+    """Model for scribe comments"""
+    scribe = models.ForeignKey(
+        Scribe, on_delete=models.CASCADE, related_name='comments')
     user = models.ForeignKey(
         CustomUser, on_delete=models.CASCADE, related_name='user_comments')
     content = models.TextField(max_length=500)
@@ -492,7 +492,7 @@ class Comment(models.Model):
         ordering = ['timestamp']
 
     def __str__(self):
-        return f"{self.user.username} commented on {self.tweet.user.username}'s tweet"
+        return f"{self.user.username} commented on {self.scribe.user.username}'s scribe"
 
     @property
     def reply_count(self):
@@ -501,51 +501,51 @@ class Comment(models.Model):
 
 
 class Like(models.Model):
-    """Model for tweet likes"""
+    """Model for scribe likes"""
     user = models.ForeignKey(
         CustomUser, on_delete=models.CASCADE, related_name='user_likes')
-    tweet = models.ForeignKey(
-        Tweet, on_delete=models.CASCADE, related_name='tweet_likes')
+    scribe = models.ForeignKey(
+        Scribe, on_delete=models.CASCADE, related_name='scribe_likes')
     timestamp = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ('user', 'tweet')
+        unique_together = ('user', 'scribe')
         ordering = ['-timestamp']
 
     def __str__(self):
-        return f"{self.user.full_name} liked {self.tweet.user.full_name}'s tweet"
+        return f"{self.user.full_name} liked {self.scribe.user.full_name}'s scribe"
 
 
 class Dislike(models.Model):
-    """Model for tweet dislikes"""
+    """Model for scribe dislikes"""
     user = models.ForeignKey(
         CustomUser, on_delete=models.CASCADE, related_name='user_dislikes')
-    tweet = models.ForeignKey(
-        Tweet, on_delete=models.CASCADE, related_name='tweet_dislikes')
+    scribe = models.ForeignKey(
+        Scribe, on_delete=models.CASCADE, related_name='scribe_dislikes')
     timestamp = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ('user', 'tweet')
+        unique_together = ('user', 'scribe')
         ordering = ['-timestamp']
 
     def __str__(self):
-        return f"{self.user.full_name} disliked {self.tweet.user.full_name}'s tweet"
+        return f"{self.user.full_name} disliked {self.scribe.user.full_name}'s scribe"
 
 
 class SavedPost(models.Model):
     """Model for saved/bookmarked posts"""
     user = models.ForeignKey(
         CustomUser, on_delete=models.CASCADE, related_name='saved_posts')
-    tweet = models.ForeignKey(
-        Tweet, on_delete=models.CASCADE, related_name='saved_by')
+    scribe = models.ForeignKey(
+        Scribe, on_delete=models.CASCADE, related_name='saved_by')
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ('user', 'tweet')
+        unique_together = ('user', 'scribe')
         ordering = ['-created_at']
 
     def __str__(self):
-        return f"{self.user.username} saved {self.tweet.user.username}'s post"
+        return f"{self.user.username} saved {self.scribe.user.username}'s post"
 
 
 class PostReport(models.Model):
@@ -569,8 +569,8 @@ class PostReport(models.Model):
 
     reporter = models.ForeignKey(
         CustomUser, on_delete=models.CASCADE, related_name='reports_made')
-    tweet = models.ForeignKey(
-        Tweet, on_delete=models.CASCADE, related_name='reports')
+    scribe = models.ForeignKey(
+        Scribe, on_delete=models.CASCADE, related_name='reports')
     reason = models.CharField(max_length=20, choices=REPORT_REASONS)
     description = models.TextField(blank=True, null=True)
     # Copyright-specific fields
@@ -588,11 +588,11 @@ class PostReport(models.Model):
     reviewed_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
-        unique_together = ('reporter', 'tweet')
+        unique_together = ('reporter', 'scribe')
         ordering = ['-created_at']
 
     def __str__(self):
-        return f"{self.reporter.username} reported {self.tweet.user.username}'s post for {self.reason}"
+        return f"{self.reporter.username} reported {self.scribe.user.username}'s post for {self.reason}"
 
     @property
     def copyright_info(self):
@@ -741,7 +741,7 @@ class MessageRead(models.Model):
 
 
 class Hashtag(models.Model):
-    """Model for hashtags used in tweets"""
+    """Model for hashtags used in scribes"""
     name = models.CharField(
         max_length=100, unique=True)  # Hashtag without the # symbol
     created_at = models.DateTimeField(auto_now_add=True)
@@ -753,43 +753,43 @@ class Hashtag(models.Model):
         return f"#{self.name}"
 
     @property
-    def tweet_count(self):
-        """Get count of tweets using this hashtag"""
-        return self.tweets.count()
+    def scribe_count(self):
+        """Get count of scribes using this hashtag"""
+        return self.scribes.count()
 
 
-class TweetHashtag(models.Model):
-    """Model for linking tweets to hashtags (many-to-many)"""
-    tweet = models.ForeignKey(
-        Tweet, on_delete=models.CASCADE, related_name='tweet_hashtags')
+class ScribeHashtag(models.Model):
+    """Model for linking scribes to hashtags (many-to-many)"""
+    scribe = models.ForeignKey(
+        Scribe, on_delete=models.CASCADE, related_name='scribe_hashtags')
     hashtag = models.ForeignKey(
-        Hashtag, on_delete=models.CASCADE, related_name='tweets')
+        Hashtag, on_delete=models.CASCADE, related_name='scribes')
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ('tweet', 'hashtag')
+        unique_together = ('scribe', 'hashtag')
         ordering = ['-created_at']
 
     def __str__(self):
-        return f"#{self.hashtag.name} in tweet {self.tweet.id}"
+        return f"#{self.hashtag.name} in scribe {self.scribe.id}"
 
 
 class Mention(models.Model):
-    """Model for @mentions in tweets"""
-    tweet = models.ForeignKey(
-        Tweet, on_delete=models.CASCADE, related_name='mentions')
+    """Model for @mentions in scribes"""
+    scribe = models.ForeignKey(
+        Scribe, on_delete=models.CASCADE, related_name='mentions')
     mentioned_user = models.ForeignKey(
-        CustomUser, on_delete=models.CASCADE, related_name='tweet_mentions')
+        CustomUser, on_delete=models.CASCADE, related_name='scribe_mentions')
     created_at = models.DateTimeField(auto_now_add=True)
     # Track if mentioned user has seen the mention
     is_read = models.BooleanField(default=False)
 
     class Meta:
-        unique_together = ('tweet', 'mentioned_user')
+        unique_together = ('scribe', 'mentioned_user')
         ordering = ['-created_at']
 
     def __str__(self):
-        return f"@{self.mentioned_user.username} mentioned in tweet {self.tweet.id}"
+        return f"@{self.mentioned_user.username} mentioned in scribe {self.scribe.id}"
 
 
 class PinnedChat(models.Model):

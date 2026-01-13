@@ -63,6 +63,15 @@
         overflow: hidden;
     }
 
+    /* Mobile: account for bottom nav (65px) */
+    @media (max-width: 768px) {
+        .od-direct {
+            margin-top: 0 !important;
+            height: 100vh !important;
+            padding-bottom: 0 !important;
+        }
+    }
+
     /* Sidebar Styles (Matched to messages page) */
     .od-direct-sidebar {
         width: 340px;
@@ -722,12 +731,9 @@
         display: flex;
         align-items: center;
         gap: 4px;
+        flex-shrink: 0;
     }
 
-    .od-chat-attachment,
-    .od-chat-like,
-    .od-chat-send,
-    .od-chat-emoji,
     .od-chat-attachment,
     .od-chat-like,
     .od-chat-send,
@@ -744,6 +750,22 @@
         justify-content: center;
         border-radius: 50%;
         transition: background 0.2s, color 0.2s, transform 0.2s;
+        flex-shrink: 0;
+    }
+
+    .od-chat-attachment i,
+    .od-chat-attachment svg,
+    .od-chat-like i,
+    .od-chat-like svg,
+    .od-chat-send i,
+    .od-chat-send svg,
+    .od-chat-emoji i,
+    .od-chat-emoji svg,
+    .od-chat-viewonce svg,
+    .od-chat-mic i,
+    .od-chat-mic svg {
+        width: 22px;
+        height: 22px;
     }
 
     .od-chat-attachment:hover,
@@ -1009,6 +1031,22 @@
 
         .od-chat {
             width: 100%;
+            height: 100vh !important;
+        }
+
+        .od-chat-footer {
+            padding: 10px;
+            margin-bottom: 0;
+            background: var(--od-surface);
+        }
+
+        /* Hide bottom nav on chat detail page */
+        .od-bottom-nav {
+            display: none !important;
+        }
+
+        .od-chat-form {
+            gap: 6px;
         }
 
         .od-chat-header {
@@ -1027,17 +1065,42 @@
             max-width: 85%;
         }
 
-        .od-chat-footer {
-            padding: 12px;
-        }
-
         .od-chat-footer form {
-            gap: 8px;
+            gap: 6px;
         }
 
         .od-chat-input {
-            font-size: 15px;
-            padding: 10px 14px;
+            font-size: 14px;
+            padding: 8px 12px;
+            min-width: 0;
+            flex: 1;
+        }
+
+        .od-chat-input-actions {
+            gap: 2px;
+            flex-shrink: 0;
+        }
+
+        .od-chat-emoji,
+        .od-chat-attachment,
+        .od-chat-viewonce,
+        .od-chat-mic,
+        .od-chat-send {
+            padding: 6px;
+            flex-shrink: 0;
+        }
+
+        .od-chat-emoji i,
+        .od-chat-emoji svg,
+        .od-chat-attachment i,
+        .od-chat-attachment svg,
+        .od-chat-viewonce svg,
+        .od-chat-mic i,
+        .od-chat-mic svg,
+        .od-chat-send i,
+        .od-chat-send svg {
+            width: 20px !important;
+            height: 20px !important;
         }
     }
 
@@ -1074,18 +1137,52 @@
         }
 
         .od-chat-footer {
-            padding: 10px 12px;
-            padding-bottom: calc(10px + env(safe-area-inset-bottom, 0));
+            padding: 8px;
+            margin-bottom: 0;
+        }
+
+        /* Hide bottom nav on chat detail page */
+        .od-bottom-nav {
+            display: none !important;
+        }
+
+        .od-chat-form {
+            gap: 4px;
         }
 
         .od-chat-input {
             font-size: 14px;
-            padding: 10px 12px;
+            padding: 8px 10px;
+        }
+
+        .od-chat-input-actions {
+            gap: 0;
+        }
+
+        .od-chat-emoji,
+        .od-chat-attachment,
+        .od-chat-viewonce,
+        .od-chat-mic,
+        .od-chat-send {
+            padding: 5px;
+        }
+
+        .od-chat-emoji i,
+        .od-chat-emoji svg,
+        .od-chat-attachment i,
+        .od-chat-attachment svg,
+        .od-chat-viewonce svg,
+        .od-chat-mic i,
+        .od-chat-mic svg,
+        .od-chat-send i,
+        .od-chat-send svg {
+            width: 18px !important;
+            height: 18px !important;
         }
 
         .od-chat-action svg {
-            width: 22px;
-            height: 22px;
+            width: 20px;
+            height: 20px;
         }
 
         .od-chat-send svg {
@@ -1505,6 +1602,12 @@
 
     .od-chat-footer {
         position: relative;
+        overflow: hidden;
+    }
+
+    .od-chat-form {
+        max-width: 100%;
+        overflow: hidden;
     }
 
     /* New Messages Button */
@@ -2267,7 +2370,7 @@
                     </label>
                     <button type="button" class="od-chat-viewonce" id="viewOnceToggleBtn" onclick="toggleOneTimeMode()"
                         title="View once message">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
                             stroke-width="2">
                             <circle cx="12" cy="12" r="1"></circle>
                             <path d="M1 12s4-8 11-8 11 8 11 8"></path>
@@ -2579,22 +2682,23 @@
         setTimeout(() => document.addEventListener('click', closeMenu), 10);
     }
 
-    function handleAddToPrivate() {
-        function handleMuteChat() {
-            if (!currentCtxUsername) return;
-            const menu = document.getElementById('directContextMenu');
-            menu.style.display = 'none';
-            // TODO: Implement mute chat logic (AJAX or WebSocket)
-            if (typeof showIGToast === 'function') showIGToast('Chat muted (demo)', 'info');
-        }
+    function handleMuteChat() {
+        if (!currentCtxUsername) return;
+        const menu = document.getElementById('directContextMenu');
+        menu.style.display = 'none';
+        // TODO: Implement mute chat logic (AJAX or WebSocket)
+        if (typeof showIGToast === 'function') showIGToast('Chat muted (demo)', 'info');
+    }
 
-        function handleDeleteChat() {
-            if (!currentCtxUsername) return;
-            const menu = document.getElementById('directContextMenu');
-            menu.style.display = 'none';
-            // TODO: Implement delete chat logic (AJAX or WebSocket)
-            if (typeof showIGToast === 'function') showIGToast('Chat deleted (demo)', 'warning');
-        }
+    function handleDeleteChat() {
+        if (!currentCtxUsername) return;
+        const menu = document.getElementById('directContextMenu');
+        menu.style.display = 'none';
+        // TODO: Implement delete chat logic (AJAX or WebSocket)
+        if (typeof showIGToast === 'function') showIGToast('Chat deleted (demo)', 'warning');
+    }
+
+    function handleAddToPrivate() {
         if (!currentCtxUsername) return;
 
         const menu = document.getElementById('directContextMenu');
@@ -2936,14 +3040,10 @@
 
     // Initialize messaging
     function initMessaging() {
-        if (protoClient) {
-            tryWebSocket();
-            // Start polling as fallback - will be disabled if WS succeeds
-            startPolling();
-        } else {
-            console.warn('[Messaging] OdnixProtoClient not found, using HTTP polling only');
-            startPolling();
-        }
+        // Always try WebSocket for real-time messaging
+        tryWebSocket();
+        // Start polling as fallback - will be disabled if WS succeeds
+        startPolling();
     }
 
     function tryWebSocket() {
@@ -3194,7 +3294,8 @@
 
     function appendMessage(data, autoScroll = true) {
         const list = document.getElementById('messagesList');
-        const isSent = data.is_own;
+        // Calculate is_own based on sender_id - don't rely on server's is_own field
+        const isSent = data.sender_id === currentUserId || data.is_own === true;
         const isOneTime = data.one_time;
         const isConsumed = data.consumed;
         const hasMedia = data.media_url || data.has_media;
@@ -3334,6 +3435,15 @@
     let currentViewOnceType = null;
 
     function openViewOnceMessage(messageId, mediaUrl, content, type) {
+        // Check if already consumed
+        const msgEl = document.querySelector(`[data-message-id="${messageId}"]`);
+        if (msgEl && msgEl.dataset.consumed === 'true') {
+            if (typeof showIGToast === 'function') {
+                showIGToast('This message has already been opened', 'info');
+            }
+            return;
+        }
+
         // Store message info for when user closes
         currentViewOnceMessageId = messageId;
         currentViewOnceType = type;
@@ -3389,7 +3499,7 @@
         if (!messageId) return;
 
         // Mark as consumed on server when user closes
-        fetch(`/ api / consume - message / ${messageId}/`, {
+        fetch(`/api/consume-message/${messageId}/`, {
             method: 'POST',
             headers: {
                 'X-CSRFToken': getCSRFToken(),

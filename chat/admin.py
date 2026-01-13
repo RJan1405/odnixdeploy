@@ -4,7 +4,7 @@ from .models import Omzo, OmzoLike, OmzoComment, OmzoReport
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from .models import (
-    CustomUser, Chat, Message, Tweet, GroupJoinRequest,
+    CustomUser, Chat, Message, Scribe, GroupJoinRequest,
     Like, Follow, EmailVerificationToken, Story, Comment,
     SavedPost, PostReport
 )
@@ -117,8 +117,8 @@ class MessageAdmin(admin.ModelAdmin):
     content_preview.short_description = 'Content'
 
 
-@admin.register(Tweet)
-class TweetAdmin(admin.ModelAdmin):
+@admin.register(Scribe)
+class ScribeAdmin(admin.ModelAdmin):
     list_display = ['user', 'content_preview', 'has_image',
                     'timestamp', 'like_count', 'comment_count']
     list_filter = ['timestamp']
@@ -130,7 +130,7 @@ class TweetAdmin(admin.ModelAdmin):
     def content_preview(self, obj):
         if obj.content:
             return obj.content[:50] + "..." if len(obj.content) > 50 else obj.content
-        return "[Image only tweet]"
+        return "[Image only scribe]"
     content_preview.short_description = 'Content'
 
     def has_image(self, obj):
@@ -149,16 +149,16 @@ class TweetAdmin(admin.ModelAdmin):
 
 @admin.register(Comment)
 class CommentAdmin(admin.ModelAdmin):
-    list_display = ['user', 'tweet_preview',
+    list_display = ['user', 'scribe_preview',
                     'content_preview', 'timestamp', 'parent']
     list_filter = ['timestamp']
-    search_fields = ['content', 'user__username', 'tweet__content']
+    search_fields = ['content', 'user__username', 'scribe__content']
     readonly_fields = ['timestamp']
-    raw_id_fields = ['user', 'tweet', 'parent']
+    raw_id_fields = ['user', 'scribe', 'parent']
 
-    def tweet_preview(self, obj):
-        return obj.tweet.content[:30] + "..." if len(obj.tweet.content) > 30 else obj.tweet.content
-    tweet_preview.short_description = 'Tweet'
+    def scribe_preview(self, obj):
+        return obj.scribe.content[:30] + "..." if len(obj.scribe.content) > 30 else obj.scribe.content
+    scribe_preview.short_description = 'Scribe'
 
     def content_preview(self, obj):
         return obj.content[:50] + "..." if len(obj.content) > 50 else obj.content
@@ -167,17 +167,17 @@ class CommentAdmin(admin.ModelAdmin):
 
 @admin.register(Like)
 class LikeAdmin(admin.ModelAdmin):
-    list_display = ['user', 'tweet_preview', 'timestamp']
+    list_display = ['user', 'scribe_preview', 'timestamp']
     list_filter = ['timestamp']
-    search_fields = ['user__username', 'tweet__content']
+    search_fields = ['user__username', 'scribe__content']
     readonly_fields = ['timestamp']
-    raw_id_fields = ['user', 'tweet']
+    raw_id_fields = ['user', 'scribe']
 
-    def tweet_preview(self, obj):
-        if obj.tweet.content:
-            return obj.tweet.content[:30] + "..." if len(obj.tweet.content) > 30 else obj.tweet.content
-        return "[Image tweet]"
-    tweet_preview.short_description = 'Tweet'
+    def scribe_preview(self, obj):
+        if obj.scribe.content:
+            return obj.scribe.content[:30] + "..." if len(obj.scribe.content) > 30 else obj.scribe.content
+        return "[Image scribe]"
+    scribe_preview.short_description = 'Scribe'
 
 
 @admin.register(Follow)
@@ -228,27 +228,27 @@ class StoryAdmin(admin.ModelAdmin):
 
 @admin.register(SavedPost)
 class SavedPostAdmin(admin.ModelAdmin):
-    list_display = ['user', 'tweet', 'created_at']
+    list_display = ['user', 'scribe', 'created_at']
     list_filter = ['created_at']
-    search_fields = ['user__username', 'tweet__content']
-    raw_id_fields = ['user', 'tweet']
+    search_fields = ['user__username', 'scribe__content']
+    raw_id_fields = ['user', 'scribe']
     readonly_fields = ['created_at']
 
 
 @admin.register(PostReport)
 class PostReportAdmin(admin.ModelAdmin):
-    list_display = ['reporter', 'tweet', 'reason',
+    list_display = ['reporter', 'scribe', 'reason',
                     'copyright_type_display', 'created_at', 'reviewed']
     list_filter = ['reason', 'copyright_type', 'reviewed', 'created_at']
-    search_fields = ['reporter__username', 'tweet__content',
+    search_fields = ['reporter__username', 'scribe__content',
                      'description', 'copyright_description']
-    raw_id_fields = ['reporter', 'tweet']
+    raw_id_fields = ['reporter', 'scribe']
     readonly_fields = ['created_at', 'reviewed_at']
     actions = ['mark_as_reviewed']
 
     fieldsets = (
         ('Report Information', {
-            'fields': ('reporter', 'tweet', 'reason', 'description')
+            'fields': ('reporter', 'scribe', 'reason', 'description')
         }),
         ('Copyright Details (if applicable)', {
             'fields': ('copyright_type', 'copyright_description'),

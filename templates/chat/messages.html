@@ -72,6 +72,15 @@
         overflow: hidden;
     }
 
+    /* Mobile: remove top margin and account for bottom nav */
+    @media (max-width: 768px) {
+        .od-direct {
+            margin-top: 0;
+            height: calc(100vh - 65px);
+            padding-bottom: 0;
+        }
+    }
+
     .od-direct-sidebar {
         width: 340px;
         max-width: 340px;

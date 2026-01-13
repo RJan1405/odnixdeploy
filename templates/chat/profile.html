@@ -1,5 +1,5 @@
 {% extends 'chat/base.html' %}
-{% load tweet_extras %}
+{% load scribe_extras %}
 
 {% block title %}
 {% if is_own_profile %}Your Profile{% else %}{{ profile_user.full_name }}{% endif %} - Odnix
@@ -299,7 +299,7 @@
 
         /* ===== INSTAGRAM-STYLE MOBILE PROFILE ===== */
         
-        /* Mobile Top Bar - Instagram Style */
+        /* Mobile Top Bar - Minimal with just icons */
         .od-mobile-top-bar {
             position: fixed;
             top: 0;
@@ -309,6 +309,7 @@
             background: var(--od-bg);
             display: flex;
             align-items: center;
+            justify-content: space-between;
             padding: 0 16px;
             z-index: 100;
             border-bottom: 0.5px solid var(--od-border);
@@ -327,15 +328,9 @@
             margin-left: -8px;
         }
 
+        /* Hide username from top bar on mobile */
         .od-m-username-group {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 4px;
-            font-weight: 600;
-            font-size: 16px;
-            color: var(--od-text-primary);
+            display: none;
         }
 
         .od-m-notification-dot {
@@ -426,6 +421,20 @@
         .od-mobile-stats {
             flex: 1;
             display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .od-m-username-above-stats {
+            display: flex;
+            align-items: center;
+            font-weight: 600;
+            font-size: 18px;
+            color: var(--od-text-primary);
+        }
+
+        .od-m-stats-row {
+            display: flex;
             align-items: center;
             justify-content: space-around;
         }
@@ -479,10 +488,10 @@
         }
 
         .od-m-fullname {
-            font-weight: 600;
+            font-weight: 500;
             font-size: 14px;
             margin-bottom: 2px;
-            color: var(--od-text-primary);
+            color: var(--od-text-secondary);
         }
 
         .od-m-bio-text {
@@ -490,6 +499,7 @@
             line-height: 1.4;
             white-space: pre-wrap;
             color: var(--od-text-primary);
+            margin-top: 8px;
         }
 
         .od-m-link {
@@ -1871,17 +1881,25 @@
 
                 <!-- Stats Section - Instagram Style -->
                 <div class="od-mobile-stats">
-                    <div class="od-m-stat-item">
-                        <span class="od-m-stat-number">{{ tweets|length }}</span>
-                        <span class="od-m-stat-label">posts</span>
+                    <div class="od-m-username-above-stats">
+                        {{ profile_user.username }}
+                        {% if profile_user.is_private %}
+                        <i data-lucide="lock" style="width: 14px; height: 14px; margin-left: 4px;"></i>
+                        {% endif %}
                     </div>
-                    <div class="od-m-stat-item" onclick="openFollowersModal()">
-                        <span class="od-m-stat-number" id="followersCountMobile">{{ profile_user.follower_count }}</span>
-                        <span class="od-m-stat-label">followers</span>
-                    </div>
-                    <div class="od-m-stat-item" onclick="openFollowingModal()">
-                        <span class="od-m-stat-number" id="followingCountMobile">{{ profile_user.following_count }}</span>
-                        <span class="od-m-stat-label">following</span>
+                    <div class="od-m-stats-row">
+                        <div class="od-m-stat-item">
+                            <span class="od-m-stat-number">{{ scribes|length }}</span>
+                            <span class="od-m-stat-label">posts</span>
+                        </div>
+                        <div class="od-m-stat-item" onclick="openFollowersModal()">
+                            <span class="od-m-stat-number" id="followersCountMobile">{{ profile_user.follower_count }}</span>
+                            <span class="od-m-stat-label">followers</span>
+                        </div>
+                        <div class="od-m-stat-item" onclick="openFollowingModal()">
+                            <span class="od-m-stat-number" id="followingCountMobile">{{ profile_user.following_count }}</span>
+                            <span class="od-m-stat-label">following</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -2063,7 +2081,7 @@
                         <!-- Stats (Desktop) -->
                         <div class="od-profile-stats desktop-only">
                             <div class="od-profile-stat">
-                                <span class="od-stat-count">{{ tweets|length }}</span>
+                                <span class="od-stat-count">{{ scribes|length }}</span>
                                 <span class="od-stat-label">scribes</span>
                             </div>
                             <div class="od-profile-stat" onclick="openFollowersModal()">
@@ -2194,54 +2212,54 @@
             }
         </style>
         <div class="od-profile-content" id="postsTab">
-            {% if tweets %}
+            {% if scribes %}
             <!-- Posts Feed -->
             <section class="od-posts" id="profilePostsFeed">
-                {% for tweet in tweets %}
-                <article class="od-post" data-tweet-id="{{ tweet.id }}">
+                {% for scribe in scribes %}
+                <article class="od-post" data-scribe-id="{{ scribe.id }}">
                     <!-- Post Header -->
                     <header class="od-post-header">
-                        <a href="{% url 'user_profile' tweet.user.username %}" class="od-post-user">
-                            <img src="{{ tweet.user.profile_picture_url }}" alt="{{ tweet.user.full_name }}"
+                        <a href="{% url 'user_profile' scribe.user.username %}" class="od-post-user">
+                            <img src="{{ scribe.user.profile_picture_url }}" alt="{{ scribe.user.full_name }}"
                                 class="od-post-avatar"
-                                onerror="this.outerHTML='<div class=\'od-post-avatar-placeholder\'>{{ tweet.user.initials }}</div>'">
+                                onerror="this.outerHTML='<div class=\'od-post-avatar-placeholder\'>{{ scribe.user.initials }}</div>'">
                             <div class="od-post-user-info">
-                                <span class="od-post-username">{{ tweet.user.username }}</span>
+                                <span class="od-post-username">{{ scribe.user.username }}</span>
                             </div>
                         </a>
-                        <button class="od-post-more" onclick="openPostDetail({{ tweet.id }})">
+                        <button class="od-post-more" onclick="openPostDetail({{ scribe.id }})">
                             <i data-lucide="more-horizontal"></i>
                         </button>
                     </header>
 
                     <!-- Post Media -->
-                    {% if tweet.content_type == 'code_scribe' %}
+                    {% if scribe.content_type == 'code_scribe' %}
                     <div class="od-post-media">
                         <iframe class="od-code-scribe-view" title="Code Scribe"
                             style="width: 100%; min-height: 260px; border: none; background: var(--od-bg);"
-                            data-code-bundle="{{ tweet.code_bundle|urlencode }}"
-                            data-code-html="{{ tweet.code_html|default:''|urlencode }}"
-                            data-code-css="{{ tweet.code_css|default:''|urlencode }}"
-                            data-code-js="{{ tweet.code_js|default:''|urlencode }}"></iframe>
+                            data-code-bundle="{{ scribe.code_bundle|urlencode }}"
+                            data-code-html="{{ scribe.code_html|default:''|urlencode }}"
+                            data-code-css="{{ scribe.code_css|default:''|urlencode }}"
+                            data-code-js="{{ scribe.code_js|default:''|urlencode }}"></iframe>
                     </div>
-                    {% elif tweet.image_url %}
-                    <div class="od-post-media" onclick="openImageModal('{{ tweet.image_url }}')">
-                        <img src="{{ tweet.image_url }}" alt="Post image">
+                    {% elif scribe.image_url %}
+                    <div class="od-post-media" onclick="openImageModal('{{ scribe.image_url }}')">
+                        <img src="{{ scribe.image_url }}" alt="Post image">
                     </div>
                     {% endif %}
 
                     <!-- Post Actions -->
                     <div class="od-post-actions">
                         <div class="od-post-actions-left">
-                            <button class="od-post-action-btn like-btn {% if tweet.is_liked %}liked{% endif %}"
-                                onclick="toggleLike({{ tweet.id }})" data-tweet-id="{{ tweet.id }}">
+                            <button class="od-post-action-btn like-btn {% if scribe.is_liked %}liked{% endif %}"
+                                onclick="toggleLike({{ scribe.id }})" data-scribe-id="{{ scribe.id }}">
                                 <i data-lucide="thumbs-up"></i>
                             </button>
-                            <button class="od-post-action-btn dislike-btn {% if tweet.is_disliked %}disliked{% endif %}"
-                                onclick="toggleDislike({{ tweet.id }})" data-tweet-id="{{ tweet.id }}">
+                            <button class="od-post-action-btn dislike-btn {% if scribe.is_disliked %}disliked{% endif %}"
+                                onclick="toggleDislike({{ scribe.id }})" data-scribe-id="{{ scribe.id }}">
                                 <i data-lucide="thumbs-down"></i>
                             </button>
-                            <button class="od-post-action-btn" onclick="toggleComments({{ tweet.id }})">
+                            <button class="od-post-action-btn" onclick="toggleComments({{ scribe.id }})">
                                 <i data-lucide="message-circle"></i>
                             </button>
                         </div>
@@ -2250,35 +2268,35 @@
                     <!-- Post Details -->
                     <div class="od-post-details">
                         <div class="od-post-likes">
-                            <span class="like-count" data-tweet-id="{{ tweet.id }}">{{ tweet.like_count }}</span> likes
+                            <span class="like-count" data-scribe-id="{{ scribe.id }}">{{ scribe.like_count }}</span> likes
                         </div>
 
-                        {% if tweet.content %}
+                        {% if scribe.content %}
                         <div class="od-post-caption">
-                            <span class="username">{{ tweet.user.username }}</span>
-                            <span>{{ tweet.content|linkify_hashtags_mentions }}</span>
+                            <span class="username">{{ scribe.user.username }}</span>
+                            <span>{{ scribe.content|linkify_hashtags_mentions }}</span>
                         </div>
                         {% endif %}
 
-                        {% if tweet.comment_count > 0 %}
-                        <div class="od-post-view-comments" onclick="openPostDetail({{ tweet.id }})">
-                            View all {{ tweet.comment_count }} comments
+                        {% if scribe.comment_count > 0 %}
+                        <div class="od-post-view-comments" onclick="openPostDetail({{ scribe.id }})">
+                            View all {{ scribe.comment_count }} comments
                         </div>
                         {% endif %}
 
-                        <time class="od-post-time">{{ tweet.timestamp|timesince }} ago</time>
+                        <time class="od-post-time">{{ scribe.timestamp|timesince }} ago</time>
                     </div>
 
                     <!-- Comment Input -->
                     <div class="od-post-comment-input">
-                        <input type="text" placeholder="Add a comment..." id="comment-input-{{ tweet.id }}"
-                            maxlength="500" onkeypress="handleCommentKeypress(event, {{ tweet.id }})">
-                        <button onclick="addComment({{ tweet.id }})">Post</button>
+                        <input type="text" placeholder="Add a comment..." id="comment-input-{{ scribe.id }}"
+                            maxlength="500" onkeypress="handleCommentKeypress(event, {{ scribe.id }})">
+                        <button onclick="addComment({{ scribe.id }})">Post</button>
                     </div>
 
                     <!-- Comments Section (Hidden by default) -->
-                    <div id="comments-{{ tweet.id }}" class="od-comments-section" style="display: none;">
-                        <div class="od-comments-list" id="comments-list-{{ tweet.id }}"></div>
+                    <div id="comments-{{ scribe.id }}" class="od-comments-section" style="display: none;">
+                        <div class="od-comments-list" id="comments-list-{{ scribe.id }}"></div>
                     </div>
                 </article>
                 {% endfor %}
@@ -3827,7 +3845,7 @@
     }
 
     function doPostSubmit(formData) {
-        fetch('{% url "post_tweet" %}', {
+        fetch('{% url "post_scribe" %}', {
             method: 'POST',
             headers: {
                 'X-CSRFToken': getCSRFToken()
@@ -4385,35 +4403,35 @@
     }
 
     // Post detail
-    let currentDetailTweetId = null;
+    let currentDetailScribeId = null;
 
-    function openPostDetail(tweetId) {
-        currentDetailTweetId = tweetId;
-        fetch(`/api/tweet/${tweetId}/`)
+    function openPostDetail(scribeId) {
+        currentDetailScribeId = scribeId;
+        fetch(`/api/scribe/${scribeId}/`)
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    const tweet = data.tweet;
+                    const scribe = data.scribe;
 
                     // Media section
                     const mediaDiv = document.getElementById('postDetailMedia');
-                    if (tweet.image_url) {
-                        mediaDiv.innerHTML = `<img src="${tweet.image_url}" alt="Post image">`;
+                    if (scribe.image_url) {
+                        mediaDiv.innerHTML = `<img src="${scribe.image_url}" alt="Post image">`;
                         mediaDiv.classList.remove('text-only');
                     } else {
                         mediaDiv.innerHTML = `
                     <div class="od-detail-text-post">
-                        <p>${tweet.content}</p>
+                        <p>${scribe.content}</p>
                     </div>`;
                         mediaDiv.classList.add('text-only');
                     }
 
                     // Header
                     document.getElementById('postDetailHeader').innerHTML = `
-                <a href="/profile/${tweet.username}/" class="od-detail-user">
-                    <img src="${tweet.avatar}" alt="${tweet.username}" class="od-detail-avatar">
+                <a href="/profile/${scribe.username}/" class="od-detail-user">
+                    <img src="${scribe.avatar}" alt="${scribe.username}" class="od-detail-avatar">
                     <div class="od-detail-user-info">
-                        <span class="od-detail-username">${tweet.username}</span>
+                        <span class="od-detail-username">${scribe.username}</span>
                         <span class="od-detail-location">Original Post</span>
                     </div>
                 </a>
@@ -4423,26 +4441,26 @@
             `;
 
                     // Caption in comments section
-                    document.getElementById('postDetailCaption').innerHTML = tweet.content ? `
+                    document.getElementById('postDetailCaption').innerHTML = scribe.content ? `
                 <div class="od-detail-caption-content">
-                    <img src="${tweet.avatar}" alt="" class="od-detail-caption-avatar">
+                    <img src="${scribe.avatar}" alt="" class="od-detail-caption-avatar">
                     <div class="od-detail-caption-text">
-                        <span class="od-detail-caption-username">${tweet.username}</span>
-                        <span class="od-detail-caption-body">${tweet.content}</span>
-                        <span class="od-detail-caption-time">${tweet.time_ago}</span>
+                        <span class="od-detail-caption-username">${scribe.username}</span>
+                        <span class="od-detail-caption-body">${scribe.content}</span>
+                        <span class="od-detail-caption-time">${scribe.time_ago}</span>
                     </div>
                 </div>
             ` : '';
 
                     // Load comments
-                    loadPostComments(tweetId);
+                    loadPostComments(scribeId);
 
                     // Actions
                     document.getElementById('postDetailActions').innerHTML = `
                 <div class="od-detail-actions-row">
                     <div class="od-detail-actions-left">
-                        <button class="od-detail-action-btn ${tweet.is_liked ? 'liked' : ''}" onclick="toggleLikeFromDetail(${tweet.id})" id="detailLikeBtn">
-                            <i data-lucide="${tweet.is_liked ? 'heart' : 'heart'}"></i>
+                        <button class="od-detail-action-btn ${scribe.is_liked ? 'liked' : ''}" onclick="toggleLikeFromDetail(${scribe.id})" id="detailLikeBtn">
+                            <i data-lucide="${scribe.is_liked ? 'heart' : 'heart'}"></i>
                         </button>
                         <button class="od-detail-action-btn" onclick="document.getElementById('postDetailCommentInput').focus()">
                             <i data-lucide="message-circle"></i>
@@ -4460,9 +4478,9 @@
                     // Info section
                     document.getElementById('postDetailInfo').innerHTML = `
                 <div class="od-detail-likes" id="detailLikesSection">
-                    <span class="od-detail-like-count" id="detailLikeCount">${tweet.like_count.toLocaleString()}</span> likes
+                    <span class="od-detail-like-count" id="detailLikeCount">${scribe.like_count.toLocaleString()}</span> likes
                 </div>
-                <time class="od-detail-time">${tweet.time_ago}</time>
+                <time class="od-detail-time">${scribe.time_ago}</time>
             `;
 
                     lucide.createIcons();
@@ -4472,8 +4490,8 @@
             });
     }
 
-    function loadPostComments(tweetId) {
-        fetch(`/api/tweet/${tweetId}/comments/`)
+    function loadPostComments(scribeId) {
+        fetch(`/api/scribe/${scribeId}/comments/`)
             .then(response => response.json())
             .then(data => {
                 const commentsDiv = document.getElementById('postDetailComments');
@@ -4514,7 +4532,7 @@
     function postCommentFromDetail() {
         const input = document.getElementById('postDetailCommentInput');
         const content = input.value.trim();
-        if (!content || !currentDetailTweetId) return;
+        if (!content || !currentDetailScribeId) return;
 
         fetch('{% url "add_comment" %}', {
             method: 'POST',
@@ -4522,13 +4540,13 @@
                 'Content-Type': 'application/json',
                 'X-CSRFToken': getCSRFToken()
             },
-            body: JSON.stringify({ tweet_id: currentDetailTweetId, content: content })
+            body: JSON.stringify({ scribe_id: currentDetailScribeId, content: content })
         })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
                     input.value = '';
-                    loadPostComments(currentDetailTweetId);
+                    loadPostComments(currentDetailScribeId);
                     showIGToast('Comment posted!', 'success');
                 }
             });
@@ -4538,18 +4556,18 @@
         if (!event || event.target === event.currentTarget) {
             document.getElementById('postDetailModal').style.display = 'none';
             document.body.style.overflow = '';
-            currentDetailTweetId = null;
+            currentDetailScribeId = null;
         }
     }
 
-    function toggleLikeFromDetail(tweetId) {
+    function toggleLikeFromDetail(scribeId) {
         fetch('{% url "toggle_like" %}', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRFToken': getCSRFToken()
             },
-            body: JSON.stringify({ tweet_id: tweetId })
+            body: JSON.stringify({ scribe_id: scribeId })
         })
             .then(response => response.json())
             .then(data => {
@@ -5062,17 +5080,17 @@
         setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.3s'; setTimeout(() => toast.remove(), 300); }, 3000);
     }
 
-    function handleCommentKeypress(event, tweetId) {
+    function handleCommentKeypress(event, scribeId) {
         if (event.key === 'Enter' && !event.shiftKey) {
             event.preventDefault();
-            addComment(tweetId);
+            addComment(scribeId);
         }
     }
 
-    function toggleLike(tweetId) {
-        const btn = document.querySelector(`.od-post-action-btn.like-btn[data-tweet-id="${tweetId}"]`);
-        const countEl = document.querySelector(`.like-count[data-tweet-id="${tweetId}"]`);
-        const dislikeBtn = document.querySelector(`.od-post-action-btn.dislike-btn[data-tweet-id="${tweetId}"]`);
+    function toggleLike(scribeId) {
+        const btn = document.querySelector(`.od-post-action-btn.like-btn[data-scribe-id="${scribeId}"]`);
+        const countEl = document.querySelector(`.like-count[data-scribe-id="${scribeId}"]`);
+        const dislikeBtn = document.querySelector(`.od-post-action-btn.dislike-btn[data-scribe-id="${scribeId}"]`);
 
         const wasLiked = btn && btn.classList.contains('liked');
         if (btn) btn.classList.toggle('liked');
@@ -5088,7 +5106,7 @@
         fetch('{% url "toggle_like" %}', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCSRFToken() },
-            body: JSON.stringify({ tweet_id: tweetId })
+            body: JSON.stringify({ scribe_id: scribeId })
         })
             .then(r => r.json())
             .then(data => {
@@ -5106,10 +5124,10 @@
             });
     }
 
-    function toggleDislike(tweetId) {
-        const btn = document.querySelector(`.od-post-action-btn.dislike-btn[data-tweet-id="${tweetId}"]`);
-        const likeBtn = document.querySelector(`.od-post-action-btn.like-btn[data-tweet-id="${tweetId}"]`);
-        const countEl = document.querySelector(`.like-count[data-tweet-id="${tweetId}"]`);
+    function toggleDislike(scribeId) {
+        const btn = document.querySelector(`.od-post-action-btn.dislike-btn[data-scribe-id="${scribeId}"]`);
+        const likeBtn = document.querySelector(`.od-post-action-btn.like-btn[data-scribe-id="${scribeId}"]`);
+        const countEl = document.querySelector(`.like-count[data-scribe-id="${scribeId}"]`);
 
         const wasDisliked = btn && btn.classList.contains('disliked');
         if (btn) btn.classList.toggle('disliked');
@@ -5128,7 +5146,7 @@
         fetch('{% url "toggle_dislike" %}', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCSRFToken() },
-            body: JSON.stringify({ tweet_id: tweetId })
+            body: JSON.stringify({ scribe_id: scribeId })
         })
             .then(r => r.json())
             .then(data => {
@@ -5142,21 +5160,21 @@
             });
     }
 
-    function addComment(tweetId) {
-        const input = document.getElementById(`comment-input-${tweetId}`);
+    function addComment(scribeId) {
+        const input = document.getElementById(`comment-input-${scribeId}`);
         const content = (input?.value || '').trim();
         if (!content) return;
 
         fetch('{% url "add_comment" %}', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCSRFToken() },
-            body: JSON.stringify({ tweet_id: tweetId, content })
+            body: JSON.stringify({ scribe_id: scribeId, content })
         })
             .then(r => r.json())
             .then(data => {
                 if (data.success) {
                     input.value = '';
-                    toggleComments(tweetId);
+                    toggleComments(scribeId);
                 } else {
                     showIGToast(data.error || 'Failed to add comment', 'error');
                 }
@@ -5164,19 +5182,19 @@
             .catch(() => showIGToast('Failed to add comment', 'error'));
     }
 
-    function toggleComments(tweetId) {
-        const section = document.getElementById(`comments-${tweetId}`);
+    function toggleComments(scribeId) {
+        const section = document.getElementById(`comments-${scribeId}`);
         if (!section) return;
         const isHidden = section.style.display === 'none' || !section.style.display;
         section.style.display = isHidden ? 'block' : 'none';
-        if (isHidden) loadComments(tweetId);
+        if (isHidden) loadComments(scribeId);
     }
 
-    function loadComments(tweetId) {
-        fetch(`/chat/api/tweet/${tweetId}/comments/`)
+    function loadComments(scribeId) {
+        fetch(`/chat/api/scribe/${scribeId}/comments/`)
             .then(r => r.json())
             .then(data => {
-                const list = document.getElementById(`comments-list-${tweetId}`);
+                const list = document.getElementById(`comments-list-${scribeId}`);
                 if (!list) return;
                 if (data.comments && data.comments.length) {
                     list.innerHTML = data.comments.map(c => `

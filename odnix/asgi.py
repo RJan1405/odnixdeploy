@@ -2,7 +2,6 @@
 ASGI config for odnix project.
 """
 
-from chat import routing
 import os
 import django
 from channels.auth import AuthMiddlewareStack
@@ -15,6 +14,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'odnix.settings')
 django.setup()
 
 # Import routing ONLY AFTER django.setup()
+from chat import routing
 
 application = ProtocolTypeRouter({
     "http": get_asgi_application(),

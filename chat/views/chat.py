@@ -16,10 +16,10 @@ from chat.utils import clear_sidebar_unread
 
 from chat.models import (
     CustomUser, Chat, Message, GroupJoinRequest, Follow, Story, StoryView,
-    StoryLike, StoryReply, Tweet, Like, Comment, MessageDeletion, MessageRead,
+    StoryLike, StoryReply, Scribe, Like, Comment, MessageDeletion, MessageRead,
     MessageReaction, StarredMessage, PinnedChat, SavedPost, Omzo
 )
-from chat.forms import TweetForm
+from chat.forms import ScribeForm
 from .media import handle_media_upload
 from django.conf import settings
 import json as _json
@@ -116,39 +116,39 @@ def dashboard(request):
     user_story = user_stories.first()
     user_story_count = user_stories.count()
 
-    # Get tweets from followed users (social media feed)
-    tweets_queryset = Tweet.objects.filter(
-        Q(user__in=following_users) | Q(user=request.user)  # Include own tweets
+    # Get scribes from followed users (social media feed)
+    scribes_queryset = Scribe.objects.filter(
+        Q(user__in=following_users) | Q(user=request.user)  # Include own scribes
     ).select_related('user').prefetch_related('comments__user').distinct().order_by('-timestamp')
 
-    # Process tweets with like/comment data
-    tweets_data = []
-    processed_tweet_ids = set()
+    # Process scribes with like/comment data
+    scribes_data = []
+    processed_scribe_ids = set()
 
-    for tweet in tweets_queryset[:20]:  # Limit to 20 most recent
-        if tweet.id in processed_tweet_ids:
+    for scribe in scribes_queryset[:20]:  # Limit to 20 most recent
+        if scribe.id in processed_scribe_ids:
             continue
-        processed_tweet_ids.add(tweet.id)
+        processed_scribe_ids.add(scribe.id)
 
         # Get like count and if current user liked it
-        like_count = Like.objects.filter(tweet=tweet).count()
-        is_liked = Like.objects.filter(tweet=tweet, user=request.user).exists()
+        like_count = Like.objects.filter(scribe=scribe).count()
+        is_liked = Like.objects.filter(scribe=scribe, user=request.user).exists()
 
         # Check if current user has saved this post
         is_saved = SavedPost.objects.filter(
-            tweet=tweet, user=request.user).exists()
+            scribe=scribe, user=request.user).exists()
 
         # Get comment count
-        comment_count = Comment.objects.filter(tweet=tweet).count()
+        comment_count = Comment.objects.filter(scribe=scribe).count()
 
         # Get recent comments (latest 3)
         recent_comments = Comment.objects.filter(
-            tweet=tweet,
+            scribe=scribe,
             parent__isnull=True
         ).select_related('user').order_by('-timestamp')[:3]
 
         # Calculate time ago
-        time_diff = timezone.now() - tweet.timestamp
+        time_diff = timezone.now() - scribe.timestamp
         if time_diff.days > 0:
             time_ago = f"{time_diff.days}d"
         elif time_diff.seconds > 3600:
@@ -156,34 +156,34 @@ def dashboard(request):
         else:
             time_ago = f"{time_diff.seconds // 60}m"
 
-        tweets_data.append({
-            'id': tweet.id,
-            'content': tweet.content,
-            'content_type': getattr(tweet, 'content_type', 'text'),
-            'code_bundle': getattr(tweet, 'code_bundle', None),
-            'code_html': getattr(tweet, 'code_html', None),
-            'code_css': getattr(tweet, 'code_css', None),
-            'code_js': getattr(tweet, 'code_js', None),
-            'user': tweet.user,
-            'user_id': tweet.user.id,
-            'username': tweet.user.username,
-            'fullname': tweet.user.full_name,
-            'user_initials': tweet.user.initials,
-            'profile_picture_url': tweet.user.profile_picture_url,
-            'formatted_time': tweet.timestamp.strftime('%b %d, %Y %H:%M'),
+        scribes_data.append({
+            'id': scribe.id,
+            'content': scribe.content,
+            'content_type': getattr(scribe, 'content_type', 'text'),
+            'code_bundle': getattr(scribe, 'code_bundle', None),
+            'code_html': getattr(scribe, 'code_html', None),
+            'code_css': getattr(scribe, 'code_css', None),
+            'code_js': getattr(scribe, 'code_js', None),
+            'user': scribe.user,
+            'user_id': scribe.user.id,
+            'username': scribe.user.username,
+            'fullname': scribe.user.full_name,
+            'user_initials': scribe.user.initials,
+            'profile_picture_url': scribe.user.profile_picture_url,
+            'formatted_time': scribe.timestamp.strftime('%b %d, %Y %H:%M'),
             'time_ago': time_ago,
             'like_count': like_count,
             'comment_count': comment_count,
             'is_liked': is_liked,
             'is_saved': is_saved,
-            'is_own': tweet.user == request.user,
-            'image_url': tweet.image_url,
-            'has_media': tweet.has_media,
+            'is_own': scribe.user == request.user,
+            'image_url': scribe.image_url,
+            'has_media': scribe.has_media,
             'recent_comments': recent_comments,
         })
 
-    # Create tweet form instance for proper rendering
-    tweet_form = TweetForm()
+    # Create scribe form instance for proper rendering
+    scribe_form = ScribeForm()
 
     # Get story inbox count (replies/likes to user's stories)
     story_inbox_count = StoryReply.objects.filter(
@@ -243,8 +243,8 @@ def dashboard(request):
         'user_story': user_story,  # Latest user story for display
         'user_stories': user_stories,  # ALL user stories for navigation
         'user_story_count': user_story_count,  # Count for display
-        'tweets_data': tweets_data,
-        'tweet_form': tweet_form,  # Pass form to template
+        'scribes_data': scribes_data,
+        'scribe_form': scribe_form,  # Pass form to template
         'story_inbox_count': story_inbox_count,  # Notification count
         'unread_message_count': unread_message_count,  # DM badge count
     }
@@ -924,7 +924,7 @@ def _get_explore_content_batch(page=1, per_page=15):
         # Get only the IDs and types (lightweight)
         # Show scribes with actual images or code bundles (excluding empty/text-only)
         scribes_ids = list(
-            Tweet.objects.filter(
+            Scribe.objects.filter(
                 # Has actual image (non-empty)
                 Q(image__isnull=False, image__gt='') |
                 Q(code_bundle__isnull=False) |           # Has code bundle
@@ -958,7 +958,7 @@ def _get_explore_content_batch(page=1, per_page=15):
     paginated = []
     for item_id, item_type in page_ids:
         if item_type == 'scribe':
-            obj = Tweet.objects.select_related('user').get(id=item_id)
+            obj = Scribe.objects.select_related('user').get(id=item_id)
         else:
             obj = Omzo.objects.select_related('user').get(id=item_id)
 
@@ -1048,10 +1048,10 @@ def load_more_explore_content(request):
                     'code_html': obj.code_html,
                     'code_css': obj.code_css,
                     'code_js': obj.code_js,
-                    'like_count': Like.objects.filter(tweet=obj).count(),
-                    'comment_count': Comment.objects.filter(tweet=obj).count(),
-                    'is_liked': Like.objects.filter(tweet=obj, user=request.user).exists(),
-                    'is_saved': SavedPost.objects.filter(tweet=obj, user=request.user).exists(),
+                    'like_count': Like.objects.filter(scribe=obj).count(),
+                    'comment_count': Comment.objects.filter(scribe=obj).count(),
+                    'is_liked': Like.objects.filter(scribe=obj, user=request.user).exists(),
+                    'is_saved': SavedPost.objects.filter(scribe=obj, user=request.user).exists(),
                     'time_ago': time_ago,
                     'user': {
                         'id': obj.user.id,

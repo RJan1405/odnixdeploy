@@ -278,7 +278,7 @@ body {
 .user-avatar,
 .chat-avatar,
 .profile-avatar,
-.tweet-avatar {
+.scribe-avatar {
   background: linear-gradient(135deg, var(--color-primary), #764ba2);
   color: white;
   border-radius: 22%;
@@ -340,7 +340,7 @@ body {
 
 /* Chat List */
 .chat-list,
-.tweets-list {
+.scribes-list {
   background: var(--color-surface);
   border-radius: 1rem;
   overflow: hidden;
@@ -738,7 +738,7 @@ body {
   margin-bottom: 0.25rem;
 }
 
-.tweet-compose {
+.scribe-compose {
   background: var(--color-surface);
   padding: 2rem;
   border-radius: 1rem;
@@ -746,13 +746,13 @@ body {
   box-shadow: 0 4px 25px rgba(0, 0, 0, 0.08);
 }
 
-.tweet-compose h4 {
+.scribe-compose h4 {
   font-size: 1.3rem;
   color: var(--color-text);
   margin-bottom: 1rem;
 }
 
-.tweet-compose textarea {
+.scribe-compose textarea {
   width: 100%;
   padding: 1.25rem;
   border: 2px solid var(--color-border);
@@ -765,79 +765,79 @@ body {
   transition: border-color 0.2s;
 }
 
-.tweet-compose textarea:focus {
+.scribe-compose textarea:focus {
   outline: none;
   border-color: var(--color-primary);
 }
 
-.tweets-list {
+.scribes-list {
   padding: 2rem;
 }
 
-.tweets-list h4 {
+.scribes-list h4 {
   font-size: 1.3rem;
   color: var(--color-text);
   margin-bottom: 1.5rem;
 }
 
-.tweet-item {
+.scribe-item {
   border-bottom: 1px solid var(--color-background);
   padding: 1.5rem 0;
   margin-bottom: 1rem;
 }
 
-.tweet-item:last-child {
+.scribe-item:last-child {
   border-bottom: none;
 }
 
-.tweet-header {
+.scribe-header {
   display: flex;
   align-items: center;
   margin-bottom: 1rem;
 }
 
-.tweet-avatar {
+.scribe-avatar {
   width: 44px;
   height: 44px;
   margin-right: 1rem;
   font-size: 0.9rem;
 }
 
-.tweet-info {
+.scribe-info {
   flex: 1;
 }
 
-.tweet-author {
+.scribe-author {
   font-weight: 600;
   color: var(--color-text);
   margin-right: 0.75rem;
 }
 
-.tweet-username,
-.tweet-time {
+.scribe-username,
+.scribe-time {
   color: var(--color-text-secondary);
   font-size: 0.9rem;
   margin-right: 0.75rem;
 }
 
-.tweet-content {
+.scribe-content {
   margin-bottom: 1rem;
   line-height: 1.6;
   font-size: 1rem;
   color: var(--color-text);
 }
 
-.tweet-actions {
+.scribe-actions {
   color: var(--color-text-secondary);
   font-size: 0.9rem;
 }
 
-.tweet-likes {
+.scribe-likes {
   cursor: pointer;
   transition: color 0.2s;
 }
 
-.tweet-likes:hover {
+.scribe-likes:hover {
   color: #e74c3c;
 }
 

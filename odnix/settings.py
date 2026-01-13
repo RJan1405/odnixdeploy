@@ -38,6 +38,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -120,6 +121,9 @@ STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
 STATIC_ROOT = BASE_DIR / "staticfiles"
+
+# WhiteNoise for serving static files with ASGI/Daphne
+WHITENOISE_USE_FINDERS = True
 
 # FIXED: Media files configuration with profile pics support
 MEDIA_URL = '/media/'
@@ -266,7 +270,7 @@ JAZZMIN_SETTINGS = {
     "copyright": "Odnix Social Platform",
     
     # List of model admins to search from the search bar
-    "search_model": ["chat.CustomUser", "chat.Chat", "chat.Tweet", "chat.Omzo"],
+    "search_model": ["chat.CustomUser", "chat.Chat", "chat.Scribe", "chat.Omzo"],
     
     # Field name on user model that contains avatar ImageField/URLField/Charfield
     "user_avatar": "profile_picture",
@@ -319,7 +323,7 @@ JAZZMIN_SETTINGS = {
         "chat.Chat",
         "chat.Message",
         "chat.GroupJoinRequest",
-        "chat.Tweet",
+        "chat.Scribe",
         "chat.Like",
         "chat.Dislike",
         "chat.Comment",
@@ -372,8 +376,8 @@ JAZZMIN_SETTINGS = {
         "chat.Message": "fas fa-envelope",
         "chat.GroupJoinRequest": "fas fa-user-plus",
         
-        # Chat app - Posts/Tweets
-        "chat.Tweet": "fas fa-feather-alt",
+        # Chat app - Posts/Scribes
+        "chat.Scribe": "fas fa-feather-alt",
         "chat.Like": "fas fa-heart",
         "chat.Dislike": "fas fa-thumbs-down",
         "chat.Comment": "fas fa-comment-dots",
@@ -425,7 +429,7 @@ JAZZMIN_SETTINGS = {
     "changeform_format_overrides": {
         "chat.customuser": "collapsible",
         "chat.chat": "horizontal_tabs",
-        "chat.tweet": "vertical_tabs",
+        "chat.scribe": "vertical_tabs",
         "chat.omzo": "vertical_tabs",
         "chat.postreport": "collapsible",
         "chat.omzoreport": "collapsible",

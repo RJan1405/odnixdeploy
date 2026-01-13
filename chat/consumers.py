@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 import json
 import logging
-from channels.generic.websocket import AsyncWebsocketConsumer
+from channels.generic.websocket import AsyncWebsocketConsumer, AsyncJsonWebsocketConsumer
 from channels.db import database_sync_to_async
 from django.contrib.auth import get_user_model
 from .models import Chat, Message, MessageRead
@@ -15,7 +15,7 @@ User = get_user_model()
 logger = logging.getLogger(__name__)
 
 
-class ChatConsumer(AsyncWebsocketConsumer):
+class ChatConsumer(AsyncJsonWebsocketConsumer):
 
     # ---------------- CONNECT ----------------
     async def connect(self):
@@ -69,16 +69,36 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     # ---------------- EVENTS ----------------
     async def chat_message(self, event):
-        await self.send_json(event)
+        # Send with frontend-expected type
+        await self.send_json({
+            "type": "message.new",
+            "message": event["message"]
+        })
 
     async def message_read(self, event):
-        await self.send_json(event)
+        # Send with frontend-expected type
+        await self.send_json({
+            "type": "message.read",
+            "message_id": event["message_id"],
+            "read_by": event["read_by"],
+            "read_at": event["read_at"]
+        })
 
     async def message_consumed(self, event):
-        await self.send_json(event)
+        # Send with frontend-expected type
+        await self.send_json({
+            "type": "message.consumed",
+            "message_id": event["message_id"],
+            "consumed_by": event["consumed_by"],
+            "consumed_at": event["consumed_at"]
+        })
 
     async def typing_update(self, event):
-        await self.send_json(event)
+        # Send with frontend-expected type
+        await self.send_json({
+            "type": "typing.update",
+            "users": event.get("users", [])
+        })
 
     # ---------------- HANDLERS ----------------
     async def handle_send_message(self, data):
@@ -215,12 +235,13 @@ class ChatConsumer(AsyncWebsocketConsumer):
             "content": message.content,
             "sender": message.sender.username,
             "sender_name": message.sender.full_name,
+            "sender_avatar": message.sender.profile_picture_url if hasattr(message.sender, 'profile_picture_url') else None,
+            "sender_initials": message.sender.initials if hasattr(message.sender, 'initials') else message.sender.username[0].upper(),
             "timestamp": message.timestamp.strftime("%H:%M"),
             "timestamp_iso": message.timestamp.isoformat(),
             "one_time": message.one_time,
             "consumed": bool(message.consumed_at),
             "sender_id": message.sender_id,
-            "is_own": message.sender_id == self.user.id,
             "reply_to": {
                 "id": message.reply_to.id,
                 "content": message.reply_to.content,

@@ -1,6 +1,6 @@
 {% extends 'chat/base.html' %}
 {% load static %}
-{% load tweet_extras %}
+{% load scribe_extras %}
 
 {% block title %}Explore - Odnix{% endblock %}
 
@@ -836,21 +836,21 @@
 
         if (typeof lucide !== 'undefined') lucide.createIcons();
 
-        fetch(`/chat/api/tweet/${postId}/`)
+        fetch(`/chat/api/scribe/${postId}/`)
             .then(r => r.json())
             .then(data => {
-                if (data.success && data.tweet) {
-                    const tweet = data.tweet;
-                    const isLiked = tweet.is_liked || false;
+                if (data.success && data.scribe) {
+                    const scribe = data.scribe;
+                    const isLiked = scribe.is_liked || false;
 
                     // Render Image/Media Section
                     let mediaSection = '';
-                    if (tweet.image_url) {
-                        mediaSection = `<img src="${tweet.image_url}" alt="Post image" style="width: 100%; height: auto; max-height: 400px; object-fit: cover;">`;
-                    } else if (tweet.code_bundle || tweet.code_html) {
+                    if (scribe.image_url) {
+                        mediaSection = `<img src="${scribe.image_url}" alt="Post image" style="width: 100%; height: auto; max-height: 400px; object-fit: cover;">`;
+                    } else if (scribe.code_bundle || scribe.code_html) {
                         // Render code scribe using iframe
-                        const srcContent = tweet.code_bundle ? escapeHtml(tweet.code_bundle) :
-                            escapeHtml(`<style>${tweet.code_css || ''}</style>${tweet.code_html}<script>${tweet.code_js || ''}<\/script>`);
+                        const srcContent = scribe.code_bundle ? escapeHtml(scribe.code_bundle) :
+                            escapeHtml(`<style>${scribe.code_css || ''}</style>${scribe.code_html}<script>${scribe.code_js || ''}<\/script>`);
                         mediaSection = `<iframe style="width: 100%; height: 400px; border: none;" sandbox="allow-scripts" srcdoc="${srcContent}"></iframe>`;
                     } else {
                         mediaSection = `<div style="width: 100%; height: 250px; background: var(--od-surface-hover); display: flex; align-items: center; justify-content: center; color: var(--od-text-secondary);"><i data-lucide="file-text" style="width: 48px; height: 48px; opacity: 0.3;"></i></div>`;
@@ -864,19 +864,19 @@
                             
                             <div class="post-modal-info" style="flex-shrink: 0;">
                                 <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-                                    <img src="${tweet.avatar || 'https://ui-avatars.com/api/?name=' + tweet.username}" style="width: 32px; height: 32px; border-radius: 22%; object-fit: cover;" onerror="this.style.display='none';">
+                                    <img src="${scribe.avatar || 'https://ui-avatars.com/api/?name=' + scribe.username}" style="width: 32px; height: 32px; border-radius: 22%; object-fit: cover;" onerror="this.style.display='none';">
                                     <div>
-                                        <div style="font-weight: 600; color: var(--od-text-primary); font-size: 13px;">${tweet.full_name || tweet.username}</div>
-                                        <div style="color: var(--od-text-secondary); font-size: 12px;">@${tweet.username}</div>
+                                        <div style="font-weight: 600; color: var(--od-text-primary); font-size: 13px;">${scribe.full_name || scribe.username}</div>
+                                        <div style="color: var(--od-text-secondary); font-size: 12px;">@${scribe.username}</div>
                                     </div>
                                 </div>
                                 
-                                ${tweet.content ? `<div style="color: var(--od-text-primary); font-size: 14px; line-height: 1.5; margin-bottom: 12px;">${tweet.content}</div>` : ''}
+                                ${scribe.content ? `<div style="color: var(--od-text-primary); font-size: 14px; line-height: 1.5; margin-bottom: 12px;">${scribe.content}</div>` : ''}
                                 
                                 <div style="display: flex; gap: 16px; font-size: 13px; color: var(--od-text-secondary);">
-                                    <span id="likeCount${postId}"><strong style="color: var(--od-text-primary);">${tweet.like_count || 0}</strong> Likes</span>
-                                    <span id="commentCount${postId}"><strong style="color: var(--od-text-primary);">${tweet.comment_count || 0}</strong> Comments</span>
-                                    <span style="color: var(--od-text-secondary); font-size: 11px;">${tweet.time_ago}</span>
+                                    <span id="likeCount${postId}"><strong style="color: var(--od-text-primary);">${scribe.like_count || 0}</strong> Likes</span>
+                                    <span id="commentCount${postId}"><strong style="color: var(--od-text-primary);">${scribe.comment_count || 0}</strong> Comments</span>
+                                    <span style="color: var(--od-text-secondary); font-size: 11px;">${scribe.time_ago}</span>
                                 </div>
                             </div>
                             
@@ -934,7 +934,7 @@
                 'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content,
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ tweet_id: postId })
+            body: JSON.stringify({ scribe_id: postId })
         })
             .then(r => r.json())
             .then(data => {
@@ -962,7 +962,7 @@
         const commentsSection = document.getElementById('commentsSection' + postId);
         if (!commentsSection) return;
 
-        fetch(`/chat/api/tweet/${postId}/comments/`)
+        fetch(`/chat/api/scribe/${postId}/comments/`)
             .then(r => r.json())
             .then(data => {
                 if (data.success && data.comments) {
@@ -1008,7 +1008,7 @@
                 'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content,
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ tweet_id: postId, content: commentText.trim() })
+            body: JSON.stringify({ scribe_id: postId, content: commentText.trim() })
         })
             .then(r => r.json())
             .then(data => {
