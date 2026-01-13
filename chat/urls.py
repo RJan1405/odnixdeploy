@@ -104,6 +104,7 @@ urlpatterns = [
     path('api/toggle-follow/', views.toggle_follow, name='toggle_follow'),
     path('api/follow-states/', views.follow_states, name='follow_states'),
     path('api/toggle-block/', views.toggle_block, name='toggle_block'),
+    path('api/dismiss-suggestion/', views.dismiss_suggestion, name='dismiss_suggestion'),
     path('api/manage-follow-request/', views.manage_follow_request,
          name='manage_follow_request'),
     path('api/follow-requests/', views.get_follow_requests,
@@ -210,6 +211,7 @@ urlpatterns = [
     # Omzo
     path('omzo/', views.omzo_view, name='omzo'),
     path('api/omzo/upload/', views.upload_omzo, name='upload_omzo'),
+    path('api/omzo/batch/', views.get_omzo_batch, name='get_omzo_batch'),
     path('api/omzo/like/', views.toggle_omzo_like, name='toggle_omzo_like'),
     path('api/omzo/dislike/', views.toggle_omzo_dislike, name='toggle_omzo_dislike'),
     path('api/omzo/track-view/', views.track_omzo_view, name='track_omzo_view'),

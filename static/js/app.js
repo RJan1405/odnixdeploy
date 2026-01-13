@@ -898,39 +898,149 @@ window.loadChatsPanel = function() {
 
 // Load activity into panel
 window.loadActivityPanel = function() {
-    // FIXED: Correct URL for story inbox
-    fetch('/api/story-inbox/')
+    const container = document.getElementById('activityContent');
+    if (!container) return;
+    
+    container.innerHTML = `
+        <div class="activity-loading">
+            <div class="activity-spinner"></div>
+            <p>Loading activity...</p>
+        </div>
+    `;
+    
+    fetch('/api/activity/')
         .then(r => r.json())
         .then(data => {
-            const container = document.getElementById('activityContent');
-            if (!container) return;
-            
-            if (data.replies && data.replies.length > 0) {
-                container.innerHTML = data.replies.map(r => `
-                    <div class="ig-activity-item">
-                        <img src="${r.replier?.profile_picture_url || ''}" alt="" class="ig-activity-avatar" onerror="this.style.background='var(--brand-gradient)'">
-                        <div class="ig-activity-info">
-                            <span class="ig-activity-username">${r.replier?.username || 'Someone'}</span>
-                            <span class="ig-activity-text">${r.content || 'replied to your story'}</span>
-                            <span class="ig-activity-time">${r.time_ago || ''}</span>
-                        </div>
-                    </div>
-                `).join('');
-            } else {
+            if (!data.success || !data.activity || data.activity.length === 0) {
                 container.innerHTML = `
-                    <div class="ig-empty-state">
-                        <i data-lucide="heart"></i>
+                    <div class="activity-empty">
+                        <div class="activity-empty-icon">
+                            <i data-lucide="bell-off"></i>
+                        </div>
                         <h3>No Activity Yet</h3>
-                        <p>When someone interacts with you, you'll see it here.</p>
+                        <p>When someone interacts with your content, you'll see it here.</p>
                     </div>
                 `;
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+                return;
             }
+
+            let html = '';
+
+            data.activity.forEach(item => {
+                const user = item.user || {};
+                const username = user.username || 'Someone';
+                const profilePic = user.profile_picture_url || '';
+                const initial = username[0].toUpperCase();
+                const timeAgo = item.time_ago || '';
+
+                let iconClass = '';
+                let iconName = '';
+                let activityText = '';
+                let dataType = '';
+
+                switch (item.type) {
+                    case 'post_like':
+                        iconClass = 'like';
+                        iconName = 'heart';
+                        dataType = 'likes';
+                        activityText = `<strong>${username}</strong> liked your post`;
+                        if (item.scribe && item.scribe.content) {
+                            activityText += `: "${item.scribe.content}"`;
+                        }
+                        break;
+                    case 'post_comment':
+                        iconClass = 'comment';
+                        iconName = 'message-circle';
+                        dataType = 'comments';
+                        activityText = `<strong>${username}</strong> commented on your post`;
+                        if (item.comment_content) {
+                            activityText += `: "${item.comment_content}"`;
+                        }
+                        break;
+                    case 'follow':
+                        iconClass = 'follow';
+                        iconName = 'user-plus';
+                        dataType = 'follows';
+                        activityText = `<strong>${username}</strong> started following you`;
+                        break;
+                    case 'story_like':
+                        iconClass = 'like';
+                        iconName = 'heart';
+                        dataType = 'likes';
+                        activityText = `<strong>${username}</strong> liked your story`;
+                        break;
+                    case 'story_reply':
+                        iconClass = 'comment';
+                        iconName = 'message-circle';
+                        dataType = 'comments';
+                        activityText = `<strong>${username}</strong> replied to your story`;
+                        if (item.content) {
+                            activityText += `: "${item.content}"`;
+                        }
+                        break;
+                    case 'omzo_like':
+                        iconClass = 'like';
+                        iconName = 'heart';
+                        dataType = 'likes';
+                        activityText = `<strong>${username}</strong> liked your omzo`;
+                        if (item.omzo && item.omzo.caption) {
+                            activityText += `: "${item.omzo.caption}"`;
+                        }
+                        break;
+                    case 'omzo_comment':
+                        iconClass = 'comment';
+                        iconName = 'message-circle';
+                        dataType = 'comments';
+                        activityText = `<strong>${username}</strong> commented on your omzo`;
+                        if (item.comment_content) {
+                            activityText += `: "${item.comment_content}"`;
+                        }
+                        break;
+                    case 'profile_view':
+                        iconClass = 'follow';
+                        iconName = 'eye';
+                        dataType = 'follows';
+                        activityText = `<strong>${username}</strong> viewed your profile`;
+                        break;
+                    default:
+                        iconClass = 'default';
+                        iconName = 'bell';
+                        dataType = 'other';
+                        activityText = `<strong>${username}</strong> interacted with your content`;
+                }
+
+                html += `
+                    <div class="activity-item ${item.is_read === false ? 'unread' : ''}" data-type="${dataType}">
+                        <div style="position: relative;">
+                            <img src="${profilePic}" alt="" class="activity-avatar" onerror="this.outerHTML='<div class=\\'activity-avatar-placeholder\\'>${initial}</div>'">
+                            <div class="activity-icon ${iconClass}">
+                                <i data-lucide="${iconName}"></i>
+                            </div>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-text">${activityText}</div>
+                            <div class="activity-time">${timeAgo}</div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
             if (typeof lucide !== 'undefined') lucide.createIcons();
         })
         .catch(err => {
             console.error('Failed to load activity:', err);
-            const container = document.getElementById('activityContent');
-            if (container) container.innerHTML = '<p class="ig-error-text">Failed to load activity</p>';
+            container.innerHTML = `
+                <div class="activity-empty">
+                    <div class="activity-empty-icon">
+                        <i data-lucide="alert-circle"></i>
+                    </div>
+                    <h3>Couldn't Load Activity</h3>
+                    <p>Please try again later.</p>
+                </div>
+            `;
+            if (typeof lucide !== 'undefined') lucide.createIcons();
         });
 };
 

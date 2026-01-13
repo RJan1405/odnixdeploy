@@ -527,12 +527,11 @@
     .od-story-viewer {
         position: fixed;
         inset: 0;
-        background: rgba(0, 0, 0, 0.95);
+        background: #000;
         display: flex;
         align-items: center;
         justify-content: center;
         z-index: 10000;
-        /* Standardized z-index for story viewers */
     }
 
     /* Hide bottom navbar when story viewer is open */
@@ -550,11 +549,9 @@
         max-width: 420px;
         height: 90vh;
         max-height: 750px;
-        background: linear-gradient(135deg, #1a1a2e, #0f0f1a);
+        background: #000;
         border-radius: 16px;
         overflow: hidden;
-        display: flex;
-        flex-direction: column;
     }
 
     .od-story-progress {
@@ -564,14 +561,16 @@
         right: 0;
         display: flex;
         gap: 4px;
-        padding: 12px 12px 8px;
-        z-index: 10;
+        padding: 8px 12px;
+        z-index: 20;
+        background: linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, transparent 100%);
+        padding-bottom: 20px;
     }
 
     .od-story-progress-bar {
         flex: 1;
-        height: 3px;
-        background: rgba(255, 255, 255, 0.3);
+        height: 2px;
+        background: rgba(255, 255, 255, 0.35);
         border-radius: 2px;
         overflow: hidden;
     }
@@ -590,14 +589,14 @@
 
     .od-story-header {
         position: absolute;
-        top: 20px;
+        top: 24px;
         left: 0;
         right: 0;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 0 16px;
-        z-index: 10;
+        padding: 0 12px;
+        z-index: 20;
     }
 
     .od-story-user {
@@ -664,7 +663,7 @@
         bottom: 80px;
         width: 30%;
         cursor: pointer;
-        z-index: 5;
+        z-index: 15;
     }
 
     .od-story-nav.prev {
@@ -676,15 +675,20 @@
     }
 
     .od-story-content {
-        flex: 1;
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
         display: flex;
         align-items: center;
         justify-content: center;
-        position: relative;
         overflow: hidden;
+        z-index: 1;
     }
 
-    .od-story-content img {
+    .od-story-content img,
+    .od-story-content video {
         max-width: 100%;
         max-height: 100%;
         object-fit: contain;
@@ -695,9 +699,9 @@
         bottom: 0;
         left: 0;
         right: 0;
-        padding: 16px;
-        background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
-        z-index: 10;
+        padding: 20px 12px 16px;
+        background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 60%, transparent 100%);
+        z-index: 20;
     }
 
     .od-story-reply {
@@ -772,33 +776,35 @@
 
     /* Responsive Story Viewer */
     @media (max-width: 480px) {
+        .od-story-viewer {
+            padding: 0;
+            background: #000;
+        }
+
         .od-story-viewer-container {
             width: 100%;
             max-width: 100%;
             height: 100vh;
             height: 100dvh;
-            /* Dynamic viewport height for mobile browsers */
-            max-height: 100%;
+            max-height: none;
             border-radius: 0;
-            position: fixed;
-            inset: 0;
         }
 
-        .od-story-viewer {
-            padding: 0;
+        .od-story-progress {
+            padding-top: max(8px, env(safe-area-inset-top, 8px));
         }
 
         .od-story-header {
-            padding-top: env(safe-area-inset-top, 12px);
+            top: max(28px, calc(env(safe-area-inset-top, 8px) + 20px));
         }
 
         .od-story-footer {
-            padding-bottom: env(safe-area-inset-bottom, 16px);
+            padding-bottom: max(16px, calc(env(safe-area-inset-bottom, 8px) + 8px));
         }
 
         .od-story-nav {
-            width: 40%;
-            opacity: 0;
+            width: 35%;
+            top: 100px;
         }
     }
 
@@ -1746,6 +1752,227 @@
         background: var(--odnix-surface-light);
         color: var(--odnix-text);
         box-shadow: none;
+    }
+
+    /* Suggestion actions container */
+    .od-suggestion-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    /* Desktop dismiss button */
+    .od-suggestion-dismiss {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 24px;
+        height: 24px;
+        background: transparent;
+        border: none;
+        color: var(--od-text-secondary);
+        cursor: pointer;
+        border-radius: 50%;
+        transition: all 0.2s;
+    }
+
+    .od-suggestion-dismiss:hover {
+        background: var(--od-border);
+        color: var(--od-text-primary);
+    }
+
+    .od-suggestion-dismiss svg {
+        width: 14px;
+        height: 14px;
+    }
+
+    /* Hiding animation for suggestion items */
+    .od-suggestion-item.hiding {
+        animation: slideOutSuggestion 0.3s ease forwards;
+    }
+
+    @keyframes slideOutSuggestion {
+        to {
+            opacity: 0;
+            transform: translateX(20px);
+            height: 0;
+            padding: 0;
+            margin: 0;
+        }
+    }
+
+    /* ===== MOBILE SUGGESTIONS (Instagram-style) ===== */
+    .od-mobile-suggestions {
+        display: none;
+        background: var(--od-surface);
+        border: 1px solid var(--od-border);
+        border-radius: 12px;
+        margin-bottom: 16px;
+        overflow: hidden;
+    }
+
+    .od-mobile-suggestions-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 14px 16px;
+        border-bottom: 1px solid var(--od-border);
+    }
+
+    .od-mobile-suggestions-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--od-text-primary);
+    }
+
+    .od-mobile-suggestions-see-all {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--color-primary);
+        text-decoration: none;
+    }
+
+    .od-mobile-suggestions-scroll {
+        display: flex;
+        gap: 8px;
+        padding: 16px;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+
+    .od-mobile-suggestions-scroll::-webkit-scrollbar {
+        display: none;
+    }
+
+    .od-mobile-suggestion-card {
+        flex-shrink: 0;
+        width: 150px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 16px 12px;
+        background: var(--od-bg);
+        border: 1px solid var(--od-border);
+        border-radius: 12px;
+        scroll-snap-align: start;
+        position: relative;
+        transition: transform 0.2s, opacity 0.3s;
+    }
+
+    .od-mobile-suggestion-card.hiding {
+        transform: scale(0.9);
+        opacity: 0;
+    }
+
+    .od-mobile-suggestion-close {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: var(--od-surface-hover);
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--od-text-secondary);
+        transition: background 0.2s;
+    }
+
+    .od-mobile-suggestion-close:hover {
+        background: var(--od-border);
+    }
+
+    .od-mobile-suggestion-close i {
+        width: 14px;
+        height: 14px;
+    }
+
+    .od-mobile-suggestion-link {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-decoration: none;
+        color: inherit;
+        margin-bottom: 12px;
+    }
+
+    .od-mobile-suggestion-avatar {
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin-bottom: 10px;
+    }
+
+    .od-mobile-suggestion-avatar-placeholder {
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        background: var(--odnix-gradient);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 22px;
+        margin-bottom: 10px;
+    }
+
+    .od-mobile-suggestion-username {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--od-text-primary);
+        margin-bottom: 2px;
+        text-align: center;
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .od-mobile-suggestion-name {
+        font-size: 12px;
+        color: var(--od-text-secondary);
+        text-align: center;
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .od-mobile-follow-btn {
+        width: 100%;
+        padding: 8px 16px;
+        background: var(--odnix-gradient);
+        border: none;
+        border-radius: 8px;
+        color: white;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .od-mobile-follow-btn:hover {
+        transform: scale(1.02);
+    }
+
+    .od-mobile-follow-btn.following {
+        background: var(--od-surface);
+        color: var(--od-text-primary);
+        border: 1px solid var(--od-border);
+    }
+
+    /* Show mobile suggestions only on mobile/tablet */
+    @media (max-width: 1023px) {
+        .od-mobile-suggestions {
+            display: block;
+        }
     }
 
     .od-footer-links {
@@ -3384,6 +3611,34 @@
                 </div>
             </section>
 
+            <!-- Mobile Suggestions Card (Instagram-style, shown only on mobile) -->
+            {% if suggestion_users %}
+            <section class="od-mobile-suggestions" id="mobileSuggestions">
+                <div class="od-mobile-suggestions-header">
+                    <span class="od-mobile-suggestions-title">Suggested for you</span>
+                    <a href="{% url 'discover_groups' %}" class="od-mobile-suggestions-see-all">See All</a>
+                </div>
+                <div class="od-mobile-suggestions-scroll">
+                    {% for other_user in suggestion_users %}
+                    <div class="od-mobile-suggestion-card" data-username="{{ other_user.username }}">
+                        <button class="od-mobile-suggestion-close" onclick="hideSuggestionCard(this)" aria-label="Remove suggestion">
+                            <i data-lucide="x"></i>
+                        </button>
+                        <a href="{% url 'user_profile' other_user.username %}" class="od-mobile-suggestion-link">
+                            <img src="{{ other_user.profile_picture_url }}" alt="{{ other_user.full_name }}"
+                                class="od-mobile-suggestion-avatar"
+                                onerror="this.outerHTML='<div class=\'od-mobile-suggestion-avatar-placeholder\'>{{ other_user.initials }}</div>'">
+                            <span class="od-mobile-suggestion-username">{{ other_user.username }}</span>
+                            <span class="od-mobile-suggestion-name">{{ other_user.full_name|truncatechars:16 }}</span>
+                        </a>
+                        <button class="od-mobile-follow-btn" onclick="toggleFollow('{{ other_user.username }}')"
+                            data-username="{{ other_user.username }}">Follow</button>
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
+            {% endif %}
+
             <!-- Scribes Feed -->
             <section class="od-posts" id="postsFeed" data-page="1">
                 {% for scribe in scribes_data %}
@@ -3534,7 +3789,7 @@
                 <div style="display: none;">Debug: {{ suggestion_users|length }} suggestions</div>
 
                 {% for other_user in suggestion_users %}
-                <div class="od-suggestion-item">
+                <div class="od-suggestion-item" data-username="{{ other_user.username }}">
                     <a href="{% url 'user_profile' other_user.username %}" class="od-suggestion-user">
                         <img src="{{ other_user.profile_picture_url }}" alt="{{ other_user.full_name }}"
                             class="od-suggestion-avatar"
@@ -3544,12 +3799,19 @@
                             <span class="od-suggestion-reason">Suggested for you</span>
                         </div>
                     </a>
-                    <button class="od-follow-btn" onclick="toggleFollow('{{ other_user.username }}')"
-                        data-username="{{ other_user.username }}">Follow</button>
+                    <div class="od-suggestion-actions">
+                        <button class="od-follow-btn" onclick="toggleFollow('{{ other_user.username }}')"
+                            data-username="{{ other_user.username }}">Follow</button>
+                        <button class="od-suggestion-dismiss" onclick="hideSuggestionCard(this)" title="Remove">
+                            <i data-lucide="x"></i>
+                        </button>
+                    </div>
                 </div>
                 {% empty %}
-                <div style="padding: 16px; text-align: center; color: var(--od-text-secondary);">
-                    <p>No suggestions available - Debug info: suggestion_users is empty</p>
+                <div style="padding: 20px; text-align: center; color: var(--od-text-secondary);">
+                    <i data-lucide="users" style="width: 32px; height: 32px; opacity: 0.5; margin-bottom: 8px;"></i>
+                    <p style="margin: 0; font-size: 14px;">You're following everyone!</p>
+                    <p style="margin: 4px 0 0; font-size: 12px; opacity: 0.7;">Invite friends to join Odnix</p>
                 </div>
                 {% endfor %}
             </div>
@@ -5415,7 +5677,7 @@
     </div>
 </div>
 
-<!-- Activity Panel (Slide-in Sidebar) -->
+<!-- Activity Panel (Slide-in) -->
 <div id="activityPanel" class="dm-panel-overlay" style="display: none;" onclick="closeActivityPanel(event)">
     <div class="dm-panel" onclick="event.stopPropagation()">
         <header class="dm-panel-header">
@@ -5464,8 +5726,8 @@
     </div>
 </div>
 
+<!-- Activity Panel Styles - Matching navbar.html design -->
 <style>
-    /* Activity Panel Styles */
     .activity-header-icon {
         width: 44px;
         height: 44px;
@@ -5475,13 +5737,12 @@
         align-items: center;
         justify-content: center;
     }
-
-    .activity-header-icon svg {
+    .activity-header-icon svg,
+    .activity-header-icon i {
         width: 22px;
         height: 22px;
         color: white;
     }
-
     .activity-tabs {
         display: flex;
         gap: 8px;
@@ -5489,7 +5750,6 @@
         border-bottom: 1px solid var(--od-border);
         background: var(--od-surface);
     }
-
     .activity-tab {
         flex: 1;
         display: flex;
@@ -5506,41 +5766,36 @@
         cursor: pointer;
         transition: all 0.2s;
     }
-
     .activity-tab:hover {
         background: var(--od-surface-hover);
         color: var(--od-text-primary);
     }
-
     .activity-tab.active {
         background: var(--odnix-gradient);
         color: white;
         border-color: transparent;
     }
-
-    .activity-tab svg {
+    .activity-tab svg,
+    .activity-tab i {
         width: 16px;
         height: 16px;
     }
-
     .activity-item {
         display: flex;
         align-items: flex-start;
-        gap: 12px;
-        padding: 16px;
+        gap: 14px;
+        padding: 16px 20px;
         border-bottom: 1px solid var(--od-border);
         transition: background 0.2s;
         cursor: pointer;
     }
-
     .activity-item:hover {
         background: var(--od-surface-hover);
     }
-
     .activity-item.unread {
-        background: rgba(102, 126, 234, 0.05);
+        background: rgba(102, 126, 234, 0.08);
+        border-left: 3px solid var(--color-primary);
     }
-
     .activity-avatar {
         width: 48px;
         height: 48px;
@@ -5548,7 +5803,6 @@
         object-fit: cover;
         flex-shrink: 0;
     }
-
     .activity-avatar-placeholder {
         width: 48px;
         height: 48px;
@@ -5562,28 +5816,23 @@
         font-weight: 600;
         flex-shrink: 0;
     }
-
     .activity-content {
         flex: 1;
         min-width: 0;
     }
-
     .activity-text {
         font-size: 14px;
         color: var(--od-text-primary);
         line-height: 1.4;
         margin-bottom: 4px;
     }
-
     .activity-text strong {
         font-weight: 600;
     }
-
     .activity-time {
         font-size: 12px;
         color: var(--od-text-secondary);
     }
-
     .activity-icon {
         position: absolute;
         bottom: -4px;
@@ -5596,38 +5845,41 @@
         justify-content: center;
         border: 2px solid var(--od-surface);
     }
-
     .activity-icon.like {
         background: #ed4956;
     }
-
     .activity-icon.comment {
         background: var(--color-primary);
     }
-
     .activity-icon.follow {
-        background: #5b51d8;
+        background: #5851DB;
     }
-
     .activity-icon.default {
-        background: #8e8e8e;
+        background: var(--od-text-secondary);
     }
-
-    .activity-icon svg {
+    .activity-icon svg,
+    .activity-icon i {
         width: 10px;
         height: 10px;
         color: white;
     }
-
     .activity-loading {
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        padding: 60px 20px;
+        padding: 60px 24px;
         color: var(--od-text-secondary);
+        text-align: center;
+        width: 100%;
+        max-width: 320px;
+        margin: 0 auto;
+        box-sizing: border-box;
     }
-
+    .activity-loading p {
+        font-size: 14px;
+        margin: 0;
+    }
     .activity-spinner {
         width: 32px;
         height: 32px;
@@ -5635,46 +5887,50 @@
         border-top-color: var(--color-primary);
         border-radius: 50%;
         animation: spin 1s linear infinite;
-        margin-bottom: 12px;
+        margin-bottom: 16px;
     }
-
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
     .activity-empty {
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        padding: 60px 20px;
+        padding: 60px 24px;
         text-align: center;
+        width: 100%;
+        max-width: 320px;
+        margin: 0 auto;
+        box-sizing: border-box;
     }
-
     .activity-empty-icon {
-        width: 72px;
-        height: 72px;
+        width: 80px;
+        height: 80px;
         border-radius: 50%;
-        background: var(--od-surface-hover);
+        background: var(--od-surface-secondary);
         display: flex;
         align-items: center;
         justify-content: center;
-        margin-bottom: 16px;
+        margin-bottom: 20px;
     }
-
-    .activity-empty-icon svg {
+    .activity-empty-icon svg,
+    .activity-empty-icon i {
         width: 36px;
         height: 36px;
         color: var(--od-text-secondary);
     }
-
     .activity-empty h3 {
         font-size: 18px;
         font-weight: 600;
         color: var(--od-text-primary);
-        margin-bottom: 8px;
+        margin: 0 0 8px 0;
     }
-
     .activity-empty p {
         font-size: 14px;
         color: var(--od-text-secondary);
-        max-width: 250px;
+        margin: 0;
+        line-height: 1.5;
     }
 </style>
 
@@ -6668,7 +6924,18 @@
         if (btn) btn.classList.add('active');
     }
 
+    let isCreatingStory = false;
     function createStory() {
+        // Prevent double submission
+        if (isCreatingStory) return;
+        isCreatingStory = true;
+
+        const shareBtn = document.getElementById('postStoryBtn');
+        if (shareBtn) {
+            shareBtn.disabled = true;
+            shareBtn.textContent = 'Sharing...';
+        }
+
         const textContent = document.getElementById('storyPreviewText').innerText.trim();
         const imageInput = document.getElementById('storyImageInput');
         const bgColor = document.getElementById('storyBgColor').value;
@@ -6676,6 +6943,11 @@
 
         if (!textContent && !imageInput.files[0]) {
             showIGToast('Please add text or an image', 'error');
+            isCreatingStory = false;
+            if (shareBtn) {
+                shareBtn.disabled = false;
+                shareBtn.textContent = 'Share';
+            }
             return;
         }
 
@@ -6717,6 +6989,21 @@
                     location.reload();
                 } else {
                     showIGToast(data.error || 'Failed to create story', 'error');
+                    isCreatingStory = false;
+                    const shareBtn = document.getElementById('postStoryBtn');
+                    if (shareBtn) {
+                        shareBtn.disabled = false;
+                        shareBtn.textContent = 'Share';
+                    }
+                }
+            })
+            .catch(err => {
+                showIGToast('Failed to create story', 'error');
+                isCreatingStory = false;
+                const shareBtn = document.getElementById('postStoryBtn');
+                if (shareBtn) {
+                    shareBtn.disabled = false;
+                    shareBtn.textContent = 'Share';
                 }
             });
     }
@@ -6895,17 +7182,15 @@
             const transformStyle = `translate(${transform.x || 0}px, ${transform.y || 0}px) scale(${transform.scale || 1}) rotate(${transform.rotate || 0}deg)`;
 
             container.innerHTML = `
-            <div style="width: 100%; height: 100%; overflow: hidden; position: relative;">
                 <img src="${story.media_url}" alt="Story" style="width: 100%; height: 100%; object-fit: contain; transform: ${transformStyle};">
-            </div>
-            ${story.content ? `<div style="position: absolute; ${story.text_position === 'top' ? 'top: 80px;' : story.text_position === 'bottom' ? 'bottom: 80px;' : 'top: 50%; transform: translateY(-50%);'} left: 0; right: 0; text-align: center; color: ${story.text_color || '#fff'}; font-size: ${story.text_size || 22}px; font-weight: 500; padding: 20px; text-shadow: 0 2px 4px rgba(0,0,0,0.5); pointer-events: none;">${story.content}</div>` : ''}
-        `;
+                ${story.content ? `<div style="position: absolute; ${story.text_position === 'top' ? 'top: 100px;' : story.text_position === 'bottom' ? 'bottom: 100px;' : 'top: 50%; transform: translateY(-50%);'} left: 0; right: 0; text-align: center; color: ${story.text_color || '#fff'}; font-size: ${story.text_size || 22}px; font-weight: 500; padding: 20px; text-shadow: 0 2px 8px rgba(0,0,0,0.8); pointer-events: none; z-index: 10;">${story.content}</div>` : ''}
+            `;
         } else {
             container.innerHTML = `
-            <div class="od-story-text-content" style="background: ${story.background_color || 'var(--brand-gradient)'}; width: 100%; height: 100%; color: ${story.text_color || '#fff'}; display: flex; align-items: ${story.text_position === 'top' ? 'flex-start' : story.text_position === 'bottom' ? 'flex-end' : 'center'}; justify-content: center; padding: 40px;">
-                <div style="text-align: center; font-size: ${story.text_size || 22}px; font-weight: 500;">${story.content || ''}</div>
-            </div>
-        `;
+                <div style="background: ${story.background_color || 'linear-gradient(135deg, #667eea, #764ba2)'}; width: 100%; height: 100%; color: ${story.text_color || '#fff'}; display: flex; align-items: ${story.text_position === 'top' ? 'flex-start; padding-top: 100px;' : story.text_position === 'bottom' ? 'flex-end; padding-bottom: 100px;' : 'center;'} justify-content: center; padding-left: 24px; padding-right: 24px;">
+                    <div style="text-align: center; font-size: ${story.text_size || 22}px; font-weight: 500; text-shadow: 0 2px 8px rgba(0,0,0,0.3);">${story.content || ''}</div>
+                </div>
+            `;
         }
 
         // Mark as viewed
@@ -7833,7 +8118,7 @@
                         case 'story_reply':
                             iconClass = 'comment';
                             iconName = 'message-circle';
-                            dataType = 'replies';
+                            dataType = 'comments';
                             activityText = `<strong>${username}</strong> replied to your story`;
                             if (item.content) {
                                 activityText += `: "${item.content}"`;
@@ -7857,49 +8142,12 @@
                                 activityText += `: "${item.comment_content}"`;
                             }
                             break;
-                        case 'post_report':
-                            iconClass = 'default';
-                            iconName = 'flag';
-                            dataType = 'other';
-                            activityText = `<strong>${username}</strong> reported your post`;
-                            if (item.reason) {
-                                activityText += `: ${item.reason}`;
-                            }
-                            break;
-                        case 'omzo_report':
-                            iconClass = 'default';
-                            iconName = 'flag';
-                            dataType = 'other';
-                            activityText = `<strong>${username}</strong> reported your omzo`;
-                            if (item.reason) {
-                                activityText += `: ${item.reason}`;
-                            }
-                            break;
-                        case 'my_post_report':
-                            iconClass = 'default';
-                            iconName = 'flag';
-                            dataType = 'other';
-                            activityText = `You reported <strong>${username}</strong>'s scribe`;
-                            if (item.reason) {
-                                activityText += `: ${item.reason}`;
-                            }
-                            break;
-                        case 'my_omzo_report':
-                            iconClass = 'default';
-                            iconName = 'flag';
-                            dataType = 'other';
-                            activityText = `You reported <strong>${username}</strong>'s omzo`;
-                            if (item.reason) {
-                                activityText += `: ${item.reason}`;
-                            }
-                            break;
                         case 'profile_view':
-                            iconClass = 'follow';  // Use a noticeable color/style (blue)
+                            iconClass = 'follow';
                             iconName = 'eye';
-                            dataType = 'follows';  // Group with user interactions
-                            activityText = `<strong>${username}</strong> has viewed your profile`;
+                            dataType = 'follows';
+                            activityText = `<strong>${username}</strong> viewed your profile`;
                             break;
-
                         default:
                             iconClass = 'default';
                             iconName = 'bell';
@@ -8225,6 +8473,100 @@
                 }
             }
         });
+
+        // Mobile Suggestions: Position between posts like Instagram
+        positionMobileSuggestions();
+    });
+
+    // ===== MOBILE SUGGESTIONS FUNCTIONALITY =====
+    function positionMobileSuggestions() {
+        const mobileSuggestions = document.getElementById('mobileSuggestions');
+        if (!mobileSuggestions) return;
+
+        const posts = document.querySelectorAll('.od-posts .od-post');
+        const postsFeed = document.getElementById('postsFeed');
+        
+        // Check if on mobile (sidebar hidden)
+        const isMobile = window.innerWidth <= 1023;
+        if (!isMobile) return;
+
+        // If no posts, keep suggestions at top (already positioned)
+        if (posts.length === 0) {
+            return;
+        }
+
+        // If there are posts, move suggestions between posts (after 1st or 2nd post)
+        // Instagram typically shows suggestions after 2-3 posts
+        const insertAfterIndex = posts.length >= 2 ? 1 : 0; // After 2nd post, or 1st if only 1
+        const targetPost = posts[insertAfterIndex];
+        
+        if (targetPost && targetPost.parentNode === postsFeed) {
+            // Move suggestions after the target post
+            targetPost.insertAdjacentElement('afterend', mobileSuggestions);
+        }
+    }
+
+    function hideSuggestionCard(button) {
+        // Works for both mobile (.od-mobile-suggestion-card) and desktop (.od-suggestion-item)
+        const card = button.closest('.od-mobile-suggestion-card') || button.closest('.od-suggestion-item');
+        if (!card) return;
+        
+        const username = card.dataset.username;
+        
+        // Call API to permanently dismiss this suggestion
+        if (username) {
+            fetch('/chat/api/dismiss-suggestion/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({ username: username })
+            }).catch(err => console.error('Error dismissing suggestion:', err));
+        }
+        
+        // Animate and remove card
+        card.classList.add('hiding');
+        setTimeout(() => {
+            card.remove();
+            
+            // Check if any cards left in mobile section
+            const scroll = document.querySelector('.od-mobile-suggestions-scroll');
+            if (scroll && scroll.children.length === 0) {
+                const section = document.getElementById('mobileSuggestions');
+                if (section) section.style.display = 'none';
+            }
+            
+            // Check desktop suggestions
+            const suggestions = document.querySelector('.od-suggestions');
+            if (suggestions && suggestions.querySelectorAll('.od-suggestion-item').length === 0) {
+                suggestions.innerHTML = `
+                    <div class="od-suggestions-header">
+                        <span class="od-suggestions-title">Suggestions For You</span>
+                        <a href="{% url 'discover_groups' %}" class="od-suggestions-see-all">See All</a>
+                    </div>
+                    <div style="padding: 20px; text-align: center; color: var(--od-text-secondary);">
+                        <i data-lucide="users" style="width: 32px; height: 32px; opacity: 0.5; margin-bottom: 8px;"></i>
+                        <p style="margin: 0; font-size: 14px;">No more suggestions!</p>
+                        <p style="margin: 4px 0 0; font-size: 12px; opacity: 0.7;">Check back later</p>
+                    </div>
+                `;
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+            }
+        }, 300);
+    }
+
+    // Re-position on resize (e.g., rotating device)
+    window.addEventListener('resize', () => {
+        const mobileSuggestions = document.getElementById('mobileSuggestions');
+        if (!mobileSuggestions) return;
+        
+        const isMobile = window.innerWidth <= 1023;
+        if (isMobile) {
+            mobileSuggestions.style.display = 'block';
+        } else {
+            mobileSuggestions.style.display = 'none';
+        }
     });
 </script>
 {% endblock %}

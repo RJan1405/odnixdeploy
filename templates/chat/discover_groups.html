@@ -24,13 +24,13 @@
     }
 
     .od-discover-content {
-        max-width: 1100px;
+        max-width: 520px;
         margin: 0 auto;
-        padding: 0 var(--spacing-lg);
+        padding: 0 16px;
     }
 
     .od-discover-header {
-        margin-bottom: var(--spacing-xl);
+        margin-bottom: 24px;
         display: flex;
         flex-direction: column;
         gap: 8px;
@@ -46,223 +46,7 @@
     .od-discover-subtitle {
         color: var(--od-text-secondary);
         margin: 0;
-    }
-
-    .od-explore-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, 300px);
-        gap: var(--spacing-lg);
-        justify-content: start;
-    }
-
-    .explore-card {
-        background: var(--od-surface);
-        border: 1px solid var(--od-border);
-        border-radius: 16px;
-        padding: 0;
-        display: flex;
-        flex-direction: column;
-        gap: 0;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
-        overflow: hidden;
-        position: relative;
-        aspect-ratio: 1;
-        cursor: pointer;
-        width: 100%;
-    }
-
-    .explore-card:hover {
-        opacity: 0.9;
-    }
-
-    .explore-card-media-container {
-        position: relative;
-        width: 100%;
-        height: 100%;
-        overflow: hidden;
-        background: #000;
-    }
-
-    .explore-card-media {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        display: block;
-    }
-
-    .explore-card-overlay {
-        position: absolute;
-        inset: 0;
-        background: linear-gradient(180deg, transparent 50%, rgba(0, 0, 0, 0.3) 100%);
-        padding: 16px;
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-end;
-        opacity: 0;
-        transition: opacity 0.2s;
-    }
-
-    .explore-card:hover .explore-card-overlay {
-        opacity: 1;
-    }
-
-    .explore-card-tag {
-        align-self: flex-start;
-        background: rgba(255, 255, 255, 0.2);
-        backdrop-filter: blur(10px);
-        color: white;
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        padding: 4px 10px;
-        border-radius: 999px;
-        font-size: 11px;
-        font-weight: 600;
-        margin-bottom: 8px;
-        min-width: fit-content;
-    }
-
-    .explore-card-tag:empty {
-        display: none;
-    }
-
-    .explore-card-user {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        margin-bottom: 8px;
-    }
-
-    .explore-card-user-avatar {
-        width: 28px;
-        height: 28px;
-        border-radius: 22%;
-        object-fit: cover;
-        border: 2px solid rgba(255, 255, 255, 0.3);
-        flex-shrink: 0;
-    }
-
-    .explore-card-user-avatar-placeholder {
-        width: 28px;
-        height: 28px;
-        border-radius: 22%;
-        background: var(--brand-gradient);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 11px;
-        font-weight: 600;
-        color: white;
-        flex-shrink: 0;
-    }
-
-    .explore-card-user-info {
-        display: flex;
-        flex-direction: column;
-        min-width: 0;
-    }
-
-    .explore-card-user-name {
-        font-size: 12px;
-        font-weight: 600;
-        color: white;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
-    }
-
-    .explore-card-user-handle {
-        font-size: 10px;
-        color: rgba(255, 255, 255, 0.7);
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    .explore-card-caption {
-        color: white;
-        font-size: 12px;
-        line-height: 1.4;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-    }
-
-    .explore-omzo-play-icon {
-        position: absolute;
-        top: 8px;
-        right: 8px;
-        width: 32px;
-        height: 32px;
-        background: rgba(255, 255, 255, 0.4);
-        backdrop-filter: blur(10px);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        opacity: 1;
-        transition: background 0.2s;
-    }
-
-    .explore-card:hover .explore-omzo-play-icon {
-        background: rgba(255, 255, 255, 0.6);
-    }
-
-    .explore-omzo-play-icon i,
-    .explore-omzo-play-icon svg {
-        width: 16px;
-        height: 16px;
-        color: white;
-    }
-
-    /* Code scribe badge */
-    .explore-card[data-type="scribe"] .explore-code-badge {
-        position: absolute;
-        top: 8px;
-        right: 8px;
-        background: rgba(0, 149, 246, 0.8);
-        backdrop-filter: blur(10px);
-        border-radius: 6px;
-        padding: 4px 8px;
-        font-size: 10px;
-        font-weight: 600;
-        color: white;
-        text-transform: uppercase;
-        display: none;
-    }
-
-    .explore-card[data-has-code="true"] .explore-code-badge {
-        display: block;
-    }
-
-    .od-empty-state {
-        text-align: center;
-        padding: 60px 20px;
-        color: var(--od-text-secondary);
-        border: 1px solid var(--od-border);
-        border-radius: 16px;
-        background: var(--od-surface);
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-        align-items: center;
-    }
-
-    .od-empty-state h3 {
-        margin: 0;
-        color: var(--od-text-primary);
-    }
-
-    .od-empty-state p {
-        margin: 0;
-    }
-
-    .od-empty-state i,
-    .od-empty-state svg {
-        width: 28px;
-        height: 28px;
-        color: var(--od-text-secondary);
+        font-size: 14px;
     }
 
     .od-discover-search {
@@ -273,7 +57,7 @@
         border: 1px solid var(--od-border);
         border-radius: 24px;
         padding: 10px 16px;
-        margin-top: 16px;
+        margin-top: 8px;
     }
 
     .od-discover-search i,
@@ -298,284 +82,440 @@
         color: var(--od-text-secondary);
     }
 
-    .od-search-no-results {
-        text-align: center;
-        padding: 40px 20px;
-        color: var(--od-text-secondary);
-    }
-
-    .od-search-no-results i,
-    .od-search-no-results svg {
-        width: 40px;
-        height: 40px;
-        opacity: 0.5;
-        margin-bottom: 12px;
-    }
-
-    /* Post Modal Styles */
-    .post-modal-overlay {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0, 0, 0, 0.5);
-        z-index: 1000;
-        align-items: center;
-        justify-content: center;
-        padding: 20px;
-        overflow-y: auto;
-    }
-
-    .post-modal-overlay.show {
+    /* ===== FEED LAYOUT (Like Dashboard) ===== */
+    .od-explore-feed {
         display: flex;
+        flex-direction: column;
+        gap: 24px;
     }
 
-    .post-modal-content {
+    .od-post {
         background: var(--od-surface);
-        border-radius: 16px;
-        width: 100%;
-        max-width: 600px;
-        max-height: 90vh;
-        overflow: hidden;
-        position: relative;
-        display: flex;
-        flex-direction: column;
-    }
-
-    .post-modal-close {
-        position: absolute;
-        top: 16px;
-        right: 16px;
-        background: var(--od-surface-hover);
-        border: 1px solid var(--od-border);
-        border-radius: 50%;
-        width: 36px;
-        height: 36px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        z-index: 10;
-        transition: background 0.2s;
-    }
-
-    .post-modal-close:hover {
-        background: var(--od-bg);
-    }
-
-    .post-modal-close i,
-    .post-modal-close svg {
-        width: 20px;
-        height: 20px;
-        color: var(--od-text-primary);
-    }
-
-    .post-modal-body {
-        padding: 0;
-        display: flex;
-        flex-direction: column;
-        max-height: 90vh;
-    }
-
-    .post-modal-image-section {
-        flex-shrink: 0;
-        background: #000;
-    }
-
-    .post-modal-info {
-        flex: 1;
-        overflow-y: auto;
-        padding: 16px;
-    }
-
-    .post-modal-actions {
-        flex-shrink: 0;
-        padding: 12px 16px;
-        border-top: 1px solid var(--od-border);
-        display: flex;
-        gap: 0;
-    }
-
-    .post-modal-action-btn {
-        flex: 1;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        padding: 12px;
-        background: none;
-        border: none;
-        color: var(--od-text-primary);
-        cursor: pointer;
-        font-size: 13px;
-        transition: background 0.2s;
-    }
-
-    .post-modal-action-btn:hover {
-        background: var(--od-surface-hover);
-    }
-
-    .post-modal-action-btn.liked {
-        color: #e63946;
-    }
-
-    .post-modal-comments-section {
-        flex: 1;
-        overflow-y: auto;
-        padding: 16px;
-        border-top: 1px solid var(--od-border);
-        max-height: 300px;
-    }
-
-    .post-modal-comment-item {
-        padding: 12px 0;
-        border-bottom: 1px solid var(--od-border);
-    }
-
-    .post-modal-comment-item:last-child {
-        border-bottom: none;
-    }
-
-    .post-modal-comment-input {
-        flex-shrink: 0;
-        padding: 12px 16px;
-        border-top: 1px solid var(--od-border);
-        display: flex;
-        gap: 8px;
-        align-items: center;
-    }
-
-    .post-modal-comment-input input {
-        flex: 1;
-        background: var(--od-bg);
         border: 1px solid var(--od-border);
         border-radius: 20px;
-        padding: 8px 16px;
-        color: var(--od-text-primary);
-        font-size: 13px;
-        outline: none;
+        overflow: hidden;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
 
-    .post-modal-comment-input input::placeholder {
-        color: var(--od-text-secondary);
+    .od-post:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-lg);
     }
 
-    .post-modal-comment-input button {
-        background: none;
-        border: none;
-        color: var(--od-link);
-        font-weight: 600;
-        font-size: 13px;
-        cursor: pointer;
-        padding: 8px 12px;
-    }
-
-    .post-modal-comment-input button:disabled {
-        opacity: 0.3;
-        cursor: default;
-    }
-
-
-    .post-modal-header {
+    .od-post-header {
         display: flex;
-        gap: 12px;
         align-items: center;
-        margin-bottom: 16px;
-        padding-bottom: 16px;
-        border-bottom: 1px solid var(--od-border);
+        justify-content: space-between;
+        padding: 16px 20px;
+        background: var(--od-surface);
     }
 
-    .post-modal-avatar {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
+    .od-post-user {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        text-decoration: none;
+        color: var(--od-text-primary);
+    }
+
+    .od-post-avatar {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        object-fit: cover;
+        border: 2px solid var(--color-primary);
+    }
+
+    .od-post-avatar-placeholder {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        background: var(--brand-gradient);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 16px;
+    }
+
+    .od-post-user-info {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .od-post-username {
+        font-weight: 700;
+        font-size: 15px;
+        color: var(--od-text-primary);
+    }
+
+    .od-post-more {
+        background: var(--od-surface-light);
+        border: none;
+        cursor: pointer;
+        padding: 8px;
+        border-radius: 10px;
+        transition: background 0.2s;
+    }
+
+    .od-post-more:hover {
+        background: var(--od-border);
+    }
+
+    .od-post-more svg {
+        width: 20px;
+        height: 20px;
+        color: var(--od-icon-color);
+    }
+
+    .od-post-media {
+        width: 100%;
+        cursor: pointer;
+        position: relative;
+        background: var(--od-bg);
+        aspect-ratio: 1 / 1;
+        overflow: hidden;
+    }
+
+    .od-post-media img {
+        width: 100%;
+        height: 100%;
+        display: block;
         object-fit: cover;
     }
 
-    .post-modal-user-info {
+    .od-post-media iframe {
+        width: 100%;
+        height: 100%;
+        border: none;
+        pointer-events: none;
+    }
+
+    .od-post-actions {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 20px;
+        background: var(--od-surface);
+    }
+
+    .od-post-actions-left {
+        display: flex;
+        gap: 4px;
+    }
+
+    .od-post-action-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 10px;
+        border-radius: 12px;
+        transition: all 0.2s ease;
+    }
+
+    .od-post-action-btn:hover {
+        background: var(--od-surface-hover);
+    }
+
+    .od-post-action-btn svg {
+        width: 24px;
+        height: 24px;
+        color: var(--od-icon-color);
+        transition: all 0.2s;
+    }
+
+    .od-post-action-btn:hover svg {
+        color: var(--od-icon-hover);
+    }
+
+    .od-post-action-btn.liked svg {
+        color: #ff6b6b;
+    }
+
+    .od-post-action-btn.disliked svg {
+        color: #ff6b6b;
+    }
+
+    .od-post-action-btn.saved svg {
+        fill: var(--od-text-primary);
+        color: var(--od-text-primary);
+    }
+
+    .od-post-details {
+        padding: 16px 20px 20px;
+    }
+
+    .od-post-likes {
+        font-weight: 700;
+        font-size: 14px;
+        margin-bottom: 10px;
+        color: var(--od-text-primary);
+    }
+
+    .od-post-caption {
+        font-size: 14px;
+        line-height: 1.6;
+        margin-bottom: 10px;
+        color: var(--od-text-secondary);
+    }
+
+    .od-post-caption .username {
+        font-weight: 700;
+        margin-right: 6px;
+        color: var(--od-text-primary);
+    }
+
+    .od-post-view-comments {
+        color: var(--od-text-secondary);
+        font-size: 14px;
+        cursor: pointer;
+        margin-bottom: 8px;
+        transition: color 0.2s;
+    }
+
+    .od-post-view-comments:hover {
+        color: var(--color-primary);
+    }
+
+    .od-post-time {
+        color: var(--od-text-secondary);
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        opacity: 0.7;
+    }
+
+    .od-post-comment-input {
+        display: flex;
+        align-items: center;
+        padding: 14px 20px;
+        border-top: 1px solid var(--od-border);
+        background: var(--od-surface);
+    }
+
+    .od-post-comment-input input {
+        flex: 1;
+        border: none;
+        outline: none;
+        font-size: 14px;
+        background: none;
+        color: var(--od-text-primary);
+    }
+
+    .od-post-comment-input input::placeholder {
+        color: var(--od-text-secondary);
+    }
+
+    .od-post-comment-input button {
+        background: none;
+        border: none;
+        color: var(--color-primary);
+        font-weight: 700;
+        font-size: 14px;
+        cursor: pointer;
+        opacity: 0.4;
+        transition: opacity 0.2s;
+    }
+
+    .od-post-comment-input button:not(:disabled) {
+        opacity: 1;
+    }
+
+    .od-comments-section {
+        border-top: 1px solid var(--od-border);
+        max-height: 300px;
+        overflow-y: auto;
+        background: var(--od-surface);
+    }
+
+    /* Video in Post */
+    .od-post-video {
+        position: relative;
+        cursor: pointer;
+        background: #000;
+    }
+
+    .od-post-video video {
+        width: 100%;
+        max-height: 500px;
+        object-fit: contain;
+    }
+
+    .od-video-play-overlay {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 70px;
+        height: 70px;
+        background: rgba(0, 0, 0, 0.5);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+    }
+
+    .od-post-video:hover .od-video-play-overlay {
+        background: rgba(0, 0, 0, 0.7);
+        transform: translate(-50%, -50%) scale(1.1);
+    }
+
+    .od-video-play-overlay svg {
+        width: 32px;
+        height: 32px;
+        color: white;
+        margin-left: 4px;
+    }
+
+    /* Post Badge (for Omzo, Code Scribe etc) */
+    .od-post-badge {
+        font-size: 10px;
+        font-weight: 600;
+        color: white;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 2px 8px;
+        border-radius: 10px;
+        margin-left: 8px;
+        text-transform: uppercase;
+    }
+
+    /* Omzo Card in Feed - Legacy support */
+    .od-omzo-card {
+        background: var(--od-surface);
+        border: 1px solid var(--od-border);
+        border-radius: 20px;
+        overflow: hidden;
+        cursor: pointer;
+    }
+
+    .od-omzo-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .od-omzo-media {
+        position: relative;
+        aspect-ratio: 9/16;
+        max-height: 500px;
+        background: #000;
+    }
+
+    .od-omzo-media video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .od-omzo-play-icon {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 60px;
+        height: 60px;
+        background: rgba(255,255,255,0.2);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(10px);
+    }
+
+    .od-omzo-play-icon svg {
+        width: 28px;
+        height: 28px;
+        color: white;
+        margin-left: 4px;
+    }
+
+    .od-omzo-info {
+        padding: 16px 20px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .od-omzo-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        object-fit: cover;
+    }
+
+    .od-omzo-user-info {
         flex: 1;
     }
 
-    .post-modal-username {
+    .od-omzo-username {
         font-weight: 700;
-        color: var(--od-text-primary);
         font-size: 14px;
-    }
-
-    .post-modal-time {
-        color: var(--od-text-secondary);
-        font-size: 12px;
-    }
-
-    .post-modal-image {
-        width: 100%;
-        border-radius: 12px;
-        margin-bottom: 16px;
-    }
-
-    .post-modal-caption {
         color: var(--od-text-primary);
-        line-height: 1.5;
-        margin-bottom: 16px;
     }
 
-    .post-modal-stats {
-        display: flex;
-        gap: 20px;
-        padding-top: 16px;
-        border-top: 1px solid var(--od-border);
-        color: var(--od-text-secondary);
+    .od-omzo-caption {
         font-size: 13px;
+        color: var(--od-text-secondary);
+        margin-top: 2px;
     }
 
-    .post-modal-loading {
+    /* Empty state */
+    .od-empty-state {
         text-align: center;
-        padding: 40px 20px;
+        padding: 60px 20px;
         color: var(--od-text-secondary);
     }
 
+    .od-empty-state h3 {
+        margin: 16px 0 8px;
+        color: var(--od-text-primary);
+        font-size: 20px;
+    }
+
+    .od-empty-state i,
+    .od-empty-state svg {
+        width: 48px;
+        height: 48px;
+        color: var(--od-text-secondary);
+        opacity: 0.5;
+    }
+
+    /* Mobile Responsive */
     @media (max-width: 768px) {
         .od-discover-container {
-            padding-top: 60px;
+            padding-top: 20px;
             padding-bottom: 80px;
         }
 
         .od-discover-content {
-            padding: 0;
+            padding: 0 12px;
             max-width: 100%;
         }
 
         .od-discover-header {
-            padding: 0 16px;
-            margin-bottom: 12px;
-        }
-
-        .od-discover-search {
-            display: flex;
+            padding: 0 4px;
+            margin-bottom: 16px;
         }
 
         .od-discover-title {
             font-size: 22px;
-            margin-bottom: 8px;
         }
 
         .od-discover-subtitle {
             display: none;
         }
 
-        .od-explore-grid {
-            grid-template-columns: repeat(3, 1fr);
-            gap: 1px;
-            margin: 0;
-            width: 100vw;
-            margin-left: calc(-50vw + 50%);
+        .od-explore-feed {
+            gap: 16px;
         }
 
-        .explore-card {
-            border-radius: 0;
-            border: none;
+        .od-post {
+            border-radius: 16px;
+        }
+
+        .od-post:hover {
+            transform: none;
         }
 
         .od-bottom-nav {
@@ -590,22 +530,105 @@
     }
 
     @media (max-width: 480px) {
-        .od-explore-grid {
-            grid-template-columns: repeat(2, 1fr);
-            gap: 1px;
+        .od-discover-container {
+            padding-top: 12px;
         }
 
-        .od-discover-title {
-            font-size: 20px;
+        .od-explore-feed {
+            gap: 12px;
         }
 
-        .explore-card-tag {
-            font-size: 10px;
+        .od-post {
+            border-radius: 14px;
         }
 
-        .explore-card-caption {
-            font-size: 11px;
+        .od-post-header {
+            padding: 12px 16px;
         }
+
+        .od-post-actions {
+            padding: 10px 16px;
+        }
+
+        .od-post-details {
+            padding: 12px 16px 16px;
+        }
+    }
+
+    /* Post Modal Overlay */
+    .post-modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.85);
+        z-index: 10000;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .post-modal-overlay.show {
+        display: flex;
+    }
+
+    .post-modal-content {
+        position: relative;
+        max-width: 900px;
+        max-height: 90vh;
+        width: 100%;
+        background: var(--od-surface);
+        border-radius: 16px;
+        overflow: hidden;
+    }
+
+    .post-modal-close {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: rgba(0, 0, 0, 0.6);
+        border: none;
+        color: white;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10;
+        transition: background 0.2s;
+    }
+
+    .post-modal-close:hover {
+        background: rgba(0, 0, 0, 0.8);
+    }
+
+    .post-modal-close svg {
+        width: 20px;
+        height: 20px;
+    }
+
+    .post-modal-body {
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    /* Post Menu Dropdown Animation */
+    @keyframes menuFadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(-8px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .od-post-menu-dropdown button:hover {
+        background: var(--od-surface-light);
     }
 </style>
 {% endblock %}
@@ -617,14 +640,14 @@
     <div class="od-discover-content">
         <header class="od-discover-header">
             <h1 class="od-discover-title">Explore</h1>
-            <p class="od-discover-subtitle">Dive into random Scribes and Omzo picks.</p>
+            <p class="od-discover-subtitle">Discover new people and content</p>
             <div class="od-discover-search">
                 <i data-lucide="search"></i>
-                <input type="text" id="exploreSearchInput" placeholder="Search people, groups, scribes, omzo..."
+                <input type="text" id="exploreSearchInput" placeholder="Search people, scribes, omzo..."
                     onkeyup="debounceGlobalSearch(this.value)" onfocus="activateSearch()">
             </div>
             <!-- Search Results Container (Hidden by default) -->
-            <div id="searchResultsContainer" class="od-explore-grid" style="display: none; margin-top: 20px;">
+            <div id="searchResultsContainer" style="display: none; margin-top: 20px;">
                 <!-- Results injected here -->
             </div>
 
@@ -640,153 +663,183 @@
         </header>
 
         {% if mixed_content %}
-        <div class="od-explore-grid" id="exploreGrid">
+        <!-- Feed Layout (Like Dashboard) -->
+        <section class="od-explore-feed" id="exploreFeed" data-page="1">
             {% for item in mixed_content %}
             {% if item.type == 'scribe' %}
-            {% with scribe=item.object %}
-            <article class="explore-card" data-type="scribe"
-                data-has-code="{% if scribe.code_bundle or scribe.code_html %}true{% else %}false{% endif %}"
-                data-search-text="{{ scribe.user.full_name|default:scribe.user.username }} @{{ scribe.user.username }} {{ scribe.content }}"
-                onclick="openScribePost({{ scribe.id }})">
-                <div class="explore-card-media-container">
-                    {% if scribe.image_url %}
-                    <img src="{{ scribe.image_url }}" alt="Scribe media" loading="lazy" class="explore-card-media">
-                    {% elif scribe.code_bundle %}
-                    <iframe class="explore-card-media" srcdoc="{{ scribe.code_bundle|escape }}"
-                        style="border: none; width: 100%; height: 100%; pointer-events: none;" sandbox="allow-scripts"
-                        loading="lazy">
+            <article class="od-post" data-scribe-id="{{ item.id }}">
+                <!-- Post Header -->
+                <header class="od-post-header">
+                    <a href="{% url 'user_profile' item.username %}" class="od-post-user">
+                        <img src="{{ item.profile_picture_url }}" alt="{{ item.fullname }}" class="od-post-avatar"
+                            onerror="this.outerHTML='<div class=\'od-post-avatar-placeholder\'>{{ item.user_initials }}</div>'">
+                        <div class="od-post-user-info">
+                            <span class="od-post-username">{{ item.username }}</span>
+                        </div>
+                    </a>
+                    <button class="od-post-more" onclick="openPostMenu({{ item.id }}, event)">
+                        <i data-lucide="more-horizontal"></i>
+                    </button>
+                </header>
+
+                <!-- Post Media -->
+                {% if item.content_type == 'code_scribe' %}
+                <div class="od-post-media">
+                    <iframe srcdoc="{{ item.code_bundle|escape }}" loading="lazy"
+                        sandbox="allow-scripts"
+                        style="border:none;width:100%;height:100%;pointer-events:none;">
                     </iframe>
-                    {% elif scribe.code_html %}
-                    <iframe class="explore-card-media"
-                        srcdoc="<style>{{ scribe.code_css|default:'' }}</style>{{ scribe.code_html }}<script>{{ scribe.code_js|default:'' }}</script>"
-                        style="border: none; width: 100%; height: 100%; pointer-events: none;" sandbox="allow-scripts"
-                        loading="lazy">
-                    </iframe>
-                    {% else %}
-                    <div class="explore-card-media"
-                        style="background: var(--od-surface-hover); display: flex; align-items: center; justify-content: center;">
-                        <i data-lucide="file-text" style="width: 48px; height: 48px; opacity: 0.3;"></i>
+                </div>
+                {% elif item.image_url %}
+                <div class="od-post-media" onclick="openImageModal('{{ item.image_url }}')">
+                    <img src="{{ item.image_url }}" loading="lazy" alt="Post image">
+                </div>
+                {% endif %}
+
+                <!-- Post Actions -->
+                <div class="od-post-actions">
+                    <div class="od-post-actions-left">
+                        <button class="od-post-action-btn like-btn {% if item.is_liked %}liked{% endif %}"
+                            onclick="toggleLike({{ item.id }})" data-scribe-id="{{ item.id }}">
+                            <i data-lucide="thumbs-up"></i>
+                        </button>
+                        <button class="od-post-action-btn dislike-btn {% if item.is_disliked %}disliked{% endif %}"
+                            onclick="toggleDislike({{ item.id }})" data-scribe-id="{{ item.id }}">
+                            <i data-lucide="thumbs-down"></i>
+                        </button>
+                        <button class="od-post-action-btn" onclick="toggleComments({{ item.id }})">
+                            <i data-lucide="message-circle"></i>
+                        </button>
+                        <button class="od-post-action-btn" onclick="sharePost({{ item.id }})">
+                            <i data-lucide="send"></i>
+                        </button>
+                    </div>
+                    <button class="od-post-action-btn {% if item.is_saved %}saved{% endif %}"
+                        onclick="savePost({{ item.id }})" data-action="save">
+                        <i data-lucide="bookmark"></i>
+                    </button>
+                </div>
+
+                <!-- Post Details -->
+                <div class="od-post-details">
+                    <div class="od-post-likes">
+                        <span class="like-count" data-scribe-id="{{ item.id }}">{{ item.like_count }}</span> likes
+                    </div>
+
+                    {% if item.content %}
+                    <div class="od-post-caption">
+                        <span class="username">{{ item.username }}</span>
+                        <span>{{ item.content|linkify_hashtags_mentions|truncatewords:30 }}</span>
                     </div>
                     {% endif %}
-                    {% if scribe.code_bundle or scribe.code_html %}<span class="explore-code-badge"><i
-                            data-lucide="code" style="width: 10px; height: 10px; display: inline-block;"></i>
-                        Code</span>{% endif %}
-                    <div class="explore-card-overlay">
-                        <div class="explore-card-user">
-                            {% if scribe.user.profile_picture %}
-                            <img src="{{ scribe.user.profile_picture.url }}" alt="{{ scribe.user.username }}" class="explore-card-user-avatar" onerror="this.outerHTML='<div class=\'explore-card-user-avatar-placeholder\'>{{ scribe.user.initials }}</div>'">
-                            {% else %}
-                            <div class="explore-card-user-avatar-placeholder">{{ scribe.user.initials }}</div>
-                            {% endif %}
-                            <div class="explore-card-user-info">
-                                <span class="explore-card-user-name">{{ scribe.user.full_name|default:scribe.user.username }}</span>
-                                <span class="explore-card-user-handle">@{{ scribe.user.username }}</span>
+
+                    {% if item.comment_count > 0 %}
+                    <div class="od-post-view-comments" onclick="toggleComments({{ item.id }})">
+                        View all {{ item.comment_count }} comments
+                    </div>
+                    {% endif %}
+
+                    <time class="od-post-time">{{ item.time_ago }} ago</time>
+                </div>
+
+                <!-- Comment Input -->
+                <div class="od-post-comment-input">
+                    <input type="text" placeholder="Add a comment..." id="comment-input-{{ item.id }}"
+                        maxlength="500" onkeypress="handleCommentKeypress(event, {{ item.id }})">
+                    <button onclick="addComment({{ item.id }})" disabled>Post</button>
+                </div>
+
+                <!-- Comments Section (Hidden by default) -->
+                <div id="comments-{{ item.id }}" class="od-comments-section" style="display: none;">
+                    <div class="od-comments-list" id="comments-list-{{ item.id }}">
+                        {% for comment in item.recent_comments %}
+                        <div class="od-comment">
+                            <img src="{{ comment.user.profile_picture_url }}" alt="" class="od-comment-avatar">
+                            <div class="od-comment-content">
+                                <span class="od-comment-username">{{ comment.user.username }}</span>
+                                <span class="od-comment-text">{{ comment.content }}</span>
+                                <span class="od-comment-time">{{ comment.timestamp|timesince }}</span>
                             </div>
                         </div>
-                        <div class="explore-card-tag">{% if scribe.code_bundle or scribe.code_html %}Code Scribe{% else
-                            %}Scribe{% endif %}</div>
-                        {% if scribe.content %}
-                        <div class="explore-card-caption">{{ scribe.content|truncatewords:15 }}</div>
-                        {% endif %}
+                        {% endfor %}
                     </div>
                 </div>
             </article>
-            {% endwith %}
             {% elif item.type == 'omzo' %}
             {% with omzo=item.object %}
-            <article class="explore-card" data-type="omzo"
-                data-search-text="{{ omzo.user.full_name|default:omzo.user.username }} @{{ omzo.user.username }} {{ omzo.caption }}"
-                onclick="openOmzoInOmzo({{ omzo.id }})">
-                <div class="explore-card-media-container">
+            <article class="od-post" data-omzo-id="{{ omzo.id }}">
+                <!-- Post Header -->
+                <header class="od-post-header">
+                    <a href="{% url 'user_profile' omzo.user.username %}" class="od-post-user">
+                        <img src="{{ omzo.user.profile_picture_url }}" alt="{{ omzo.user.username }}" class="od-post-avatar"
+                            onerror="this.outerHTML='<div class=\'od-post-avatar-placeholder\'>{{ omzo.user.initials }}</div>'">
+                        <div class="od-post-user-info">
+                            <span class="od-post-username">{{ omzo.user.username }}</span>
+                            <span class="od-post-badge">Omzo</span>
+                        </div>
+                    </a>
+                    <button class="od-post-more">
+                        <i data-lucide="more-horizontal"></i>
+                    </button>
+                </header>
+
+                <!-- Omzo Video -->
+                <div class="od-post-media od-post-video" onclick="openOmzoInOmzo({{ omzo.id }})">
                     {% if omzo.video_file %}
-                    <video class="explore-card-media" muted autoplay loop playsinline
-                        onclick="event.stopPropagation(); openOmzoInOmzo({{ omzo.id }})">
+                    <video muted loop playsinline preload="metadata">
                         <source src="{{ omzo.video_file.url }}" type="video/mp4">
                     </video>
-                    <div class="explore-omzo-play-icon"
-                        onclick="event.stopPropagation(); openOmzoInOmzo({{ omzo.id }})">
+                    <div class="od-video-play-overlay">
                         <i data-lucide="play"></i>
                     </div>
-                    {% else %}
-                    <div class="explore-card-media"
-                        style="background: var(--od-surface-hover); display: flex; align-items: center; justify-content: center;">
-                        <i data-lucide="video" style="width: 48px; height: 48px; opacity: 0.3;"></i>
+                    {% endif %}
+                </div>
+
+                <!-- Post Actions -->
+                <div class="od-post-actions">
+                    <div class="od-post-actions-left">
+                        <button class="od-post-action-btn like-btn {% if item.is_liked %}liked{% endif %}"
+                            onclick="toggleOmzoLike({{ omzo.id }})" data-omzo-id="{{ omzo.id }}">
+                            <i data-lucide="thumbs-up"></i>
+                        </button>
+                        <button class="od-post-action-btn dislike-btn {% if item.is_disliked %}disliked{% endif %}"
+                            onclick="toggleOmzoDislike({{ omzo.id }})" data-omzo-id="{{ omzo.id }}">
+                            <i data-lucide="thumbs-down"></i>
+                        </button>
+                        <button class="od-post-action-btn" onclick="openOmzoInOmzo({{ omzo.id }})">
+                            <i data-lucide="message-circle"></i>
+                        </button>
+                        <button class="od-post-action-btn" onclick="shareOmzo({{ omzo.id }})">
+                            <i data-lucide="send"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Post Details -->
+                <div class="od-post-details">
+                    <div class="od-post-likes">
+                        <span class="omzo-like-count" data-omzo-id="{{ omzo.id }}">{{ item.like_count|default:0 }}</span> likes
+                    </div>
+
+                    {% if omzo.caption %}
+                    <div class="od-post-caption">
+                        <span class="username">{{ omzo.user.username }}</span>
+                        <span>{{ omzo.caption|truncatewords:30 }}</span>
                     </div>
                     {% endif %}
-                    <div class="explore-card-overlay">
-                        <div class="explore-card-user">
-                            {% if omzo.user.profile_picture %}
-                            <img src="{{ omzo.user.profile_picture.url }}" alt="{{ omzo.user.username }}" class="explore-card-user-avatar" onerror="this.outerHTML='<div class=\'explore-card-user-avatar-placeholder\'>{{ omzo.user.initials }}</div>'">
-                            {% else %}
-                            <div class="explore-card-user-avatar-placeholder">{{ omzo.user.initials }}</div>
-                            {% endif %}
-                            <div class="explore-card-user-info">
-                                <span class="explore-card-user-name">{{ omzo.user.full_name|default:omzo.user.username }}</span>
-                                <span class="explore-card-user-handle">@{{ omzo.user.username }}</span>
-                            </div>
-                        </div>
-                        <div class="explore-card-tag">Omzo</div>
-                        {% if omzo.caption %}
-                        <div class="explore-card-caption">{{ omzo.caption|truncatewords:15 }}</div>
-                        {% endif %}
-                    </div>
-                </div>
-            </article>
-            {% endwith %}
-            {% elif item.type == 'person' %}
-            {% with person=item.object %}
-            <article class="explore-card" data-type="person"
-                data-search-text="{{ person.full_name|default:person.username }} @{{ person.username }}"
-                onclick="window.location.href='{% url 'user_profile' person.username %}'">
-                <div class="explore-card-media-container"
-                    style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); display: flex; align-items: center; justify-content: center;">
-                    <div style="text-align: center;">
-                        {% if person.profile_picture %}
-                        <img src="{{ person.profile_picture.url }}" alt="{{ person.full_name }}"
-                            style="width: 80px; height: 80px; border-radius: 22%; object-fit: cover; margin-bottom: 12px;"
-                            onerror="this.style.display='none';">
-                        {% else %}
-                        <div
-                            style="width: 80px; height: 80px; border-radius: 22%; background-color: var(--od-surface); margin: 0 auto 12px; display: flex; align-items: center; justify-content: center; color: var(--od-text-secondary);">
-                            <i data-lucide="user" style="width: 36px; height: 36px;"></i>
-                        </div>
-                        {% endif %}
-                        <div
-                            style="font-weight: 600; color: var(--od-text-primary); font-size: 14px; margin-bottom: 4px;">
-                            {{ person.full_name|default:person.username }}</div>
-                        <div style="color: var(--od-text-secondary); font-size: 12px;">@{{ person.username }}</div>
-                    </div>
-                </div>
-            </article>
-            {% endwith %}
-            {% elif item.type == 'group' %}
-            {% with group=item.object %}
-            <article class="explore-card" data-type="group" data-search-text="{{ group.name }}"
-                onclick="window.location.href='{% url 'chat_detail' group.id %}'">
-                <div class="explore-card-media-container"
-                    style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); display: flex; align-items: center; justify-content: center;">
-                    <div style="text-align: center;">
-                        <div
-                            style="width: 80px; height: 80px; border-radius: 50%; background-color: var(--od-surface); margin: 0 auto 12px; display: flex; align-items: center; justify-content: center;">
-                            <i data-lucide="users"
-                                style="width: 36px; height: 36px; color: var(--od-text-secondary);"></i>
-                        </div>
-                        <div
-                            style="font-weight: 600; color: var(--od-text-primary); font-size: 14px; margin-bottom: 4px;">
-                            {{ group.name }}</div>
-                        <div style="color: var(--od-text-secondary); font-size: 12px;">Group</div>
-                    </div>
+
+                    <time class="od-post-time">{{ item.time_ago|default:"" }} ago</time>
                 </div>
             </article>
             {% endwith %}
             {% endif %}
             {% endfor %}
-        </div>
+        </section>
         {% else %}
         <div class="od-empty-state">
             <i data-lucide="sparkles"></i>
             <h3>Nothing to explore yet</h3>
-            <p>Post a Scribe or Omzo to be featured here.</p>
+            <p>Follow some people or wait for new content!</p>
         </div>
         {% endif %}
     </div>
@@ -817,6 +870,461 @@
     let currentPage = 1;
     let isLoading = false;
     let hasMore = true;
+
+    // --- Utility Functions ---
+    function getCSRFToken() {
+        const meta = document.querySelector('meta[name="csrf-token"]');
+        return meta ? meta.content : '';
+    }
+
+    function showIGToast(message, type = 'info') {
+        // Remove existing toasts
+        const existing = document.querySelector('.ig-toast');
+        if (existing) existing.remove();
+
+        const toast = document.createElement('div');
+        toast.className = 'ig-toast';
+        toast.style.cssText = `
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--od-surface);
+            color: var(--od-text-primary);
+            padding: 12px 24px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 10000;
+            font-size: 14px;
+            border: 1px solid var(--od-border);
+        `;
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+    }
+
+    // --- Feed Interaction Functions ---
+    
+    // Open Post Menu (3-dot menu)
+    function openPostMenu(postId, event) {
+        if (event) {
+            event.stopPropagation();
+            event.preventDefault();
+        }
+        
+        // Close existing menu if any
+        const existingMenu = document.querySelector('.od-post-menu-dropdown');
+        if (existingMenu) existingMenu.remove();
+        
+        // Get the button that was clicked
+        const button = event ? event.currentTarget : document.querySelector(`[onclick*="openPostMenu(${postId}"]`);
+        const rect = button.getBoundingClientRect();
+        
+        const menu = document.createElement('div');
+        menu.className = 'od-post-menu-dropdown';
+        menu.style.cssText = `
+            position: fixed;
+            top: ${rect.bottom + 8}px;
+            right: ${window.innerWidth - rect.right}px;
+            background: var(--od-surface);
+            border-radius: 12px;
+            padding: 8px 0;
+            min-width: 180px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            z-index: 10001;
+            border: 1px solid var(--od-border);
+            animation: menuFadeIn 0.15s ease;
+        `;
+        
+        menu.innerHTML = `
+            <button onclick="reportPost(${postId}); this.closest('.od-post-menu-dropdown').remove();" style="display:flex;align-items:center;gap:12px;padding:12px 16px;width:100%;border:none;background:none;color:#ef4444;cursor:pointer;font-size:14px;">
+                <i data-lucide="flag" style="width:18px;height:18px;"></i> Report
+            </button>
+            <button onclick="copyPostLink(${postId}); this.closest('.od-post-menu-dropdown').remove();" style="display:flex;align-items:center;gap:12px;padding:12px 16px;width:100%;border:none;background:none;color:var(--od-text);cursor:pointer;font-size:14px;">
+                <i data-lucide="link" style="width:18px;height:18px;"></i> Copy Link
+            </button>
+            <button onclick="this.closest('.od-post-menu-dropdown').remove();" style="display:flex;align-items:center;gap:12px;padding:12px 16px;width:100%;border:none;background:none;color:var(--od-text-secondary);cursor:pointer;font-size:14px;">
+                <i data-lucide="x" style="width:18px;height:18px;"></i> Cancel
+            </button>
+        `;
+        
+        document.body.appendChild(menu);
+        lucide.createIcons();
+        
+        // Close on outside click
+        setTimeout(() => {
+            document.addEventListener('click', function closeMenu(e) {
+                if (!menu.contains(e.target)) {
+                    menu.remove();
+                    document.removeEventListener('click', closeMenu);
+                }
+            });
+        }, 100);
+    }
+    
+    function reportPost(postId) {
+        showToast('Post reported. Thank you for your feedback.');
+    }
+    
+    function copyPostLink(postId) {
+        const url = `${window.location.origin}/scribe/${postId}/`;
+        navigator.clipboard.writeText(url).then(() => {
+            showToast('Link copied to clipboard');
+        }).catch(() => {
+            showToast('Failed to copy link');
+        });
+    }
+
+    // Toggle Like
+    function toggleLike(scribeId) {
+        const btn = document.querySelector(`.od-post-action-btn.like-btn[data-scribe-id="${scribeId}"]`);
+        const countEl = document.querySelector(`.like-count[data-scribe-id="${scribeId}"]`);
+        const dislikeBtn = document.querySelector(`.od-post-action-btn.dislike-btn[data-scribe-id="${scribeId}"]`);
+
+        // Optimistic UI update
+        const wasLiked = btn.classList.contains('liked');
+        btn.classList.toggle('liked');
+        // Remove dislike if was disliked
+        if (dislikeBtn) dislikeBtn.classList.remove('disliked');
+        
+        if (countEl) {
+            const currentCount = parseInt(countEl.textContent) || 0;
+            countEl.textContent = wasLiked ? currentCount - 1 : currentCount + 1;
+        }
+
+        // Add animation
+        if (!wasLiked && btn) {
+            btn.style.transform = 'scale(1.2)';
+            setTimeout(() => btn.style.transform = 'scale(1)', 200);
+        }
+
+        fetch('/chat/api/toggle-like/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken()
+            },
+            body: JSON.stringify({ scribe_id: scribeId })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    if (data.is_liked) {
+                        btn.classList.add('liked');
+                    } else {
+                        btn.classList.remove('liked');
+                    }
+                    if (countEl) countEl.textContent = data.like_count;
+                } else {
+                    btn.classList.toggle('liked');
+                    if (countEl) {
+                        const currentCount = parseInt(countEl.textContent) || 0;
+                        countEl.textContent = wasLiked ? currentCount + 1 : currentCount - 1;
+                    }
+                    showIGToast(data.error || 'Failed to like', 'error');
+                }
+            })
+            .catch(err => {
+                console.error('Like error:', err);
+                btn.classList.toggle('liked');
+                if (countEl) {
+                    const currentCount = parseInt(countEl.textContent) || 0;
+                    countEl.textContent = wasLiked ? currentCount + 1 : currentCount - 1;
+                }
+                showIGToast('Failed to like post', 'error');
+            });
+    }
+
+    // Toggle Dislike
+    function toggleDislike(scribeId) {
+        const btn = document.querySelector(`.od-post-action-btn.dislike-btn[data-scribe-id="${scribeId}"]`);
+        const likeBtn = document.querySelector(`.od-post-action-btn.like-btn[data-scribe-id="${scribeId}"]`);
+        const countEl = document.querySelector(`.like-count[data-scribe-id="${scribeId}"]`);
+
+        const wasDisliked = btn.classList.contains('disliked');
+        btn.classList.toggle('disliked');
+        
+        if (likeBtn && likeBtn.classList.contains('liked')) {
+            likeBtn.classList.remove('liked');
+            if (countEl) {
+                const currentCount = parseInt(countEl.textContent) || 0;
+                countEl.textContent = Math.max(0, currentCount - 1);
+            }
+        }
+
+        if (!wasDisliked && btn) {
+            btn.style.transform = 'scale(1.2)';
+            setTimeout(() => btn.style.transform = 'scale(1)', 200);
+        }
+
+        fetch('/chat/api/toggle-dislike/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken()
+            },
+            body: JSON.stringify({ scribe_id: scribeId })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    if (data.is_disliked) {
+                        btn.classList.add('disliked');
+                    } else {
+                        btn.classList.remove('disliked');
+                    }
+                    if (countEl) countEl.textContent = data.like_count;
+                } else {
+                    btn.classList.toggle('disliked');
+                    showIGToast(data.error || 'Failed to dislike', 'error');
+                }
+            })
+            .catch(err => {
+                console.error('Dislike error:', err);
+                btn.classList.toggle('disliked');
+                showIGToast('Failed to dislike post', 'error');
+            });
+    }
+
+    // Toggle Comments Section
+    function toggleComments(scribeId) {
+        const section = document.getElementById(`comments-${scribeId}`);
+        if (section.style.display === 'none') {
+            section.style.display = 'block';
+            loadComments(scribeId);
+        } else {
+            section.style.display = 'none';
+        }
+    }
+
+    // Load Comments
+    function loadComments(scribeId) {
+        fetch(`/chat/api/scribe/${scribeId}/comments/`)
+            .then(response => response.json())
+            .then(data => {
+                const list = document.getElementById(`comments-list-${scribeId}`);
+                if (data.comments && data.comments.length > 0) {
+                    list.innerHTML = data.comments.map(c => `
+                        <div class="od-comment" style="display: flex; gap: 12px; padding: 12px 16px;">
+                            <img src="${c.user_profile_picture || ''}" alt="" style="width: 32px; height: 32px; border-radius: 22%; object-fit: cover;" onerror="this.outerHTML='<div style=\\'width:32px;height:32px;border-radius:22%;background:var(--odnix-gradient);display:flex;align-items:center;justify-content:center;color:white;font-size:12px;font-weight:600;\\'>${c.user_initials || 'U'}</div>'">
+                            <div style="flex: 1;">
+                                <span style="font-weight: 600; font-size: 14px; color: var(--od-text-primary);">${c.user_username || 'User'}</span>
+                                <span style="font-size: 14px; margin-left: 4px; color: var(--od-text-primary);">${c.content}</span>
+                                <div style="font-size: 12px; color: var(--od-text-secondary); margin-top: 4px;">${c.timestamp || ''}</div>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    list.innerHTML = '<p style="text-align: center; color: var(--od-text-secondary); padding: 16px;">No comments yet</p>';
+                }
+            })
+            .catch(err => {
+                console.error('Error loading comments:', err);
+            });
+    }
+
+    // Add Comment
+    function addComment(scribeId) {
+        const input = document.getElementById(`comment-input-${scribeId}`);
+        const content = input.value.trim();
+        if (!content) return;
+
+        fetch('/chat/api/add-comment/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken()
+            },
+            body: JSON.stringify({ scribe_id: scribeId, content: content })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    input.value = '';
+                    if (input.nextElementSibling) input.nextElementSibling.disabled = true;
+                    // Refresh comments
+                    loadComments(scribeId);
+                    showIGToast('Comment added!', 'success');
+                }
+            })
+            .catch(err => {
+                console.error('Comment error:', err);
+                showIGToast('Failed to add comment', 'error');
+            });
+    }
+
+    // Handle comment keypress
+    function handleCommentKeypress(event, scribeId) {
+        if (event.key === 'Enter' && !event.shiftKey) {
+            event.preventDefault();
+            addComment(scribeId);
+        }
+    }
+
+    // Toggle Save Post
+    function toggleSavePost(scribeId, btn) {
+        const wasSaved = btn ? btn.classList.contains('saved') : false;
+        if (btn) btn.classList.toggle('saved');
+
+        fetch('/chat/api/toggle-save/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken()
+            },
+            body: JSON.stringify({ scribe_id: scribeId })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    if (btn) {
+                        if (data.is_saved) {
+                            btn.classList.add('saved');
+                        } else {
+                            btn.classList.remove('saved');
+                        }
+                    }
+                    showIGToast(data.message, 'success');
+                } else {
+                    if (btn) btn.classList.toggle('saved');
+                    showIGToast(data.error || 'Failed to save post', 'error');
+                }
+            })
+            .catch(err => {
+                console.error('Save post error:', err);
+                if (btn) btn.classList.toggle('saved');
+                showIGToast('Failed to save post', 'error');
+            });
+    }
+
+    // Share Post
+    function sharePost(scribeId) {
+        const url = `${window.location.origin}/scribe/${scribeId}/`;
+        if (navigator.share) {
+            navigator.share({
+                title: 'Check out this post on Odnix',
+                url: url
+            }).catch(console.error);
+        } else {
+            navigator.clipboard.writeText(url).then(() => {
+                showIGToast('Link copied to clipboard!', 'success');
+            });
+        }
+    }
+
+    // --- Omzo Interaction Functions ---
+    
+    // Toggle Omzo Like
+    function toggleOmzoLike(omzoId) {
+        const btn = document.querySelector(`.od-post-action-btn.like-btn[data-omzo-id="${omzoId}"]`);
+        const countEl = document.querySelector(`.omzo-like-count[data-omzo-id="${omzoId}"]`);
+        const dislikeBtn = document.querySelector(`.od-post-action-btn.dislike-btn[data-omzo-id="${omzoId}"]`);
+
+        const wasLiked = btn.classList.contains('liked');
+        btn.classList.toggle('liked');
+        if (dislikeBtn) dislikeBtn.classList.remove('disliked');
+        
+        if (countEl) {
+            const currentCount = parseInt(countEl.textContent) || 0;
+            countEl.textContent = wasLiked ? currentCount - 1 : currentCount + 1;
+        }
+
+        if (!wasLiked && btn) {
+            btn.style.transform = 'scale(1.2)';
+            setTimeout(() => btn.style.transform = 'scale(1)', 200);
+        }
+
+        fetch('/chat/api/omzo/toggle-like/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken()
+            },
+            body: JSON.stringify({ omzo_id: omzoId })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    if (data.is_liked) {
+                        btn.classList.add('liked');
+                    } else {
+                        btn.classList.remove('liked');
+                    }
+                    if (countEl && data.like_count !== undefined) countEl.textContent = data.like_count;
+                } else {
+                    btn.classList.toggle('liked');
+                    showIGToast(data.error || 'Failed to like', 'error');
+                }
+            })
+            .catch(err => {
+                console.error('Omzo like error:', err);
+                btn.classList.toggle('liked');
+            });
+    }
+
+    // Toggle Omzo Dislike
+    function toggleOmzoDislike(omzoId) {
+        const btn = document.querySelector(`.od-post-action-btn.dislike-btn[data-omzo-id="${omzoId}"]`);
+        const likeBtn = document.querySelector(`.od-post-action-btn.like-btn[data-omzo-id="${omzoId}"]`);
+        const countEl = document.querySelector(`.omzo-like-count[data-omzo-id="${omzoId}"]`);
+
+        const wasDisliked = btn.classList.contains('disliked');
+        btn.classList.toggle('disliked');
+        
+        if (likeBtn && likeBtn.classList.contains('liked')) {
+            likeBtn.classList.remove('liked');
+            if (countEl) {
+                const currentCount = parseInt(countEl.textContent) || 0;
+                countEl.textContent = Math.max(0, currentCount - 1);
+            }
+        }
+
+        if (!wasDisliked && btn) {
+            btn.style.transform = 'scale(1.2)';
+            setTimeout(() => btn.style.transform = 'scale(1)', 200);
+        }
+
+        fetch('/chat/api/omzo/toggle-dislike/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken()
+            },
+            body: JSON.stringify({ omzo_id: omzoId })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    if (data.is_disliked) {
+                        btn.classList.add('disliked');
+                    } else {
+                        btn.classList.remove('disliked');
+                    }
+                } else {
+                    btn.classList.toggle('disliked');
+                    showIGToast(data.error || 'Failed to dislike', 'error');
+                }
+            })
+            .catch(err => {
+                console.error('Omzo dislike error:', err);
+                btn.classList.toggle('disliked');
+            });
+    }
+
+    // Share Omzo
+    function shareOmzo(omzoId) {
+        const url = `${window.location.origin}/omzo/${omzoId}/`;
+        if (navigator.share) {
+            navigator.share({
+                title: 'Check out this Omzo on Odnix',
+                url: url
+            }).catch(console.error);
+        } else {
+            navigator.clipboard.writeText(url).then(() => {
+                showIGToast('Link copied to clipboard!', 'success');
+            });
+        }
+    }
 
     // --- Modal Functions ---
 
@@ -977,14 +1485,14 @@
                         commentsSection.innerHTML = data.comments.map(comment => `
                             <div class="post-modal-comment-item">
                                 <div style="display: flex; gap: 10px;">
-                                    <img src="${comment.avatar || 'https://ui-avatars.com/api/?name=' + comment.username}" style="width: 32px; height: 32px; border-radius: 22%; object-fit: cover; flex-shrink: 0;" onerror="this.style.display='none';">
+                                    <img src="${comment.user_profile_picture || 'https://ui-avatars.com/api/?name=' + (comment.user_username || 'U')}" style="width: 32px; height: 32px; border-radius: 22%; object-fit: cover; flex-shrink: 0;" onerror="this.outerHTML='<div style=\'width:32px;height:32px;border-radius:22%;background:var(--odnix-gradient);display:flex;align-items:center;justify-content:center;color:white;font-size:12px;font-weight:600;\'>${comment.user_initials || 'U'}</div>'">
                                     <div style="flex: 1;">
                                         <div style="margin-bottom: 4px;">
-                                            <span style="font-weight: 600; color: var(--od-text-primary); font-size: 13px;">${comment.full_name || comment.username}</span>
-                                            <span style="color: var(--od-text-secondary); font-size: 12px; margin-left: 6px;">@${comment.username}</span>
+                                            <span style="font-weight: 600; color: var(--od-text-primary); font-size: 13px;">${comment.user_full_name || comment.user_username}</span>
+                                            <span style="color: var(--od-text-secondary); font-size: 12px; margin-left: 6px;">@${comment.user_username}</span>
                                         </div>
                                         <div style="color: var(--od-text-primary); font-size: 13px; line-height: 1.4;">${comment.content || ''}</div>
-                                        <div style="color: var(--od-text-secondary); font-size: 11px; margin-top: 6px;">${comment.time_ago || ''}</div>
+                                        <div style="color: var(--od-text-secondary); font-size: 11px; margin-top: 6px;">${comment.timestamp || ''}</div>
                                     </div>
                                 </div>
                             </div>
@@ -1034,7 +1542,7 @@
     function openOmzoInOmzo(omzoId) {
         sessionStorage.setItem('exploreScrollPosition', window.scrollY);
         sessionStorage.setItem('exploreReturnPage', window.location.pathname);
-        window.location.href = `/chat/omzo/?omzo=${omzoId}`;
+        window.location.href = `/chat/omzo/?omzo_id=${omzoId}`;
     }
 
     function filterExploreContent(query) {
@@ -1159,26 +1667,28 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success && data.content.length > 0) {
-                    const grid = document.getElementById('exploreGrid');
+                    const feed = document.getElementById('exploreGrid');
                     const fragment = document.createDocumentFragment();
                     data.content.forEach(item => {
-                        const card = createExploreCard(item);
-                        if (card) fragment.appendChild(card);
+                        // Only show scribes and omzos in feed
+                        if (item.type === 'scribe' || item.type === 'omzo') {
+                            const post = createFeedPost(item);
+                            if (post) fragment.appendChild(post);
+                        }
                     });
-                    grid.appendChild(fragment);
+                    feed.appendChild(fragment);
                     currentPage = data.page;
                     hasMore = data.has_next;
 
-                    // Move sentinel to bottom if needed (usually it stays at bottom logically)
+                    // Move sentinel to bottom if needed
                     const sentinel = document.getElementById('explore-sentinel');
-                    if (sentinel && grid.parentNode) {
-                        grid.parentNode.appendChild(sentinel);
+                    if (sentinel && feed.parentNode) {
+                        feed.parentNode.appendChild(sentinel);
                     }
 
                     if (typeof lucide !== 'undefined') lucide.createIcons();
                 } else {
                     hasMore = false;
-                    // Remove sentinel if no more content
                     const sentinel = document.getElementById('explore-sentinel');
                     if (sentinel) sentinel.remove();
                 }
@@ -1193,122 +1703,109 @@
             });
     }
 
-    function createExploreCard(item) {
+    function createFeedPost(item) {
         const article = document.createElement('article');
-        article.className = 'explore-card';
+        article.className = 'od-post';
         article.setAttribute('data-type', item.type);
+        article.setAttribute('data-id', item.id);
 
-        let content = '';
-        if (item.type === 'scribe') {
-            article.setAttribute('data-search-text', `${item.user.full_name} @${item.user.username} ${item.content}`);
-            article.onclick = () => openScribePost(item.id);
+        const isScribe = item.type === 'scribe';
+        const user = item.user || {};
+        const content = isScribe ? item.content : item.caption;
+        const likeCount = item.like_count || 0;
+        const commentCount = item.comment_count || 0;
+        const isLiked = item.is_liked || false;
+        const isDisliked = item.is_disliked || false;
+        const isSaved = item.is_saved || false;
+        const timeAgo = item.time_ago || '';
 
-            let mediaHTML = '';
-            let tag = 'Scribe';
-            let isCode = false;
+        // User avatar - check both profile_picture and profile_picture_url
+        const profilePic = user.profile_picture || user.profile_picture_url;
+        const userAvatarHTML = profilePic
+            ? `<img src="${profilePic}" alt="${user.username}" class="od-post-avatar" onerror="this.outerHTML='<div class=\\'od-post-avatar-placeholder\\'>${user.initials || user.username?.charAt(0).toUpperCase() || 'U'}</div>'">`
+            : `<div class="od-post-avatar-placeholder">${user.initials || user.username?.charAt(0).toUpperCase() || 'U'}</div>`;
 
+        // Media section
+        let mediaHTML = '';
+        if (isScribe) {
             if (item.image_url) {
-                mediaHTML = `<img src="${item.image_url}" alt="Scribe media" loading="lazy" class="explore-card-media">`;
-            } else if (item.code_bundle) {
-                tag = 'Code Scribe';
-                isCode = true;
-                const escapedBundle = escapeHtml(item.code_bundle);
-                mediaHTML = `<iframe class="explore-card-media" srcdoc="${escapedBundle}" style="border: none; width: 100%; height: 100%; pointer-events: none;" sandbox="allow-scripts" loading="lazy"></iframe>`;
-            } else if (item.code_html) {
-                tag = 'Code Scribe';
-                isCode = true;
-                const rawDoc = `<style>${item.code_css || ''}</style>${item.code_html}<script>${item.code_js || ''}<\/script>`;
-                const escapedDoc = escapeHtml(rawDoc);
-                mediaHTML = `<iframe class="explore-card-media" srcdoc="${escapedDoc}" style="border: none; width: 100%; height: 100%; pointer-events: none;" sandbox="allow-scripts" loading="lazy"></iframe>`;
-            } else {
-                mediaHTML = `<div class="explore-card-media" style="background: var(--od-surface-hover); display: flex; align-items: center; justify-content: center;"><i data-lucide="file-text" style="width: 48px; height: 48px; opacity: 0.3;"></i></div>`;
+                mediaHTML = `<div class="od-post-media"><img src="${item.image_url}" alt="Post image" loading="lazy"></div>`;
+            } else if (item.code_bundle || item.code_html) {
+                const codeContent = item.code_bundle || `<style>${item.code_css || ''}</style>${item.code_html}<script>${item.code_js || ''}<\/script>`;
+                const escapedCode = escapeHtml(codeContent);
+                mediaHTML = `<div class="od-post-media od-post-code"><iframe srcdoc="${escapedCode}" sandbox="allow-scripts" style="width:100%;height:300px;border:none;pointer-events:none;"></iframe></div>`;
             }
-
-            article.setAttribute('data-has-code', isCode ? 'true' : 'false');
-
-            const userAvatarHTML = item.user.profile_picture 
-                ? `<img src="${item.user.profile_picture}" alt="${item.user.username}" class="explore-card-user-avatar" onerror="this.outerHTML='<div class=\\'explore-card-user-avatar-placeholder\\'>${item.user.initials || item.user.username.charAt(0).toUpperCase()}</div>'">`
-                : `<div class="explore-card-user-avatar-placeholder">${item.user.initials || item.user.username.charAt(0).toUpperCase()}</div>`;
-
-            content = `
-                <div class="explore-card-media-container">
-                    ${mediaHTML}
-                    ${isCode ? '<span class="explore-code-badge"><i data-lucide="code" style="width: 10px; height: 10px; display: inline-block;"></i> Code</span>' : ''}
-                    <div class="explore-card-overlay">
-                        <div class="explore-card-user">
-                            ${userAvatarHTML}
-                            <div class="explore-card-user-info">
-                                <span class="explore-card-user-name">${item.user.full_name || item.user.username}</span>
-                                <span class="explore-card-user-handle">@${item.user.username}</span>
-                            </div>
-                        </div>
-                        <div class="explore-card-tag">${tag}</div>
-                        ${item.content ? `<div class="explore-card-caption">${truncateText(item.content, 15)}</div>` : ''}
-                    </div>
-                </div>
-            `;
-
-        } else if (item.type === 'omzo') {
-            article.setAttribute('data-search-text', `${item.user.full_name} @${item.user.username} ${item.caption}`);
-            article.onclick = () => openOmzoInOmzo(item.id);
-
-            const mediaHTML = item.video_url ?
-                `<video class="explore-card-media" muted autoplay loop playsinline onclick="event.stopPropagation(); openOmzoInOmzo(${item.id})"><source src="${item.video_url}" type="video/mp4"></video><div class="explore-omzo-play-icon" onclick="event.stopPropagation(); openOmzoInOmzo(${item.id})"><i data-lucide="play"></i></div>` :
-                `<div class="explore-card-media" style="background: var(--od-surface-hover); display: flex; align-items: center; justify-content: center;"><i data-lucide="video" style="width: 48px; height: 48px; opacity: 0.3;"></i></div>`;
-
-            const omzoUserAvatarHTML = item.user.profile_picture 
-                ? `<img src="${item.user.profile_picture}" alt="${item.user.username}" class="explore-card-user-avatar" onerror="this.outerHTML='<div class=\\'explore-card-user-avatar-placeholder\\'>${item.user.initials || item.user.username.charAt(0).toUpperCase()}</div>'">`
-                : `<div class="explore-card-user-avatar-placeholder">${item.user.initials || item.user.username.charAt(0).toUpperCase()}</div>`;
-
-            content = `
-                <div class="explore-card-media-container">
-                    ${mediaHTML}
-                    <div class="explore-card-overlay">
-                        <div class="explore-card-user">
-                            ${omzoUserAvatarHTML}
-                            <div class="explore-card-user-info">
-                                <span class="explore-card-user-name">${item.user.full_name || item.user.username}</span>
-                                <span class="explore-card-user-handle">@${item.user.username}</span>
-                            </div>
-                        </div>
-                        <div class="explore-card-tag">Omzo</div>
-                        ${item.caption ? `<div class="explore-card-caption">${truncateText(item.caption, 15)}</div>` : ''}
-                    </div>
-                </div>
-            `;
-        } else if (item.type === 'person') {
-            article.setAttribute('data-search-text', `${item.full_name} @${item.username}`);
-            article.onclick = () => window.location.href = `/chat/profile/${item.username}/`;
-
-            const avatarHTML = item.profile_picture ?
-                `<img src="${item.profile_picture}" alt="${item.full_name}" style="width: 80px; height: 80px; border-radius: 22%; object-fit: cover; margin-bottom: 12px;">` :
-                `<div style="width: 80px; height: 80px; border-radius: 22%; background-color: var(--od-surface); margin: 0 auto 12px; display: flex; align-items: center; justify-content: center; color: var(--od-text-secondary);"><i data-lucide="user" style="width: 36px; height: 36px;"></i></div>`;
-
-            content = `
-                <div class="explore-card-media-container" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); display: flex; align-items: center; justify-content: center;">
-                    <div style="text-align: center;">
-                        ${avatarHTML}
-                        <div style="font-weight: 600; color: var(--od-text-primary); font-size: 14px; margin-bottom: 4px;">${item.full_name || item.username}</div>
-                        <div style="color: var(--od-text-secondary); font-size: 12px;">@${item.username}</div>
-                    </div>
-                </div>
-            `;
-        } else if (item.type === 'group') {
-            article.setAttribute('data-search-text', item.name);
-            article.onclick = () => window.location.href = `/chat/chat/${item.id}/`;
-
-            content = `
-                <div class="explore-card-media-container" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); display: flex; align-items: center; justify-content: center;">
-                    <div style="text-align: center;">
-                        <div style="width: 80px; height: 80px; border-radius: 50%; background-color: var(--od-surface); margin: 0 auto 12px; display: flex; align-items: center; justify-content: center;"><i data-lucide="users" style="width: 36px; height: 36px; color: var(--od-text-secondary);"></i></div>
-                        <div style="font-weight: 600; color: var(--od-text-primary); font-size: 14px; margin-bottom: 4px;">${item.name}</div>
-                        <div style="color: var(--od-text-secondary); font-size: 12px;">Group</div>
-                    </div>
-                </div>
-            `;
+        } else {
+            // Omzo video
+            if (item.video_url) {
+                mediaHTML = `<div class="od-post-media od-post-video" onclick="openOmzoInOmzo(${item.id})"><video src="${item.video_url}" muted loop playsinline preload="metadata"></video><div class="od-video-play-overlay"><i data-lucide="play"></i></div></div>`;
+            }
         }
 
-        article.innerHTML = content;
+        // Recent comments
+        let commentsPreviewHTML = '';
+        if (item.recent_comments && item.recent_comments.length > 0) {
+            commentsPreviewHTML = item.recent_comments.map(c => 
+                `<div class="od-comment-preview"><span class="od-comment-user">${c.username}</span> ${c.content}</div>`
+            ).join('');
+        }
+
+        article.innerHTML = `
+            <header class="od-post-header">
+                <a href="/profile/${user.username}/" class="od-post-user">
+                    ${userAvatarHTML}
+                    <div class="od-post-user-info">
+                        <span class="od-post-username">${user.full_name || user.username}${!isScribe ? '<span class="od-post-badge">Omzo</span>' : ''}</span>
+                    </div>
+                </a>
+                <button class="od-post-more" onclick="event.stopPropagation();">
+                    <i data-lucide="more-horizontal"></i>
+                </button>
+            </header>
+            
+            ${mediaHTML}
+            
+            <div class="od-post-actions">
+                <div class="od-post-actions-left">
+                    <button class="od-post-action-btn like-btn ${isLiked ? 'liked' : ''}" data-${isScribe ? 'scribe' : 'omzo'}-id="${item.id}" onclick="${isScribe ? 'toggleLike' : 'toggleOmzoLike'}(${item.id})">
+                        <i data-lucide="thumbs-up"></i>
+                    </button>
+                    <button class="od-post-action-btn dislike-btn ${isDisliked ? 'disliked' : ''}" data-${isScribe ? 'scribe' : 'omzo'}-id="${item.id}" onclick="${isScribe ? 'toggleDislike' : 'toggleOmzoDislike'}(${item.id})">
+                        <i data-lucide="thumbs-down"></i>
+                    </button>
+                    <button class="od-post-action-btn" onclick="${isScribe ? `toggleComments(${item.id})` : `openOmzoInOmzo(${item.id})`}">
+                        <i data-lucide="message-circle"></i>
+                    </button>
+                    <button class="od-post-action-btn" onclick="${isScribe ? 'sharePost' : 'shareOmzo'}(${item.id})">
+                        <i data-lucide="send"></i>
+                    </button>
+                </div>
+                ${isScribe ? `<button class="od-post-action-btn save-btn ${isSaved ? 'saved' : ''}" onclick="toggleSavePost(${item.id}, this)" data-action="save">
+                    <i data-lucide="bookmark"></i>
+                </button>` : ''}
+            </div>
+            
+            <div class="od-post-details">
+                <div class="od-post-likes">
+                    <span class="${isScribe ? 'like-count' : 'omzo-like-count'}" data-${isScribe ? 'scribe' : 'omzo'}-id="${item.id}">${likeCount}</span> likes
+                </div>
+                ${content ? `<div class="od-post-caption"><span class="username">${user.username}</span> <span>${content}</span></div>` : ''}
+                ${isScribe && commentCount > 0 ? `<div class="od-post-view-comments" onclick="toggleComments(${item.id})">View all ${commentCount} comments</div>` : ''}
+                <time class="od-post-time">${timeAgo} ago</time>
+            </div>
+            
+            ${isScribe ? `
+            <div class="od-post-comment-input">
+                <input type="text" id="comment-input-${item.id}" placeholder="Add a comment..." 
+                       onkeypress="handleCommentKeypress(event, ${item.id})"
+                       oninput="this.nextElementSibling.disabled = !this.value.trim()">
+                <button onclick="addComment(${item.id})" disabled>Post</button>
+            </div>
+            <div id="comments-${item.id}" class="od-comments-section" style="display: none;">
+                <div class="od-comments-list" id="comments-list-${item.id}"></div>
+            </div>` : ''}
+        `;
+
         return article;
     }
 

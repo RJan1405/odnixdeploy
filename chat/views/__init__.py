@@ -22,13 +22,13 @@ from .media import (
 from .social import (
     profile_view, update_profile, post_scribe, toggle_like, toggle_dislike, add_comment,
     get_scribe, get_scribe_comments, toggle_follow, toggle_block, manage_follow_request,
-    toggle_account_privacy, get_follow_requests, follow_states,
+    toggle_account_privacy, get_follow_requests, follow_states, dismiss_suggestion,
     get_hashtag_scribes, get_trending_hashtags, get_user_mentions,
     search_users_for_mention, update_theme, get_all_activity,
     global_search,
     get_profile_followers, get_profile_following,
     toggle_save_post, delete_post, report_post, get_saved_posts, copy_post_link,
-    view_post, omzo_view, upload_omzo, toggle_omzo_like, toggle_omzo_dislike, add_omzo_comment, get_omzo_comments,
+    view_post, omzo_view, get_omzo_batch, upload_omzo, toggle_omzo_like, toggle_omzo_dislike, add_omzo_comment, get_omzo_comments,
     track_omzo_view, report_omzo, toggle_private_chat
 )
 from .stories import (

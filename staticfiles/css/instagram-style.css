@@ -6179,3 +6179,23 @@ img[class*="user-image"],
 [style*="border-radius:50%"][class*="profile"] {
   border-radius: 22% !important;
 }
+
+/* ===== PROFILE PAGE AVATAR OVERRIDES - Squared Rounded ===== */
+.od-profile-avatar,
+.od-profile-avatar-ring,
+.od-profile-avatar-container,
+.od-m-avatar,
+.od-m-avatar-container,
+.od-profile-avatar-placeholder,
+.od-post-avatar,
+.od-comment-avatar,
+.od-create-avatar,
+.od-story-avatar,
+.nav-avatar {
+  border-radius: 22% !important;
+}
+
+/* Also target any fallback or error placeholders */
+.od-profile-avatar-placeholder {
+  border-radius: 22% !important;
+}

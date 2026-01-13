@@ -19,7 +19,7 @@ from chat.models import (
     CustomUser, Chat, Scribe, Comment, Like, Dislike, Follow, Block, FollowRequest,
     Hashtag, ScribeHashtag, Mention, StoryReply, StoryLike, Story,
     SavedPost, PostReport, Omzo, OmzoLike, OmzoDislike, OmzoComment, OmzoReport,
-    ProfileView, PinnedChat
+    ProfileView, PinnedChat, DismissedSuggestion
 )
 from chat.forms import ScribeForm, ProfileUpdateForm
 
@@ -1169,6 +1169,11 @@ def toggle_follow(request):
                 is_following = True
                 follow_request_status = None
 
+        # Clear explore cache when follow status changes
+        from django.core.cache import cache
+        cache_key = f'explore_order_{request.user.id}'
+        cache.delete(cache_key)
+
         return JsonResponse({
             'success': True,
             'is_following': is_following,
@@ -1180,6 +1185,41 @@ def toggle_follow(request):
     except Exception as e:
         logger.error(f"Error in toggle_follow: {str(e)}")
         return JsonResponse({'success': False, 'error': 'Failed to toggle follow'})
+
+
+@login_required
+@require_POST
+def dismiss_suggestion(request):
+    """Dismiss a user suggestion so they don't appear again"""
+    try:
+        data = json.loads(request.body)
+        username = data.get('username')
+
+        if not username:
+            return JsonResponse({'success': False, 'error': 'Username is required'})
+
+        try:
+            target_user = CustomUser.objects.get(username=username)
+        except CustomUser.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'User not found'})
+
+        if target_user == request.user:
+            return JsonResponse({'success': False, 'error': 'Cannot dismiss yourself'})
+
+        # Create dismissed suggestion record (or get if exists)
+        DismissedSuggestion.objects.get_or_create(
+            user=request.user,
+            dismissed_user=target_user
+        )
+
+        return JsonResponse({
+            'success': True,
+            'message': f'{username} will no longer appear in suggestions'
+        })
+
+    except Exception as e:
+        logger.error(f"Error in dismiss_suggestion: {str(e)}")
+        return JsonResponse({'success': False, 'error': 'Failed to dismiss suggestion'})
 
 
 @login_required
@@ -2196,9 +2236,40 @@ def omzo_view(request):
     """View to watch and scroll through omzo"""
     from chat.recommendations import ContentRecommender
 
+    # Check if a specific omzo_id is requested
+    specific_omzo_id = request.GET.get('omzo_id')
+    
     # Use Recommendation Engine
     recommender = ContentRecommender(request.user)
     omzos = recommender.get_omzo(limit=50)
+
+    # If specific omzo requested, move it to the front
+    if specific_omzo_id:
+        try:
+            specific_omzo_id = int(specific_omzo_id)
+            # Find and move the specific omzo to front
+            specific_omzo = None
+            remaining_omzos = []
+            for omzo in omzos:
+                if omzo.id == specific_omzo_id:
+                    specific_omzo = omzo
+                else:
+                    remaining_omzos.append(omzo)
+            
+            # If specific omzo not in recommended list, fetch it separately
+            if specific_omzo is None:
+                try:
+                    specific_omzo = Omzo.objects.get(id=specific_omzo_id)
+                except Omzo.DoesNotExist:
+                    pass
+            
+            # Put specific omzo first
+            if specific_omzo:
+                omzos = [specific_omzo] + remaining_omzos
+            else:
+                omzos = remaining_omzos
+        except (ValueError, TypeError):
+            pass
 
     # Process omzo for the frontend
     omzo_data = []
@@ -2218,8 +2289,109 @@ def omzo_view(request):
         })
 
     return render(request, 'chat/Omzo.html', {
-        'omzos': omzo_data
+        'omzos': omzo_data,
+        'initial_omzo_id': specific_omzo_id,
     })
+
+
+@login_required
+def get_omzo_batch(request):
+    """
+    API endpoint for batch fetching omzos with cursor-based pagination.
+    Used for preloading and infinite scroll.
+    
+    Query params:
+        - cursor: ID of the last omzo seen (for pagination)
+        - limit: Number of omzos to fetch (default 10, max 20)
+        - exclude: Comma-separated list of omzo IDs to exclude (already loaded)
+    
+    Returns:
+        - omzos: List of omzo data
+        - next_cursor: ID to use for next batch (null if no more)
+        - has_more: Boolean indicating if more omzos exist
+        - total_available: Approximate count of remaining omzos
+    """
+    from chat.recommendations import ContentRecommender
+    
+    try:
+        cursor = request.GET.get('cursor')
+        limit = min(int(request.GET.get('limit', 10)), 20)  # Max 20 per request
+        exclude_ids_str = request.GET.get('exclude', '')
+        
+        # Parse excluded IDs
+        exclude_ids = set()
+        if exclude_ids_str:
+            try:
+                exclude_ids = set(int(x) for x in exclude_ids_str.split(',') if x.strip())
+            except ValueError:
+                pass
+        
+        # Use recommendation engine
+        recommender = ContentRecommender(request.user)
+        all_omzos = list(recommender.get_omzo(limit=100))  # Get larger pool
+        
+        # Filter out excluded omzos
+        filtered_omzos = [o for o in all_omzos if o.id not in exclude_ids]
+        
+        # Apply cursor pagination
+        if cursor:
+            try:
+                cursor_id = int(cursor)
+                # Find position after cursor
+                cursor_found = False
+                temp_list = []
+                for omzo in filtered_omzos:
+                    if cursor_found:
+                        temp_list.append(omzo)
+                    elif omzo.id == cursor_id:
+                        cursor_found = True
+                filtered_omzos = temp_list if cursor_found else filtered_omzos
+            except ValueError:
+                pass
+        
+        # Get batch with limit
+        batch = filtered_omzos[:limit]
+        remaining = filtered_omzos[limit:]
+        
+        # Prepare response data
+        omzo_data = []
+        for omzo in batch:
+            omzo_data.append({
+                'id': omzo.id,
+                'url': omzo.video_file.url,
+                'caption': omzo.caption,
+                'username': omzo.user.username,
+                'user_avatar': omzo.user.profile_picture_url,
+                'likes': omzo.like_count,
+                'comments_count': omzo.comment_count,
+                'is_liked': omzo.is_liked_by(request.user),
+                'is_disliked': OmzoDislike.objects.filter(user=request.user, omzo=omzo).exists(),
+                'views': omzo.views_count,
+                'is_muted': omzo.is_muted,
+                'is_following': Follow.objects.filter(follower=request.user, following=omzo.user).exists(),
+            })
+        
+        # Determine next cursor and has_more
+        next_cursor = batch[-1].id if batch and remaining else None
+        has_more = len(remaining) > 0
+        
+        return JsonResponse({
+            'success': True,
+            'omzos': omzo_data,
+            'next_cursor': next_cursor,
+            'has_more': has_more,
+            'total_available': len(remaining),
+            'batch_size': len(batch)
+        })
+        
+    except Exception as e:
+        logger.error(f"Error in get_omzo_batch: {str(e)}")
+        return JsonResponse({
+            'success': False, 
+            'error': 'Failed to fetch omzos',
+            'omzos': [],
+            'has_more': False
+        })
 
 
 @login_required

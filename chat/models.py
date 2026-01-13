@@ -94,11 +94,12 @@ class CustomUser(AbstractUser):
 
     @property
     def profile_picture_url(self):
-        """Get profile picture URL or return default"""
+        """Get profile picture URL or return default placeholder"""
         if self.profile_picture and hasattr(self.profile_picture, 'url'):
             return self.profile_picture.url
-        # Return a data URL for a simple gray placeholder
-        return 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMjAiIGZpbGw9IiNFNUU3RUIiLz4KPHBhdGggZD0iTTIwIDI1QzIyLjc2MTQgMjUgMjIuNzYxNCAyNSAyMEMyNSAxNy4yMzg2IDIyLjc2MTQgMTUgMjAgMTVDMTcuMjM4NiAxNSAxNSAxNy4yMzg2IDE1IDIwQzE1IDIyLjc2MTQgMTcuMjM4NiAyNSAyMCAyNVoiIGZpbGw9IiM5Q0E0QUYiLz4KPHBhdGggZD0iTTMwIDI4QzMwIDI0LjY4NjMgMjYuNDI3MSAyMiAyMiAyMkgxOEMxMy41NzI5IDIyIDEwIDI0LjY4NjMgMTAgMjhWMzBIMzBWMjhaIiBmaWxsPSIjOUNBNEFGIi8+Cjwvc3ZnPgo='
+        # Return a stylish gradient placeholder with user initials style
+        # Rounded square with Odnix brand gradient (#667eea to #764ba2)
+        return f'https://ui-avatars.com/api/?name={self.username}&background=667eea&color=fff&size=200&rounded=false&bold=true&format=svg'
 
     def mark_online(self):
         self.is_online = True
@@ -653,6 +654,22 @@ class FollowRequest(models.Model):
 
     def __str__(self):
         return f"{self.requester.full_name} → {self.target.full_name} ({self.status})"
+
+
+class DismissedSuggestion(models.Model):
+    """Model for tracking dismissed user suggestions"""
+    user = models.ForeignKey(
+        CustomUser, on_delete=models.CASCADE, related_name='dismissed_suggestions')
+    dismissed_user = models.ForeignKey(
+        CustomUser, on_delete=models.CASCADE, related_name='dismissed_by')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'dismissed_user')
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.user.username} dismissed {self.dismissed_user.username}"
 
 
 class EmailVerificationToken(models.Model):

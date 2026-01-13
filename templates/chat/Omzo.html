@@ -861,6 +861,122 @@
         border: none;
         color: #fff;
     }
+
+    /* ===== Video Preload & Loading States ===== */
+    .omzo-video-loading {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: #111;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 5;
+    }
+
+    .omzo-skeleton {
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+            90deg,
+            #1a1a1a 0%,
+            #2a2a2a 50%,
+            #1a1a1a 100%
+        );
+        background-size: 200% 100%;
+        animation: skeletonShimmer 1.5s ease-in-out infinite;
+    }
+
+    @keyframes skeletonShimmer {
+        0% { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
+    }
+
+    .omzo-loading-spinner {
+        position: absolute;
+        width: 48px;
+        height: 48px;
+        border: 3px solid rgba(255, 255, 255, 0.1);
+        border-top-color: #667eea;
+        border-radius: 50%;
+        animation: spinLoader 0.8s linear infinite;
+    }
+
+    @keyframes spinLoader {
+        to { transform: rotate(360deg); }
+    }
+
+    .omzo-video.preloaded {
+        opacity: 1;
+    }
+
+    .omzo-video.loading {
+        opacity: 0;
+    }
+
+    /* Cache indicator badge */
+    .omzo-video.from-cache::after {
+        content: '⚡ Cached';
+        position: absolute;
+        top: 70px;
+        right: 10px;
+        background: rgba(74, 222, 128, 0.9);
+        color: #000;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 10px;
+        font-weight: 600;
+        z-index: 100;
+        pointer-events: none;
+        animation: fadeOut 2s ease-in-out forwards;
+    }
+
+    @keyframes fadeOut {
+        0%, 70% { opacity: 1; }
+        100% { opacity: 0; }
+    }
+
+    /* Preload status indicator (debug - hidden in production) */
+    .preload-indicator {
+        position: fixed;
+        bottom: 100px;
+        left: 10px;
+        background: rgba(0, 0, 0, 0.8);
+        color: #4ade80;
+        padding: 8px 12px;
+        border-radius: 8px;
+        font-size: 11px;
+        font-family: monospace;
+        z-index: 9999;
+        display: none; /* Set to 'block' for debugging */
+        max-width: 200px;
+    }
+
+    .preload-indicator.active {
+        color: #fbbf24;
+    }
+
+    .preload-indicator.exhausted {
+        color: #f87171;
+    }
+
+    /* End of feed indicator */
+    .omzo-end-indicator {
+        position: absolute;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.7);
+        color: rgba(255, 255, 255, 0.8);
+        padding: 12px 24px;
+        border-radius: 20px;
+        font-size: 14px;
+        text-align: center;
+        z-index: 50;
+        backdrop-filter: blur(10px);
+    }
 </style>
 {% endblock %}
 
@@ -882,7 +998,7 @@
                 </button>-->
                 <button class="action-btn mute-btn" onclick="toggleOmzoMute(this, event)" data-muted="false"
                     title="Toggle sound">
-                    <i data-lucide="volume-x"></i>
+                    <i data-lucide="volume-2"></i>
                 </button>
                 <button class="action-btn like-btn" onclick="toggleOmzoLike({{ omzo.id }}, this)" title="Like">
                     <i data-lucide="thumbs-up" class="{% if omzo.is_liked %}liked-thumb{% endif %}"></i>
@@ -1135,22 +1251,687 @@
 </div>
 
 <script>
-    // Global state
+    // ============================================================
+    // OMZO CACHE MANAGER - Persistent Video Caching with Size Limits
+    // ============================================================
+    
+    const OmzoCacheManager = {
+        CACHE_NAME: 'omzo-video-cache-v2',  // Bumped version to clear old cache
+        MAX_CACHE_SIZE_MB: 100,  // Maximum cache size in MB
+        MAX_CACHE_ITEMS: 30,     // Maximum number of cached videos
+        
+        async init() {
+            if (!('caches' in window)) {
+                console.warn('[OmzoCache] Cache API not supported');
+                return false;
+            }
+            this.cache = await caches.open(this.CACHE_NAME);
+            await this.pruneCache();
+            console.log('[OmzoCache] Initialized');
+            return true;
+        },
+        
+        // Normalize URL to absolute path for consistent cache keys
+        _normalizeUrl(url) {
+            if (url.startsWith('http://') || url.startsWith('https://')) {
+                return url;
+            }
+            // Convert relative URL to absolute
+            return new URL(url, window.location.origin).href;
+        },
+        
+        async get(url) {
+            if (!this.cache) return null;
+            const normalizedUrl = this._normalizeUrl(url);
+            try {
+                const response = await this.cache.match(normalizedUrl);
+                if (response) {
+                    console.log('[OmzoCache] Cache hit:', url.substring(0, 50));
+                    return response;
+                }
+            } catch (e) {
+                console.warn('[OmzoCache] Error reading cache:', e);
+            }
+            return null;
+        },
+        
+        async put(url, response) {
+            if (!this.cache) return;
+            const normalizedUrl = this._normalizeUrl(url);
+            try {
+                // Clone response since it can only be consumed once
+                await this.cache.put(normalizedUrl, response.clone());
+                console.log('[OmzoCache] Cached:', url.substring(0, 50));
+                // Prune after adding
+                await this.pruneCache();
+            } catch (e) {
+                console.warn('[OmzoCache] Error writing cache:', e);
+            }
+        },
+        
+        async pruneCache() {
+            if (!this.cache) return;
+            try {
+                const keys = await this.cache.keys();
+                
+                // If over item limit, remove oldest
+                if (keys.length > this.MAX_CACHE_ITEMS) {
+                    const toRemove = keys.length - this.MAX_CACHE_ITEMS;
+                    for (let i = 0; i < toRemove; i++) {
+                        await this.cache.delete(keys[i]);
+                        console.log('[OmzoCache] Pruned old item');
+                    }
+                }
+                
+                // Check total size (approximate)
+                let totalSize = 0;
+                for (const request of keys) {
+                    const response = await this.cache.match(request);
+                    if (response) {
+                        const blob = await response.clone().blob();
+                        totalSize += blob.size;
+                    }
+                }
+                
+                const sizeMB = totalSize / (1024 * 1024);
+                console.log('[OmzoCache] Current size:', sizeMB.toFixed(2), 'MB');
+                
+                // If over size limit, remove oldest until under limit
+                if (sizeMB > this.MAX_CACHE_SIZE_MB) {
+                    const currentKeys = await this.cache.keys();
+                    for (const key of currentKeys) {
+                        await this.cache.delete(key);
+                        const newKeys = await this.cache.keys();
+                        let newSize = 0;
+                        for (const req of newKeys) {
+                            const resp = await this.cache.match(req);
+                            if (resp) {
+                                const b = await resp.clone().blob();
+                                newSize += b.size;
+                            }
+                        }
+                        if (newSize / (1024 * 1024) < this.MAX_CACHE_SIZE_MB * 0.8) break;
+                    }
+                }
+            } catch (e) {
+                console.warn('[OmzoCache] Error pruning cache:', e);
+            }
+        },
+        
+        async clear() {
+            if ('caches' in window) {
+                await caches.delete(this.CACHE_NAME);
+                console.log('[OmzoCache] Cache cleared');
+            }
+        }
+    };
+
+    // ============================================================
+    // OMZO PRELOAD MANAGER - Industry-Grade Video Preloading System
+    // ============================================================
+    
+    /**
+     * OmzoPreloadManager - Professional video preloading system
+     * 
+     * Features:
+     * - Preloads next 3 videos ahead of current position
+     * - Network-aware loading (adapts to connection speed)
+     * - Memory management (unloads videos far behind)
+     * - Dynamic detection of feed exhaustion
+     * - Infinite scroll with cursor-based pagination
+     * - Abort controller for cancelling unnecessary requests
+     * - Persistent cache with size limits (NEW)
+     */
+    class OmzoPreloadManager {
+        constructor(options = {}) {
+            // Configuration
+            this.config = {
+                preloadAhead: options.preloadAhead || 3,        // Videos to preload ahead
+                unloadBehind: options.unloadBehind || 5,        // Videos behind to keep loaded
+                batchSize: options.batchSize || 6,              // Fetch batch size
+                networkAdaptive: options.networkAdaptive !== false,
+                debug: options.debug || false,
+                useCache: options.useCache !== false            // Enable persistent caching
+            };
+            
+            // State
+            this.state = {
+                currentIndex: 0,
+                loadedIds: new Set(),
+                preloadedUrls: new Map(),     // url -> { blob, video element }
+                pendingPreloads: new Map(),   // url -> AbortController
+                cursor: null,
+                hasMore: true,
+                isLoading: false,
+                isFetchingMore: false,
+                exhausted: false,
+                allOmzoIds: [],               // Track all known omzo IDs
+                networkType: 'unknown',
+                cacheReady: false
+            };
+            
+            // Callbacks
+            this.onNewOmzosLoaded = options.onNewOmzosLoaded || (() => {});
+            this.onPreloadComplete = options.onPreloadComplete || (() => {});
+            this.onFeedExhausted = options.onFeedExhausted || (() => {});
+            
+            // Initialize
+            this._initCache();
+            this._detectNetwork();
+            this._initializeFromDOM();
+            
+            this.log('OmzoPreloadManager initialized', this.config);
+        }
+        
+        // Initialize persistent cache
+        async _initCache() {
+            if (this.config.useCache) {
+                this.state.cacheReady = await OmzoCacheManager.init();
+            }
+        }
+        
+        log(...args) {
+            if (this.config.debug) {
+                console.log('[OmzoPreload]', ...args);
+            }
+        }
+        
+        // Detect network conditions
+        _detectNetwork() {
+            if ('connection' in navigator) {
+                const conn = navigator.connection;
+                this.state.networkType = conn.effectiveType || 'unknown';
+                
+                // Adjust preload count based on network
+                if (this.config.networkAdaptive) {
+                    switch (conn.effectiveType) {
+                        case '4g':
+                            this.config.preloadAhead = 3;
+                            break;
+                        case '3g':
+                            this.config.preloadAhead = 2;
+                            break;
+                        case '2g':
+                        case 'slow-2g':
+                            this.config.preloadAhead = 1;
+                            break;
+                    }
+                }
+                
+                // Listen for network changes
+                conn.addEventListener('change', () => this._detectNetwork());
+            }
+            
+            this.log('Network detected:', this.state.networkType, 'Preload ahead:', this.config.preloadAhead);
+        }
+        
+        // Initialize from existing DOM elements
+        _initializeFromDOM() {
+            const items = document.querySelectorAll('.omzo-item');
+            items.forEach((item, index) => {
+                const id = item.dataset.id;
+                if (id) {
+                    this.state.allOmzoIds.push(parseInt(id));
+                    this.state.loadedIds.add(parseInt(id));
+                }
+            });
+            
+            // Set initial cursor to last loaded item
+            if (this.state.allOmzoIds.length > 0) {
+                this.state.cursor = this.state.allOmzoIds[this.state.allOmzoIds.length - 1];
+            }
+            
+            this.log('Initialized with', this.state.allOmzoIds.length, 'omzos from DOM');
+        }
+        
+        // Get current position in feed
+        getCurrentPosition() {
+            const container = document.getElementById('omzoContainer');
+            if (!container) return 0;
+            
+            const scrollTop = container.scrollTop;
+            const itemHeight = container.clientHeight;
+            return Math.round(scrollTop / itemHeight);
+        }
+        
+        // Update current index and trigger preloading
+        updatePosition(index) {
+            if (index === this.state.currentIndex) return;
+            
+            this.state.currentIndex = index;
+            this.log('Position updated to:', index);
+            
+            // Trigger preloading
+            this.preloadAhead();
+            
+            // Memory cleanup - unload videos far behind
+            this.cleanupBehind();
+            
+            // Check if we need to fetch more
+            this.checkAndFetchMore();
+            
+            // Update debug indicator
+            this._updateIndicator();
+        }
+        
+        // Preload videos ahead of current position
+        async preloadAhead() {
+            const items = document.querySelectorAll('.omzo-item');
+            const currentPos = this.state.currentIndex;
+            
+            for (let i = 1; i <= this.config.preloadAhead; i++) {
+                const targetIndex = currentPos + i;
+                if (targetIndex >= items.length) {
+                    // No more items in DOM - might need to fetch more
+                    continue;
+                }
+                
+                const item = items[targetIndex];
+                const video = item?.querySelector('video');
+                
+                if (video && video.dataset.src && !video.src) {
+                    this.preloadVideo(video, i);
+                }
+            }
+        }
+        
+        // Preload a single video
+        async preloadVideo(video, priority = 1) {
+            const url = video.dataset.src;
+            if (!url || this.state.preloadedUrls.has(url)) return;
+            
+            // Cancel if already pending
+            if (this.state.pendingPreloads.has(url)) return;
+            
+            const controller = new AbortController();
+            this.state.pendingPreloads.set(url, controller);
+            
+            this.log('Preloading video:', url, 'Priority:', priority);
+            
+            try {
+                // Add loading indicator
+                const loadingOverlay = this._createLoadingOverlay();
+                video.parentElement.appendChild(loadingOverlay);
+                video.classList.add('loading');
+                
+                let blob;
+                let fromCache = false;
+                
+                // Try to get from persistent cache first
+                if (this.config.useCache && this.state.cacheReady) {
+                    const cachedResponse = await OmzoCacheManager.get(url);
+                    if (cachedResponse) {
+                        blob = await cachedResponse.blob();
+                        fromCache = true;
+                        this.log('Loaded from cache:', url);
+                    }
+                }
+                
+                // Fetch from network if not in cache
+                if (!blob) {
+                    const response = await fetch(url, { 
+                        signal: controller.signal,
+                        priority: priority === 1 ? 'high' : 'low'
+                    });
+                    
+                    if (!response.ok) throw new Error('Network response not ok');
+                    
+                    // Store in persistent cache for future visits
+                    if (this.config.useCache && this.state.cacheReady) {
+                        await OmzoCacheManager.put(url, response.clone());
+                    }
+                    
+                    blob = await response.blob();
+                }
+                
+                const blobUrl = URL.createObjectURL(blob);
+                
+                // Store reference for memory management
+                this.state.preloadedUrls.set(url, { 
+                    blob: blobUrl, 
+                    originalUrl: url,
+                    timestamp: Date.now(),
+                    fromCache: fromCache
+                });
+                
+                // Set video source
+                video.src = blobUrl;
+                video.load();
+                
+                // Remove loading state
+                video.classList.remove('loading');
+                video.classList.add('preloaded');
+                if (fromCache) video.classList.add('from-cache');
+                loadingOverlay.remove();
+                
+                this.log(fromCache ? 'Loaded from cache:' : 'Preloaded:', url);
+                this.onPreloadComplete(url);
+                
+            } catch (err) {
+                if (err.name === 'AbortError') {
+                    this.log('Preload cancelled:', url);
+                } else {
+                    console.warn('Preload failed, falling back to direct load:', err);
+                    // Fallback: just set the src directly
+                    video.src = url;
+                    video.load();
+                }
+                
+                // Remove loading overlay if exists
+                const overlay = video.parentElement?.querySelector('.omzo-video-loading');
+                if (overlay) overlay.remove();
+                video.classList.remove('loading');
+                
+            } finally {
+                this.state.pendingPreloads.delete(url);
+            }
+        }
+        
+        // Create loading overlay
+        _createLoadingOverlay() {
+            const overlay = document.createElement('div');
+            overlay.className = 'omzo-video-loading';
+            overlay.innerHTML = `
+                <div class="omzo-skeleton"></div>
+                <div class="omzo-loading-spinner"></div>
+            `;
+            return overlay;
+        }
+        
+        // Cleanup videos far behind current position
+        cleanupBehind() {
+            const items = document.querySelectorAll('.omzo-item');
+            const currentPos = this.state.currentIndex;
+            
+            for (let i = 0; i < currentPos - this.config.unloadBehind; i++) {
+                const item = items[i];
+                const video = item?.querySelector('video');
+                
+                if (video && video.src && video.src.startsWith('blob:')) {
+                    const originalUrl = video.dataset.src;
+                    const cached = this.state.preloadedUrls.get(originalUrl);
+                    
+                    if (cached) {
+                        // Revoke blob URL to free memory
+                        URL.revokeObjectURL(cached.blob);
+                        this.state.preloadedUrls.delete(originalUrl);
+                        
+                        // Reset video to lazy state
+                        video.src = '';
+                        video.classList.remove('preloaded');
+                        
+                        this.log('Cleaned up video at index:', i);
+                    }
+                }
+            }
+        }
+        
+        // Cancel pending preloads that are no longer needed
+        cancelUnnecessaryPreloads() {
+            const currentPos = this.state.currentIndex;
+            const items = document.querySelectorAll('.omzo-item');
+            
+            this.state.pendingPreloads.forEach((controller, url) => {
+                // Find which index this URL belongs to
+                let foundIndex = -1;
+                items.forEach((item, idx) => {
+                    const video = item.querySelector('video');
+                    if (video && video.dataset.src === url) {
+                        foundIndex = idx;
+                    }
+                });
+                
+                // Cancel if too far ahead or behind
+                if (foundIndex < currentPos || foundIndex > currentPos + this.config.preloadAhead + 2) {
+                    controller.abort();
+                    this.state.pendingPreloads.delete(url);
+                    this.log('Cancelled unnecessary preload:', url);
+                }
+            });
+        }
+        
+        // Check if we need to fetch more omzos
+        async checkAndFetchMore() {
+            // Don't fetch if we're already exhausted or loading
+            if (this.state.exhausted || this.state.isFetchingMore) return;
+            
+            const items = document.querySelectorAll('.omzo-item');
+            const currentPos = this.state.currentIndex;
+            const remainingItems = items.length - currentPos - 1;
+            
+            // Fetch more when 3 items from end
+            if (remainingItems <= 3 && this.state.hasMore) {
+                await this.fetchMoreOmzos();
+            }
+        }
+        
+        // Fetch more omzos from server
+        async fetchMoreOmzos() {
+            if (this.state.isFetchingMore || this.state.exhausted) {
+                this.log('Skipping fetch - already loading or exhausted');
+                return;
+            }
+            
+            this.state.isFetchingMore = true;
+            this.log('Fetching more omzos, cursor:', this.state.cursor);
+            
+            try {
+                const excludeIds = Array.from(this.state.loadedIds).join(',');
+                const url = `/chat/api/omzo/batch/?cursor=${this.state.cursor || ''}&limit=${this.config.batchSize}&exclude=${excludeIds}`;
+                
+                const response = await fetch(url, {
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success && data.omzos && data.omzos.length > 0) {
+                    // Add new omzos to DOM
+                    this._appendOmzosToDOM(data.omzos);
+                    
+                    // Update state
+                    this.state.cursor = data.next_cursor;
+                    this.state.hasMore = data.has_more;
+                    
+                    data.omzos.forEach(o => {
+                        this.state.allOmzoIds.push(o.id);
+                        this.state.loadedIds.add(o.id);
+                    });
+                    
+                    this.log('Loaded', data.omzos.length, 'more omzos. Has more:', data.has_more);
+                    this.onNewOmzosLoaded(data.omzos);
+                    
+                    // Trigger preload for new items
+                    this.preloadAhead();
+                    
+                } else {
+                    // No more omzos available
+                    this.state.hasMore = false;
+                    this.state.exhausted = true;
+                    this.log('Feed exhausted - no more omzos');
+                    this.onFeedExhausted();
+                    this._showEndOfFeed();
+                }
+                
+            } catch (err) {
+                console.error('Error fetching more omzos:', err);
+                // Don't mark as exhausted on error - might be temporary
+            } finally {
+                this.state.isFetchingMore = false;
+                this._updateIndicator();
+            }
+        }
+        
+        // Append new omzos to DOM
+        _appendOmzosToDOM(omzos) {
+            const container = document.getElementById('omzoContainer');
+            if (!container) return;
+            
+            omzos.forEach(omzo => {
+                const item = document.createElement('div');
+                item.className = 'omzo-item';
+                item.dataset.id = omzo.id;
+                
+                item.innerHTML = `
+                    <video class="omzo-video lazy-omzo" loop playsinline ${omzo.is_muted ? 'muted' : ''}
+                        data-src="${omzo.url}" onclick="toggleOmzoPlay(this)" data-is-muted="${omzo.is_muted}"
+                        poster=""></video>
+
+                    <div class="omzo-actions">
+                        <button class="action-btn mute-btn" onclick="toggleOmzoMute(this, event)" data-muted="false"
+                            title="Toggle sound">
+                            <i data-lucide="volume-2"></i>
+                        </button>
+                        <button class="action-btn like-btn" onclick="toggleOmzoLike(${omzo.id}, this)" title="Like">
+                            <i data-lucide="thumbs-up" class="${omzo.is_liked ? 'liked-thumb' : ''}"></i>
+                            <span class="like-count">${omzo.likes}</span>
+                        </button>
+                        <button class="action-btn dislike-btn" onclick="toggleOmzoDislike(${omzo.id}, this)" title="Dislike">
+                            <i data-lucide="thumbs-down" class="${omzo.is_disliked ? 'disliked-thumb' : ''}"></i>
+                        </button>
+                        <button class="action-btn" onclick="openOmzoComments(${omzo.id})" title="Comments">
+                            <i data-lucide="message-circle"></i>
+                            <span class="comment-count" data-omzo-id="${omzo.id}">${omzo.comments_count}</span>
+                        </button>
+                        <button class="action-btn" onclick="shareOmzo('${omzo.url}')" title="Share">
+                            <i data-lucide="share-2"></i>
+                            <span>Share</span>
+                        </button>
+                        <button class="action-btn" onclick="openReportModal(${omzo.id})" title="More">
+                            <i data-lucide="more-vertical"></i>
+                            <span>Report</span>
+                        </button>
+                    </div>
+
+                    <div class="omzo-overlay">
+                        <div class="omzo-info">
+                            <div class="omzo-user">
+                                <img src="${omzo.user_avatar || 'https://ui-avatars.com/api/?name=' + omzo.username}"
+                                    class="omzo-avatar">
+                                <span>${omzo.username}</span>
+                                ${!omzo.is_own ? `
+                                    <button class="omzo-follow-btn" onclick="toggleOmzoFollow('${omzo.username}', this)"
+                                        style="background: ${omzo.is_following ? 'transparent' : 'var(--odnix-gradient)'}; 
+                                               border: ${omzo.is_following ? '1px solid rgba(255,255,255,0.4)' : 'none'}; 
+                                               color: ${omzo.is_following ? 'rgba(255,255,255,0.8)' : 'white'}; 
+                                               border-radius: 6px; padding: 4px 12px; font-size: 12px; 
+                                               font-weight: 600; margin-left: 10px; cursor: pointer;">
+                                        ${omzo.is_following ? 'Following' : 'Follow'}
+                                    </button>
+                                ` : ''}
+                            </div>
+                            ${omzo.caption ? `<p class="omzo-caption">${omzo.caption}</p>` : ''}
+                            <div class="omzo-audio">
+                                <i data-lucide="music-2" style="width: 14px; height: 14px;"></i>
+                                <span style="font-weight: 500;">Original Audio • ${omzo.username}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                container.appendChild(item);
+                
+                // Observe new item
+                observer.observe(item);
+            });
+            
+            // Refresh Lucide icons
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        }
+        
+        // Show end of feed indicator
+        _showEndOfFeed() {
+            const lastItem = document.querySelector('.omzo-item:last-child');
+            if (lastItem && !lastItem.querySelector('.omzo-end-indicator')) {
+                const indicator = document.createElement('div');
+                indicator.className = 'omzo-end-indicator';
+                indicator.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <i data-lucide="check-circle" style="width: 20px; height: 20px;"></i>
+                        <span>You're all caught up!</span>
+                    </div>
+                `;
+                lastItem.appendChild(indicator);
+                
+                if (typeof lucide !== 'undefined') {
+                    lucide.createIcons();
+                }
+            }
+        }
+        
+        // Update debug indicator
+        _updateIndicator() {
+            let indicator = document.querySelector('.preload-indicator');
+            if (!indicator && this.config.debug) {
+                indicator = document.createElement('div');
+                indicator.className = 'preload-indicator';
+                document.body.appendChild(indicator);
+            }
+            
+            if (indicator) {
+                indicator.className = 'preload-indicator' + 
+                    (this.state.isFetchingMore ? ' active' : '') +
+                    (this.state.exhausted ? ' exhausted' : '');
+                    
+                indicator.innerHTML = `
+                    Pos: ${this.state.currentIndex}<br>
+                    Loaded: ${this.state.loadedIds.size}<br>
+                    Preloaded: ${this.state.preloadedUrls.size}<br>
+                    Has more: ${this.state.hasMore}<br>
+                    Network: ${this.state.networkType}
+                `;
+            }
+        }
+        
+        // Get statistics
+        getStats() {
+            return {
+                currentIndex: this.state.currentIndex,
+                totalLoaded: this.state.loadedIds.size,
+                preloadedCount: this.state.preloadedUrls.size,
+                pendingCount: this.state.pendingPreloads.size,
+                hasMore: this.state.hasMore,
+                exhausted: this.state.exhausted,
+                networkType: this.state.networkType
+            };
+        }
+        
+        // Cleanup all resources
+        destroy() {
+            // Cancel all pending preloads
+            this.state.pendingPreloads.forEach(controller => controller.abort());
+            this.state.pendingPreloads.clear();
+            
+            // Revoke all blob URLs
+            this.state.preloadedUrls.forEach(data => {
+                URL.revokeObjectURL(data.blob);
+            });
+            this.state.preloadedUrls.clear();
+            
+            this.log('OmzoPreloadManager destroyed');
+        }
+    }
+
+    // ============================================================
+    // GLOBAL STATE & INITIALIZATION
+    // ============================================================
+    
     let currentOmzoId = null;
     let pendingOmzoFile = null;
+    let preloadManager = null;
 
-    // --- NEW OMZO LOGIC START ---
-    // Optimistic: Default to TRUE (Sound On) if no preference is saved.
-    // This attempts to play sound immediately. If browser blocks it, our fail-safe handles it.
+    // Sound preference
     let storedSoundObj = localStorage.getItem('omzo_sound_unlocked');
     let soundUnlocked = storedSoundObj === null ? true : (storedSoundObj === 'true');
 
     // Safe autoplay
     function autoPlay(video) {
-        // Check if omzo is globally muted (disabled by admin)
         const isGloballyMuted = video.dataset.isMuted === 'true';
 
-        // If globally muted, always mute. Otherwise, try to respect preference
         if (isGloballyMuted) {
             video.muted = true;
         } else {
@@ -1160,13 +1941,9 @@
         var playPromise = video.play();
         if (playPromise !== undefined) {
             playPromise.catch(error => {
-                // Browser blocked audio autoplay.
-                // We MUST fall back to muted to allow playback.
                 if (!video.muted) {
                     video.muted = true;
                     video.play().then(() => {
-                        // Inform user ONLY if they expected sound (soundUnlocked is true)
-                        // AND the omzo is not globally muted
                         if (soundUnlocked && !isGloballyMuted) {
                             showOmzoToast('Tap to Unmute', 'Browser blocked auto-sound', 'info', false);
                         }
@@ -1176,8 +1953,7 @@
         }
     }
 
-    // Single source of truth for Icon Sync
-    // When the browser or our code changes video.muted, this updates the icon.
+    // Sync mute icon
     function syncMuteIcon(video) {
         const btn = video.closest('.omzo-item').querySelector('.mute-btn');
         if (!btn) return;
@@ -1188,31 +1964,36 @@
         }
     }
 
-    // IntersectionObserver for OMZO
+    // View tracking
     const viewedOmzo = new Set();
+    
+    // Enhanced IntersectionObserver with preload integration
     const observer = new IntersectionObserver(entries => {
         entries.forEach(entry => {
             const video = entry.target.querySelector('video');
             if (!video) return;
 
             if (entry.isIntersecting) {
-                // Lazy Load
+                // Get current index and update preload manager
+                const items = Array.from(document.querySelectorAll('.omzo-item'));
+                const currentIndex = items.indexOf(entry.target);
+                
+                if (preloadManager && currentIndex >= 0) {
+                    preloadManager.updatePosition(currentIndex);
+                }
+                
+                // Lazy load if not preloaded
                 if (!video.src && video.dataset.src) {
                     video.src = video.dataset.src;
                     video.load();
                 }
 
-                // Attach sync listener
                 video.onvolumechange = () => syncMuteIcon(video);
-
-                // Trigger Autoplay
                 autoPlay(video);
-
-                // Initial sync
                 syncMuteIcon(video);
 
-                // Track View (Real-time)
-                const omzoId = video.closest('.omzo-item').dataset.id;
+                // Track view
+                const omzoId = entry.target.dataset.id;
                 if (omzoId && !viewedOmzo.has(omzoId)) {
                     viewedOmzo.add(omzoId);
                     trackOmzoView(omzoId);
@@ -1220,7 +2001,6 @@
 
             } else {
                 video.pause();
-                // We DO NOT reset soundUnlocked here. If user left sound on, it stays on for the next omzo.
             }
         });
     }, { threshold: 0.6 });
@@ -1237,13 +2017,46 @@
         }).catch(err => console.error('Error tracking view:', err));
     }
 
-    // Observe all omzo items
+    // Initialize on DOM ready
     document.addEventListener('DOMContentLoaded', () => {
+        // Initialize preload manager with caching enabled
+        preloadManager = new OmzoPreloadManager({
+            preloadAhead: 3,
+            unloadBehind: 5,
+            batchSize: 6,
+            networkAdaptive: true,
+            useCache: true,       // Enable persistent caching
+            debug: true,          // Enable debug logging to verify caching
+            onNewOmzosLoaded: (omzos) => {
+                console.log('New omzos loaded:', omzos.length);
+            },
+            onFeedExhausted: () => {
+                console.log('No more omzos available');
+            }
+        });
+        
+        // Observe all initial omzo items
         document.querySelectorAll('.omzo-item').forEach(item => {
             observer.observe(item);
         });
+        
+        // Initialize Lucide icons
         if (typeof lucide !== 'undefined') {
             lucide.createIcons();
+        }
+        
+        // Start initial preloading for first videos immediately
+        setTimeout(() => {
+            if (preloadManager) {
+                preloadManager.preloadAhead();
+            }
+        }, 100);
+    });
+    
+    // Cleanup on page unload
+    window.addEventListener('beforeunload', () => {
+        if (preloadManager) {
+            preloadManager.destroy();
         }
     });
 
@@ -1262,17 +2075,12 @@
         const video = btn.closest('.omzo-item').querySelector('video');
         const isGloballyMuted = video.dataset.isMuted === 'true';
 
-        // If omzo is globally muted (by admin), don't allow unmuting
         if (isGloballyMuted) {
             showOmzoToast('Audio Disabled', 'This omzo has audio disabled.', 'info');
             return;
         }
 
         video.muted = !video.muted;
-
-        // UPDATE GLOBAL SESSION STATE
-        // If user explicitly unmutes one video, they likely want the next ones to have sound too.
-        // If they explicitly mute, they likely want silence.
         soundUnlocked = !video.muted;
         localStorage.setItem('omzo_sound_unlocked', soundUnlocked);
 
@@ -1285,7 +2093,6 @@
             lucide.createIcons();
         }
     }
-    // --- NEW OMZO LOGIC END ---
 
     // ===== Toast Notifications =====
     function showOmzoToast(title, message, type = 'info', persistent = false) {
@@ -1340,9 +2147,11 @@
 
         const file = input.files[0];
 
-        // Validate file size (100MB max)
-        if (file.size > 100 * 1024 * 1024) {
-            showOmzoToast('File Too Large', 'Please upload a video under 100MB.', 'error');
+        // Validate file size (10MB max)
+        const maxSize = 10 * 1024 * 1024; // 10MB
+        if (file.size > maxSize) {
+            const fileSizeMB = (file.size / (1024 * 1024)).toFixed(1);
+            showOmzoToast('File Too Large', `Your video is ${fileSizeMB}MB. Maximum size is 10MB. Please select a smaller video.`, 'error');
             input.value = '';
             return;
         }

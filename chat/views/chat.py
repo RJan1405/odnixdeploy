@@ -9,6 +9,7 @@ from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 import json
 import logging
+import random
 from datetime import timedelta
 from chat.utils import notify_sidebar_for_chat
 from chat.utils import clear_sidebar_unread
@@ -17,7 +18,8 @@ from chat.utils import clear_sidebar_unread
 from chat.models import (
     CustomUser, Chat, Message, GroupJoinRequest, Follow, Story, StoryView,
     StoryLike, StoryReply, Scribe, Like, Comment, MessageDeletion, MessageRead,
-    MessageReaction, StarredMessage, PinnedChat, SavedPost, Omzo
+    MessageReaction, StarredMessage, PinnedChat, SavedPost, Omzo, Dislike,
+    DismissedSuggestion
 )
 from chat.forms import ScribeForm
 from .media import handle_media_upload
@@ -25,6 +27,93 @@ from django.conf import settings
 import json as _json
 
 logger = logging.getLogger(__name__)
+
+
+def get_gender_balanced_suggestions(user, total_count=5, female_priority=3, male_priority=2):
+    """
+    Get gender-balanced user suggestions for the dashboard.
+    
+    Algorithm:
+    1. Try to get 3 females and 2 males (priority ratio)
+    2. If not enough females, fill remaining slots with males
+    3. If not enough males, fill remaining slots with females
+    4. If still not enough, fill with any available users
+    5. Shuffle the final result for natural appearance
+    
+    Args:
+        user: Current logged-in user
+        total_count: Total suggestions to return (default 5)
+        female_priority: Number of females to prioritize (default 3)
+        male_priority: Number of males to prioritize (default 2)
+    
+    Returns:
+        List of CustomUser objects
+    """
+    # Get IDs of users already being followed
+    following_ids = list(Follow.objects.filter(
+        follower=user).values_list('following', flat=True))
+    
+    # Get IDs of dismissed suggestions
+    dismissed_ids = list(DismissedSuggestion.objects.filter(
+        user=user).values_list('dismissed_user', flat=True))
+    
+    # Base queryset: exclude self, followed users, and dismissed users
+    candidates = CustomUser.objects.exclude(
+        id=user.id
+    ).exclude(
+        id__in=following_ids
+    ).exclude(
+        id__in=dismissed_ids
+    )
+    
+    # Get available females and males
+    available_females = list(candidates.filter(gender='female').order_by('?'))
+    available_males = list(candidates.filter(gender='male').order_by('?'))
+    
+    suggestions = []
+    
+    # Step 1: Try to get priority females (3)
+    females_to_add = min(female_priority, len(available_females))
+    suggestions.extend(available_females[:females_to_add])
+    remaining_females = available_females[females_to_add:]
+    
+    # Step 2: Try to get priority males (2)
+    males_to_add = min(male_priority, len(available_males))
+    suggestions.extend(available_males[:males_to_add])
+    remaining_males = available_males[males_to_add:]
+    
+    # Step 3: Fill remaining slots if we don't have enough
+    slots_remaining = total_count - len(suggestions)
+    
+    if slots_remaining > 0:
+        # Calculate how many we're short of each gender
+        female_shortage = female_priority - females_to_add
+        male_shortage = male_priority - males_to_add
+        
+        # If short on females, try to fill with more males first
+        if female_shortage > 0 and remaining_males:
+            fill_from_males = min(female_shortage, len(remaining_males))
+            suggestions.extend(remaining_males[:fill_from_males])
+            remaining_males = remaining_males[fill_from_males:]
+            slots_remaining -= fill_from_males
+        
+        # If short on males, try to fill with more females
+        if male_shortage > 0 and remaining_females and slots_remaining > 0:
+            fill_from_females = min(male_shortage, len(remaining_females), slots_remaining)
+            suggestions.extend(remaining_females[:fill_from_females])
+            remaining_females = remaining_females[fill_from_females:]
+            slots_remaining -= fill_from_females
+        
+        # If still need more, use any remaining users
+        if slots_remaining > 0:
+            remaining_all = remaining_females + remaining_males
+            random.shuffle(remaining_all)
+            suggestions.extend(remaining_all[:slots_remaining])
+    
+    # Shuffle final result for natural appearance
+    random.shuffle(suggestions)
+    
+    return suggestions[:total_count]
 
 
 @login_required
@@ -51,29 +140,13 @@ def dashboard(request):
     following_users = list(Follow.objects.filter(
         follower=request.user).values_list('following', flat=True))
 
-    # Get suggestions (users not followed)
-    # Priority: Min 3 Female, 2 Male
-    candidates = CustomUser.objects.exclude(
-        id=request.user.id
-    ).exclude(
-        id__in=following_users
+    # Get gender-balanced suggestions (3 females, 2 males priority)
+    suggestion_users = get_gender_balanced_suggestions(
+        user=request.user,
+        total_count=5,
+        female_priority=3,
+        male_priority=2
     )
-
-    females = list(candidates.filter(gender='female').order_by('?')[:3])
-    males = list(candidates.filter(gender='male').order_by('?')[:2])
-    suggestion_users = females + males
-
-    # If we don't have 5 yet, fill with anyone
-    if len(suggestion_users) < 5:
-        existing_ids = [u.id for u in suggestion_users]
-        needed = 5 - len(suggestion_users)
-        fillers = list(candidates.exclude(
-            id__in=existing_ids).order_by('?')[:needed])
-        suggestion_users.extend(fillers)
-
-    # Shuffle result
-    import random
-    random.shuffle(suggestion_users)
 
     # FIXED: Get active stories from followed users - SUPPORT MULTIPLE STORIES PER USER
     active_stories = Story.objects.filter(
@@ -660,10 +733,12 @@ def get_chats_api(request):
                 elif last_message.media_type == 'audio':
                     last_msg_content = '🎤 Sent a voice message'
 
-            # Get unread count
-            unread_count = chat.messages.filter(
-                ~Q(read_by=request.user)
-            ).exclude(sender=request.user).count()
+            # Get unread count - messages not read by current user and not sent by current user
+            unread_count = chat.messages.exclude(
+                sender=request.user
+            ).exclude(
+                read_receipts__user=request.user
+            ).count()
 
             # Get other participant for private chats
             other_user = None
@@ -906,35 +981,39 @@ def join_group_view(request, invite_code):
     return render(request, 'chat/join_group.html', {'chat': chat, 'already_member': False})
 
 
-def _get_explore_content_batch(page=1, per_page=15):
+def _get_explore_content_batch(page=1, per_page=15, user=None):
     """Helper function to get a batch of explore content with pagination
     Optimized for production - only loads needed items from database
-    Only shows scribes with images/code (no text-only scribes)"""
+    Shows scribes from users NOT followed by current user (discovery content)"""
     from django.core.cache import cache
     import random
 
-    # Create a cache key for the shuffled order (changes every hour)
-    cache_key = 'explore_order_' + str(int(__import__('time').time()) // 3600)
+    # Get users that current user follows (to exclude them)
+    following_ids = []
+    if user:
+        following_ids = list(Follow.objects.filter(
+            follower=user).values_list('following_id', flat=True))
+        following_ids.append(user.id)  # Also exclude own posts
+
+    # Create a cache key unique to this user (no hour component - cleared on follow/unfollow)
+    cache_key = f'explore_order_{user.id if user else "anon"}'
 
     # Try to get cached order from Redis/Cache
     shuffled_ids = cache.get(cache_key)
 
     if shuffled_ids is None:
         # Cache miss - rebuild the shuffled order
-        # Get only the IDs and types (lightweight)
-        # Show scribes with actual images or code bundles (excluding empty/text-only)
+        # Get scribes from users NOT followed (discovery content)
+        scribes_query = Scribe.objects.exclude(user_id__in=following_ids)
+        
         scribes_ids = list(
-            Scribe.objects.filter(
-                # Has actual image (non-empty)
-                Q(image__isnull=False, image__gt='') |
-                Q(code_bundle__isnull=False) |           # Has code bundle
-                Q(code_html__isnull=False)              # Has code HTML
-            )
+            scribes_query
             .values_list('id', flat=True)
             .order_by('-timestamp'))
 
+        omzo_query = Omzo.objects.exclude(user_id__in=following_ids)
         omzo_ids = list(
-            Omzo.objects.values_list('id', flat=True)
+            omzo_query.values_list('id', flat=True)
             .order_by('-created_at'))
 
         # Create combined list of (id, type) tuples
@@ -954,29 +1033,110 @@ def _get_explore_content_batch(page=1, per_page=15):
     if not page_ids:
         return []
 
-    # Fetch only the needed items from database
+    # Fetch only the needed items from database with full data for feed display
     paginated = []
     for item_id, item_type in page_ids:
-        if item_type == 'scribe':
-            obj = Scribe.objects.select_related('user').get(id=item_id)
-        else:
-            obj = Omzo.objects.select_related('user').get(id=item_id)
+        try:
+            if item_type == 'scribe':
+                obj = Scribe.objects.select_related('user').get(id=item_id)
+                
+                # Calculate time ago
+                time_diff = timezone.now() - obj.timestamp
+                if time_diff.days > 0:
+                    time_ago = f"{time_diff.days}d"
+                elif time_diff.seconds > 3600:
+                    time_ago = f"{time_diff.seconds // 3600}h"
+                else:
+                    time_ago = f"{time_diff.seconds // 60}m"
 
-        paginated.append({
-            'type': item_type,
-            'object': obj,
-            'sort_key': random.random()
-        })
+                # Get interaction data
+                like_count = Like.objects.filter(scribe=obj).count()
+                is_liked = Like.objects.filter(scribe=obj, user=user).exists() if user else False
+                is_disliked = Dislike.objects.filter(scribe=obj, user=user).exists() if user else False
+                is_saved = SavedPost.objects.filter(scribe=obj, user=user).exists() if user else False
+                comment_count = Comment.objects.filter(scribe=obj).count()
+                
+                # Get recent comments
+                recent_comments = Comment.objects.filter(
+                    scribe=obj,
+                    parent__isnull=True
+                ).select_related('user').order_by('-timestamp')[:3]
+
+                paginated.append({
+                    'type': item_type,
+                    'object': obj,
+                    'id': obj.id,
+                    'content': obj.content,
+                    'content_type': getattr(obj, 'content_type', 'text'),
+                    'code_bundle': getattr(obj, 'code_bundle', None),
+                    'code_html': getattr(obj, 'code_html', None),
+                    'code_css': getattr(obj, 'code_css', None),
+                    'code_js': getattr(obj, 'code_js', None),
+                    'user': obj.user,
+                    'user_id': obj.user.id,
+                    'username': obj.user.username,
+                    'fullname': obj.user.full_name,
+                    'user_initials': obj.user.initials,
+                    'profile_picture_url': obj.user.profile_picture_url,
+                    'time_ago': time_ago,
+                    'like_count': like_count,
+                    'comment_count': comment_count,
+                    'is_liked': is_liked,
+                    'is_disliked': is_disliked,
+                    'is_saved': is_saved,
+                    'image_url': obj.image_url,
+                    'has_media': obj.has_media,
+                    'recent_comments': recent_comments,
+                })
+            else:
+                obj = Omzo.objects.select_related('user').get(id=item_id)
+                
+                # Calculate time ago for omzo
+                time_diff = timezone.now() - obj.created_at
+                if time_diff.days > 0:
+                    time_ago = f"{time_diff.days}d"
+                elif time_diff.seconds > 3600:
+                    time_ago = f"{time_diff.seconds // 3600}h"
+                else:
+                    time_ago = f"{time_diff.seconds // 60}m"
+                
+                # Get interaction data for omzo
+                from chat.models import OmzoLike, OmzoDislike, OmzoComment
+                like_count = OmzoLike.objects.filter(omzo=obj).count()
+                is_liked = OmzoLike.objects.filter(omzo=obj, user=user).exists() if user else False
+                is_disliked = OmzoDislike.objects.filter(omzo=obj, user=user).exists() if user else False
+                comment_count = OmzoComment.objects.filter(omzo=obj).count()
+                
+                paginated.append({
+                    'type': item_type,
+                    'object': obj,
+                    'id': obj.id,
+                    'caption': obj.caption,
+                    'video_url': obj.video_file.url if obj.video_file else None,
+                    'user_id': obj.user.id,
+                    'username': obj.user.username,
+                    'fullname': obj.user.full_name,
+                    'user_initials': obj.user.initials,
+                    'profile_picture_url': obj.user.profile_picture_url,
+                    'time_ago': time_ago,
+                    'like_count': like_count,
+                    'comment_count': comment_count,
+                    'is_liked': is_liked,
+                    'is_disliked': is_disliked,
+                    'is_saved': False,  # Omzos typically don't have save feature
+                })
+        except (Scribe.DoesNotExist, Omzo.DoesNotExist):
+            continue
 
     return paginated
 
 
 @login_required
 def discover_groups_view(request):
-    """Explore page: show random scribes, omzo , people, and groups with pagination."""
+    """Explore page: show scribes and omzo from users NOT followed (discovery feed)."""
 
-    # Get first page (15 items)
-    mixed_content = _get_explore_content_batch(page=1, per_page=15)
+    # Get first page (15 items) - pass user to exclude followed users
+    mixed_content = _get_explore_content_batch(page=1, per_page=15, user=request.user)
 
     # Get user's chats for the DM panel in navbar
     private_chats = Chat.objects.filter(
@@ -1021,67 +1181,64 @@ def load_more_explore_content(request):
         per_page = 15
 
         mixed_content = _get_explore_content_batch(
-            page=page, per_page=per_page)
+            page=page, per_page=per_page, user=request.user)
 
         # Serialize to JSON
         data = []
         for item in mixed_content:
-            obj = item['object']
             item_data = {'type': item['type']}
 
             if item['type'] == 'scribe':
-                # Calculate time ago
-                time_diff = timezone.now() - obj.timestamp
-                if time_diff.days > 0:
-                    time_ago = f"{time_diff.days}d"
-                elif time_diff.seconds > 3600:
-                    time_ago = f"{time_diff.seconds // 3600}h"
-                else:
-                    time_ago = f"{time_diff.seconds // 60}m"
-
+                # Serialize recent comments
+                recent_comments_data = []
+                for comment in item.get('recent_comments', []):
+                    recent_comments_data.append({
+                        'username': comment.user.username,
+                        'content': comment.content,
+                    })
+                
                 item_data.update({
-                    'id': obj.id,
-                    'content': obj.content,
-                    'content_type': getattr(obj, 'content_type', 'text'),
-                    'image_url': obj.image.url if obj.image else None,
-                    'code_bundle': obj.code_bundle,
-                    'code_html': obj.code_html,
-                    'code_css': obj.code_css,
-                    'code_js': obj.code_js,
-                    'like_count': Like.objects.filter(scribe=obj).count(),
-                    'comment_count': Comment.objects.filter(scribe=obj).count(),
-                    'is_liked': Like.objects.filter(scribe=obj, user=request.user).exists(),
-                    'is_saved': SavedPost.objects.filter(scribe=obj, user=request.user).exists(),
-                    'time_ago': time_ago,
+                    'id': item['id'],
+                    'content': item['content'],
+                    'content_type': item['content_type'],
+                    'image_url': item['image_url'],
+                    'code_bundle': item['code_bundle'],
+                    'code_html': item['code_html'],
+                    'code_css': item['code_css'],
+                    'code_js': item['code_js'],
+                    'like_count': item['like_count'],
+                    'comment_count': item['comment_count'],
+                    'is_liked': item['is_liked'],
+                    'is_disliked': item['is_disliked'],
+                    'is_saved': item['is_saved'],
+                    'time_ago': item['time_ago'],
+                    'recent_comments': recent_comments_data,
                     'user': {
-                        'id': obj.user.id,
-                        'username': obj.user.username,
-                        'full_name': obj.user.full_name,
-                        'profile_picture_url': obj.user.profile_picture_url,
-                        'initials': obj.user.initials,
+                        'id': item['user_id'],
+                        'username': item['username'],
+                        'full_name': item['fullname'],
+                        'profile_picture_url': item['profile_picture_url'],
+                        'initials': item['user_initials'],
                     }
                 })
             elif item['type'] == 'omzo':
                 item_data.update({
-                    'id': obj.id,
-                    'caption': obj.caption,
-                    'video_url': obj.video_file.url if obj.video_file else None,
+                    'id': item['id'],
+                    'caption': item['caption'],
+                    'video_url': item['video_url'],
+                    'like_count': item['like_count'],
+                    'comment_count': item['comment_count'],
+                    'is_liked': item['is_liked'],
+                    'is_disliked': item['is_disliked'],
+                    'is_saved': item['is_saved'],
+                    'time_ago': item['time_ago'],
                     'user': {
-                        'username': obj.user.username,
-                        'full_name': obj.user.full_name,
-                        'profile_picture_url': obj.user.profile_picture_url,
+                        'id': item['user_id'],
+                        'username': item['username'],
+                        'full_name': item['fullname'],
+                        'profile_picture_url': item['profile_picture_url'],
+                        'initials': item['user_initials'],
                     }
-                })
-            elif item['type'] == 'person':
-                item_data.update({
-                    'username': obj.username,
-                    'full_name': obj.full_name,
-                    'profile_picture': obj.profile_picture.url if obj.profile_picture else None,
-                })
-            elif item['type'] == 'group':
-                item_data.update({
-                    'id': obj.id,
-                    'name': obj.name,
                 })
 
             data.append(item_data)

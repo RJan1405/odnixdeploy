@@ -133,7 +133,7 @@
 
     @media (max-width: 480px) {
         .od-profile-container {
-            padding-top: 60px !important;
+            padding-top: 0 !important;
         }
 
         .od-profile-header {
@@ -224,28 +224,28 @@
 
         /* Mobile Profile - Smaller screens */
         .od-mobile-header {
-            padding: 12px;
+            padding: 12px 16px;
             gap: 20px;
         }
 
         .od-m-avatar-container {
-            width: 72px;
-            height: 72px;
+            width: 77px;
+            height: 77px;
         }
 
         .od-m-stat-number {
-            font-size: 16px;
+            font-size: 17px;
         }
 
         .od-m-stat-label {
-            font-size: 11px;
+            font-size: 12px;
         }
 
         .od-mobile-bio,
         .od-mobile-buttons,
         .od-m-followed-by {
-            padding-left: 12px;
-            padding-right: 12px;
+            padding-left: 16px;
+            padding-right: 16px;
         }
 
         .od-m-fullname,
@@ -254,18 +254,33 @@
         }
 
         .od-m-btn {
-            height: 32px;
+            height: 30px;
             font-size: 13px;
         }
 
         .od-m-btn-icon {
-            width: 32px;
-            height: 32px;
+            width: 30px;
+            height: 30px;
         }
 
-        .od-m-username-group {
-            font-size: 14px;
+        .od-m-topbar-username {
+            font-size: 20px;
         }
+    }
+
+    /* Comment avatar placeholder */
+    .od-detail-comment-avatar-placeholder {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: var(--odnix-gradient, linear-gradient(135deg, #667eea 0%, #764ba2 100%));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 12px;
+        font-weight: 600;
+        flex-shrink: 0;
     }
 
     /* Make bottom nav visible on mobile for profile page */
@@ -299,71 +314,74 @@
 
         /* ===== INSTAGRAM-STYLE MOBILE PROFILE ===== */
         
-        /* Mobile Top Bar - Minimal with just icons */
+        /* Hide the old top bar completely */
         .od-mobile-top-bar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 44px;
-            background: var(--od-bg);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 16px;
-            z-index: 100;
-            border-bottom: 0.5px solid var(--od-border);
-        }
-
-        .od-m-back-btn {
-            width: 32px;
-            height: 32px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: none;
-            border: none;
-            color: var(--od-text-primary);
-            cursor: pointer;
-            margin-left: -8px;
-        }
-
-        /* Hide username from top bar on mobile */
-        .od-m-username-group {
             display: none;
-        }
-
-        .od-m-notification-dot {
-            width: 8px;
-            height: 8px;
-            background: #ff3040;
-            border-radius: 50%;
-        }
-
-        .od-m-top-actions {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-
-        .od-m-top-actions i,
-        .od-m-top-actions svg {
-            width: 24px;
-            height: 24px;
-            cursor: pointer;
         }
 
         /* Mobile Profile Wrapper */
         .od-mobile-wrapper {
-            margin-top: 44px;
-            padding-bottom: 30px;
+            margin-top: 0;
+            padding-bottom: 80px;
+            background: var(--od-bg);
         }
 
-        /* Mobile Header Layout - Avatar + Stats Row */
+        /* Top bar with username and settings */
+        .od-m-topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 16px;
+            position: sticky;
+            top: 0;
+            background: var(--od-bg);
+            z-index: 100;
+        }
+
+        .od-m-topbar-username {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--od-text-primary);
+            letter-spacing: -0.5px;
+        }
+
+        .od-m-topbar-username i,
+        .od-m-topbar-username svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .od-m-topbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .od-m-topbar-btn {
+            background: none;
+            border: none;
+            color: var(--od-text-primary);
+            cursor: pointer;
+            padding: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .od-m-topbar-btn i,
+        .od-m-topbar-btn svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        /* Mobile Header Layout - Clean Instagram Style */
         .od-mobile-header {
             display: flex;
             align-items: center;
-            padding: 16px;
+            padding: 8px 16px 12px;
             gap: 28px;
         }
 
@@ -381,7 +399,7 @@
         }
 
         .od-m-avatar-container.has-story {
-            background: var(--brand-gradient);
+            background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
         }
 
         .od-m-avatar {
@@ -392,15 +410,11 @@
             object-fit: cover;
         }
 
-        .od-note-bubble {
-            display: none;
-        }
-
         .od-plus-badge {
             position: absolute;
-            bottom: 0;
-            right: 0;
-            background: var(--od-accent);
+            bottom: 2px;
+            right: 2px;
+            background: #0095f6;
             color: white;
             border-radius: 50%;
             width: 22px;
@@ -409,34 +423,31 @@
             align-items: center;
             justify-content: center;
             border: 2px solid var(--od-bg);
+            font-size: 16px;
+            font-weight: 300;
         }
 
         .od-plus-badge i,
         .od-plus-badge svg {
             width: 12px;
             height: 12px;
+            stroke-width: 2.5;
         }
 
-        /* Stats Section - Instagram Style */
+        /* Stats Section - Inline with avatar */
         .od-mobile-stats {
             flex: 1;
             display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .od-m-username-above-stats {
-            display: flex;
+            justify-content: space-around;
             align-items: center;
-            font-weight: 600;
-            font-size: 18px;
-            color: var(--od-text-primary);
         }
 
+        /* Stats Row - Instagram style */
         .od-m-stats-row {
             display: flex;
             align-items: center;
             justify-content: space-around;
+            flex: 1;
         }
 
         .od-m-stat-item {
@@ -444,6 +455,7 @@
             flex-direction: column;
             align-items: center;
             cursor: pointer;
+            padding: 0 8px;
         }
 
         .od-m-stat-number {
@@ -457,41 +469,20 @@
             font-size: 13px;
             color: var(--od-text-primary);
             font-weight: 400;
+            margin-top: 2px;
         }
 
-        /* Username Row with Options */
-        .od-m-username-row {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 0 16px 4px;
-        }
-
-        .od-m-username-text {
-            font-weight: 400;
-            font-size: 14px;
-            color: var(--od-text-primary);
-        }
-
-        .od-m-options-btn {
-            background: none;
-            border: none;
-            color: var(--od-text-primary);
-            cursor: pointer;
-            padding: 4px;
-        }
-
-        /* Bio Section - Instagram Style */
+        /* Bio Section */
         .od-mobile-bio {
-            padding: 0 16px 12px;
+            padding: 4px 16px 12px;
             color: var(--od-text-primary);
         }
 
         .od-m-fullname {
-            font-weight: 500;
+            font-weight: 600;
             font-size: 14px;
             margin-bottom: 2px;
-            color: var(--od-text-secondary);
+            color: var(--od-text-primary);
         }
 
         .od-m-bio-text {
@@ -499,16 +490,15 @@
             line-height: 1.4;
             white-space: pre-wrap;
             color: var(--od-text-primary);
-            margin-top: 8px;
         }
 
         .od-m-link {
             display: inline-flex;
             align-items: center;
             gap: 4px;
-            color: var(--od-accent);
+            color: #00376b;
             text-decoration: none;
-            font-weight: 500;
+            font-weight: 600;
             font-size: 14px;
             margin-top: 4px;
         }
@@ -524,7 +514,7 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            padding: 8px 16px 16px;
+            padding: 4px 16px 12px;
         }
 
         .od-m-followed-avatars {
@@ -533,12 +523,12 @@
         }
 
         .od-m-followed-avatar {
-            width: 28px;
-            height: 28px;
-            border-radius: 22%;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
             border: 2px solid var(--od-bg);
             object-fit: cover;
-            margin-left: -8px;
+            margin-left: -6px;
         }
 
         .od-m-followed-avatar:first-child {
@@ -560,15 +550,15 @@
         .od-mobile-buttons {
             display: flex;
             gap: 8px;
-            padding: 0 16px 16px;
+            padding: 8px 16px 12px;
         }
 
         .od-m-btn {
             flex: 1;
-            height: 34px;
+            height: 32px;
             background: var(--od-surface);
             border-radius: 8px;
-            border: 1px solid var(--od-border);
+            border: none;
             font-weight: 600;
             font-size: 14px;
             color: var(--od-text-primary);
@@ -577,22 +567,26 @@
             align-items: center;
             justify-content: center;
             gap: 4px;
-            transition: opacity 0.2s;
+            transition: all 0.15s ease;
         }
 
         .od-m-btn:active {
-            opacity: 0.7;
+            transform: scale(0.96);
+            opacity: 0.9;
         }
 
         .od-m-btn.primary {
-            background: var(--od-accent);
+            background: #0095f6;
             color: white;
             border: none;
         }
 
+        .od-m-btn.primary:hover {
+            background: #1877f2;
+        }
+
         .od-m-btn.following {
             background: var(--od-surface);
-            border: 1px solid var(--od-border);
         }
 
         .od-m-btn.following i,
@@ -602,17 +596,21 @@
         }
 
         .od-m-btn-icon {
-            width: 34px;
-            height: 34px;
+            width: 32px;
+            height: 32px;
             background: var(--od-surface);
             border-radius: 8px;
-            border: 1px solid var(--od-border);
+            border: none;
             display: flex;
             align-items: center;
             justify-content: center;
             color: var(--od-text-primary);
             cursor: pointer;
             flex-shrink: 0;
+        }
+
+        .od-m-btn-icon:active {
+            transform: scale(0.96);
         }
 
         .od-m-btn-icon i,
@@ -1287,11 +1285,15 @@
     .od-story-viewer {
         position: fixed;
         inset: 0;
-        background: rgba(0, 0, 0, 0.95);
-        z-index: 10000;
+        background: #000;
         display: none;
         align-items: center;
         justify-content: center;
+        z-index: 10000;
+    }
+
+    .od-story-viewer.show {
+        display: flex;
     }
 
     /* Hide bottom navbar when story viewer is open */
@@ -1303,117 +1305,257 @@
         overflow: hidden;
     }
 
-    .od-story-viewer.show {
-        display: flex;
-    }
-
-    .od-story-container {
+    .od-story-viewer-container {
         position: relative;
-        max-width: 420px;
         width: 100%;
+        max-width: 420px;
         height: 90vh;
         max-height: 750px;
-        background: var(--od-surface);
+        background: #000;
         border-radius: 16px;
         overflow: hidden;
     }
 
-    .od-story-header {
+    .od-story-progress {
         position: absolute;
         top: 0;
         left: 0;
         right: 0;
-        padding: 16px;
-        background: linear-gradient(to bottom, rgba(0, 0, 0, 0.6), transparent);
-        z-index: 10;
-    }
-
-    .od-story-progress {
         display: flex;
         gap: 4px;
-        margin-bottom: 12px;
+        padding: 8px 12px;
+        z-index: 20;
+        background: linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, transparent 100%);
+        padding-bottom: 20px;
     }
 
     .od-story-progress-bar {
         flex: 1;
         height: 2px;
-        background: rgba(255, 255, 255, 0.3);
-        border-radius: 1px;
+        background: rgba(255, 255, 255, 0.35);
+        border-radius: 2px;
         overflow: hidden;
     }
 
     .od-story-progress-fill {
         height: 100%;
-        background: white;
         width: 0;
-        transition: width 0.1s linear;
+        background: white;
+        border-radius: 2px;
+        will-change: width;
+    }
+
+    .od-story-header {
+        position: absolute;
+        top: 24px;
+        left: 0;
+        right: 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 12px;
+        z-index: 20;
     }
 
     .od-story-user {
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 12px;
     }
 
-    .od-story-avatar {
-        width: 32px;
-        height: 32px;
+    .od-story-user-avatar {
+        width: 36px;
+        height: 36px;
         border-radius: 22%;
         object-fit: cover;
-        border: 2px solid white;
+        border: 2px solid var(--od-bg);
     }
 
-    .od-story-username {
+    .od-story-user-name {
         color: white;
         font-weight: 600;
         font-size: 14px;
     }
 
-    .od-story-time {
+    .od-story-user-time {
         color: rgba(255, 255, 255, 0.7);
         font-size: 12px;
-        margin-left: 8px;
     }
 
-    .od-story-close {
-        position: absolute;
-        top: 16px;
-        right: 16px;
+    .od-story-actions-top {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .od-story-action-top {
         background: none;
         border: none;
         cursor: pointer;
         padding: 8px;
-        z-index: 11;
-    }
-
-    .od-story-close svg {
-        width: 24px;
-        height: 24px;
         color: white;
-    }
-
-    .od-story-content {
-        position: absolute;
-        inset: 0;
         display: flex;
         align-items: center;
         justify-content: center;
     }
 
-    .od-story-content img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
+    .od-story-action-top i {
+        width: 24px;
+        height: 24px;
     }
 
+    .od-story-nav {
+        position: absolute;
+        top: 80px;
+        bottom: 80px;
+        width: 30%;
+        cursor: pointer;
+        z-index: 15;
+    }
+
+    .od-story-nav.prev {
+        left: 0;
+    }
+
+    .od-story-nav.next {
+        right: 0;
+    }
+
+    .od-story-content {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        z-index: 1;
+        /* Prevent context menu and selection on mobile */
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        user-select: none;
+        touch-action: manipulation;
+    }
+
+    .od-story-content img,
+    .od-story-content video {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+        pointer-events: none;
+        -webkit-user-drag: none;
+        user-drag: none;
+    }
+
+    /* Pause indicator */
+    .od-story-pause-indicator {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(0, 0, 0, 0.6);
+        border-radius: 50%;
+        width: 60px;
+        height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.2s ease;
+        pointer-events: none;
+        z-index: 50;
+    }
+
+    .od-story-pause-indicator.show {
+        opacity: 1;
+    }
+
+    .od-story-pause-indicator svg {
+        width: 24px;
+        height: 24px;
+        color: white;
+    }
+
+    .od-story-footer {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: 20px 12px 16px;
+        background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 60%, transparent 100%);
+        z-index: 20;
+    }
+
+    .od-story-reply {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 24px;
+        padding: 8px 16px;
+    }
+
+    .od-story-reply-input {
+        flex: 1;
+        background: none;
+        border: none;
+        outline: none;
+        color: white;
+        font-size: 14px;
+        min-width: 0;
+    }
+
+    .od-story-reply-input::placeholder {
+        color: rgba(255, 255, 255, 0.6);
+    }
+
+    .od-story-reply-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .od-story-reply-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 6px;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: transform 0.2s;
+    }
+
+    .od-story-reply-btn:hover {
+        transform: scale(1.1);
+    }
+
+    .od-story-reply-btn i {
+        width: 22px;
+        height: 22px;
+    }
+
+    .od-story-reply-btn.liked i {
+        fill: #ed4956;
+        color: #ed4956;
+    }
+
+    /* Story Text Content */
     .od-story-text-content {
         width: 100%;
         height: 100%;
         display: flex;
         align-items: center;
         justify-content: center;
-        padding: 60px 30px;
         text-align: center;
+        font-size: 24px;
+        font-weight: 500;
+        padding: 60px 24px;
+        word-wrap: break-word;
     }
 
     .od-story-text-content p {
@@ -1423,66 +1565,39 @@
         text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
     }
 
-    .od-story-nav {
-        position: absolute;
-        top: 50%;
-        transform: translateY(-50%);
-        background: rgba(255, 255, 255, 0.2);
-        border: none;
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        backdrop-filter: blur(10px);
-        transition: all 0.2s;
-        z-index: 10;
-    }
+    /* Responsive Story Viewer */
+    @media (max-width: 480px) {
+        .od-story-viewer {
+            padding: 0;
+            background: #000;
+        }
 
-    .od-story-nav:hover {
-        background: rgba(255, 255, 255, 0.3);
-    }
+        .od-story-viewer-container {
+            width: 100%;
+            max-width: 100%;
+            height: 100vh;
+            height: 100dvh;
+            max-height: none;
+            border-radius: 0;
+        }
 
-    .od-story-nav svg {
-        width: 20px;
-        height: 20px;
-        color: white;
-    }
+        .od-story-progress {
+            padding-top: max(8px, env(safe-area-inset-top, 8px));
+        }
 
-    .od-story-prev {
-        left: 16px;
-    }
+        .od-story-header {
+            top: max(28px, calc(env(safe-area-inset-top, 8px) + 20px));
+        }
 
-    .od-story-next {
-        right: 16px;
-    }
+        .od-story-footer {
+            padding-bottom: max(16px, calc(env(safe-area-inset-bottom, 8px) + 8px));
+        }
 
-    .od-story-actions {
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        padding: 16px;
-        background: linear-gradient(to top, rgba(0, 0, 0, 0.6), transparent);
-        display: flex;
-        align-items: center;
-        gap: 12px;
+        .od-story-nav {
+            width: 35%;
+            top: 100px;
+        }
     }
-
-    .od-story-input {
-        flex: 1;
-        background: rgba(255, 255, 255, 0.1);
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        border-radius: 24px;
-        padding: 12px 16px;
-        color: white;
-        font-size: 14px;
-    }
-
-    .od-story-input::placeholder {
-        color: rgba(255, 255, 255, 0.6);
     }
 
     .od-story-action-btn {
@@ -1504,11 +1619,8 @@
             max-width: 100%;
             height: 100vh;
             height: 100dvh;
-            /* Dynamic viewport height for mobile browsers */
-            max-height: 100%;
+            max-height: none;
             border-radius: 0;
-            position: fixed;
-            inset: 0;
         }
 
         .od-story-viewer {
@@ -1516,7 +1628,15 @@
         }
 
         .od-story-header {
-            padding-top: env(safe-area-inset-top, 16px);
+            padding-top: max(20px, calc(env(safe-area-inset-top, 12px) + 12px));
+        }
+
+        .od-story-progress {
+            margin-bottom: 24px;
+        }
+
+        .od-story-close {
+            top: max(20px, calc(env(safe-area-inset-top, 12px) + 12px));
         }
 
         .od-story-actions {
@@ -1843,50 +1963,55 @@
         <!-- Profile Header -->
         <!-- MOBILE VIEW - Instagram Style -->
         <div class="od-mobile-wrapper mobile-only-block">
-            <!-- Sticky Top Bar - Instagram Style -->
-            <div class="od-mobile-top-bar">
-                <button class="od-m-back-btn" onclick="history.back()">
-                    <i data-lucide="arrow-left" style="width: 24px; height: 24px;"></i>
-                </button>
-                <div class="od-m-username-group">
-                    <span>{{ profile_user.username }}</span>
+            <!-- Top Bar with Username -->
+            <div class="od-m-topbar">
+                <div class="od-m-topbar-username">
+                    {{ profile_user.username }}
+                    {% if profile_user.is_verified %}
+                    <i data-lucide="badge-check" style="color: #0095f6;"></i>
+                    {% endif %}
                     {% if profile_user.is_private %}
-                    <i data-lucide="lock" style="width: 12px; height: 12px;"></i>
+                    <i data-lucide="lock"></i>
                     {% endif %}
                 </div>
-                <div class="od-m-top-actions">
+                <div class="od-m-topbar-actions">
                     {% if is_own_profile %}
-                    {% comment %} <i data-lucide="plus-square" onclick="openCreateModal()" style="width: 24px; height: 24px; cursor: pointer;"></i> {% endcomment %}
+                    <button class="od-m-topbar-btn" onclick="openActivityPanel()" title="Activity">
+                        <i data-lucide="heart"></i>
+                    </button>
                     {% endif %}
-                    <i data-lucide="more-horizontal" onclick="openSettingsModal()" style="width: 24px; height: 24px; cursor: pointer;"></i>
+                    <button class="od-m-topbar-btn" onclick="openSettingsModal()">
+                        <i data-lucide="menu"></i>
+                    </button>
                 </div>
             </div>
 
-            <!-- Mobile Header - Avatar + Stats Row (Instagram Style) -->
+            <!-- Mobile Header - Avatar + Stats -->
             <div class="od-mobile-header">
                 <!-- Avatar Section -->
                 <div class="od-mobile-avatar-group">
-                    <div class="od-m-avatar-container {% if profile_user.has_active_story %}has-story{% endif %}"
+                    {% if profile_user.has_active_story %}
+                    <div class="od-m-avatar-container has-story"
                         onclick="viewUserStories('{{ profile_user.username }}')">
+                    {% elif is_own_profile %}
+                    <div class="od-m-avatar-container"
+                        onclick="openStoryModal()">
+                    {% else %}
+                    <div class="od-m-avatar-container">
+                    {% endif %}
                         <img src="{{ profile_user.profile_picture_url }}" alt="{{ profile_user.username }}"
                             class="od-m-avatar"
-                            onerror="this.outerHTML='<div class=\'od-profile-avatar-placeholder\' style=\'width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:var(--od-surface);border-radius:22%;font-size:28px;font-weight:600;\'>{{ profile_user.initials }}</div>'">
+                            onerror="this.outerHTML='<div class=\\'od-profile-avatar-placeholder\\' style=\\'width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:var(--odnix-gradient);border-radius:22%;font-size:28px;font-weight:600;color:white;\\'>{{ profile_user.initials }}</div>'">
                     </div>
                     {% if is_own_profile %}
-                    <div class="od-plus-badge">
+                    <div class="od-plus-badge" onclick="openStoryModal()">
                         <i data-lucide="plus" style="width: 12px; height: 12px;"></i>
                     </div>
                     {% endif %}
                 </div>
 
-                <!-- Stats Section - Instagram Style -->
+                <!-- Stats Section -->
                 <div class="od-mobile-stats">
-                    <div class="od-m-username-above-stats">
-                        {{ profile_user.username }}
-                        {% if profile_user.is_private %}
-                        <i data-lucide="lock" style="width: 14px; height: 14px; margin-left: 4px;"></i>
-                        {% endif %}
-                    </div>
                     <div class="od-m-stats-row">
                         <div class="od-m-stat-item">
                             <span class="od-m-stat-number">{{ scribes|length }}</span>
@@ -1983,21 +2108,21 @@
                     </button>
                     {% endif %}
 
-                    <!-- User's Active Stories -->
-                    {% for story in user_stories %}
-                    <button class="od-highlight-item od-highlight-story" onclick="viewStoryFromProfile({{ story.id }})">
+                    <!-- User's Active Stories - Consolidated View -->
+                    {% if user_stories %}
+                    <button class="od-highlight-item od-highlight-story" onclick="viewUserStories('{{ profile_user.username }}')">
                         <div class="od-highlight-preview">
-                            <div class="od-highlight-preview-inner" {% if story.media_url %}
-                                style="background-image: url('{{ story.media_url }}');"
-                                {% else %} style="background: {{ story.background_color }};" {% endif %}>
-                                {% if not story.media_url %}
-                                <span class="od-highlight-text-preview">{{ story.content|truncatechars:8 }}</span>
+                            <div class="od-highlight-preview-inner" {% if user_stories.0.media_url %}
+                                style="background-image: url('{{ user_stories.0.media_url }}');"
+                                {% else %} style="background: {{ user_stories.0.background_color|default:'#6366f1' }};" {% endif %}>
+                                {% if not user_stories.0.media_url %}
+                                <span class="od-highlight-text-preview">{{ user_stories.0.content|truncatechars:8 }}</span>
                                 {% endif %}
                             </div>
                         </div>
-                        <span class="od-highlight-label">{{ story.created_at|timesince|truncatewords:1 }}</span>
+                        <span class="od-highlight-label">{% if user_stories|length > 1 %}{{ user_stories|length }} Stories{% else %}Story{% endif %}</span>
                     </button>
-                    {% endfor %}
+                    {% endif %}
                 </div>
             </div>
             {% endif %}
@@ -2010,9 +2135,11 @@
                 <button class="od-m-tab" data-tab="reels">
                     <i data-lucide="film" style="width: 24px; height: 24px;"></i>
                 </button>
+                {% if is_own_profile %}
                 <button class="od-m-tab" data-tab="tagged">
-                    <i data-lucide="user-square" style="width: 24px; height: 24px;"></i>
+                    <i data-lucide="bookmark" style="width: 24px; height: 24px;"></i>
                 </button>
+                {% endif %}
             </div>
         </div>
 
@@ -2023,13 +2150,15 @@
                 <div class="od-profile-avatar-section">
                     <div class="od-profile-avatar-container">
                         {% if profile_user.has_active_story %}
-                        <div class="od-profile-avatar-ring" onclick="viewUserStories('{{ profile_user.username }}')">
-                            {% else %}
-                            <div class="od-profile-avatar-ring no-story">
-                                {% endif %}
+                        <div class="od-profile-avatar-ring" onclick="viewUserStories('{{ profile_user.username }}')" style="cursor: pointer;">
+                        {% elif is_own_profile %}
+                        <div class="od-profile-avatar-ring no-story" onclick="openStoryModal()" style="cursor: pointer;" title="Add to your story">
+                        {% else %}
+                        <div class="od-profile-avatar-ring no-story">
+                        {% endif %}
                                 <img src="{{ profile_user.profile_picture_url }}" alt="{{ profile_user.full_name }}"
                                     class="od-profile-avatar"
-                                    onerror="this.outerHTML='<div class=\'od-profile-avatar-placeholder\'>{{ profile_user.initials }}</div>'">
+                                    onerror="this.outerHTML='<div class=\\'od-profile-avatar-placeholder\\'>{{ profile_user.initials }}</div>'">
                             </div>
                         </div>
                     </div>
@@ -2124,25 +2253,21 @@
             </button>
             {% endif %}
 
-            <!-- User's Active Stories -->
-            {% for story in user_stories %}
-            <button class="od-highlight-item od-highlight-story" onclick="viewStoryFromProfile({{ story.id }})">
+            <!-- User's Active Stories - Consolidated View -->
+            {% if user_stories %}
+            <button class="od-highlight-item od-highlight-story" onclick="viewUserStories('{{ profile_user.username }}')">
                 <div class="od-highlight-preview">
-                    <div class="od-highlight-preview-inner" {% if story.media_url %}
-                        style="background-image: url('{{ story.media_url }}');"
-                        {% else %} style="background: {{ story.background_color }};" {% endif %}>
-                        {% if not story.media_url %}
-                        <span class="od-highlight-text-preview">{{ story.content|truncatechars:8 }}</span>
+                    <div class="od-highlight-preview-inner" {% if user_stories.0.media_url %}
+                        style="background-image: url('{{ user_stories.0.media_url }}');"
+                        {% else %} style="background: {{ user_stories.0.background_color|default:'#6366f1' }};" {% endif %}>
+                        {% if not user_stories.0.media_url %}
+                        <span class="od-highlight-text-preview">{{ user_stories.0.content|truncatechars:8 }}</span>
                         {% endif %}
                     </div>
                 </div>
-                <span class="od-highlight-label">{{ story.created_at|timesince|truncatewords:1 }}</span>
+                <span class="od-highlight-label">{% if user_stories|length > 1 %}{{ user_stories|length }} Stories{% else %}Story{% endif %}</span>
             </button>
-            {% empty %}
-            {% if not is_own_profile %}
-            <!-- No stories message for other users -->
             {% endif %}
-            {% endfor %}
         </div>
         {% endif %}
 
@@ -2153,7 +2278,7 @@
                 <span class="tab-text">Scribe</span>
             </button>
             <button class="od-profile-tab" data-tab="omzo">
-                <i data-lucide="play-square"></i>
+                <i data-lucide="film"></i>
                 <span class="tab-text">Omzo</span>
             </button>
             {% if is_own_profile %}
@@ -3218,19 +3343,40 @@
     }
 
     @media (max-width: 768px) {
+        #storyModal.od-modal-overlay {
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            align-items: flex-start;
+            padding: 0;
+            padding-top: env(safe-area-inset-top, 0);
+        }
+
         .od-story-create-wrapper {
             max-width: 100%;
-            max-height: 100vh;
+            max-height: none;
             border-radius: 0;
-            height: 100vh;
+            height: auto;
+            min-height: 100vh;
+            min-height: 100dvh;
+            padding-top: 0;
+        }
+
+        .od-story-create-header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: var(--od-surface);
+            padding: 16px;
+            padding-top: max(16px, env(safe-area-inset-top, 16px));
+            border-bottom: 1px solid var(--od-border);
         }
 
         .od-story-create-body {
             flex-direction: column;
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
+            overflow: visible;
             flex: 1;
-            padding-bottom: 100px;
+            padding: 16px;
+            padding-bottom: max(40px, calc(env(safe-area-inset-bottom, 20px) + 20px));
         }
 
         .od-story-canvas-wrapper {
@@ -3239,16 +3385,16 @@
         }
 
         .od-story-canvas {
-            width: 200px;
+            width: 160px;
             border-radius: 12px;
         }
 
         .od-story-canvas-text {
-            font-size: 14px;
+            font-size: 12px;
         }
 
         .od-story-controls-panel {
-            padding: 0 16px 20px;
+            padding: 0;
             flex-shrink: 0;
             overflow: visible;
         }
@@ -3477,47 +3623,60 @@
 
 <!-- Story Viewer Modal -->
 <div id="storyViewerModal" class="od-story-viewer" onclick="closeStoryViewer(event)">
-    <div class="od-story-container" onclick="event.stopPropagation()">
-        <div class="od-story-header">
-            <div class="od-story-progress" id="storyProgressBars"></div>
+    <div class="od-story-viewer-container" onclick="event.stopPropagation()">
+        <!-- Progress Bars -->
+        <div class="od-story-progress" id="storyProgressBars"></div>
+
+        <!-- Header -->
+        <header class="od-story-header">
             <div class="od-story-user">
-                <img src="" alt="" class="od-story-avatar" id="storyViewerAvatar">
-                <span class="od-story-username" id="storyViewerUsername"></span>
-                <span class="od-story-time" id="storyViewerTime"></span>
+                <img id="storyViewerAvatar" src="" alt="" class="od-story-user-avatar">
+                <span id="storyViewerUsername" class="od-story-user-name"></span>
+                <span id="storyViewerTime" class="od-story-user-time"></span>
+            </div>
+            <div class="od-story-actions-top">
+                <button class="od-story-action-top" onclick="event.stopPropagation(); closeStoryViewer()">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Navigation Areas -->
+        <div class="od-story-nav prev" onclick="event.stopPropagation(); navigateStory(-1)"
+            onmousedown="pauseStory(event)" onmouseup="resumeStory(event)"
+            ontouchstart="pauseStory(event)" ontouchend="resumeStory(event)"></div>
+        <div class="od-story-nav next" onclick="event.stopPropagation(); navigateStory(1)"
+            onmousedown="pauseStory(event)" onmouseup="resumeStory(event)"
+            ontouchstart="pauseStory(event)" ontouchend="resumeStory(event)"></div>
+
+        <!-- Story Content -->
+        <div class="od-story-content" id="storyViewerContent"
+            onmousedown="pauseStory(event)" onmouseup="resumeStory(event)" onmouseleave="resumeStory(event)"
+            ontouchstart="pauseStory(event)" ontouchend="resumeStory(event)" oncontextmenu="return false;">
+            <!-- Pause indicator -->
+            <div class="od-story-pause-indicator" id="storyPauseIndicator">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <rect x="6" y="4" width="4" height="16" rx="1"/>
+                    <rect x="14" y="4" width="4" height="16" rx="1"/>
+                </svg>
             </div>
         </div>
-        <button class="od-story-close" onclick="closeStoryViewer()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M18 6L6 18M6 6l12 12" />
-            </svg>
-        </button>
-        <div class="od-story-content" id="storyViewerContent"></div>
-        <button class="od-story-nav od-story-prev" onclick="navigateStory(-1)">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M15 18l-6-6 6-6" />
-            </svg>
-        </button>
-        <button class="od-story-nav od-story-next" onclick="navigateStory(1)">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M9 18l6-6-6-6" />
-            </svg>
-        </button>
-        <div class="od-story-actions">
-            <input type="text" class="od-story-input" id="storyReplyInput" placeholder="Send message...">
-            <button class="od-story-action-btn" onclick="toggleStoryLike()">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" id="storyLikeIcon">
-                    <path
-                        d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z">
-                    </path>
-                </svg>
-            </button>
-            <button class="od-story-action-btn" onclick="sendStoryReply()">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="22" y1="2" x2="11" y2="13"></line>
-                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-                </svg>
-            </button>
-        </div>
+
+        <!-- Footer -->
+        <footer class="od-story-footer">
+            <div class="od-story-reply">
+                <input type="text" class="od-story-reply-input" id="storyReplyInput" placeholder="Send message..."
+                    maxlength="500" onclick="event.stopPropagation()">
+                <div class="od-story-reply-actions">
+                    <button class="od-story-reply-btn" onclick="event.stopPropagation(); toggleStoryLike()" id="storyLikeBtn">
+                        <i data-lucide="heart" id="storyLikeIcon"></i>
+                    </button>
+                    <button class="od-story-reply-btn" onclick="event.stopPropagation(); sendStoryReply()">
+                        <i data-lucide="send"></i>
+                    </button>
+                </div>
+            </div>
+        </footer>
     </div>
 </div>
 {% endblock %}
@@ -4500,12 +4659,12 @@
                 if (data.success && data.comments && data.comments.length > 0) {
                     const commentsHtml = data.comments.map(comment => `
                 <div class="od-detail-comment">
-                    <img src="${comment.avatar}" alt="" class="od-detail-comment-avatar">
+                    <img src="${comment.user_profile_picture || ''}" alt="" class="od-detail-comment-avatar" onerror="this.outerHTML='<div class=\\'od-detail-comment-avatar-placeholder\\'>${comment.user_initials || 'U'}</div>'">
                     <div class="od-detail-comment-content">
-                        <span class="od-detail-comment-username">${comment.username}</span>
+                        <span class="od-detail-comment-username">${comment.user_username || 'User'}</span>
                         <span class="od-detail-comment-text">${comment.content}</span>
                         <div class="od-detail-comment-meta">
-                            <span class="od-detail-comment-time">${comment.time_ago}</span>
+                            <span class="od-detail-comment-time">${comment.timestamp || ''}</span>
                             <button class="od-detail-comment-reply">Reply</button>
                         </div>
                     </div>
@@ -4709,13 +4868,29 @@
     }
 
     // Create Story
+    let isCreatingStory = false;
     function createStory() {
+        // Prevent double submission
+        if (isCreatingStory) return;
+        isCreatingStory = true;
+
+        const shareBtn = document.querySelector('.od-story-share-btn');
+        if (shareBtn) {
+            shareBtn.disabled = true;
+            shareBtn.textContent = 'Sharing...';
+        }
+
         const textContent = document.getElementById('storyPreviewText').innerText.trim();
         const imageInput = document.getElementById('storyImageInput');
         const textColor = document.getElementById('storyTextColor')?.value || '#ffffff';
 
         if (!textContent && (!imageInput || !imageInput.files[0])) {
             showIGToast('Please add text or an image', 'error');
+            isCreatingStory = false;
+            if (shareBtn) {
+                shareBtn.disabled = false;
+                shareBtn.textContent = 'Share';
+            }
             return;
         }
 
@@ -4755,6 +4930,21 @@
                     location.reload();
                 } else {
                     showIGToast(data.error || 'Failed to create story', 'error');
+                    isCreatingStory = false;
+                    const shareBtn = document.querySelector('.od-story-share-btn');
+                    if (shareBtn) {
+                        shareBtn.disabled = false;
+                        shareBtn.textContent = 'Share';
+                    }
+                }
+            })
+            .catch(err => {
+                showIGToast('Failed to create story', 'error');
+                isCreatingStory = false;
+                const shareBtn = document.querySelector('.od-story-share-btn');
+                if (shareBtn) {
+                    shareBtn.disabled = false;
+                    shareBtn.textContent = 'Share';
                 }
             });
     }
@@ -4764,7 +4954,70 @@
     let currentStoryIndex = 0;
     let storyTimer = null;
     let storyProgressInterval = null;
+    let isStoryPaused = false;
+    let pausedProgress = 0;
     const STORY_DURATION = 5000; // 5 seconds per story
+
+    function pauseStory(event) {
+        // Prevent default to stop context menu on mobile
+        event.preventDefault();
+        
+        // Don't pause if clicking on navigation areas or buttons
+        if (event.target.closest('.od-story-nav') || event.target.closest('button') || event.target.closest('a')) {
+            return;
+        }
+        
+        isStoryPaused = true;
+        
+        // Clear the progress interval
+        if (storyProgressInterval) {
+            clearInterval(storyProgressInterval);
+            storyProgressInterval = null;
+        }
+        
+        // Store current progress
+        const progressBar = document.getElementById(`storyProgress${currentStoryIndex}`);
+        if (progressBar) {
+            pausedProgress = parseFloat(progressBar.style.width) || 0;
+        }
+        
+        // Show pause indicator
+        const indicator = document.getElementById('storyPauseIndicator');
+        if (indicator) {
+            indicator.classList.add('show');
+        }
+    }
+
+    function resumeStory(event) {
+        if (!isStoryPaused) return;
+        
+        isStoryPaused = false;
+        
+        // Hide pause indicator
+        const indicator = document.getElementById('storyPauseIndicator');
+        if (indicator) {
+            indicator.classList.remove('show');
+        }
+        
+        // Resume progress from where we left off
+        const progressBar = document.getElementById(`storyProgress${currentStoryIndex}`);
+        if (!progressBar) return;
+        
+        let progress = pausedProgress;
+        const increment = 100 / (STORY_DURATION / 100);
+        
+        storyProgressInterval = setInterval(() => {
+            if (isStoryPaused) return;
+            
+            progress += increment;
+            progressBar.style.width = `${Math.min(progress, 100)}%`;
+            
+            if (progress >= 100) {
+                clearInterval(storyProgressInterval);
+                navigateStory(1);
+            }
+        }, 100);
+    }
 
     function viewStoryFromProfile(storyId) {
         // Load user's stories and find the selected one
@@ -4788,6 +5041,33 @@
             });
     }
 
+    function viewUserStories(username) {
+        // Load all user's stories and start from the first one
+        fetch(`/api/user-stories/${username}/`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.stories && data.stories.length > 0) {
+                    currentStories = data.stories;
+                    currentStoryIndex = 0; // Start from first story
+
+                    showStoryViewer();
+                    displayCurrentStory();
+                } else {
+                    // No stories available - if own profile, prompt to create
+                    {% if is_own_profile %}
+                    showIGToast('No stories yet. Create one!', 'info');
+                    openStoryModal();
+                    {% else %}
+                    showIGToast('No stories available', 'info');
+                    {% endif %}
+                }
+            })
+            .catch(err => {
+                console.error('Error loading stories:', err);
+                showIGToast('Failed to load stories', 'error');
+            });
+    }
+
     function showStoryViewer() {
         const modal = document.getElementById('storyViewerModal');
         modal.classList.add('show');
@@ -4805,6 +5085,11 @@
             <div class="od-story-progress-fill" id="storyProgress${i}"></div>
         </div>
     `).join('');
+
+        // Reinitialize lucide icons
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
     }
 
     function displayCurrentStory() {
@@ -4822,14 +5107,23 @@
         document.getElementById('storyViewerUsername').textContent = username;
         document.getElementById('storyViewerTime').textContent = story.created_at || '';
 
-        // Update content
+        // Update content (preserve pause indicator)
         const contentDiv = document.getElementById('storyViewerContent');
+        const pauseIndicatorHTML = `
+            <div class="od-story-pause-indicator" id="storyPauseIndicator">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <rect x="6" y="4" width="4" height="16" rx="1"/>
+                    <rect x="14" y="4" width="4" height="16" rx="1"/>
+                </svg>
+            </div>
+        `;
+        
         if (story.media_url) {
-            contentDiv.innerHTML = `<img src="${story.media_url}" alt="Story">`;
+            contentDiv.innerHTML = pauseIndicatorHTML + `<img src="${story.media_url}" alt="Story">`;
             contentDiv.style.background = '';
         } else {
             contentDiv.style.background = story.background_color || '#6366f1';
-            contentDiv.innerHTML = `
+            contentDiv.innerHTML = pauseIndicatorHTML + `
             <div class="od-story-text-content">
                 <p style="color: ${story.text_color || '#ffffff'}">${story.content || ''}</p>
             </div>
@@ -4837,13 +5131,18 @@
         }
 
         // Update like icon
-        const likeIcon = document.getElementById('storyLikeIcon');
-        if (story.is_liked) {
-            likeIcon.setAttribute('fill', '#ff3b5c');
-            likeIcon.setAttribute('stroke', '#ff3b5c');
-        } else {
-            likeIcon.setAttribute('fill', 'none');
-            likeIcon.setAttribute('stroke', 'currentColor');
+        const likeBtn = document.getElementById('storyLikeBtn');
+        if (likeBtn) {
+            if (story.is_liked) {
+                likeBtn.classList.add('liked');
+            } else {
+                likeBtn.classList.remove('liked');
+            }
+        }
+
+        // Reinitialize lucide icons
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
         }
 
         // Mark story as viewed
@@ -4867,6 +5166,10 @@
         if (storyProgressInterval) clearInterval(storyProgressInterval);
         if (storyTimer) clearTimeout(storyTimer);
 
+        // Reset pause state
+        isStoryPaused = false;
+        pausedProgress = 0;
+
         const progressBar = document.getElementById(`storyProgress${currentStoryIndex}`);
         if (!progressBar) return;
 
@@ -4876,6 +5179,8 @@
         progressBar.style.width = '0%';
 
         storyProgressInterval = setInterval(() => {
+            if (isStoryPaused) return; // Skip if paused
+            
             progress += increment;
             progressBar.style.width = `${Math.min(progress, 100)}%`;
 
@@ -4954,13 +5259,11 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    const likeIcon = document.getElementById('storyLikeIcon');
+                    const likeBtn = document.getElementById('storyLikeBtn');
                     if (data.is_liked) {
-                        likeIcon.setAttribute('fill', '#ff3b5c');
-                        likeIcon.setAttribute('stroke', '#ff3b5c');
+                        likeBtn.classList.add('liked');
                     } else {
-                        likeIcon.setAttribute('fill', 'none');
-                        likeIcon.setAttribute('stroke', 'currentColor');
+                        likeBtn.classList.remove('liked');
                     }
                     story.is_liked = data.is_liked;
                 }

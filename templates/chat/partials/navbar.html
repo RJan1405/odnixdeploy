@@ -529,6 +529,15 @@
         flex: 1;
         overflow-y: auto;
         padding: 8px 0;
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* When dm-chat-list only has activity-empty, center it */
+    .dm-chat-list:has(.activity-empty),
+    .dm-chat-list:has(.activity-loading) {
+        justify-content: center;
+        align-items: center;
     }
 
     .dm-chat-list::-webkit-scrollbar {
@@ -948,17 +957,11 @@
     </a>
     <a href="{% url 'omzo' %}"
         class="od-bottom-nav-item {% if request.resolver_match.url_name == 'omzo' %}active{% endif %}" title="Omzo">
-        <i data-lucide="play-square"></i>
+        <i data-lucide="film"></i>
     </a>
     <button class="od-bottom-nav-item" onclick="navCreatePost()" title="Create">
         <i data-lucide="plus-square"></i>
     </button>
-    <a href="{% url 'messages' %}" class="od-bottom-nav-item dm-bottom-btn" title="Messages">
-        <i data-lucide="message-circle"></i>
-        {% if unread_message_count > 0 %}
-        <span class="dm-mobile-badge">{{ unread_message_count }}</span>
-        {% endif %}
-    </a>
     <a href="{% url 'profile' %}"
         class="od-bottom-nav-item {% if request.resolver_match.url_name == 'profile' or request.resolver_match.url_name == 'user_profile' %}active{% endif %}"
         title="Profile">
@@ -1146,9 +1149,13 @@
                 <i data-lucide="heart"></i>
                 Likes
             </button>
-            <button class="activity-tab" onclick="filterActivity('replies', this)">
+            <button class="activity-tab" onclick="filterActivity('comments', this)">
                 <i data-lucide="message-circle"></i>
-                Replies
+                Comments
+            </button>
+            <button class="activity-tab" onclick="filterActivity('follows', this)">
+                <i data-lucide="user-plus"></i>
+                Follows
             </button>
         </div>
 
@@ -1223,8 +1230,8 @@
     .activity-item {
         display: flex;
         align-items: flex-start;
-        gap: 12px;
-        padding: 16px;
+        gap: 14px;
+        padding: 16px 20px;
         border-bottom: 1px solid var(--od-border);
         transition: background 0.2s;
         cursor: pointer;
@@ -1235,7 +1242,8 @@
     }
 
     .activity-item.unread {
-        background: rgba(102, 126, 234, 0.05);
+        background: rgba(102, 126, 234, 0.08);
+        border-left: 3px solid var(--color-primary);
     }
 
     .activity-avatar {
@@ -1325,8 +1333,18 @@
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        padding: 60px 20px;
+        padding: 60px 24px;
         color: var(--od-text-secondary);
+        text-align: center;
+        width: 100%;
+        max-width: 320px;
+        margin: 0 auto;
+        box-sizing: border-box;
+    }
+
+    .activity-loading p {
+        font-size: 14px;
+        margin: 0;
     }
 
     .activity-spinner {
@@ -1336,7 +1354,7 @@
         border-top-color: var(--color-primary);
         border-radius: 50%;
         animation: spin 1s linear infinite;
-        margin-bottom: 12px;
+        margin-bottom: 16px;
     }
 
     @keyframes spin {
@@ -1350,38 +1368,73 @@
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        padding: 60px 20px;
+        padding: 60px 24px;
         text-align: center;
+        width: 100%;
+        max-width: 320px;
+        margin: 0 auto;
+        box-sizing: border-box;
     }
 
     .activity-empty-icon {
-        width: 72px;
-        height: 72px;
+        width: 80px;
+        height: 80px;
         border-radius: 50%;
-        background: var(--od-surface-hover);
+        background: linear-gradient(135deg, var(--od-surface-hover) 0%, var(--od-border) 100%);
         display: flex;
         align-items: center;
         justify-content: center;
-        margin-bottom: 16px;
+        margin: 0 auto 20px auto;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
     }
 
     .activity-empty-icon svg {
         width: 36px;
         height: 36px;
         color: var(--od-text-secondary);
+        opacity: 0.7;
     }
 
     .activity-empty h3 {
         font-size: 18px;
-        font-weight: 600;
+        font-weight: 700;
         color: var(--od-text-primary);
-        margin-bottom: 8px;
+        margin: 0 0 8px 0;
+        letter-spacing: -0.3px;
     }
 
     .activity-empty p {
         font-size: 14px;
         color: var(--od-text-secondary);
-        max-width: 250px;
+        max-width: 260px;
+        line-height: 1.5;
+        margin: 0 auto;
+    }
+
+    /* Mobile responsive for activity empty state */
+    @media (max-width: 480px) {
+        .activity-empty {
+            padding: 40px 20px;
+        }
+
+        .activity-empty-icon {
+            width: 72px;
+            height: 72px;
+        }
+
+        .activity-empty-icon svg {
+            width: 32px;
+            height: 32px;
+        }
+
+        .activity-empty h3 {
+            font-size: 16px;
+        }
+
+        .activity-empty p {
+            font-size: 13px;
+            max-width: 240px;
+        }
     }
 </style>
 
@@ -1526,7 +1579,7 @@
         });
     }
 
-    // Load activity into panel
+    // Load activity into panel - comprehensive activity from all sources
     function loadActivityPanel() {
         const container = document.getElementById('activityContent');
         container.innerHTML = `
@@ -1536,58 +1589,10 @@
         </div>
     `;
 
-        fetch('/api/story-inbox/')
+        fetch('/api/activity/')
             .then(r => r.json())
             .then(data => {
-                let html = '';
-
-                // Story replies
-                if (data.replies && data.replies.length > 0) {
-                    data.replies.forEach(r => {
-                        html += `
-                        <div class="activity-item ${r.is_read ? '' : 'unread'}" data-type="replies">
-                            <div style="position: relative;">
-                                <img src="${r.replier?.profile_picture_url || ''}" alt="" class="activity-avatar" onerror="this.outerHTML='<div class=\\'activity-avatar-placeholder\\'>${(r.replier?.username || 'U')[0].toUpperCase()}</div>'">
-                                <div class="activity-icon comment">
-                                    <i data-lucide="message-circle"></i>
-                                </div>
-                            </div>
-                            <div class="activity-content">
-                                <div class="activity-text">
-                                    <strong>${r.replier?.username || 'Someone'}</strong> replied to your story: "${r.content?.substring(0, 50) || ''}${r.content?.length > 50 ? '...' : ''}"
-                                </div>
-                                <div class="activity-time">${r.time_ago || 'Just now'}</div>
-                            </div>
-                        </div>
-                    `;
-                    });
-                }
-
-                // Story likes
-                if (data.likes && data.likes.length > 0) {
-                    data.likes.forEach(l => {
-                        html += `
-                        <div class="activity-item ${l.is_read ? '' : 'unread'}" data-type="likes">
-                            <div style="position: relative;">
-                                <img src="${l.liker?.profile_picture_url || ''}" alt="" class="activity-avatar" onerror="this.outerHTML='<div class=\\'activity-avatar-placeholder\\'>${(l.liker?.username || 'U')[0].toUpperCase()}</div>'">
-                                <div class="activity-icon like">
-                                    <i data-lucide="heart"></i>
-                                </div>
-                            </div>
-                            <div class="activity-content">
-                                <div class="activity-text">
-                                    <strong>${l.liker?.username || 'Someone'}</strong> liked your story
-                                </div>
-                                <div class="activity-time">${l.time_ago || 'Just now'}</div>
-                            </div>
-                        </div>
-                    `;
-                    });
-                }
-
-                if (html) {
-                    container.innerHTML = html;
-                } else {
+                if (!data.success || !data.activity || data.activity.length === 0) {
                     container.innerHTML = `
                     <div class="activity-empty">
                         <div class="activity-empty-icon">
@@ -1597,7 +1602,97 @@
                         <p>When someone interacts with your content, you'll see it here.</p>
                     </div>
                 `;
+                    if (typeof lucide !== 'undefined') lucide.createIcons();
+                    return;
                 }
+
+                let html = '';
+
+                data.activity.forEach(item => {
+                    const user = item.user || {};
+                    const username = user.username || 'Someone';
+                    const profilePic = user.profile_picture_url || '';
+                    const initial = username[0].toUpperCase();
+                    const timeAgo = item.time_ago || '';
+
+                    let iconClass = '';
+                    let iconName = '';
+                    let activityText = '';
+                    let dataType = '';
+
+                    switch (item.type) {
+                        case 'post_like':
+                            iconClass = 'like';
+                            iconName = 'heart';
+                            dataType = 'likes';
+                            activityText = `<strong>${username}</strong> liked your post`;
+                            break;
+                        case 'post_comment':
+                            iconClass = 'comment';
+                            iconName = 'message-circle';
+                            dataType = 'comments';
+                            activityText = `<strong>${username}</strong> commented on your post`;
+                            break;
+                        case 'follow':
+                            iconClass = 'follow';
+                            iconName = 'user-plus';
+                            dataType = 'follows';
+                            activityText = `<strong>${username}</strong> started following you`;
+                            break;
+                        case 'story_like':
+                            iconClass = 'like';
+                            iconName = 'heart';
+                            dataType = 'likes';
+                            activityText = `<strong>${username}</strong> liked your story`;
+                            break;
+                        case 'story_reply':
+                            iconClass = 'comment';
+                            iconName = 'message-circle';
+                            dataType = 'comments';
+                            activityText = `<strong>${username}</strong> replied to your story`;
+                            break;
+                        case 'omzo_like':
+                            iconClass = 'like';
+                            iconName = 'heart';
+                            dataType = 'likes';
+                            activityText = `<strong>${username}</strong> liked your omzo`;
+                            break;
+                        case 'omzo_comment':
+                            iconClass = 'comment';
+                            iconName = 'message-circle';
+                            dataType = 'comments';
+                            activityText = `<strong>${username}</strong> commented on your omzo`;
+                            break;
+                        case 'profile_view':
+                            iconClass = 'follow';
+                            iconName = 'eye';
+                            dataType = 'follows';
+                            activityText = `<strong>${username}</strong> viewed your profile`;
+                            break;
+                        default:
+                            iconClass = 'default';
+                            iconName = 'bell';
+                            dataType = 'other';
+                            activityText = `<strong>${username}</strong> interacted with you`;
+                    }
+
+                    html += `
+                    <div class="activity-item" data-type="${dataType}">
+                        <div style="position: relative;">
+                            <img src="${profilePic}" alt="" class="activity-avatar" onerror="this.outerHTML='<div class=\\'activity-avatar-placeholder\\'>${initial}</div>'">
+                            <div class="activity-icon ${iconClass}">
+                                <i data-lucide="${iconName}"></i>
+                            </div>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-text">${activityText}</div>
+                            <div class="activity-time">${timeAgo}</div>
+                        </div>
+                    </div>
+                `;
+                });
+
+                container.innerHTML = html;
                 if (typeof lucide !== 'undefined') lucide.createIcons();
             })
             .catch(err => {
