@@ -2,7 +2,14 @@ Features to add:
 
 - Change icons of all the things in navbar, save icon in profile page, comments icon, share icon, 
 
+next changes:
 
+- show text scribes as text only
+- Remove post from everywhere [delete report, report]
+- put scribes instead of post
+- Remove logout button and what block from landing page
+- Improve story block it cropes image in starting only then no use of editing it further [make it like instagram]
+- View once messages are broken. heres how they are broken: so if i send a view once message as user 1 to user 2 and if i myself open the view once message myself it will turn as opened without user 2 even seeing that message this should not happen. 
 
 Completed:
 

@@ -20,7 +20,7 @@ from chat.models import (
     CustomUser, Chat, Message, GroupJoinRequest, Follow, Story, StoryView,
     StoryLike, StoryReply, Scribe, Like, Comment, MessageDeletion, MessageRead,
     MessageReaction, StarredMessage, PinnedChat, SavedPost, Omzo, Dislike,
-    DismissedSuggestion
+    DismissedSuggestion, ChatAcceptance
 )
 from chat.forms import ScribeForm
 from .media import handle_media_upload
@@ -344,6 +344,10 @@ def chat_view(request, chat_id):
     pinned_chat_ids = set(PinnedChat.objects.filter(
         user=request.user).values_list('chat_id', flat=True))
 
+    # Get chat IDs that the current user has accepted
+    accepted_chat_ids = set(ChatAcceptance.objects.filter(
+        user=request.user).values_list('chat_id', flat=True))
+
     private_chats = []
     group_chats = []
     for chat in user_chats:
@@ -370,6 +374,10 @@ def chat_view(request, chat_id):
             last_message = 'No messages yet'
         unread_count = chat.messages.filter(
             is_read=False).exclude(sender=request.user).count()
+        
+        # Check if this chat is a request (not accepted by current user)
+        is_request = (chat.chat_type == 'private' and chat.id not in accepted_chat_ids)
+        
         chat_dict = {
             'id': chat.id,
             'name': chat.name,
@@ -378,6 +386,7 @@ def chat_view(request, chat_id):
             'last_message': last_message,
             'unread_count': unread_count,
             'is_private': chat.id in pinned_chat_ids,  # Manual Private List
+            'is_request': is_request,  # Whether this is a DM request
         }
         if chat.chat_type == 'private':
             private_chats.append(chat_dict)
@@ -427,28 +436,24 @@ def chat_view(request, chat_id):
     following_ids = list(Follow.objects.filter(
         follower=request.user).values_list('following_id', flat=True))
 
-    # --- Message Request Logic ---
+    # --- Message Request Logic (using ChatAcceptance) ---
     is_message_request = False
     target_user_username = ''
+    target_user_avatar = ''
     if chat.chat_type == 'private':
         other_user = chat.participants.exclude(id=request.user.id).first()
         if other_user:
             target_user_username = other_user.username
-            # blocked_by_me = Block.objects.filter(blocker=request.user, blocked=other_user).exists()
-            is_following = Follow.objects.filter(
-                follower=request.user, following=other_user).exists()
-
-            # Check if current user has EVER replied in this chat
-            has_replied = chat.messages.filter(sender=request.user).exists()
-
-            # It is a request if:
-            # 1. We haven't replied yet (Acceptance = Reply)
-            # 2. They have sent messages.
-            # (Show regardless of follow status as per user request)
+            target_user_avatar = other_user.profile_picture_url
+            
+            # Check if current user has accepted this chat
+            has_accepted = ChatAcceptance.objects.filter(chat=chat, user=request.user).exists()
+            
+            # It's a request if we haven't accepted yet and they have messaged
             has_they_messaged = chat.messages.exclude(
                 sender=request.user).exclude(message_type='system').exists()
 
-            if not has_replied and has_they_messaged:
+            if not has_accepted and has_they_messaged:
                 is_message_request = True
 
     context = {
@@ -464,6 +469,7 @@ def chat_view(request, chat_id):
         'following_ids': following_ids,
         'is_message_request': is_message_request,
         'target_user_username': target_user_username,
+        'target_user_avatar': target_user_avatar,
     }
     # Calls feature flags and ICE servers for WebRTC
     context['calls_enabled'] = getattr(settings, 'ENABLE_CALLS', True)
@@ -493,6 +499,10 @@ def messages_page(request):
     pinned_chat_ids = set(PinnedChat.objects.filter(
         user=request.user).values_list('chat_id', flat=True))
 
+    # Get chat IDs that the current user has accepted
+    accepted_chat_ids = set(ChatAcceptance.objects.filter(
+        user=request.user).values_list('chat_id', flat=True))
+
     private_chats = []
     group_chats = []
     for chat in user_chats:
@@ -519,6 +529,10 @@ def messages_page(request):
             last_message = 'No messages yet'
         unread_count = chat.messages.filter(
             is_read=False).exclude(sender=request.user).count()
+        
+        # Check if this chat is a request (not accepted by current user)
+        is_request = (chat.chat_type == 'private' and chat.id not in accepted_chat_ids)
+        
         chat_dict = {
             'id': chat.id,
             'name': chat.name,
@@ -527,6 +541,7 @@ def messages_page(request):
             'last_message': last_message,
             'unread_count': unread_count,
             'is_private': chat.id in pinned_chat_ids,  # Manual Private List
+            'is_request': is_request,  # Whether this is a DM request
         }
         if chat.chat_type == 'private':
             private_chats.append(chat_dict)
@@ -794,6 +809,8 @@ def create_chat(request):
         ).filter(participants=other_user).first()
 
         if existing_chat:
+            # Make sure creator has accepted this chat
+            ChatAcceptance.objects.get_or_create(chat=existing_chat, user=request.user)
             return JsonResponse({
                 'success': True,
                 'chat_id': existing_chat.id,
@@ -803,6 +820,9 @@ def create_chat(request):
         # Create new chat
         chat = Chat.objects.create(chat_type='private')
         chat.participants.add(request.user, other_user)
+        
+        # Auto-accept for the creator (they initiated, so they've accepted)
+        ChatAcceptance.objects.get_or_create(chat=chat, user=request.user)
 
         return JsonResponse({
             'success': True,
@@ -1050,7 +1070,15 @@ def _get_explore_content_batch(page=1, per_page=15, user=None):
     for item_id, item_type in page_ids:
         try:
             if item_type == 'scribe':
-                obj = Scribe.objects.select_related('user').get(id=item_id)
+                obj = Scribe.objects.select_related(
+                    'user', 
+                    'original_scribe', 
+                    'original_scribe__user',
+                    'original_omzo',
+                    'original_omzo__user',
+                    'original_story',
+                    'original_story__user'
+                ).get(id=item_id)
                 
                 # Calculate time ago
                 time_diff = timezone.now() - obj.timestamp
@@ -1096,9 +1124,15 @@ def _get_explore_content_batch(page=1, per_page=15, user=None):
                     'is_liked': is_liked,
                     'is_disliked': is_disliked,
                     'is_saved': is_saved,
+                    'is_own': user and obj.user.id == user.id,
                     'image_url': obj.image_url,
                     'has_media': obj.has_media,
                     'recent_comments': recent_comments,
+                    # Repost data
+                    'is_repost': getattr(obj, 'is_repost', False),
+                    'original_scribe': obj.original_scribe,
+                    'original_omzo': obj.original_omzo,
+                    'original_story': obj.original_story,
                 })
             else:
                 obj = Omzo.objects.select_related('user').get(id=item_id)
@@ -1136,6 +1170,7 @@ def _get_explore_content_batch(page=1, per_page=15, user=None):
                     'is_liked': is_liked,
                     'is_disliked': is_disliked,
                     'is_saved': False,  # Omzos typically don't have save feature
+                    'is_own': user and obj.user.id == user.id,
                 })
         except (Scribe.DoesNotExist, Omzo.DoesNotExist):
             continue
@@ -1368,6 +1403,14 @@ def consume_one_time_message(request, message_id):
     try:
         message = Message.objects.get(
             id=message_id, chat__participants=request.user, one_time=True)
+
+        # 🔥 FIX: Only the RECIPIENT can consume the message, not the sender
+        # The sender should not be able to mark their own view-once message as opened
+        if message.sender == request.user:
+            return JsonResponse({
+                'success': False, 
+                'error': 'Sender cannot consume their own view-once message'
+            })
 
         # Check if already consumed
         if message.consumed_at:
@@ -2455,13 +2498,21 @@ def p2p_send_signal(request):
 
 @login_required
 def p2p_get_signals(request, chat_id):
-    """Poll for pending WebRTC signals from database"""
+    """Poll for pending WebRTC signals from database
+    
+    Query params:
+        signal_type: 'call' for webrtc call signals, 'file' for file transfer signals
+                     If not specified, returns all signals (legacy behavior)
+    """
     try:
         chat = get_object_or_404(Chat, id=chat_id)
 
         # Verify user is in the chat
         if not chat.participants.filter(id=request.user.id).exists():
             return JsonResponse({'success': False, 'error': 'Not a participant of this chat'}, status=403)
+
+        # Get signal type filter from query params
+        signal_type_filter = request.GET.get('signal_type', None)  # 'call', 'file', or None
 
         # Import P2PSignal model
         from chat.models import P2PSignal
@@ -2483,7 +2534,24 @@ def p2p_get_signals(request, chat_id):
         for signal in signals:
             signal_type = signal.signal_data.get(
                 'type', '') if isinstance(signal.signal_data, dict) else ''
-            is_call_signal = signal_type.startswith('webrtc.')
+            has_file_info = signal.signal_data.get('fileInfo') if isinstance(signal.signal_data, dict) else None
+            has_sdp_at_top = signal.signal_data.get('sdp') if isinstance(signal.signal_data, dict) else None
+            
+            # Determine if this is a call signal or file transfer signal
+            is_call_signal = signal_type.startswith('webrtc.') or (
+                signal_type in ('offer', 'answer', 'ice', 'candidate') and 
+                has_sdp_at_top and not has_file_info
+            )
+            is_file_signal = has_file_info or (
+                signal_type in ('offer', 'answer', 'candidate', 'rejected', 'timeout') and
+                not has_sdp_at_top
+            )
+            
+            # Filter based on signal_type_filter
+            if signal_type_filter == 'call' and not is_call_signal:
+                continue  # Skip non-call signals when requesting call signals
+            if signal_type_filter == 'file' and not is_file_signal:
+                continue  # Skip non-file signals when requesting file signals
 
             # For call signals, only include recent ones
             if is_call_signal and signal.created_at < recent_cutoff:
@@ -2650,3 +2718,178 @@ def get_chat_participants_for_p2p(request, chat_id):
     except Exception as e:
         logger.error(f"Error getting participants for P2P: {str(e)}")
         return JsonResponse({'success': False, 'error': 'Failed to get participants'})
+
+
+# ================ CHAT REQUEST SYSTEM (Instagram-style) ================
+
+@login_required
+def get_dm_requests(request):
+    """
+    Get chats that are pending acceptance (like Instagram DM requests).
+    These are private chats where:
+    1. The user is a participant
+    2. The user has NOT accepted the chat (no ChatAcceptance record)
+    3. There are messages from the other person
+    """
+    user = request.user
+    
+    # Get all private chats where user is a participant but hasn't accepted
+    accepted_chat_ids = ChatAcceptance.objects.filter(
+        user=user
+    ).values_list('chat_id', flat=True)
+    
+    # Get private chats not accepted by user
+    pending_chats = Chat.objects.filter(
+        participants=user,
+        chat_type='private'
+    ).exclude(
+        id__in=accepted_chat_ids
+    ).prefetch_related('participants', 'messages').order_by('-updated_at')
+    
+    requests_data = []
+    for chat in pending_chats:
+        # Get the other participant
+        other_user = chat.participants.exclude(id=user.id).first()
+        if not other_user:
+            continue
+            
+        # Check if there are messages from the other person
+        has_their_messages = chat.messages.filter(sender=other_user).exists()
+        if not has_their_messages:
+            continue  # No messages from them, not a request
+            
+        # Get last message info
+        last_msg = chat.messages.order_by('-timestamp').first()
+        last_message = ''
+        if last_msg:
+            if last_msg.message_type == 'media':
+                last_message = '📷 Sent a file'
+            elif last_msg.message_type == 'system':
+                last_message = '[System]'
+            else:
+                last_message = last_msg.content[:50] + ('...' if len(last_msg.content) > 50 else '')
+        
+        unread_count = chat.messages.filter(is_read=False).exclude(sender=user).count()
+        
+        requests_data.append({
+            'chat_id': chat.id,
+            'sender': {
+                'id': other_user.id,
+                'username': other_user.username,
+                'full_name': other_user.full_name,
+                'avatar_url': other_user.profile_picture_url,
+                'is_online': other_user.is_online,
+            },
+            'last_message': last_message,
+            'unread_count': unread_count,
+            'timestamp': chat.updated_at.isoformat(),
+        })
+    
+    return JsonResponse({
+        'success': True,
+        'requests': requests_data,
+        'count': len(requests_data)
+    })
+
+
+@login_required
+def get_dm_requests_count(request):
+    """Get count of pending DM requests for badge"""
+    user = request.user
+    
+    accepted_chat_ids = ChatAcceptance.objects.filter(
+        user=user
+    ).values_list('chat_id', flat=True)
+    
+    # Count private chats not accepted that have messages from others
+    count = Chat.objects.filter(
+        participants=user,
+        chat_type='private'
+    ).exclude(
+        id__in=accepted_chat_ids
+    ).filter(
+        messages__sender__in=Chat.objects.filter(
+            participants=user,
+            chat_type='private'
+        ).exclude(id__in=accepted_chat_ids).values('participants').exclude(participants=user)
+    ).distinct().count()
+    
+    # Simpler count - just count non-accepted private chats with any messages
+    pending_chats = Chat.objects.filter(
+        participants=user,
+        chat_type='private'
+    ).exclude(id__in=accepted_chat_ids)
+    
+    count = 0
+    for chat in pending_chats:
+        other_user = chat.participants.exclude(id=user.id).first()
+        if other_user and chat.messages.filter(sender=other_user).exists():
+            count += 1
+    
+    return JsonResponse({'success': True, 'count': count})
+
+
+@login_required
+@require_POST
+def accept_dm_request(request, chat_id):
+    """Accept a DM request - moves chat from Requests to All tab"""
+    user = request.user
+    chat = get_object_or_404(Chat, id=chat_id, participants=user, chat_type='private')
+    
+    # Create acceptance record
+    ChatAcceptance.objects.get_or_create(chat=chat, user=user)
+    
+    # Notify frontend via WebSocket
+    channel_layer = get_channel_layer()
+    async_to_sync(channel_layer.group_send)(
+        f"sidebar_{user.id}",
+        {
+            "type": "chat_accepted",
+            "chat_id": chat_id,
+        }
+    )
+    
+    return JsonResponse({'success': True, 'message': 'Chat accepted'})
+
+
+@login_required
+@require_POST
+def decline_dm_request(request, chat_id):
+    """Decline a DM request - removes the chat"""
+    user = request.user
+    chat = get_object_or_404(Chat, id=chat_id, participants=user, chat_type='private')
+    
+    # Delete the user from the chat (or delete the chat entirely)
+    chat.participants.remove(user)
+    
+    # If no participants left, delete the chat
+    if chat.participants.count() == 0:
+        chat.delete()
+    
+    return JsonResponse({'success': True, 'message': 'Request declined'})
+
+
+@login_required
+def check_dm_request(request, chat_id):
+    """Check if a chat is a DM request for the current user"""
+    user = request.user
+    chat = get_object_or_404(Chat, id=chat_id, participants=user, chat_type='private')
+    
+    # Check if user has accepted this chat
+    is_accepted = ChatAcceptance.objects.filter(chat=chat, user=user).exists()
+    
+    return JsonResponse({
+        'success': True,
+        'is_request': not is_accepted,
+        'chat_id': chat_id
+    })
+
+
+def auto_accept_chat_for_sender(chat, sender):
+    """
+    Auto-create acceptance for the sender when they send a message.
+    Called when a message is sent to ensure sender has accepted the chat.
+    """
+    if chat.chat_type == 'private':
+        ChatAcceptance.objects.get_or_create(chat=chat, user=sender)
+

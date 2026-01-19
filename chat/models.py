@@ -177,6 +177,31 @@ class Chat(models.Model):
             return f"Chat between {' and '.join([p.username for p in participants])}"
 
 
+class ChatAcceptance(models.Model):
+    """
+    Tracks whether a user has accepted a chat (like Instagram DM requests).
+    
+    When a new user sends a DM:
+    1. Chat is created with both participants
+    2. ChatAcceptance is created ONLY for the sender (they auto-accept by initiating)
+    3. Recipient sees chat in "Requests" tab
+    4. When recipient replies or clicks "Accept", ChatAcceptance is created for them
+    5. Chat moves to "All" tab for recipient
+    """
+    chat = models.ForeignKey(
+        Chat, on_delete=models.CASCADE, related_name='acceptances')
+    user = models.ForeignKey(
+        CustomUser, on_delete=models.CASCADE, related_name='chat_acceptances')
+    accepted_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        unique_together = ['chat', 'user']
+        ordering = ['-accepted_at']
+    
+    def __str__(self):
+        return f"{self.user.username} accepted chat {self.chat.id}"
+
+
 class GroupJoinRequest(models.Model):
     """Model for group join requests"""
     STATUS_CHOICES = [
@@ -516,6 +541,27 @@ class Comment(models.Model):
     def reply_count(self):
         """Get the count of replies to this comment"""
         return self.replies.count()
+    
+    @property
+    def like_count(self):
+        """Get the count of likes on this comment"""
+        return self.comment_likes.count()
+
+
+class CommentLike(models.Model):
+    """Model for comment likes"""
+    user = models.ForeignKey(
+        CustomUser, on_delete=models.CASCADE, related_name='user_comment_likes')
+    comment = models.ForeignKey(
+        Comment, on_delete=models.CASCADE, related_name='comment_likes')
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'comment')
+        ordering = ['-timestamp']
+
+    def __str__(self):
+        return f"{self.user.full_name} liked a comment"
 
 
 class Like(models.Model):

@@ -16,7 +16,7 @@ import re
 from django.db import models as db_models
 
 from chat.models import (
-    CustomUser, Chat, Scribe, Comment, Like, Dislike, Follow, Block, FollowRequest,
+    CustomUser, Chat, Scribe, Comment, CommentLike, Like, Dislike, Follow, Block, FollowRequest,
     Hashtag, ScribeHashtag, Mention, StoryReply, StoryLike, Story,
     SavedPost, PostReport, Omzo, OmzoLike, OmzoDislike, OmzoComment, OmzoReport,
     ProfileView, PinnedChat, DismissedSuggestion
@@ -863,7 +863,7 @@ def delete_post(request):
 
     except Exception as e:
         logger.error(f"Error in delete_post: {str(e)}")
-        return JsonResponse({'success': False, 'error': 'Failed to delete post'})
+        return JsonResponse({'success': False, 'error': 'Failed to delete scribe'})
 
 
 @login_required
@@ -1046,6 +1046,43 @@ def add_comment(request):
 
 
 @login_required
+@require_POST
+def toggle_comment_like(request):
+    """Toggle like on a comment"""
+    try:
+        data = json.loads(request.body)
+        comment_id = data.get('comment_id')
+
+        if not comment_id:
+            return JsonResponse({'success': False, 'error': 'Comment ID is required'})
+
+        try:
+            comment = Comment.objects.get(id=comment_id)
+        except Comment.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Comment not found'})
+
+        # Toggle like
+        like_obj = CommentLike.objects.filter(user=request.user, comment=comment).first()
+
+        if like_obj:
+            like_obj.delete()
+            is_liked = False
+        else:
+            CommentLike.objects.create(user=request.user, comment=comment)
+            is_liked = True
+
+        return JsonResponse({
+            'success': True,
+            'is_liked': is_liked,
+            'like_count': comment.like_count
+        })
+
+    except Exception as e:
+        logger.error(f"Error in toggle_comment_like: {str(e)}")
+        return JsonResponse({'success': False, 'error': 'Failed to toggle like'})
+
+
+@login_required
 def get_scribe(request, scribe_id):
     """Get a single scribe by ID"""
     try:
@@ -1054,6 +1091,9 @@ def get_scribe(request, scribe_id):
 
         # Check if user has liked this scribe
         is_liked = Like.objects.filter(user=request.user, scribe=scribe).exists()
+        
+        # Check if user has saved this scribe
+        is_saved = SavedPost.objects.filter(user=request.user, scribe=scribe).exists()
 
         scribe_data = {
             'id': scribe.id,
@@ -1065,6 +1105,7 @@ def get_scribe(request, scribe_id):
             'like_count': scribe.scribe_likes.count(),
             'comment_count': scribe.comments.count(),
             'is_liked': is_liked,
+            'is_saved': is_saved,
             'time_ago': timesince(scribe.timestamp) + ' ago',
             'timestamp': scribe.timestamp.isoformat(),
         }
@@ -1105,7 +1146,12 @@ def get_scribe_comments(request, scribe_id):
         comments = Comment.objects.filter(
             scribe=scribe,
             parent__isnull=True
-        ).select_related('user').prefetch_related('replies__user').order_by('timestamp')
+        ).select_related('user').prefetch_related('replies__user', 'comment_likes', 'replies__comment_likes').order_by('timestamp')
+        
+        # Get all comment IDs the current user has liked
+        user_liked_comment_ids = set(
+            CommentLike.objects.filter(user=request.user).values_list('comment_id', flat=True)
+        )
 
         comments_data = []
         for comment in comments:
@@ -1118,6 +1164,8 @@ def get_scribe_comments(request, scribe_id):
                 'user_profile_picture': comment.user.profile_picture_url,
                 'timestamp': comment.timestamp.strftime('%b %d, %Y %H:%M'),
                 'is_own': comment.user == request.user,
+                'is_liked': comment.id in user_liked_comment_ids,
+                'like_count': comment.like_count,
                 'replies': []
             }
 
@@ -1132,6 +1180,8 @@ def get_scribe_comments(request, scribe_id):
                     'user_profile_picture': reply.user.profile_picture_url,
                     'timestamp': reply.timestamp.strftime('%b %d, %Y %H:%M'),
                     'is_own': reply.user == request.user,
+                    'is_liked': reply.id in user_liked_comment_ids,
+                    'like_count': reply.like_count,
                 }
                 comment_data['replies'].append(reply_data)
 

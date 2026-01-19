@@ -678,6 +678,20 @@
         overflow: hidden;
     }
 
+    /* Blur background for story viewer (Instagram-style) */
+    .od-story-viewer-blur-bg {
+        position: absolute;
+        top: -20px;
+        left: -20px;
+        right: -20px;
+        bottom: -20px;
+        background-size: cover;
+        background-position: center;
+        filter: blur(30px) brightness(0.6);
+        z-index: 0;
+        transform: scale(1.1);
+    }
+
     .od-story-progress {
         position: absolute;
         top: 0;
@@ -1676,6 +1690,28 @@
         font-weight: 700;
         margin-right: 6px;
         color: var(--od-text-primary);
+    }
+
+    /* Plain Text Scribe Styling (Twitter-style) */
+    .od-post-text-content {
+        padding: 12px 16px;
+    }
+
+    .od-post-text {
+        font-size: 15px;
+        line-height: 1.5;
+        color: var(--od-text-primary);
+        word-wrap: break-word;
+        white-space: pre-wrap;
+    }
+
+    .od-post-text a {
+        color: var(--color-primary);
+        text-decoration: none;
+    }
+
+    .od-post-text a:hover {
+        text-decoration: underline;
     }
 
     .od-post-view-comments {
@@ -4073,14 +4109,19 @@
                     <div class="od-post-media" onclick="openImageModal('{{ displayed_scribe.image_url }}')">
                         <img src="{{ displayed_scribe.image_url }}" loading="lazy" class="explore-card-media" alt="Post image">
                     </div>
-                    {% elif displayed_scribe.content %}
-                    <!-- Dynamic Text Scribe -->
-                    <div class="od-post-media text-scribe-wrapper {% cycle 'text-scribe-gradient-1' 'text-scribe-gradient-2' 'text-scribe-gradient-3' 'text-scribe-gradient-4' 'text-scribe-gradient-5' %}">
-                        <div class="text-scribe-text {% if displayed_scribe.content|length > 200 %}very-long{% elif displayed_scribe.content|length > 80 %}long{% endif %}">{{ displayed_scribe.content|linebreaksbr }}</div>
-                    </div>
                     {% endif %}
                     {% endwith %}
                     {% endif %}
+
+                    <!-- Text Content (shown below media or as standalone) -->
+                    {% with displayed_scribe=scribe.original_scribe|default:scribe %}
+                    {% if displayed_scribe.content and not displayed_scribe.image_url and displayed_scribe.content_type != 'code_scribe' %}
+                    <!-- Plain Text Scribe (Twitter-style) -->
+                    <div class="od-post-text-content">
+                        <span class="od-post-text">{{ displayed_scribe.content|linebreaksbr|linkify_hashtags_mentions }}</span>
+                    </div>
+                    {% endif %}
+                    {% endwith %}
 
                     {% if scribe.is_repost %}
                     </div><!-- Close embedded card -->
@@ -4193,7 +4234,6 @@
                         <span class="od-sidebar-name">{{ current_user.full_name }}</span>
                     </div>
                 </a>
-                <a href="{% url 'logout' %}" class="od-sidebar-switch">Log out</a>
             </div>
 
             <!-- Suggestions -->
@@ -4884,10 +4924,14 @@
             <!-- Story Preview - Simple Canvas -->
             <div class="od-story-canvas-wrapper">
                 <div class="od-story-canvas" id="storyPreviewContainer">
+                    <!-- Blurred Background Layer (Instagram-style) -->
+                    <div id="storyBlurBg" class="od-story-blur-bg" style="display: none;"></div>
                     <!-- Image Layer -->
                     <div id="storyPreviewImage" class="od-story-canvas-img" style="display: none;">
                         <img id="storyPreviewImg" src="" alt="Preview" draggable="false">
                     </div>
+                    <!-- Grid Overlay (shows during editing) -->
+                    <div id="storyGridOverlay" class="od-story-grid-overlay"></div>
                     <!-- Draggable Text Layer -->
                     <div id="storyPreviewText" class="od-story-canvas-text" contenteditable="true"
                         data-placeholder="Tap to add text..."
@@ -4921,22 +4965,40 @@
 
                     <!-- Image Controls (shown when image is added) -->
                     <div id="storyImageControls" class="od-story-image-controls" style="display: none;">
+                        <!-- Fit/Fill Toggle (Instagram-like) -->
+                        <div class="od-story-fit-fill-toggle">
+                            <span class="od-story-preset-label">Image Mode</span>
+                            <div class="od-story-fit-fill-btns">
+                                <button type="button" class="od-story-fit-btn active" onclick="setStoryImageFit('contain', this)" title="Full image with blurred background">
+                                    <span class="od-icon"><svg viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2" fill="none"/><rect x="7" y="6" width="10" height="12" rx="1"/></svg></span>
+                                    <span>Full</span>
+                                </button>
+                                <button type="button" class="od-story-fit-btn" onclick="setStoryImageFit('cover', this)" title="Fill frame (crop edges)">
+                                    <span class="od-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M15 3v18M3 9h18M3 15h18"/></svg></span>
+                                    <span>Fill</span>
+                                </button>
+                            </div>
+                        </div>
                         <div class="od-story-slider-control">
                             <label><span class="od-icon"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg></span> Scale</label>
-                            <input type="range" min="0.5" max="3" step="0.1" value="1"
+                            <input type="range" id="storyScaleSlider" min="0.5" max="3" step="0.05" value="1"
                                 oninput="updateStoryImageTransform('scale', this.value)">
                             <span id="scaleValue">1.0x</span>
                         </div>
                         <div class="od-story-slider-control">
                             <label><span class="od-icon"><svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg></span> Rotate</label>
-                            <input type="range" min="-180" max="180" step="5" value="0"
+                            <input type="range" id="storyRotateSlider" min="-180" max="180" step="5" value="0"
                                 oninput="updateStoryImageTransform('rotate', this.value)">
                             <span id="rotateValue">0°</span>
                         </div>
                         <div class="od-story-pan-hint">
                             <span class="od-icon"><svg viewBox="0 0 24 24"><polyline points="5 9 2 12 5 15"/><polyline points="9 5 12 2 15 5"/><polyline points="15 19 12 22 9 19"/><polyline points="19 9 22 12 19 15"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="12" y1="2" x2="12" y2="22"/></svg></span>
-                            Drag image to reposition
+                            Drag to reposition • Pinch to zoom
                         </div>
+                        <button type="button" class="od-story-reset-btn" onclick="resetStoryImageTransform()">
+                            <span class="od-icon"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg></span>
+                            Reset
+                        </button>
                         <button type="button" class="od-story-remove-img" onclick="removeStoryImage()">
                             <span class="od-icon"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg></span>
                             Remove Image
@@ -5155,16 +5217,164 @@
         box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
     }
 
+    /* Instagram-style blurred background */
+    .od-story-blur-bg {
+        position: absolute;
+        inset: -20px;
+        background-size: cover;
+        background-position: center;
+        filter: blur(30px) saturate(1.2);
+        transform: scale(1.1);
+        z-index: 0;
+        opacity: 0.9;
+    }
+
     .od-story-canvas-img {
         position: absolute;
         inset: 0;
         overflow: hidden;
+        touch-action: none; /* Enable custom touch handling */
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 
     .od-story-canvas-img img {
+        max-width: 100%;
+        max-height: 100%;
+        width: auto;
+        height: auto;
+        object-fit: contain;
+        cursor: grab;
+        user-select: none;
+        -webkit-user-drag: none;
+        will-change: transform; /* GPU acceleration for smoother drag */
+    }
+
+    .od-story-canvas-img img:active {
+        cursor: grabbing;
+    }
+
+    .od-story-canvas-img img.fill-mode {
         width: 100%;
         height: 100%;
+        max-width: none;
+        max-height: none;
         object-fit: cover;
+    }
+
+    /* Grid overlay for positioning (Instagram-like) */
+    .od-story-grid-overlay {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.2s;
+        z-index: 10;
+    }
+
+    .od-story-grid-overlay.visible {
+        opacity: 1;
+    }
+
+    .od-story-grid-overlay::before,
+    .od-story-grid-overlay::after {
+        content: '';
+        position: absolute;
+        background: rgba(255, 255, 255, 0.3);
+    }
+
+    .od-story-grid-overlay::before {
+        left: 33.33%;
+        right: 33.33%;
+        top: 0;
+        bottom: 0;
+        border-left: 1px solid rgba(255, 255, 255, 0.3);
+        border-right: 1px solid rgba(255, 255, 255, 0.3);
+        background: transparent;
+    }
+
+    .od-story-grid-overlay::after {
+        top: 33.33%;
+        bottom: 33.33%;
+        left: 0;
+        right: 0;
+        border-top: 1px solid rgba(255, 255, 255, 0.3);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+        background: transparent;
+    }
+
+    /* Fit/Fill toggle buttons */
+    .od-story-fit-fill-toggle {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .od-story-fit-fill-btns {
+        display: flex;
+        gap: 8px;
+    }
+
+    .od-story-fit-btn {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 12px 16px;
+        background: var(--od-bg);
+        border: 2px solid var(--od-border);
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.2s;
+        color: var(--od-text-secondary);
+        font-size: 13px;
+        font-weight: 500;
+    }
+
+    .od-story-fit-btn:hover {
+        border-color: var(--color-primary);
+        color: var(--od-text-primary);
+    }
+
+    .od-story-fit-btn.active {
+        background: var(--odnix-gradient);
+        border-color: transparent;
+        color: white;
+    }
+
+    .od-story-fit-btn .od-icon {
+        width: 18px;
+        height: 18px;
+    }
+
+    .od-story-reset-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        width: 100%;
+        padding: 10px 16px;
+        background: var(--od-bg);
+        border: 1px solid var(--od-border);
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.2s;
+        color: var(--od-text-secondary);
+        font-size: 13px;
+        font-weight: 500;
+    }
+
+    .od-story-reset-btn:hover {
+        background: var(--od-surface-hover);
+        color: var(--od-text-primary);
+    }
+
+    .od-story-reset-btn .od-icon {
+        width: 16px;
+        height: 16px;
     }
 
     .od-story-canvas-text {
@@ -5182,7 +5392,8 @@
         cursor: move;
         padding: 12px 16px;
         border-radius: 8px;
-        transition: background 0.2s;
+        will-change: transform, left, top; /* GPU acceleration */
+        touch-action: none; /* Better touch handling */
     }
 
     .od-story-canvas-text:focus {
@@ -5194,6 +5405,7 @@
     .od-story-canvas-text.dragging {
         cursor: grabbing;
         background: rgba(0, 0, 0, 0.3);
+        transition: none !important; /* Disable transition during drag */
     }
 
     .od-story-canvas-text:empty:before {
@@ -5717,6 +5929,9 @@
 <!-- Story Viewer Modal -->
 <div id="storyViewModal" class="od-story-viewer" style="display: none;">
     <div class="od-story-viewer-container">
+        <!-- Blur Background (Instagram-style) -->
+        <div id="storyViewerBlurBg" class="od-story-viewer-blur-bg"></div>
+
         <!-- Progress Bars -->
         <div class="od-story-progress" id="storyProgressContainer"></div>
 
@@ -5930,17 +6145,17 @@
     </div>
 </div>
 
-<!-- Report Post Modal -->
+<!-- Report Scribe Modal -->
 <div id="reportPostModal" class="od-modal-overlay" style="display: none;" onclick="closeReportModal(event)">
     <div class="od-modal od-report-modal" onclick="event.stopPropagation()">
         <header class="od-modal-header">
-            <h2 class="od-modal-title">Report Post</h2>
+            <h2 class="od-modal-title">Report Scribe</h2>
             <button class="od-modal-close" onclick="closeReportModal()">
                 <span class="od-icon"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
             </button>
         </header>
         <div class="od-modal-body">
-            <p class="od-report-subtitle">Why are you reporting this post?</p>
+            <p class="od-report-subtitle">Why are you reporting this scribe?</p>
             <div class="od-report-options">
                 <button class="od-report-option" onclick="selectReportReason('copyright')">
                     <span class="od-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M14.5 9a3.5 3.5 0 1 0 0 6"/></svg></span>
@@ -6989,15 +7204,78 @@
     let textDragOffset = { x: 0, y: 0 };
     let storyTextSize = 22;
 
-    // Image Transform Functions
+    // Image Transform Functions - Enhanced for Instagram-like editing
     let storyImageTransform = { scale: 1, rotate: 0, x: 0, y: 0 };
+    let storyImageFitMode = 'contain'; // 'contain' (full) or 'cover' (fill) - default shows full image
     let isImageDragging = false;
     let imageDragStart = { x: 0, y: 0 };
+    let pinchStartDistance = 0;
+    let pinchStartScale = 1;
+    let lastTouchCenter = { x: 0, y: 0 };
+
+    // Set image fit mode (Instagram-like Full/Fill toggle)
+    function setStoryImageFit(mode, btn) {
+        storyImageFitMode = mode;
+        const img = document.getElementById('storyPreviewImg');
+        if (img) {
+            if (mode === 'cover') {
+                img.classList.add('fill-mode');
+            } else {
+                img.classList.remove('fill-mode');
+            }
+        }
+        // Update button states
+        document.querySelectorAll('.od-story-fit-btn').forEach(b => b.classList.remove('active'));
+        if (btn) btn.classList.add('active');
+        
+        // Reset position when switching modes
+        storyImageTransform.x = 0;
+        storyImageTransform.y = 0;
+        applyStoryImageTransform();
+    }
+
+    // Reset all image transforms
+    function resetStoryImageTransform() {
+        storyImageTransform = { scale: 1, rotate: 0, x: 0, y: 0 };
+        storyImageFitMode = 'contain'; // Default to full image
+        
+        const img = document.getElementById('storyPreviewImg');
+        if (img) {
+            img.classList.remove('fill-mode');
+            img.style.transform = '';
+        }
+        
+        // Update sliders
+        const scaleSlider = document.getElementById('storyScaleSlider');
+        const rotateSlider = document.getElementById('storyRotateSlider');
+        if (scaleSlider) { scaleSlider.value = 1; }
+        if (rotateSlider) { rotateSlider.value = 0; }
+        document.getElementById('scaleValue').innerText = '1.0x';
+        document.getElementById('rotateValue').innerText = '0°';
+        
+        // Reset fit buttons - Full (first) is active
+        document.querySelectorAll('.od-story-fit-btn').forEach((btn, i) => {
+            btn.classList.toggle('active', i === 0);
+        });
+        
+        showIGToast('Image reset', 'info');
+    }
+
+    // Show/hide grid overlay during interaction
+    function showStoryGrid() {
+        const grid = document.getElementById('storyGridOverlay');
+        if (grid) grid.classList.add('visible');
+    }
+
+    function hideStoryGrid() {
+        const grid = document.getElementById('storyGridOverlay');
+        if (grid) grid.classList.remove('visible');
+    }
 
     function updateStoryImageTransform(type, value) {
         if (type === 'scale') {
             storyImageTransform.scale = parseFloat(value);
-            document.getElementById('scaleValue').innerText = value + 'x';
+            document.getElementById('scaleValue').innerText = parseFloat(value).toFixed(1) + 'x';
         } else if (type === 'rotate') {
             storyImageTransform.rotate = parseInt(value);
             document.getElementById('rotateValue').innerText = value + '°';
@@ -7005,11 +7283,16 @@
         applyStoryImageTransform();
     }
 
+    let transformRAF = null;
     function applyStoryImageTransform() {
-        const img = document.getElementById('storyPreviewImg');
-        if (img) {
-            img.style.transform = `translate(${storyImageTransform.x}px, ${storyImageTransform.y}px) scale(${storyImageTransform.scale}) rotate(${storyImageTransform.rotate}deg)`;
-        }
+        // Use requestAnimationFrame for smooth 60fps updates
+        if (transformRAF) cancelAnimationFrame(transformRAF);
+        transformRAF = requestAnimationFrame(() => {
+            const img = document.getElementById('storyPreviewImg');
+            if (img) {
+                img.style.transform = `translate3d(${storyImageTransform.x}px, ${storyImageTransform.y}px, 0) scale(${storyImageTransform.scale}) rotate(${storyImageTransform.rotate}deg)`;
+            }
+        });
     }
 
     function initImageDrag() {
@@ -7019,10 +7302,59 @@
         imgContainer.style.cursor = 'move';
         imgContainer.addEventListener('mousedown', startImageDrag);
         imgContainer.addEventListener('touchstart', startImageDrag, { passive: false });
+        
+        // Add wheel zoom support
+        imgContainer.addEventListener('wheel', handleImageWheel, { passive: false });
+    }
+
+    // Mouse wheel zoom (desktop)
+    function handleImageWheel(e) {
+        e.preventDefault();
+        const delta = e.deltaY > 0 ? -0.1 : 0.1;
+        const newScale = Math.max(0.5, Math.min(3, storyImageTransform.scale + delta));
+        storyImageTransform.scale = newScale;
+        
+        // Update slider
+        const scaleSlider = document.getElementById('storyScaleSlider');
+        if (scaleSlider) scaleSlider.value = newScale;
+        document.getElementById('scaleValue').innerText = newScale.toFixed(1) + 'x';
+        
+        applyStoryImageTransform();
+        showStoryGrid();
+        clearTimeout(window.storyGridTimeout);
+        window.storyGridTimeout = setTimeout(hideStoryGrid, 500);
+    }
+
+    // Calculate distance between two touch points
+    function getTouchDistance(touches) {
+        const dx = touches[0].clientX - touches[1].clientX;
+        const dy = touches[0].clientY - touches[1].clientY;
+        return Math.sqrt(dx * dx + dy * dy);
+    }
+
+    // Get center point of two touches
+    function getTouchCenter(touches) {
+        return {
+            x: (touches[0].clientX + touches[1].clientX) / 2,
+            y: (touches[0].clientY + touches[1].clientY) / 2
+        };
     }
 
     function startImageDrag(e) {
         e.preventDefault();
+        showStoryGrid();
+        
+        // Handle pinch-to-zoom (two fingers)
+        if (e.touches && e.touches.length === 2) {
+            pinchStartDistance = getTouchDistance(e.touches);
+            pinchStartScale = storyImageTransform.scale;
+            lastTouchCenter = getTouchCenter(e.touches);
+            
+            document.addEventListener('touchmove', handlePinchMove, { passive: false });
+            document.addEventListener('touchend', endPinch);
+            return;
+        }
+        
         isImageDragging = true;
 
         const clientX = e.touches ? e.touches[0].clientX : e.clientX;
@@ -7037,6 +7369,37 @@
         document.addEventListener('mouseup', endImageDrag);
         document.addEventListener('touchmove', moveImageDrag, { passive: false });
         document.addEventListener('touchend', endImageDrag);
+    }
+
+    // Handle pinch-to-zoom gesture
+    function handlePinchMove(e) {
+        if (!e.touches || e.touches.length !== 2) return;
+        e.preventDefault();
+        
+        const currentDistance = getTouchDistance(e.touches);
+        const scaleDelta = currentDistance / pinchStartDistance;
+        const newScale = Math.max(0.5, Math.min(3, pinchStartScale * scaleDelta));
+        
+        storyImageTransform.scale = newScale;
+        
+        // Update slider
+        const scaleSlider = document.getElementById('storyScaleSlider');
+        if (scaleSlider) scaleSlider.value = newScale;
+        document.getElementById('scaleValue').innerText = newScale.toFixed(1) + 'x';
+        
+        // Also handle pan during pinch
+        const currentCenter = getTouchCenter(e.touches);
+        storyImageTransform.x += currentCenter.x - lastTouchCenter.x;
+        storyImageTransform.y += currentCenter.y - lastTouchCenter.y;
+        lastTouchCenter = currentCenter;
+        
+        applyStoryImageTransform();
+    }
+
+    function endPinch() {
+        hideStoryGrid();
+        document.removeEventListener('touchmove', handlePinchMove);
+        document.removeEventListener('touchend', endPinch);
     }
 
     function moveImageDrag(e) {
@@ -7054,6 +7417,7 @@
 
     function endImageDrag() {
         isImageDragging = false;
+        hideStoryGrid();
         document.removeEventListener('mousemove', moveImageDrag);
         document.removeEventListener('mouseup', endImageDrag);
         document.removeEventListener('touchmove', moveImageDrag);
@@ -7077,6 +7441,14 @@
         document.getElementById('storyPreviewImage').style.display = 'none';
         document.getElementById('storyPreviewImg').src = '';
         document.getElementById('storyImageInput').value = '';
+        
+        // Hide blurred background
+        const blurBg = document.getElementById('storyBlurBg');
+        if (blurBg) {
+            blurBg.style.display = 'none';
+            blurBg.style.backgroundImage = '';
+        }
+        
         document.getElementById('storyBgColor').value = '#667eea';
         document.getElementById('storyTextColor').value = '#ffffff';
         document.getElementById('storyPreviewContainer').style.background = 'linear-gradient(135deg, #667eea, #764ba2)';
@@ -7105,12 +7477,21 @@
 
         // Reset transforms
         storyImageTransform = { scale: 1, rotate: 0, x: 0, y: 0 };
+        storyImageFitMode = 'contain'; // Default to full image
         const img = document.getElementById('storyPreviewImg');
-        if (img) img.style.transform = '';
-        const scaleInput = document.querySelector('input[oninput*="scale"]');
-        const rotateInput = document.querySelector('input[oninput*="rotate"]');
+        if (img) {
+            img.style.transform = '';
+            img.classList.remove('fill-mode');
+        }
+        const scaleInput = document.getElementById('storyScaleSlider');
+        const rotateInput = document.getElementById('storyRotateSlider');
         if (scaleInput) { scaleInput.value = 1; document.getElementById('scaleValue').innerText = '1.0x'; }
         if (rotateInput) { rotateInput.value = 0; document.getElementById('rotateValue').innerText = '0°'; }
+        
+        // Reset fit/fill buttons - Full (first) is active
+        document.querySelectorAll('.od-story-fit-btn').forEach((btn, i) => {
+            btn.classList.toggle('active', i === 0);
+        });
 
         // Initialize text drag
         initTextDrag();
@@ -7137,12 +7518,42 @@
             const reader = new FileReader();
             reader.onload = function (e) {
                 const img = document.getElementById('storyPreviewImg');
+                const blurBg = document.getElementById('storyBlurBg');
+                
                 img.src = e.target.result;
-                document.getElementById('storyPreviewImage').style.display = 'block';
+                img.classList.remove('fill-mode'); // Default to full image (contain)
+                document.getElementById('storyPreviewImage').style.display = 'flex';
+                
+                // Set blurred background (Instagram-style)
+                if (blurBg) {
+                    blurBg.style.backgroundImage = `url(${e.target.result})`;
+                    blurBg.style.display = 'block';
+                }
+
+                // Reset transforms for new image
+                storyImageTransform = { scale: 1, rotate: 0, x: 0, y: 0 };
+                storyImageFitMode = 'contain'; // Default to showing full image
+                img.style.transform = '';
+                
+                // Reset sliders
+                const scaleSlider = document.getElementById('storyScaleSlider');
+                const rotateSlider = document.getElementById('storyRotateSlider');
+                if (scaleSlider) { scaleSlider.value = 1; }
+                if (rotateSlider) { rotateSlider.value = 0; }
+                document.getElementById('scaleValue').innerText = '1.0x';
+                document.getElementById('rotateValue').innerText = '0°';
+                
+                // Reset fit/fill buttons - Full (first button) is active
+                document.querySelectorAll('.od-story-fit-btn').forEach((btn, i) => {
+                    btn.classList.toggle('active', i === 0);
+                });
 
                 // Show image controls
                 const imgControls = document.getElementById('storyImageControls');
                 if (imgControls) imgControls.style.display = 'flex';
+                
+                // Re-initialize image drag for the new image
+                initImageDrag();
 
                 if (typeof lucide !== 'undefined') lucide.createIcons();
             };
@@ -7154,6 +7565,14 @@
         document.getElementById('storyPreviewImg').src = '';
         document.getElementById('storyPreviewImage').style.display = 'none';
         document.getElementById('storyImageInput').value = '';
+        
+        // Hide blurred background
+        const blurBg = document.getElementById('storyBlurBg');
+        if (blurBg) {
+            blurBg.style.display = 'none';
+            blurBg.style.backgroundImage = '';
+        }
+        
         const imgControls = document.getElementById('storyImageControls');
         if (imgControls) imgControls.style.display = 'none';
     }
@@ -7232,6 +7651,7 @@
         document.addEventListener('touchend', endTextDrag);
     }
 
+    let textDragRAF = null;
     function moveTextDrag(e) {
         const clientX = e.touches ? e.touches[0].clientX : e.clientX;
         const clientY = e.touches ? e.touches[0].clientY : e.clientY;
@@ -7250,6 +7670,7 @@
                         window.getSelection().removeAllRanges();
                     }
                 }
+                showStoryGrid(); // Show grid during text drag too
             }
         }
 
@@ -7257,33 +7678,39 @@
 
         e.preventDefault();
 
-        const textEl = document.getElementById('storyPreviewText');
-        const container = document.getElementById('storyPreviewContainer');
-        if (!textEl || !container) return;
+        // Use requestAnimationFrame for smooth updates
+        if (textDragRAF) cancelAnimationFrame(textDragRAF);
+        textDragRAF = requestAnimationFrame(() => {
+            const textEl = document.getElementById('storyPreviewText');
+            const container = document.getElementById('storyPreviewContainer');
+            if (!textEl || !container) return;
 
-        const containerRect = container.getBoundingClientRect();
+            const containerRect = container.getBoundingClientRect();
 
-        // Calculate position as percentage
-        let left = ((clientX - containerRect.left - textDragOffset.x) / containerRect.width) * 100;
-        let top = ((clientY - containerRect.top - textDragOffset.y) / containerRect.height) * 100;
+            // Calculate position as percentage
+            let left = ((clientX - containerRect.left - textDragOffset.x) / containerRect.width) * 100;
+            let top = ((clientY - containerRect.top - textDragOffset.y) / containerRect.height) * 100;
 
-        // Clamp values
-        left = Math.max(10, Math.min(90, left));
-        top = Math.max(10, Math.min(90, top));
+            // Clamp values
+            left = Math.max(10, Math.min(90, left));
+            top = Math.max(10, Math.min(90, top));
 
-        textEl.style.left = `${left}%`;
-        textEl.style.top = `${top}%`;
-        textEl.style.transform = 'translate(-50%, -50%)';
+            textEl.style.left = `${left}%`;
+            textEl.style.top = `${top}%`;
+            textEl.style.transform = 'translate(-50%, -50%)';
 
-        // Enable custom mode
-        storyTextPosition = 'custom';
-        document.querySelectorAll('.od-story-pos-btn').forEach(btn => btn.classList.remove('active'));
-        document.getElementById('customPosBtn')?.classList.add('active');
+            // Enable custom mode
+            storyTextPosition = 'custom';
+            document.querySelectorAll('.od-story-pos-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('customPosBtn')?.classList.add('active');
+        });
     }
 
     function endTextDrag() {
         isTextPotentialDrag = false;
         isTextDragging = false;
+        if (textDragRAF) cancelAnimationFrame(textDragRAF);
+        hideStoryGrid(); // Hide grid when done
         const textEl = document.getElementById('storyPreviewText');
         if (textEl) textEl.classList.remove('dragging');
 
@@ -7612,6 +8039,18 @@
                     <span>Reposted from @${story.shared_from.user.username}</span>
                 </div>
             `;
+        }
+
+        // Set blur background (Instagram-style)
+        const blurBg = document.getElementById('storyViewerBlurBg');
+        if (story.media_url) {
+            // For image stories, use the image as blur background
+            blurBg.style.backgroundImage = `url('${story.media_url}')`;
+            blurBg.style.background = '';
+        } else {
+            // For text stories, use the gradient background
+            blurBg.style.backgroundImage = '';
+            blurBg.style.background = story.background_color || 'linear-gradient(135deg, #667eea, #764ba2)';
         }
 
         // Show content
@@ -7975,7 +8414,7 @@
             menuHTML = `
             <button class="od-post-menu-item danger" onclick="deletePost(${scribeId})">
                 <span class="od-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg></span>
-                <span>Delete Post</span>
+                <span>Delete Scribe</span>
             </button>
             <button class="od-post-menu-item" onclick="copyPostLink(${scribeId})">
                 <span class="od-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></span>
@@ -7999,7 +8438,7 @@
             </button>
             <button class="od-post-menu-item" onclick="goToPost(${scribeId})">
                 <span class="od-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></span>
-                <span>Go to Post</span>
+                <span>Go to Scribe</span>
             </button>
             <button class="od-post-menu-item" onclick="closePostMenu()">
                 <span class="od-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
@@ -8104,7 +8543,7 @@
     }
 
     function deletePost(scribeId) {
-        showConfirmationModal('Delete Post', 'Are you sure you want to delete this post? This action cannot be undone.', function() {
+        showConfirmationModal('Delete Scribe', 'Are you sure you want to delete this scribe? This action cannot be undone.', function() {
             fetch('{% url "delete_post" %}', {
                 method: 'POST',
                 headers: {
@@ -8126,12 +8565,12 @@
                         closePostMenu();
                         showIGToast(data.message, 'success');
                     } else {
-                        showIGToast(data.error || 'Failed to delete post', 'error');
+                        showIGToast(data.error || 'Failed to delete scribe', 'error');
                     }
                 })
                 .catch(err => {
-                    console.error('Delete post error:', err);
-                    showIGToast('Failed to delete post', 'error');
+                    console.error('Delete scribe error:', err);
+                    showIGToast('Failed to delete scribe', 'error');
                 });
         });
     }
@@ -8354,12 +8793,12 @@
                     closeReportModal();
                     showIGToast(data.message, 'success');
                 } else {
-                    showIGToast(data.error || 'Failed to report post', 'error');
+                    showIGToast(data.error || 'Failed to report scribe', 'error');
                 }
             })
             .catch(err => {
-                console.error('Report post error:', err);
-                showIGToast('Failed to report post', 'error');
+                console.error('Report scribe error:', err);
+                showIGToast('Failed to report scribe', 'error');
             });
     }
 
@@ -8383,12 +8822,12 @@
                     closeReportModal();
                     showIGToast(data.message, 'success');
                 } else {
-                    showIGToast(data.error || 'Failed to report post', 'error');
+                    showIGToast(data.error || 'Failed to report scribe', 'error');
                 }
             })
             .catch(err => {
-                console.error('Report post error:', err);
-                showIGToast('Failed to report post', 'error');
+                console.error('Report scribe error:', err);
+                showIGToast('Failed to report scribe', 'error');
             });
     }
 

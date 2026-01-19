@@ -2131,9 +2131,6 @@
 {% endblock %}
 
 {% block content %}
-<!-- Include Shared Navbar -->
-{% include 'chat/partials/navbar.html' %}
-
 <!-- Main Profile Content -->
 <div class="od-profile-container">
     <div class="od-profile">
@@ -3808,6 +3805,143 @@
             min-height: 44px;
         }
     }
+
+    /* Post Menu Modal */
+    .od-post-menu-modal {
+        background: var(--od-surface);
+        border: 1px solid var(--od-border);
+        border-radius: 16px;
+        max-width: 400px;
+        width: 90%;
+        overflow: hidden;
+        animation: modalSlideUp 0.2s ease;
+    }
+
+    @keyframes modalSlideUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .od-post-menu-content {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .od-post-menu-item {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 16px 20px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: var(--od-text-primary);
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.2s;
+        width: 100%;
+        text-align: left;
+        border-bottom: 1px solid var(--od-border);
+    }
+
+    .od-post-menu-item:last-child {
+        border-bottom: none;
+    }
+
+    .od-post-menu-item:hover {
+        background: var(--od-surface-hover);
+    }
+
+    .od-post-menu-item .od-icon {
+        width: 22px;
+        height: 22px;
+        flex-shrink: 0;
+    }
+
+    .od-post-menu-item.danger {
+        color: #ef4444;
+    }
+
+    .od-post-menu-item.danger:hover {
+        background: rgba(239, 68, 68, 0.1);
+    }
+
+    .od-post-menu-item.primary {
+        color: var(--color-primary);
+    }
+
+    /* Emoji picker for post detail */
+    .od-detail-emoji-picker {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        padding: 8px 16px;
+        border-top: 1px solid var(--od-border);
+        background: var(--od-background-secondary);
+    }
+
+    .od-detail-emoji-picker button {
+        background: none;
+        border: none;
+        font-size: 18px;
+        padding: 6px;
+        cursor: pointer;
+        border-radius: 6px;
+        transition: background 0.2s;
+    }
+
+    .od-detail-emoji-picker button:hover {
+        background: var(--od-background-tertiary);
+    }
+
+    /* Comment like button styling */
+    .od-detail-comment-like {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 4px;
+        color: var(--od-text-secondary);
+        transition: all 0.2s;
+    }
+
+    .od-detail-comment-like:hover {
+        color: var(--od-text-primary);
+    }
+
+    .od-detail-comment-like.liked {
+        color: #ef4444;
+    }
+
+    .od-detail-comment-like .od-icon svg {
+        width: 14px;
+        height: 14px;
+    }
+
+    /* Reply button styling */
+    .od-detail-comment-reply {
+        background: none;
+        border: none;
+        color: var(--od-text-secondary);
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        padding: 0;
+    }
+
+    .od-detail-comment-reply:hover {
+        color: var(--od-text-primary);
+    }
+
+    /* Save button saved state */
+    .od-detail-action-btn.saved svg {
+        fill: currentColor;
+    }
 </style>
 
 <!-- Post Detail Modal -->
@@ -3824,8 +3958,23 @@
             </div>
             <div class="od-detail-actions" id="postDetailActions"></div>
             <div class="od-detail-info" id="postDetailInfo"></div>
+            <div class="od-detail-emoji-picker" id="detailEmojiPicker" style="display: none;">
+                <button type="button" onclick="insertDetailEmoji('😊')">😊</button>
+                <button type="button" onclick="insertDetailEmoji('❤️')">❤️</button>
+                <button type="button" onclick="insertDetailEmoji('🔥')">🔥</button>
+                <button type="button" onclick="insertDetailEmoji('👏')">👏</button>
+                <button type="button" onclick="insertDetailEmoji('😂')">😂</button>
+                <button type="button" onclick="insertDetailEmoji('🎉')">🎉</button>
+                <button type="button" onclick="insertDetailEmoji('💯')">💯</button>
+                <button type="button" onclick="insertDetailEmoji('✨')">✨</button>
+                <button type="button" onclick="insertDetailEmoji('🙌')">🙌</button>
+                <button type="button" onclick="insertDetailEmoji('😍')">😍</button>
+                <button type="button" onclick="insertDetailEmoji('🤔')">🤔</button>
+                <button type="button" onclick="insertDetailEmoji('👀')">👀</button>
+            </div>
+            <div id="replyIndicator" style="display: none; padding: 8px 16px; background: var(--od-bg-secondary); font-size: 12px; color: var(--od-text-secondary); align-items: center; justify-content: space-between; gap: 8px;"></div>
             <div class="od-detail-comment-form">
-                <button class="od-emoji-btn">{% icon "smile" %}</button>
+                <button class="od-emoji-btn" onclick="toggleDetailEmojiPicker()">{% icon "smile" %}</button>
                 <input type="text" id="postDetailCommentInput" placeholder="Add a comment..."
                     class="od-detail-comment-input">
                 <button class="od-post-comment-btn" id="postCommentBtn" onclick="postCommentFromDetail()">Post</button>
@@ -4978,7 +5127,7 @@
                         <span class="od-detail-location">Original Post</span>
                     </div>
                 </a>
-                <button class="od-detail-more-btn">
+                <button class="od-detail-more-btn" onclick="openPostMenu(${scribe.id}, '${scribe.username}')">
                     <span class="od-icon">{% icon "more-horizontal" %}</span>
                 </button>
             `;
@@ -5008,11 +5157,11 @@
                         <button class="od-detail-action-btn" onclick="document.getElementById('postDetailCommentInput').focus()">
                             {% icon "message-circle" %}
                         </button>
-                        <button class="od-detail-action-btn">
+                        <button class="od-detail-action-btn" onclick="sharePost(${scribe.id})">
                             {% icon "send" %}
                         </button>
                     </div>
-                    <button class="od-detail-action-btn">
+                    <button class="od-detail-action-btn ${scribe.is_saved ? 'saved' : ''}" onclick="savePostFromDetail(${scribe.id})" id="detailSaveBtn">
                         {% icon "bookmark" %}
                     </button>
                 </div>
@@ -5041,22 +5190,46 @@
                 const captionDiv = document.getElementById('postDetailCaption').innerHTML;
 
                 if (data.success && data.comments && data.comments.length > 0) {
-                    const commentsHtml = data.comments.map(comment => `
-                <div class="od-detail-comment">
-                    <img src="${comment.user_profile_picture || ''}" alt="" class="od-detail-comment-avatar" onerror="this.outerHTML='<div class=\\'od-detail-comment-avatar-placeholder\\'>${comment.user_initials || 'U'}</div>'">
-                    <div class="od-detail-comment-content">
-                        <span class="od-detail-comment-username">${comment.user_username || 'User'}</span>
-                        <span class="od-detail-comment-text">${comment.content}</span>
-                        <div class="od-detail-comment-meta">
-                            <span class="od-detail-comment-time">${comment.timestamp || ''}</span>
-                            <button class="od-detail-comment-reply">Reply</button>
-                        </div>
-                    </div>
-                    <button class="od-detail-comment-like">
-                        <span class="od-icon"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
-                    </button>
-                </div>
-            `).join('');
+                    const commentsHtml = data.comments.map(comment => {
+                        // Build replies HTML if any
+                        let repliesHtml = '';
+                        if (comment.replies && comment.replies.length > 0) {
+                            repliesHtml = comment.replies.map(reply => `
+                                <div class="od-detail-comment od-detail-reply" style="margin-left: 40px; padding-left: 12px; border-left: 2px solid var(--od-border-color);">
+                                    <img src="${reply.user_profile_picture || ''}" alt="" class="od-detail-comment-avatar" style="width: 28px; height: 28px;" onerror="this.outerHTML='<div class=\\'od-detail-comment-avatar-placeholder\\' style=\\'width:28px;height:28px;font-size:10px;\\'>${reply.user_initials || 'U'}</div>'">
+                                    <div class="od-detail-comment-content">
+                                        <span class="od-detail-comment-username">${reply.user_username || 'User'}</span>
+                                        <span class="od-detail-comment-text">${reply.content}</span>
+                                        <div class="od-detail-comment-meta">
+                                            <span class="od-detail-comment-time">${reply.timestamp || ''}</span>
+                                            <button class="od-detail-comment-reply" onclick="replyToComment('${reply.user_username || 'User'}', ${comment.id})">Reply</button>
+                                        </div>
+                                    </div>
+                                    <button class="od-detail-comment-like ${reply.is_liked ? 'liked' : ''}" onclick="toggleCommentLike(${reply.id}, this)">
+                                        <span class="od-icon"><svg viewBox="0 0 24 24" fill="${reply.is_liked ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="1.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
+                                    </button>
+                                </div>
+                            `).join('');
+                        }
+                        
+                        return `
+                            <div class="od-detail-comment">
+                                <img src="${comment.user_profile_picture || ''}" alt="" class="od-detail-comment-avatar" onerror="this.outerHTML='<div class=\\'od-detail-comment-avatar-placeholder\\'>${comment.user_initials || 'U'}</div>'">
+                                <div class="od-detail-comment-content">
+                                    <span class="od-detail-comment-username">${comment.user_username || 'User'}</span>
+                                    <span class="od-detail-comment-text">${comment.content}</span>
+                                    <div class="od-detail-comment-meta">
+                                        <span class="od-detail-comment-time">${comment.timestamp || ''}</span>
+                                        <button class="od-detail-comment-reply" onclick="replyToComment('${comment.user_username || 'User'}', ${comment.id})">Reply</button>
+                                    </div>
+                                </div>
+                                <button class="od-detail-comment-like ${comment.is_liked ? 'liked' : ''}" onclick="toggleCommentLike(${comment.id}, this)">
+                                    <span class="od-icon"><svg viewBox="0 0 24 24" fill="${comment.is_liked ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="1.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
+                                </button>
+                            </div>
+                            ${repliesHtml}
+                        `;
+                    }).join('');
                     commentsDiv.innerHTML = `<div class="od-detail-caption" id="postDetailCaption">${captionDiv}</div>${commentsHtml}`;
                 } else {
                     commentsDiv.innerHTML = `<div class="od-detail-caption" id="postDetailCaption">${captionDiv}</div>
@@ -5077,18 +5250,31 @@
         const content = input.value.trim();
         if (!content || !currentDetailScribeId) return;
 
+        const requestBody = { 
+            scribe_id: currentDetailScribeId, 
+            content: content 
+        };
+        
+        // Include parent_id if replying to a comment
+        if (currentReplyToCommentId) {
+            requestBody.parent_id = currentReplyToCommentId;
+        }
+
         fetch('{% url "add_comment" %}', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRFToken': getCSRFToken()
             },
-            body: JSON.stringify({ scribe_id: currentDetailScribeId, content: content })
+            body: JSON.stringify(requestBody)
         })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
                     input.value = '';
+                    currentReplyToCommentId = null; // Reset reply parent
+                    const replyIndicator = document.getElementById('replyIndicator');
+                    if (replyIndicator) replyIndicator.style.display = 'none';
                     loadPostComments(currentDetailScribeId);
                     showIGToast('Comment posted!', 'success');
                 }
@@ -5103,7 +5289,147 @@
         }
     }
 
+    // Post Menu (3-dot menu) - same as dashboard
+    let currentMenuScribeId = null;
+    const currentLoggedInUsername = '{{ request.user.username }}';
+
+    function openPostMenu(scribeId, scribeUsername) {
+        currentMenuScribeId = scribeId;
+        const modal = document.getElementById('postMenuModal');
+        const content = document.getElementById('postMenuContent');
+
+        // Check if it's the user's own post
+        const isOwnPost = scribeUsername === currentLoggedInUsername;
+
+        let menuHTML = '';
+
+        if (isOwnPost) {
+            // Owner menu - can delete
+            menuHTML = `
+            <button class="od-post-menu-item danger" onclick="deleteScribeFromModal(${scribeId})">
+                <span class="od-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg></span>
+                <span>Delete Scribe</span>
+            </button>
+            <button class="od-post-menu-item" onclick="copyScribeLink(${scribeId})">
+                <span class="od-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></span>
+                <span>Copy Link</span>
+            </button>
+            <button class="od-post-menu-item" onclick="closePostMenu()">
+                <span class="od-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
+                <span>Cancel</span>
+            </button>
+        `;
+        } else {
+            // Not owner - can report
+            menuHTML = `
+            <button class="od-post-menu-item danger" onclick="reportScribeFromModal(${scribeId})">
+                <span class="od-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg></span>
+                <span>Report</span>
+            </button>
+            <button class="od-post-menu-item" onclick="copyScribeLink(${scribeId})">
+                <span class="od-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></span>
+                <span>Copy Link</span>
+            </button>
+            <button class="od-post-menu-item" onclick="goToScribe(${scribeId})">
+                <span class="od-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></span>
+                <span>Go to Scribe</span>
+            </button>
+            <button class="od-post-menu-item" onclick="closePostMenu()">
+                <span class="od-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
+                <span>Cancel</span>
+            </button>
+        `;
+        }
+
+        content.innerHTML = menuHTML;
+        modal.style.display = 'flex';
+
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+
+    function closePostMenu(event) {
+        if (!event || event.target === event.currentTarget) {
+            document.getElementById('postMenuModal').style.display = 'none';
+            currentMenuScribeId = null;
+        }
+    }
+
+    function deleteScribeFromModal(scribeId) {
+        if (confirm('Are you sure you want to delete this scribe?')) {
+            fetch(`/api/scribe/${scribeId}/delete/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCSRFToken(),
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    showIGToast('Scribe deleted successfully', 'success');
+                    closePostMenu();
+                    closePostDetail();
+                    // Reload page to reflect deletion
+                    location.reload();
+                } else {
+                    showIGToast(data.error || 'Failed to delete scribe', 'error');
+                }
+            })
+            .catch(() => showIGToast('Failed to delete scribe', 'error'));
+        }
+    }
+
+    function reportScribeFromModal(scribeId) {
+        closePostMenu();
+        // Simple report - could be extended with a modal
+        if (confirm('Report this scribe for violating community guidelines?')) {
+            fetch('/api/report-scribe/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCSRFToken(),
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ scribe_id: scribeId, reason: 'inappropriate' })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    showIGToast('Report submitted. Thank you for helping keep our community safe.', 'success');
+                } else {
+                    showIGToast(data.error || 'Failed to submit report', 'error');
+                }
+            })
+            .catch(() => showIGToast('Failed to submit report', 'error'));
+        }
+    }
+
+    function copyScribeLink(scribeId) {
+        const url = `${window.location.origin}/scribe/${scribeId}/`;
+        navigator.clipboard.writeText(url).then(() => {
+            showIGToast('Link copied to clipboard', 'success');
+            closePostMenu();
+        }).catch(() => {
+            showIGToast('Failed to copy link', 'error');
+        });
+    }
+
+    function goToScribe(scribeId) {
+        closePostMenu();
+        closePostDetail();
+        window.location.href = `/scribe/${scribeId}/`;
+    }
+
     function toggleLikeFromDetail(scribeId) {
+        const btn = document.getElementById('detailLikeBtn');
+        const wasLiked = btn && btn.classList.contains('liked');
+        
+        // Optimistic UI update
+        if (btn) btn.classList.toggle('liked');
+        if (!wasLiked && btn) { 
+            btn.style.transform = 'scale(1.2)'; 
+            setTimeout(() => btn.style.transform = 'scale(1)', 200); 
+        }
+
         fetch('{% url "toggle_like" %}', {
             method: 'POST',
             headers: {
@@ -5116,8 +5442,108 @@
             .then(data => {
                 if (data.success) {
                     document.getElementById('detailLikeCount').textContent = data.like_count;
+                    if (btn) btn.classList.toggle('liked', data.is_liked === true);
+                } else {
+                    // Revert on error
+                    if (btn) btn.classList.toggle('liked');
                 }
+            })
+            .catch(() => {
+                // Revert on error
+                if (btn) btn.classList.toggle('liked');
             });
+    }
+
+    // Emoji picker for detail modal
+    function toggleDetailEmojiPicker() {
+        const picker = document.getElementById('detailEmojiPicker');
+        if (picker) {
+            picker.style.display = picker.style.display === 'none' ? 'flex' : 'none';
+        }
+    }
+
+    function insertDetailEmoji(emoji) {
+        const input = document.getElementById('postDetailCommentInput');
+        if (input) {
+            const start = input.selectionStart;
+            const end = input.selectionEnd;
+            const text = input.value;
+            input.value = text.substring(0, start) + emoji + text.substring(end);
+            input.focus();
+            input.setSelectionRange(start + emoji.length, start + emoji.length);
+        }
+    }
+
+    // Reply to comment - stores parent comment ID for nesting
+    let currentReplyToCommentId = null;
+    
+    function replyToComment(username, commentId) {
+        const input = document.getElementById('postDetailCommentInput');
+        if (input) {
+            input.value = `@${username} `;
+            input.focus();
+            currentReplyToCommentId = commentId || null;
+            
+            // Show reply indicator
+            const replyIndicator = document.getElementById('replyIndicator');
+            if (replyIndicator) {
+                replyIndicator.innerHTML = `
+                    <span>Replying to @${username}</span>
+                    <button onclick="cancelReply()" style="background: none; border: none; cursor: pointer; color: var(--od-text-secondary);">✕</button>
+                `;
+                replyIndicator.style.display = 'flex';
+            }
+        }
+    }
+    
+    function cancelReply() {
+        currentReplyToCommentId = null;
+        const input = document.getElementById('postDetailCommentInput');
+        if (input) input.value = '';
+        const replyIndicator = document.getElementById('replyIndicator');
+        if (replyIndicator) replyIndicator.style.display = 'none';
+    }
+
+    // Like comment
+    function toggleCommentLike(commentId, btn) {
+        // Optimistic UI update
+        if (btn) {
+            btn.classList.toggle('liked');
+            if (btn.classList.contains('liked')) {
+                btn.style.transform = 'scale(1.2)';
+                setTimeout(() => btn.style.transform = 'scale(1)', 200);
+            }
+        }
+        
+        // Call backend API
+        fetch('{% url "toggle_comment_like" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken()
+            },
+            body: JSON.stringify({ comment_id: commentId })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Update the button state based on server response
+                if (btn) {
+                    if (data.is_liked) {
+                        btn.classList.add('liked');
+                    } else {
+                        btn.classList.remove('liked');
+                    }
+                }
+            } else {
+                // Revert on error
+                if (btn) btn.classList.toggle('liked');
+            }
+        })
+        .catch(err => {
+            console.error('Comment like error:', err);
+            if (btn) btn.classList.toggle('liked');
+        });
     }
 
     // Followers/Following modals
@@ -5977,6 +6403,53 @@
             });
     }
 
+    function savePost(scribeId) {
+        const btn = document.querySelector(`.od-post[data-scribe-id="${scribeId}"] .od-post-action-btn[data-action="save"]`);
+        toggleSavePost(scribeId, btn);
+    }
+
+    function toggleSavePost(scribeId, btn) {
+        // Optimistic UI update
+        const wasSaved = btn ? btn.classList.contains('saved') : false;
+        if (btn) btn.classList.toggle('saved');
+
+        fetch('{% url "toggle_save_post" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken()
+            },
+            body: JSON.stringify({ scribe_id: scribeId })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    if (btn) {
+                        if (data.is_saved) {
+                            btn.classList.add('saved');
+                        } else {
+                            btn.classList.remove('saved');
+                        }
+                    }
+                    showIGToast(data.message, 'success');
+                } else {
+                    // Revert on error
+                    if (btn) btn.classList.toggle('saved');
+                    showIGToast(data.error || 'Failed to save post', 'error');
+                }
+            })
+            .catch(err => {
+                console.error('Save post error:', err);
+                if (btn) btn.classList.toggle('saved');
+                showIGToast('Failed to save post', 'error');
+            });
+    }
+
+    function savePostFromDetail(scribeId) {
+        const btn = document.getElementById('detailSaveBtn');
+        toggleSavePost(scribeId, btn);
+    }
+
     function addComment(scribeId) {
         const input = document.getElementById(`comment-input-${scribeId}`);
         const content = (input?.value || '').trim();
@@ -6185,6 +6658,15 @@
                     <span style="font-size: 12px; font-weight: 500;">More</span>
                 </button>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- Post Menu Modal (3-dot menu) -->
+<div id="postMenuModal" class="od-modal-overlay" style="display: none; z-index: 10002;" onclick="closePostMenu(event)">
+    <div class="od-post-menu-modal" onclick="event.stopPropagation()">
+        <div class="od-post-menu-content" id="postMenuContent">
+            <!-- Menu items will be dynamically populated -->
         </div>
     </div>
 </div>

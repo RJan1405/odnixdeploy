@@ -951,17 +951,11 @@
                 {% endif %}
                     <img src="{{ current_user.profile_picture_url }}" alt="{{ current_user.full_name }}"
                         class="od-nav-avatar" onerror="this.style.display='none'">
-                    {% if unread_message_count > 0 %}
-                    <span style="position:absolute;top:0;right:0;transform:translate(40%,-40%);background:#ff3b3b;color:#fff;border-radius:50%;min-width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:bold;box-shadow:0 0 0 2px #fff;z-index:2;">{{ unread_message_count }}</span>
-                    {% endif %}
                 </span>
                 {% elif user.is_authenticated %}
                 <span style="position:relative;display:inline-block;">
                     <img src="{{ user.profile_picture_url }}" alt="{{ user.full_name }}" class="od-nav-avatar"
                         onerror="this.style.display='none'">
-                    {% if unread_message_count > 0 %}
-                    <span style="position:absolute;top:0;right:0;transform:translate(40%,-40%);background:#ff3b3b;color:#fff;border-radius:50%;min-width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:bold;box-shadow:0 0 0 2px #fff;z-index:2;">{{ unread_message_count }}</span>
-                    {% endif %}
                 </span>
                 {% else %}
                 <span class="od-icon od-nav-icon {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">

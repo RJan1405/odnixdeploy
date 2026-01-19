@@ -1129,8 +1129,8 @@
                     return;
                 }
 
-                // Perform Poll
-                const response = await fetch(`/api/p2p/${chatId}/signals/`);
+                // Perform Poll - only fetch call signals (not file transfer signals)
+                const response = await fetch(`/api/p2p/${chatId}/signals/?signal_type=call`);
                 const data = await response.json();
 
                 if (data.success && data.signals && data.signals.length > 0) {

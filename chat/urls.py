@@ -75,6 +75,7 @@ urlpatterns = [
 
     # Comment URLs
     path('api/add-comment/', views.add_comment, name='add_comment'),
+    path('api/toggle-comment-like/', views.toggle_comment_like, name='toggle_comment_like'),
     path('api/scribe/<int:scribe_id>/', views.get_scribe, name='get_scribe'),
     path('api/scribe/<int:scribe_id>/comments/',
          views.get_scribe_comments, name='get_scribe_comments'),
@@ -230,6 +231,13 @@ urlpatterns = [
     path('api/chat-requests/count/', views.get_chat_requests_count, name='get_chat_requests_count'),
     path('api/chat-requests/<int:request_id>/accept/', views.accept_chat_request, name='accept_chat_request'),
     path('api/chat-requests/<int:request_id>/decline/', views.decline_chat_request, name='decline_chat_request'),
+    
+    # DM Request System (Instagram-style)
+    path('api/dm-requests/', views.get_dm_requests, name='get_dm_requests'),
+    path('api/dm-requests/count/', views.get_dm_requests_count, name='get_dm_requests_count'),
+    path('api/dm-requests/<int:chat_id>/check/', views.check_dm_request, name='check_dm_request'),
+    path('api/dm-requests/<int:chat_id>/accept/', views.accept_dm_request, name='accept_dm_request'),
+    path('api/dm-requests/<int:chat_id>/decline/', views.decline_dm_request, name='decline_dm_request'),
 ]
 
 # Serve media files in development

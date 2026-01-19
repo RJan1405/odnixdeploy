@@ -17,13 +17,18 @@ logger = logging.getLogger(__name__)
 
 
 class ChatConsumer(AsyncJsonWebsocketConsumer):
+    # Class-level dictionary to track typing users per chat room
+    _typing_users = {}
 
     # ---------------- CONNECT ----------------
     async def connect(self):
         self.chat_id = self.scope["url_route"]["kwargs"]["chat_id"]
         self.group_name = f"chat_{self.chat_id}"
         self.user = self.scope["user"]
-        self.typing_users = set()
+        
+        # Initialize typing users set for this chat if not exists
+        if self.chat_id not in ChatConsumer._typing_users:
+            ChatConsumer._typing_users[self.chat_id] = set()
 
         if not self.user.is_authenticated:
             await self.close()
@@ -47,7 +52,9 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
             self.channel_name
         )
 
-        self.typing_users.discard(self.user.id)
+        # Remove user from typing set on disconnect
+        if self.chat_id in ChatConsumer._typing_users:
+            ChatConsumer._typing_users[self.chat_id].discard(self.user.id)
         await self.broadcast_typing()
 
     # ---------------- RECEIVE ----------------
@@ -156,14 +163,27 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
             }
         )
 
+        # Auto-accept chat for the sender (Instagram-style)
+        await self.auto_accept_chat()
+
         # Send push notification to other participants
         await self.send_message_notification(content)
+        
+        # Notify recipients about new chat if this is the first message
+        await self.notify_new_chat_if_needed(content)
+        
+        # Update sidebar for all recipients (real-time message preview update)
+        await self.notify_sidebar_update(content)
 
     async def handle_typing(self, data):
+        # Ensure typing users set exists for this chat
+        if self.chat_id not in ChatConsumer._typing_users:
+            ChatConsumer._typing_users[self.chat_id] = set()
+        
         if data.get("is_typing"):
-            self.typing_users.add(self.user.id)
+            ChatConsumer._typing_users[self.chat_id].add(self.user.id)
         else:
-            self.typing_users.discard(self.user.id)
+            ChatConsumer._typing_users[self.chat_id].discard(self.user.id)
 
         await self.broadcast_typing()
 
@@ -201,7 +221,8 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
 
     async def broadcast_typing(self):
         users = []
-        for uid in self.typing_users:
+        typing_set = ChatConsumer._typing_users.get(self.chat_id, set())
+        for uid in typing_set:
             user = await self.get_user(uid)
             if user:
                 users.append({"id": user.id, "name": user.full_name})
@@ -287,6 +308,10 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
         if not message:
             return None
 
+        # 🔥 FIX: Only the RECIPIENT can consume the message, not the sender
+        if message.sender_id == self.user.id:
+            return None  # Sender cannot consume their own view-once message
+
         message.consumed_at = timezone.now()
         message.save(update_fields=["consumed_at"])
         return message.consumed_at
@@ -339,6 +364,148 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
                     'message_preview': preview,
                 }
             )
+
+    @database_sync_to_async
+    def auto_accept_chat(self):
+        """Auto-accept chat for the sender when they send a message"""
+        from chat.models import ChatAcceptance
+        try:
+            chat = Chat.objects.get(id=self.chat_id)
+            if chat.chat_type == 'private':
+                ChatAcceptance.objects.get_or_create(chat=chat, user=self.user)
+        except Chat.DoesNotExist:
+            pass
+
+    async def notify_new_chat_if_needed(self, content):
+        """Notify recipients if this is a new chat appearing in their sidebar"""
+        chat_info = await self.get_chat_info_for_notification()
+        if not chat_info:
+            return
+            
+        participant_ids = await self.get_other_participants()
+        
+        for participant_id in participant_ids:
+            # Check if participant has accepted this chat
+            is_accepted = await self.check_chat_acceptance(participant_id)
+            
+            # Send new_chat notification to sidebar
+            await self.channel_layer.group_send(
+                f'sidebar_{participant_id}',
+                {
+                    'type': 'new_chat',
+                    'chat': chat_info,
+                    'is_request': not is_accepted,  # It's a request if not accepted
+                }
+            )
+            
+            # Also update request count if it's a new request
+            if not is_accepted:
+                count = await self.get_pending_request_count(participant_id)
+                await self.channel_layer.group_send(
+                    f'sidebar_{participant_id}',
+                    {
+                        'type': 'request_count_update',
+                        'count': count,
+                    }
+                )
+
+    @database_sync_to_async
+    def get_chat_info_for_notification(self):
+        """Get chat info for sidebar notification"""
+        try:
+            chat = Chat.objects.get(id=self.chat_id)
+            if chat.chat_type != 'private':
+                return None
+                
+            other_user = chat.participants.exclude(id=self.user.id).first()
+            if not other_user:
+                return None
+                
+            last_msg = chat.messages.order_by('-timestamp').first()
+            last_message = ''
+            if last_msg:
+                if last_msg.message_type == 'media':
+                    last_message = '📷 Sent a file'
+                else:
+                    last_message = last_msg.content[:50] + ('...' if len(last_msg.content) > 50 else '')
+            
+            return {
+                'id': chat.id,
+                'type': 'private',
+                'other_user': {
+                    'id': self.user.id,
+                    'username': self.user.username,
+                    'full_name': self.user.full_name,
+                    'avatar_url': self.user.profile_picture_url if hasattr(self.user, 'profile_picture_url') else None,
+                    'is_online': self.user.is_online,
+                },
+                'last_message': last_message,
+                'unread_count': 1,
+            }
+        except Chat.DoesNotExist:
+            return None
+
+    @database_sync_to_async
+    def check_chat_acceptance(self, user_id):
+        """Check if a user has accepted this chat"""
+        from chat.models import ChatAcceptance
+        return ChatAcceptance.objects.filter(chat_id=self.chat_id, user_id=user_id).exists()
+
+    @database_sync_to_async
+    def get_pending_request_count(self, user_id):
+        """Get count of pending DM requests for a user"""
+        from chat.models import ChatAcceptance, CustomUser
+        try:
+            user = CustomUser.objects.get(id=user_id)
+            accepted_chat_ids = ChatAcceptance.objects.filter(
+                user=user
+            ).values_list('chat_id', flat=True)
+            
+            pending_chats = Chat.objects.filter(
+                participants=user,
+                chat_type='private'
+            ).exclude(id__in=accepted_chat_ids)
+            
+            count = 0
+            for chat in pending_chats:
+                other_user = chat.participants.exclude(id=user_id).first()
+                if other_user and chat.messages.filter(sender=other_user).exists():
+                    count += 1
+            return count
+        except:
+            return 0
+
+    async def notify_sidebar_update(self, content):
+        """Send sidebar_update to all recipients for real-time message preview updates"""
+        participant_ids = await self.get_other_participants()
+        
+        for participant_id in participant_ids:
+            unread_count = await self.get_unread_count_for_user(participant_id)
+            
+            # Truncate message preview
+            preview = content[:50] + ('...' if len(content) > 50 else '')
+            
+            await self.channel_layer.group_send(
+                f'sidebar_{participant_id}',
+                {
+                    'type': 'sidebar_update',
+                    'chat_id': self.chat_id,
+                    'unread_count': unread_count,
+                    'last_message': preview,
+                }
+            )
+
+    @database_sync_to_async
+    def get_unread_count_for_user(self, user_id):
+        """Get unread message count for a specific user in this chat"""
+        try:
+            from .models import Message
+            return Message.objects.filter(
+                chat_id=self.chat_id,
+                is_read=False
+            ).exclude(sender_id=user_id).count()
+        except:
+            return 0
 
     @database_sync_to_async
     def get_other_participants(self):
@@ -950,3 +1117,26 @@ class SidebarConsumer(AsyncWebsocketConsumer):
             "unread_count": event["unread_count"],
             "last_message": event["last_message"],
         }))
+
+    async def new_chat(self, event):
+        """Notify frontend about a new chat that should appear in sidebar"""
+        await self.send(text_data=json.dumps({
+            "type": "new_chat",
+            "chat": event["chat"],
+            "is_request": event.get("is_request", False),
+        }))
+
+    async def chat_accepted(self, event):
+        """Notify frontend that a chat request was accepted (move from Requests to All)"""
+        await self.send(text_data=json.dumps({
+            "type": "chat_accepted",
+            "chat_id": event["chat_id"],
+        }))
+
+    async def request_count_update(self, event):
+        """Update the request badge count"""
+        await self.send(text_data=json.dumps({
+            "type": "request_count_update",
+            "count": event["count"],
+        }))
+

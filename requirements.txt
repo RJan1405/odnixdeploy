@@ -19,3 +19,4 @@ dj-database-url==2.1.0
 moviepy==1.0.3
 imageio-ffmpeg==0.4.9
 pycryptodome==3.19.0
+filetype==1.2.0

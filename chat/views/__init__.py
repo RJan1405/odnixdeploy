@@ -13,7 +13,9 @@ from .chat import (
     get_chat_participant_status, get_group_details, update_group_settings, messages_page,
     remove_group_member, leave_group, regenerate_invite_code,
     p2p_send_signal, p2p_get_signals, get_chat_participants_for_p2p, p2p_clear_signals,
-    get_chats_api, load_more_explore_content, send_call_notification
+    get_chats_api, load_more_explore_content, send_call_notification,
+    get_dm_requests, get_dm_requests_count, accept_dm_request, decline_dm_request,
+    auto_accept_chat_for_sender, check_dm_request
 )
 from .media import (
     handle_media_upload, serve_media_file
@@ -21,7 +23,7 @@ from .media import (
 
 from .social import (
     profile_view, update_profile, post_scribe, toggle_like, toggle_dislike, add_comment,
-    get_scribe, get_scribe_comments, toggle_follow, toggle_block, manage_follow_request,
+    toggle_comment_like, get_scribe, get_scribe_comments, toggle_follow, toggle_block, manage_follow_request,
     toggle_account_privacy, get_follow_requests, follow_states, dismiss_suggestion,
     get_hashtag_scribes, get_trending_hashtags, get_user_mentions,
     search_users_for_mention, update_theme, get_all_activity,

@@ -329,15 +329,21 @@
         max-width: 100%;
         margin-top: auto;
         /* Push messages to bottom */
+        display: flex;
+        flex-direction: column;
     }
 
     .od-message.sent {
         align-self: flex-end;
         flex-direction: row-reverse;
+        margin-left: auto;
+        margin-right: 0;
     }
 
     .od-message.received {
         align-self: flex-start;
+        margin-left: 0;
+        margin-right: auto;
     }
 
     .od-message.sent .od-message-bubble {
@@ -555,7 +561,7 @@
         gap: 8px;
         margin-bottom: 12px;
         padding: 4px 8px;
-        max-width: 100%;
+        max-width: 75%;
         box-sizing: border-box;
     }
 
@@ -2064,8 +2070,10 @@
             <a href="{% url 'chat_detail' chat.id %}" onclick="loadChat('{{ chat.id }}'); return false;"
                 class="od-direct-item{% if chat.id == active_chat_id %} active{% endif %}" data-type="private"
                 data-following="{% if chat.is_private %}true{% endif %}"
+                data-is-request="{% if chat.is_request %}true{% else %}false{% endif %}"
                 data-username="{% for p in chat.participants %}{% if p != request.user %}{{ p.username }}{% endif %}{% endfor %}"
-                data-name="{% for p in chat.participants %}{% if p != request.user %}{{ p.full_name|lower }}{% endif %}{% endfor %}">
+                data-name="{% for p in chat.participants %}{% if p != request.user %}{{ p.full_name|lower }}{% endif %}{% endfor %}"
+                style="{% if chat.is_request %}display:none{% endif %}">
                 {% for participant in chat.participants %}
                 {% if participant != request.user %}
                 <span style="position:relative;display:inline-block;">
@@ -2201,14 +2209,23 @@
             <div id="requestBanner"
                 style="margin: 20px 16px; text-align: center; padding: 24px 20px; background: var(--od-surface); border: 1px solid var(--od-border); border-radius: 12px; display: flex; flex-direction: column; align-items: center;">
                 <div style="width: 64px; height: 64px; margin-bottom: 16px; position: relative;">
+                    {% if target_user_avatar %}
+                    <img src="{{ target_user_avatar }}" alt="{{ target_user_username }}" 
+                        style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;"
+                        onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <div style="width: 100%; height: 100%; border-radius: 50%; background: var(--color-primary); color: white; display: none; align-items: center; justify-content: center; font-size: 24px; font-weight: 600; position: absolute; top: 0; left: 0;">
+                        {{ target_user_username|slice:":1"|upper }}
+                    </div>
+                    {% else %}
                     <div
                         style="width: 100%; height: 100%; border-radius: 50%; background: var(--color-primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 600;">
                         {{ target_user_username|slice:":1"|upper }}
                     </div>
+                    {% endif %}
                 </div>
 
                 <h3 style="font-size: 16px; font-weight: 600; margin: 0 0 8px; color: var(--od-text-primary);">
-                    {{target_user_username }}</h3>
+                    {{ target_user_username }}</h3>
                 <p style="color: var(--od-text-secondary); font-size: 14px; margin: 0 0 24px; line-height: 1.5;">
                     {{ target_user_username }} wants to send you a message.<br>
                     They won't know you've seen it until you accept.
@@ -2441,12 +2458,13 @@
     });
 
     function fetchRequestCount() {
-        fetch('{% url "get_chat_requests_count" %}')
+        // Use our new DM requests endpoint that tracks unaccepted chats
+        fetch('/api/dm-requests/count/')
         .then(r => r.json())
         .then(data => {
             const badge = document.getElementById('requestsBadge');
             if (badge) {
-                if (data.count > 0) {
+                if (data.success && data.count > 0) {
                     badge.textContent = data.count;
                     badge.style.display = 'inline-block';
                 } else {
@@ -3111,17 +3129,22 @@
             const type = item.getAttribute('data-type');
             const followingVal = (item.getAttribute('data-following') || '').trim();
             const isFollowing = followingVal.includes('true');
+            const isRequest = item.getAttribute('data-is-request') === 'true';
 
             let show = false;
             // Normalize category string safely
             const cat = category.toLowerCase().trim();
 
             if (cat === 'all' || cat.includes('all')) {
-                show = true;
+                // Show all chats that are NOT requests (accepted chats)
+                show = !isRequest;
+            } else if (cat === 'request' || cat.includes('request')) {
+                // Show only pending requests
+                show = isRequest && type === 'private';
             } else if (cat === 'group' || cat.includes('group')) {
                 show = (type === 'group');
             } else if (cat === 'private' || cat.includes('private')) {
-                show = (type === 'private' && isFollowing);
+                show = (type === 'private' && isFollowing && !isRequest);
             }
 
             item.style.display = show ? 'flex' : 'none';
@@ -3146,7 +3169,7 @@
 </script>
 <script>
     var chatId = "{{ chat.id }}";
-    var currentUserId = "{{ request.user.id }}";
+    var currentUserId = parseInt("{{ request.user.id }}", 10);
     const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
     let chatSocket = null;
     let typingTimeout = null;
@@ -3429,6 +3452,7 @@
             stopPolling();
             stopReadReceiptPolling();
             stopBackgroundSignalPolling();
+            stopTypingPoll();
             // Mark existing messages as read
             markMessagesAsRead();
         };
@@ -3450,6 +3474,7 @@
             startPolling();
             startReadReceiptPolling();
             startBackgroundSignalPolling();
+            startTypingPoll();
 
             if (reconnectAttempts < maxReconnectAttempts) {
                 const delay = reconnectDelay * Math.pow(2, reconnectAttempts);
@@ -3614,7 +3639,7 @@
     }
 
     // Handle P2P signals received via WebSocket (real-time)
-    function handleP2PSignalFromWS(data) {
+    async function handleP2PSignalFromWS(data) {
         // Only process if signal is meant for us or we're the sender
         const targetUserId = data.signal.target_user_id || data.target_user_id;
         
@@ -3638,7 +3663,7 @@
             signal: data.signal
         };
         
-        handleSignal(signalWrapper);
+        await handleSignal(signalWrapper);
     }
 
     // Handle message read receipts
@@ -4148,6 +4173,7 @@
                         id: data.message.id,
                         content: data.message.content,
                         sender_name: data.message.sender_name,
+                        sender_id: currentUserId,
                         is_own: true,
                         timestamp: data.message.timestamp,
                         message_type: data.message.message_type,
@@ -4198,6 +4224,7 @@
                         id: data.message.id,
                         content: data.message.content,
                         sender_name: data.message.sender_name,
+                        sender_id: currentUserId,
                         is_own: true,
                         timestamp: data.message.timestamp,
                         message_type: data.message.message_type,
@@ -4851,29 +4878,28 @@
             { 'urls': 'stun:stun.l.google.com:19302' },
             { 'urls': 'stun:stun1.l.google.com:19302' },
             { 'urls': 'stun:stun2.l.google.com:19302' },
-            // Metered.ca TURN servers (free tier, reliable as of 2024)
+            { 'urls': 'stun:stun3.l.google.com:19302' },
+            { 'urls': 'stun:stun4.l.google.com:19302' },
+            // OpenRelay TURN servers (free, no auth required)
             {
-                'urls': 'turn:a.relay.metered.ca:80',
-                'username': 'e8dd65c92f82d5f8c3c1c2c0',
-                'credential': 'uuSvtTtKCn/RIQ8M'
+                'urls': 'turn:openrelay.metered.ca:80',
+                'username': 'openrelayproject',
+                'credential': 'openrelayproject'
             },
             {
-                'urls': 'turn:a.relay.metered.ca:80?transport=tcp',
-                'username': 'e8dd65c92f82d5f8c3c1c2c0',
-                'credential': 'uuSvtTtKCn/RIQ8M'
+                'urls': 'turn:openrelay.metered.ca:443',
+                'username': 'openrelayproject',
+                'credential': 'openrelayproject'
             },
             {
-                'urls': 'turn:a.relay.metered.ca:443',
-                'username': 'e8dd65c92f82d5f8c3c1c2c0',
-                'credential': 'uuSvtTtKCn/RIQ8M'
+                'urls': 'turn:openrelay.metered.ca:443?transport=tcp',
+                'username': 'openrelayproject',
+                'credential': 'openrelayproject'
             },
-            {
-                'urls': 'turn:a.relay.metered.ca:443?transport=tcp',
-                'username': 'e8dd65c92f82d5f8c3c1c2c0',
-                'credential': 'uuSvtTtKCn/RIQ8M'
-            }
-        ],
-        'iceCandidatePoolSize': 10
+            // Backup: Twilio-style free STUN
+            { 'urls': 'stun:global.stun.twilio.com:3478' }
+        ]
+        // Removed iceCandidatePoolSize to ensure proper trickle ICE
     };
 
     // Queue for ICE candidates that arrive before remote description is set
@@ -5072,12 +5098,23 @@
             setupSenderDataChannel(p2pDataChannel, file);
 
             // ICE candidate handling
+            let senderCandidateCount = 0;
             p2pConnection.onicecandidate = (event) => {
+                console.log('onicecandidate event fired, candidate:', event.candidate);
                 if (event.candidate) {
-                    console.log('Sending ICE candidate:', event.candidate.candidate);
+                    senderCandidateCount++;
+                    console.log('Sending ICE candidate #' + senderCandidateCount + ':', event.candidate.candidate);
+                    console.log('ICE candidate type:', event.candidate.type);
                     sendSignal(targetUserId, { type: 'candidate', candidate: event.candidate });
                 } else {
-                    console.log('ICE gathering complete');
+                    console.log('ICE gathering complete (null candidate). Total candidates sent:', senderCandidateCount);
+                    // Log all local candidates from the SDP for debugging
+                    if (p2pConnection.localDescription) {
+                        const sdp = p2pConnection.localDescription.sdp;
+                        const candidates = sdp.match(/a=candidate:.*/g) || [];
+                        console.log('Candidates found in local SDP:', candidates.length);
+                        candidates.forEach((c, i) => console.log('SDP candidate ' + i + ':', c));
+                    }
                 }
             };
 
@@ -5085,6 +5122,30 @@
                 console.log('ICE gathering state:', p2pConnection.iceGatheringState);
                 if (p2pConnection.iceGatheringState === 'complete') {
                     console.log('ICE gathering complete - all candidates gathered');
+                    
+                    // Fallback: If no trickle candidates were sent but SDP has candidates,
+                    // extract and send them now
+                    if (senderCandidateCount === 0 && p2pConnection.localDescription) {
+                        console.log('No trickle candidates sent, extracting from SDP...');
+                        const sdp = p2pConnection.localDescription.sdp;
+                        const candidateLines = sdp.match(/a=candidate:.*/g) || [];
+                        const mLineMatch = sdp.match(/m=application (\d+)/);
+                        
+                        if (candidateLines.length > 0 && mLineMatch) {
+                            console.log('Found ' + candidateLines.length + ' candidates in SDP, sending as trickle...');
+                            candidateLines.forEach((line, index) => {
+                                const candidate = {
+                                    candidate: line.substring(2), // Remove "a=" prefix
+                                    sdpMid: '0',  // First m-line
+                                    sdpMLineIndex: 0
+                                };
+                                console.log('Sending SDP-extracted candidate #' + (index + 1) + ':', candidate.candidate);
+                                sendSignal(targetUserId, { type: 'candidate', candidate: candidate });
+                            });
+                        } else {
+                            console.warn('No candidates found in SDP either - ICE might be blocked');
+                        }
+                    }
                 }
             };
 
@@ -5117,10 +5178,21 @@
             p2pConnection.createOffer()
                 .then(offer => {
                     console.log('Offer created, setting local description...');
+                    console.log('Offer SDP preview:', offer.sdp.substring(0, 500));
+                    // Check for candidates in the offer
+                    const candidatesInOffer = (offer.sdp.match(/a=candidate:/g) || []).length;
+                    console.log('Candidates already in offer SDP:', candidatesInOffer);
                     return p2pConnection.setLocalDescription(offer);
                 })
                 .then(() => {
                     console.log('Local description set, sending offer to peer...');
+                    // Log final SDP state
+                    const finalSdp = p2pConnection.localDescription.sdp;
+                    const candidatesInFinalSdp = (finalSdp.match(/a=candidate:/g) || []).length;
+                    console.log('Candidates in final local description:', candidatesInFinalSdp);
+                    if (candidatesInFinalSdp > 0) {
+                        console.log('WARNING: Candidates are being bundled in SDP, trickle ICE may not work');
+                    }
                     document.getElementById('p2pStatus').innerHTML = '<span class="od-icon" style="width: 20px; height: 20px; animation: pulse 1.5s ease-in-out infinite;"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="2"/><path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49m11.31-2.82a10 10 0 0 1 0 14.14m-14.14 0a10 10 0 0 1 0-14.14"/></svg></span> Waiting for peer to accept...';
                     if (typeof lucide !== 'undefined') lucide.createIcons();
                     sendSignal(targetUserId, {
@@ -5267,6 +5339,8 @@
 
     // Background P2P signal polling - runs all the time to receive incoming file requests
     let p2pBackgroundInterval = null;
+    let p2pOfferProcessing = false;  // Flag to prevent duplicate offer processing
+    let p2pIncomingModalOverlay = null;  // Reference to the modal overlay for external closing
 
     function startBackgroundSignalPolling() {
         if (p2pBackgroundInterval) {
@@ -5290,16 +5364,20 @@
 
         console.log(`[P2P Polling] Starting background polling for chat ${pollingChatId} every 2s`);
 
-        const pollFn = () => {
-            fetch(`/api/p2p/${pollingChatId}/signals/`)
-                .then(r => r.json())
-                .then(data => {
-                    if (data.success && data.signals && data.signals.length > 0) {
-                        console.log('[P2P Polling] ✓ Received', data.signals.length, 'signal(s)');
-                        data.signals.forEach(handleSignal);
+        const pollFn = async () => {
+            try {
+                const response = await fetch(`/api/p2p/${pollingChatId}/signals/?signal_type=file`);
+                const data = await response.json();
+                if (data.success && data.signals && data.signals.length > 0) {
+                    console.log('[P2P Polling] ✓ Received', data.signals.length, 'signal(s)');
+                    // Process signals sequentially to avoid race conditions
+                    for (const signal of data.signals) {
+                        await handleSignal(signal);
                     }
-                })
-                .catch(err => console.error('[P2P Polling] ✗ Poll error:', err));
+                }
+            } catch (err) {
+                console.error('[P2P Polling] ✗ Poll error:', err);
+            }
         };
 
         // Poll for incoming P2P signals every 1 second (faster for better responsiveness)
@@ -5325,6 +5403,8 @@
         p2pTargetUserId = null;
         p2pSelectedFile = null;
         p2pPendingCandidates = []; // Clear queued ICE candidates
+        p2pOfferProcessing = false;  // Reset offer processing flag
+        p2pIncomingModalOverlay = null;
         document.getElementById('p2pSetup').style.display = 'block';
         document.getElementById('p2pTransfer').style.display = 'none';
         document.getElementById('p2pProgress').style.width = '0%';
@@ -5348,6 +5428,8 @@
         document.getElementById('p2pSetup').style.display = 'block';
         document.getElementById('p2pTransfer').style.display = 'none';
         document.getElementById('p2pProgress').style.width = '0%';
+        p2pOfferProcessing = false;  // Reset flag on UI reset
+        p2pIncomingModalOverlay = null;
         loadP2PParticipants();
     }
 
@@ -5448,6 +5530,13 @@
                         console.log('Received offer without fileInfo (call signal), ignoring in P2P handler');
                         return;
                     }
+                    
+                    // Prevent duplicate offer processing
+                    if (p2pOfferProcessing) {
+                        console.log('Already processing an offer, ignoring duplicate');
+                        return;
+                    }
+                    p2pOfferProcessing = true;
 
                     // Show incoming file notification with better UI
                     const fileSize = formatBytes(data.fileInfo.size);
@@ -5463,6 +5552,7 @@
                         // Send rejection signal so sender knows
                         sendSignal(senderId, { type: 'rejected' });
                         removeP2PSystemMessage();
+                        p2pOfferProcessing = false;  // Reset flag
                         return;
                     }
                     
@@ -5504,12 +5594,47 @@
                         }
                     };
 
+                    // Track receiver ICE candidates
+                    let receiverCandidateCount = 0;
+                    const receiverTargetId = senderId;  // Store for use in fallback
+                    
                     p2pConnection.onicecandidate = (event) => {
                         if (event.candidate) {
-                            console.log('Sending ICE candidate (receiver):', event.candidate.candidate);
+                            receiverCandidateCount++;
+                            console.log('Sending ICE candidate (receiver) #' + receiverCandidateCount + ':', event.candidate.candidate);
                             sendSignal(senderId, { type: 'candidate', candidate: event.candidate });
                         } else {
-                            console.log('ICE gathering complete (receiver)');
+                            console.log('ICE gathering complete (receiver). Total candidates sent:', receiverCandidateCount);
+                        }
+                    };
+                    
+                    p2pConnection.onicegatheringstatechange = () => {
+                        console.log('ICE gathering state (receiver):', p2pConnection.iceGatheringState);
+                        if (p2pConnection.iceGatheringState === 'complete') {
+                            console.log('ICE gathering complete (receiver) - all candidates gathered');
+                            
+                            // Fallback: If no trickle candidates were sent but SDP has candidates,
+                            // extract and send them now
+                            if (receiverCandidateCount === 0 && p2pConnection.localDescription) {
+                                console.log('No trickle candidates sent (receiver), extracting from SDP...');
+                                const sdp = p2pConnection.localDescription.sdp;
+                                const candidateLines = sdp.match(/a=candidate:.*/g) || [];
+                                
+                                if (candidateLines.length > 0) {
+                                    console.log('Found ' + candidateLines.length + ' candidates in receiver SDP, sending as trickle...');
+                                    candidateLines.forEach((line, index) => {
+                                        const candidate = {
+                                            candidate: line.substring(2), // Remove "a=" prefix
+                                            sdpMid: '0',
+                                            sdpMLineIndex: 0
+                                        };
+                                        console.log('Sending SDP-extracted candidate (receiver) #' + (index + 1) + ':', candidate.candidate);
+                                        sendSignal(receiverTargetId, { type: 'candidate', candidate: candidate });
+                                    });
+                                } else {
+                                    console.warn('No candidates found in receiver SDP either - ICE might be blocked');
+                                }
+                            }
                         }
                     };
 
@@ -5600,10 +5725,16 @@
     // Show incoming P2P file modal
     function showP2PIncomingModal(senderName, senderAvatar, fileName, fileSize) {
         return new Promise((resolve) => {
+            // If there's already a modal, close it first
+            if (p2pIncomingModalOverlay && document.body.contains(p2pIncomingModalOverlay)) {
+                p2pIncomingModalOverlay.remove();
+            }
+            
             // Create modal overlay
             const overlay = document.createElement('div');
             overlay.className = 'od-modal-overlay';
             overlay.style.cssText = 'display: flex; z-index: 10001;';
+            p2pIncomingModalOverlay = overlay;  // Store reference for external closing
 
             overlay.innerHTML = `
             <div class="od-modal" style="max-width: 380px;" onclick="event.stopPropagation()">
@@ -5729,6 +5860,20 @@
     async function handleP2PSystemAccept() {
         if (!pendingP2PRequestData) return;
         
+        // Prevent duplicate processing
+        if (p2pOfferProcessing && p2pConnection) {
+            console.log('P2P connection already being established, ignoring system accept');
+            removeP2PSystemMessage();
+            return;
+        }
+        p2pOfferProcessing = true;
+        
+        // Close the modal if it's still open
+        if (p2pIncomingModalOverlay && document.body.contains(p2pIncomingModalOverlay)) {
+            p2pIncomingModalOverlay.remove();
+            p2pIncomingModalOverlay = null;
+        }
+        
         const { senderId, offerData } = pendingP2PRequestData;
         removeP2PSystemMessage();
         
@@ -5773,12 +5918,47 @@
                 }
             };
 
+            // Track receiver ICE candidates
+            let systemAcceptCandidateCount = 0;
+            const systemAcceptTargetId = senderId;  // Store for use in fallback
+            
             p2pConnection.onicecandidate = (event) => {
                 if (event.candidate) {
-                    console.log('Sending ICE candidate (receiver):', event.candidate.candidate);
+                    systemAcceptCandidateCount++;
+                    console.log('Sending ICE candidate (receiver-system) #' + systemAcceptCandidateCount + ':', event.candidate.candidate);
                     sendSignal(senderId, { type: 'candidate', candidate: event.candidate });
                 } else {
-                    console.log('ICE gathering complete (receiver)');
+                    console.log('ICE gathering complete (receiver-system). Total candidates sent:', systemAcceptCandidateCount);
+                }
+            };
+            
+            p2pConnection.onicegatheringstatechange = () => {
+                console.log('ICE gathering state (receiver-system):', p2pConnection.iceGatheringState);
+                if (p2pConnection.iceGatheringState === 'complete') {
+                    console.log('ICE gathering complete (receiver-system) - all candidates gathered');
+                    
+                    // Fallback: If no trickle candidates were sent but SDP has candidates,
+                    // extract and send them now
+                    if (systemAcceptCandidateCount === 0 && p2pConnection.localDescription) {
+                        console.log('No trickle candidates sent (receiver-system), extracting from SDP...');
+                        const sdp = p2pConnection.localDescription.sdp;
+                        const candidateLines = sdp.match(/a=candidate:.*/g) || [];
+                        
+                        if (candidateLines.length > 0) {
+                            console.log('Found ' + candidateLines.length + ' candidates in receiver-system SDP, sending as trickle...');
+                            candidateLines.forEach((line, index) => {
+                                const candidate = {
+                                    candidate: line.substring(2), // Remove "a=" prefix
+                                    sdpMid: '0',
+                                    sdpMLineIndex: 0
+                                };
+                                console.log('Sending SDP-extracted candidate (receiver-system) #' + (index + 1) + ':', candidate.candidate);
+                                sendSignal(systemAcceptTargetId, { type: 'candidate', candidate: candidate });
+                            });
+                        } else {
+                            console.warn('No candidates found in receiver-system SDP either - ICE might be blocked');
+                        }
+                    }
                 }
             };
 
@@ -5820,6 +6000,13 @@
         const { senderId } = pendingP2PRequestData;
         sendSignal(senderId, { type: 'rejected' });
         removeP2PSystemMessage();
+        p2pOfferProcessing = false;  // Reset flag
+        
+        // Close the modal if it's still open
+        if (p2pIncomingModalOverlay && document.body.contains(p2pIncomingModalOverlay)) {
+            p2pIncomingModalOverlay.remove();
+            p2pIncomingModalOverlay = null;
+        }
     }
 
     function setupReceiverDataChannel(channel, fileInfo) {
@@ -6279,7 +6466,8 @@
         if (requestsList) requestsList.style.display = 'none';
     }
 
-    function filterDirectCategory(category, btn) {
+    // This is the main filterDirectCategory function - uses data-is-request attribute on chat items
+    window.filterDirectCategory = function(category, btn) {
         // Save state
         localStorage.setItem('ig_direct_filter', category);
 
@@ -6292,31 +6480,35 @@
             if (targetBtn) targetBtn.classList.add('active');
         }
 
-        const chatList = document.querySelector('.od-direct-list');
-        const requestsList = document.getElementById('requestsList');
+        // Filter chat items based on category
+        document.querySelectorAll('.od-direct-list .od-direct-item').forEach(item => {
+            const type = item.getAttribute('data-type');
+            const followingVal = (item.getAttribute('data-following') || '').trim();
+            const isFollowing = followingVal.includes('true');
+            const isRequest = item.getAttribute('data-is-request') === 'true';
 
-        if (category === 'requests') {
-            if (chatList) chatList.style.display = 'none';
-            if (requestsList) {
-                requestsList.style.display = 'flex';
-                // Trigger render
-                if (window.renderRequests) window.renderRequests(); 
-                else if (window.fetchChatRequests) window.fetchChatRequests();
+            let show = false;
+            const cat = category.toLowerCase().trim();
+
+            if (cat === 'all' || cat.includes('all')) {
+                // Show all chats that are NOT requests (accepted chats)
+                show = !isRequest;
+            } else if (cat === 'request' || cat.includes('request')) {
+                // Show only pending requests
+                show = isRequest && type === 'private';
+            } else if (cat === 'group' || cat.includes('group')) {
+                show = (type === 'group');
+            } else if (cat === 'private' || cat.includes('private')) {
+                show = (type === 'private' && isFollowing && !isRequest);
             }
-        } else {
-            if (chatList) chatList.style.display = 'block';
-            if (requestsList) requestsList.style.display = 'none';
-            
-            // Trigger search filter to re-apply logic with new category
-            const searchInput = document.getElementById('directSearchInput');
-            if (searchInput) {
-                filterDirectChats({ target: searchInput });
-            } else {
-                 // Fallback if no search input found immediately
-                 filterDirectChats({ target: { value: '' } });
-            }
-        }
-    }
+
+            item.style.display = show ? 'flex' : 'none';
+        });
+
+        // Apply search filter if there's a search term
+        const input = document.getElementById('directSearchInput');
+        if (input && input.value.trim()) filterDirectChats({ target: input });
+    };
 
     // Initialize Filter State
     document.addEventListener('DOMContentLoaded', () => {
@@ -6333,16 +6525,45 @@
 <script>
     // --- Message Request Functions ---
     function handleAcceptRequest() {
-        // Just hide the banner and show the footer.
-        // The request is effectively "accepted" when the user sends a message.
-        const banner = document.getElementById('requestBanner');
-        const footer = document.getElementById('chatFooter');
+        // Call API to accept the DM request
+        fetch(`/api/dm-requests/${chatId}/accept/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken()
+            }
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                // Hide the request banner and show the footer
+                const banner = document.getElementById('requestBanner');
+                const footer = document.getElementById('chatFooter');
+                const dmBanner = document.getElementById('dmRequestBanner');
 
-        if (banner) banner.style.display = 'none';
-        if (footer) footer.style.display = 'flex';
+                if (banner) banner.style.display = 'none';
+                if (dmBanner) dmBanner.style.display = 'none';
+                if (footer) footer.style.display = 'flex';
 
-        // Scroll to bottom
-        scrollToBottom();
+                // Update sidebar item
+                const sidebarItem = document.querySelector(`.od-direct-item[href$="/${chatId}/"]`);
+                if (sidebarItem) {
+                    sidebarItem.setAttribute('data-is-request', 'false');
+                }
+
+                // Update request count
+                if (typeof fetchRequestCount === 'function') fetchRequestCount();
+
+                // Scroll to bottom
+                scrollToBottom();
+            } else {
+                alert(data.error || 'Failed to accept request');
+            }
+        })
+        .catch(err => {
+            console.error('Accept error:', err);
+            alert('Failed to accept request');
+        });
     }
 
     function handleBlockUser(username) {
@@ -6485,6 +6706,15 @@
                     data.unread_count,
                     data.last_message
                 );
+            } else if (data.type === "new_chat") {
+                // New chat appeared - add to sidebar
+                handleNewChatInSidebar(data.chat, data.is_request);
+            } else if (data.type === "chat_accepted") {
+                // Chat was accepted - move from Requests to All
+                handleChatAccepted(data.chat_id);
+            } else if (data.type === "request_count_update") {
+                // Update request badge count
+                updateRequestBadge(data.count);
             }
         };
 
@@ -6492,6 +6722,100 @@
             console.warn("Sidebar WS closed, reconnecting...");
             setTimeout(connectSidebarSocket, 3000);
         };
+    }
+
+    function handleNewChatInSidebar(chat, isRequest) {
+        // Check if chat already exists in sidebar
+        const existingItem = document.querySelector(`.od-direct-item[href$="/${chat.id}/"]`);
+        if (existingItem) {
+            // Just update it
+            const preview = existingItem.querySelector('.od-direct-item-preview');
+            if (preview) preview.textContent = chat.last_message || '';
+            return;
+        }
+        
+        // Create new chat item
+        const chatList = document.querySelector('.od-direct-list');
+        if (!chatList) return;
+        
+        const newItem = document.createElement('a');
+        newItem.href = `/chat/chat/${chat.id}/`;
+        newItem.className = 'od-direct-item';
+        newItem.setAttribute('data-type', 'private');
+        newItem.setAttribute('data-is-request', isRequest ? 'true' : 'false');
+        newItem.setAttribute('data-name', (chat.other_user?.full_name || '').toLowerCase());
+        newItem.setAttribute('data-username', chat.other_user?.username || '');
+        newItem.onclick = function(e) { e.preventDefault(); loadChat(chat.id); };
+        
+        const avatarUrl = chat.other_user?.avatar_url || '';
+        const initials = (chat.other_user?.full_name || 'U').split(' ').map(n => n[0]).join('').toUpperCase();
+        
+        newItem.innerHTML = `
+            <span style="position:relative;display:inline-block;">
+                ${avatarUrl ? 
+                    `<img src="${avatarUrl}" class="od-direct-item-avatar" onerror="this.outerHTML='<div class=\\'od-direct-item-avatar placeholder\\'>${initials}</div>'">` :
+                    `<div class="od-direct-item-avatar placeholder">${initials}</div>`
+                }
+                ${chat.other_user?.is_online ? 
+                    '<span class="od-online-dot" style="position:absolute;bottom:0;right:0;width:12px;height:12px;background:#22c55e;border-radius:50%;border:2px solid #222;"></span>' : ''
+                }
+                ${chat.unread_count > 0 ? 
+                    `<span class="unread-badge" style="position:absolute;top:-6px;right:-6px;background:#ff3b3b;color:#fff;border-radius:50%;min-width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:bold;box-shadow:0 0 0 2px #fff;z-index:2;">${chat.unread_count}</span>` : ''
+                }
+            </span>
+            <div class="od-direct-item-info">
+                <div class="od-direct-item-name">${chat.other_user?.full_name || 'User'}</div>
+                <div class="od-direct-item-preview">${chat.last_message || ''}</div>
+            </div>
+            <div class="od-direct-options-btn" role="button" onclick="toggleDirectOptions(event)">
+                <span class="od-icon" style="width:16px;height:16px;"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg></span>
+            </div>
+        `;
+        
+        // Insert at the top of the list
+        chatList.insertBefore(newItem, chatList.firstChild);
+        
+        // Update request count badge if it's a request
+        if (isRequest) {
+            fetchDMRequestCount();
+        }
+        
+        // Show in appropriate category
+        const currentCategory = document.querySelector('.od-cat-btn.active')?.textContent?.toLowerCase() || 'all';
+        if (isRequest && !currentCategory.includes('request')) {
+            newItem.style.display = 'none';
+        }
+    }
+
+    function handleChatAccepted(chatId) {
+        const chatItem = document.querySelector(`.od-direct-item[href$="/${chatId}/"]`);
+        if (chatItem) {
+            chatItem.setAttribute('data-is-request', 'false');
+        }
+        fetchDMRequestCount();
+    }
+
+    function updateRequestBadge(count) {
+        const badge = document.getElementById('requestsBadge');
+        if (badge) {
+            if (count > 0) {
+                badge.textContent = count;
+                badge.style.display = 'inline-block';
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+    }
+
+    function fetchDMRequestCount() {
+        fetch('/api/dm-requests/count/')
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    updateRequestBadge(data.count);
+                }
+            })
+            .catch(console.error);
     }
 
     connectSidebarSocket();
@@ -6712,6 +7036,12 @@
         const preview = item.querySelector('.od-direct-item-preview');
         if (preview) {
             preview.textContent = lastMessage || '';
+        }
+
+        // Move chat to the top of the list (like Instagram)
+        const chatList = item.parentElement;
+        if (chatList && chatList.firstChild !== item) {
+            chatList.insertBefore(item, chatList.firstChild);
         }
 
         // 🔥 KEY FIX — if this is the active chat, NEVER show badge
