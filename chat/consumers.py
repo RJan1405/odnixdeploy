@@ -1,6 +1,7 @@
 from django.contrib.auth.models import User
 import json
 import logging
+import hashlib
 from channels.generic.websocket import AsyncWebsocketConsumer, AsyncJsonWebsocketConsumer
 from channels.db import database_sync_to_async
 from django.contrib.auth import get_user_model
@@ -66,9 +67,17 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
             await self.handle_message_read(data)
         elif event == "message.consume":
             await self.handle_message_consume(data)
+        elif event == "p2p.signal":
+            await self.handle_p2p_signal(data)
 
     # ---------------- EVENTS ----------------
     async def chat_message(self, event):
+        # Skip sending to the original sender if exclude_sender_id is set
+        # This prevents duplicate messages when sent via HTTP broadcast
+        exclude_sender_id = event.get("exclude_sender_id")
+        if exclude_sender_id is not None and exclude_sender_id == self.user.id:
+            return
+        
         # Send with frontend-expected type
         await self.send_json({
             "type": "message.new",
@@ -94,10 +103,37 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
         })
 
     async def typing_update(self, event):
+        # Filter out current user from typing users (don't show own typing indicator)
+        users = [u for u in event.get("users", []) if u.get("id") != self.user.id]
         # Send with frontend-expected type
         await self.send_json({
             "type": "typing.update",
-            "users": event.get("users", [])
+            "users": users
+        })
+
+    async def p2p_signal(self, event):
+        # Send P2P signals (file transfer requests, WebRTC signaling)
+        # Only send to the target user or to all if no specific target
+        target_user_id = event.get("target_user_id")
+        sender_id = event.get("sender_id")
+        
+        # Don't send the signal back to the sender
+        if sender_id == self.user.id:
+            return
+        
+        # If there's a specific target, only send to that user
+        if target_user_id is not None and target_user_id != self.user.id:
+            return
+        
+        logger.info(f"P2P signal delivered via WS: {event.get('signal', {}).get('type', 'unknown')} to user {self.user.id}")
+        
+        await self.send_json({
+            "type": "p2p.signal",
+            "signal": event["signal"],
+            "sender_id": sender_id,
+            "sender_name": event["sender_name"],
+            "sender_avatar": event.get("sender_avatar"),
+            "target_user_id": target_user_id
         })
 
     # ---------------- HANDLERS ----------------
@@ -119,6 +155,9 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
                 "message": serialized
             }
         )
+
+        # Send push notification to other participants
+        await self.send_message_notification(content)
 
     async def handle_typing(self, data):
         if data.get("is_typing"):
@@ -171,7 +210,35 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
             self.group_name,
             {
                 "type": "typing_update",
-                "users": users
+                "users": users,
+                "sender_id": self.user.id  # Include sender so clients can filter
+            }
+        )
+
+    async def handle_p2p_signal(self, data):
+        """Handle P2P signaling for file transfers via WebSocket"""
+        signal_data = data.get("signal")
+        target_user_id = data.get("target_user_id")
+        
+        if not signal_data:
+            return
+        
+        # Get sender info
+        sender_avatar = None
+        if hasattr(self.user, 'profile_picture_url'):
+            sender_avatar = self.user.profile_picture_url
+        
+        # Broadcast P2P signal to all in the chat group
+        # The frontend will filter by target_user_id
+        await self.channel_layer.group_send(
+            self.group_name,
+            {
+                "type": "p2p_signal",
+                "signal": signal_data,
+                "sender_id": self.user.id,
+                "sender_name": self.user.full_name,
+                "sender_avatar": sender_avatar,
+                "target_user_id": target_user_id
             }
         )
 
@@ -248,6 +315,39 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
                 "sender_name": message.reply_to.sender.full_name
             } if message.reply_to else None
         }
+
+    async def send_message_notification(self, content):
+        """Send push notification to other chat participants about new message"""
+        participant_ids = await self.get_other_participants()
+        
+        sender_avatar = None
+        if hasattr(self.user, 'profile_picture') and self.user.profile_picture:
+            sender_avatar = self.user.profile_picture.url
+        
+        # Truncate message preview
+        preview = content[:100] + '...' if len(content) > 100 else content
+        
+        for participant_id in participant_ids:
+            await self.channel_layer.group_send(
+                f'user_notify_{participant_id}',
+                {
+                    'type': 'notify_message',
+                    'chat_id': self.chat_id,
+                    'sender_id': self.user.id,
+                    'sender_name': self.user.full_name if hasattr(self.user, 'full_name') else self.user.username,
+                    'sender_avatar': sender_avatar,
+                    'message_preview': preview,
+                }
+            )
+
+    @database_sync_to_async
+    def get_other_participants(self):
+        """Get list of other participant IDs in this chat"""
+        try:
+            chat = Chat.objects.get(id=self.chat_id)
+            return list(chat.participants.exclude(id=self.user.id).values_list('id', flat=True))
+        except Chat.DoesNotExist:
+            return []
 
 
 class CallConsumer(AsyncWebsocketConsumer):
@@ -433,6 +533,16 @@ class CallConsumer(AsyncWebsocketConsumer):
         # Broadcast via NotifyConsumer if it's an Offer
         if message_type == "webrtc.offer":
             await self.send_call_notification(payload)
+            # Add caller info to the payload for the receiver
+            caller_name = getattr(self.user, 'full_name', None) or self.user.username
+            caller_avatar = None
+            if hasattr(self.user, 'profile_picture') and self.user.profile_picture:
+                try:
+                    caller_avatar = self.user.profile_picture.url
+                except:
+                    pass
+            payload['callerName'] = caller_name
+            payload['callerAvatar'] = caller_avatar
 
         # ALWAYS store in database FIRST (for polling fallback - works even if WebSocket fails)
         if message_type in ["webrtc.offer", "webrtc.answer", "webrtc.ice"]:
@@ -572,8 +682,13 @@ class CallConsumer(AsyncWebsocketConsumer):
 
 
 class NotifyConsumer(AsyncWebsocketConsumer):
-    # NotifyConsumer remains standard WebSocket for simplicity as it's just 'ringing'
-    # and establishing context before the actual secured Call connection is made.
+    """
+    NotifyConsumer - Handles real-time push notifications for:
+    - Incoming calls
+    - New messages
+    - Follows
+    - Missed calls
+    """
 
     async def connect(self):
         self.user = self.scope['user']
@@ -591,6 +706,7 @@ class NotifyConsumer(AsyncWebsocketConsumer):
         return
 
     async def notify_call(self, event):
+        """Handle incoming call notification"""
         await self.send(text_data=json.dumps({
             'type': 'incoming.call',
             'from_user_id': event.get('from_user_id'),
@@ -598,6 +714,38 @@ class NotifyConsumer(AsyncWebsocketConsumer):
             'audioOnly': event.get('audio_only', False),
             'from_full_name': event.get('from_full_name'),
             'from_avatar': event.get('from_avatar'),
+        }))
+
+    async def notify_message(self, event):
+        """Handle new message notification"""
+        await self.send(text_data=json.dumps({
+            'type': 'new.message',
+            'chat_id': event.get('chat_id'),
+            'sender_id': event.get('sender_id'),
+            'sender_name': event.get('sender_name'),
+            'sender_avatar': event.get('sender_avatar'),
+            'message_preview': event.get('message_preview'),
+        }))
+
+    async def notify_follow(self, event):
+        """Handle new follower notification"""
+        await self.send(text_data=json.dumps({
+            'type': 'new.follow',
+            'follower_id': event.get('follower_id'),
+            'follower_name': event.get('follower_name'),
+            'follower_username': event.get('follower_username'),
+            'follower_avatar': event.get('follower_avatar'),
+        }))
+
+    async def notify_missed_call(self, event):
+        """Handle missed call notification"""
+        await self.send(text_data=json.dumps({
+            'type': 'missed.call',
+            'chat_id': event.get('chat_id'),
+            'caller_id': event.get('caller_id'),
+            'caller_name': event.get('caller_name'),
+            'caller_avatar': event.get('caller_avatar'),
+            'audio_only': event.get('audio_only', True),
         }))
 
 

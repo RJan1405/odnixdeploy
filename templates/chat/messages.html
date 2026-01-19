@@ -1,42 +1,3 @@
-<script>
-    function updateSidebarChats() {
-        fetch('/chat/api/chats/')
-            .then(response => response.json())
-            .then(data => {
-                if (!data.success) return;
-                const chats = data.chats;
-                chats.forEach(chat => {
-                    // Find sidebar item by chat id
-                    const item = document.querySelector('.od-direct-item[href$="/' + chat.id + '/"]');
-                    if (!item) return;
-                    // Update unread badge
-                    const imgWrap = item.querySelector('span[style*="position:relative"]');
-                    let badge = item.querySelector('.unread-badge');
-                    if (chat.unread_count > 0) {
-                        if (!badge && imgWrap) {
-                            badge = document.createElement('span');
-                            badge.className = 'unread-badge';
-                            badge.style = "position:absolute;top:-6px;right:-6px;background:#ff3b3b;color:#fff;border-radius:50%;min-width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:bold;box-shadow:0 0 0 2px #fff;z-index:2;";
-                            imgWrap.appendChild(badge);
-                        }
-                        if (badge) {
-                            badge.textContent = chat.unread_count;
-                            badge.style.display = '';
-                        }
-                    } else if (badge) {
-                        badge.style.display = 'none';
-                    }
-                    // Update last message preview
-                    const preview = item.querySelector('.od-direct-item-preview');
-                    if (preview) {
-                        preview.textContent = chat.last_message || 'No messages yet';
-                    }
-                });
-            });
-    }
-    setInterval(updateSidebarChats, 5000); // Poll every 5 seconds
-    updateSidebarChats(); // Initial call
-</script>
 {% extends 'chat/base.html' %}
 {% load static %}
 
@@ -280,6 +241,27 @@
         display: flex;
         gap: 8px;
         margin-top: 10px;
+        overflow-x: auto;
+        padding-bottom: 4px;
+        flex-wrap: nowrap;
+        /* Ensure it doesn't overflow parent */
+        max-width: 100%;
+        /* Thin scrollbar for desktop usability */
+        scrollbar-width: thin;
+        scrollbar-color: var(--od-border) transparent;
+    }
+
+    .od-categories::-webkit-scrollbar {
+        height: 4px; /* Horizontal scrollbar height */
+    }
+
+    .od-categories::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .od-categories::-webkit-scrollbar-thumb {
+        background-color: var(--od-border);
+        border-radius: 4px;
     }
 
     .od-cat-btn {
@@ -293,6 +275,8 @@
         font-size: 13px;
         color: var(--od-text-secondary);
         cursor: pointer;
+        white-space: nowrap;
+        flex-shrink: 0;
     }
 
     .od-cat-btn.active {
@@ -388,7 +372,7 @@
     <div class="od-direct-sidebar">
         <header class="od-direct-header">
             <a href="{% url 'dashboard' %}" class="od-direct-back" title="Back">
-                <i data-lucide="arrow-left"></i>
+                <span class="od-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg></span>
             </a>
             <img src="{{ request.user.profile_picture_url }}" alt="{{ request.user.full_name }}"
                 class="od-direct-header-avatar" onerror="this.style.display='none';">
@@ -397,24 +381,29 @@
                 <div class="od-direct-sub">@{{ request.user.username }}</div>
             </div>
             <a class="od-direct-new" href="javascript:void(0)" onclick="openCreateGroupModal()" title="New Chat">
-                <i data-lucide="plus"></i>
+                <span class="od-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
             </a>
         </header>
         <div class="od-direct-controls">
             <div class="od-search-bar">
-                <i data-lucide="search"></i>
+                <span class="od-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
                 <input id="directSearchInput" type="text" placeholder="Search messages"
                     onkeyup="filterDirectChats(event)">
             </div>
             <div class="od-categories">
-                <button class="od-cat-btn active" onclick="filterDirectCategory('all', this)"><i
-                        data-lucide="inbox"></i> All</button>
-                <button class="od-cat-btn" onclick="filterDirectCategory('private', this)"><i data-lucide="user"></i>
+                <button class="od-cat-btn active" onclick="filterDirectCategory('all', this)"><span class="od-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg></span> All</button>
+                <button class="od-cat-btn" onclick="filterDirectCategory('private', this)"><span class="od-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
                     Private</button>
-                <button class="od-cat-btn" onclick="filterDirectCategory('group', this)"><i data-lucide="users"></i>
+                <button class="od-cat-btn" onclick="filterDirectCategory('group', this)"><span class="od-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
                     Groups</button>
+                <button class="od-cat-btn" id="requestsTabBtn" onclick="filterDirectCategory('requests', this)">
+                    <span class="od-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></span>
+                     <span style="white-space:nowrap;">Requests</span> <span id="requestsBadge" style="display:none; background:#ff3b3b; color:white; border-radius:50%; padding:2px 6px; font-size:10px; margin-left:4px;">0</span>
+                </button>
             </div>
         </div>
+
+
         <div class="od-direct-list">
             {% for chat in private_chats %}
             <a href="{% url 'chat_detail' chat.id %}" class="od-direct-item" data-type="{{ chat.chat_type }}"
@@ -425,7 +414,7 @@
                 {% if participant != request.user %}
                 <span style="position:relative;display:inline-block;">
                     <img src="{{ participant.profile_picture_url }}" alt="" class="od-direct-item-avatar"
-                        onerror="this.outerHTML='\u003cdiv class='od-direct-item-avatar placeholder'\u003e{{ participant.initials }}\u003c/div\u003e'">
+                        onerror="this.outerHTML='\u003cdiv class=\'od-direct-item-avatar placeholder\'\u003e{{ participant.initials }}\u003c/div\u003e'">
                     {% if chat.unread_count > 0 %}
                     <span
                         style="position:absolute;top:-6px;right:-6px;background:#ff3b3b;color:#fff;border-radius:50%;min-width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:bold;box-shadow:0 0 0 2px #fff;z-index:2;">{{chat.unread_count}}</span>
@@ -440,7 +429,7 @@
                     </div>
                 </div>
                 <div class="od-direct-options-btn" role="button" onclick="toggleDirectOptions(event)">
-                    <i data-lucide="more-vertical" style="width:16px;height:16px;"></i>
+                    <span class="od-icon" style="width:16px;height:16px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg></span>
                 </div>
             </a>
             {% endfor %}
@@ -449,7 +438,7 @@
                 data-name="{{ chat.name }}">
                 <span style="position:relative;display:inline-block;">
                     <div class="od-direct-item-avatar group">
-                        <i data-lucide="users"></i>
+                        <span class="od-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
                     </div>
                     {% if chat.unread_count > 0 %}
                     <span
@@ -464,12 +453,10 @@
                     </div>
                 </div>
             </a>
-            {% empty %}
-            <div class="od-direct-item" style="justify-content:center; color:var(--od-text-secondary);">
-                No conversations yet
-            </div>
             {% endfor %}
         </div>
+        <!-- Requests List Container -->
+        <div id="requestsList" class="od-direct-list" style="display: none;"></div>
     </div>
 
     <!-- Right Pane - Empty placeholder until a chat is chosen -->
@@ -489,7 +476,7 @@
             <header class="od-modal-header">
                 <h2 class="od-modal-title">Create Group</h2>
                 <button class="od-modal-close" onclick="closeCreateGroupModal()">
-                    <i data-lucide="x"></i>
+                    <span class="od-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
                 </button>
             </header>
             <div class="od-modal-body">
@@ -523,7 +510,7 @@
     <!-- Context Menu for Sidebar -->
     <div id="directContextMenu" class="od-direct-context-menu">
         <button class="od-context-item" id="ctxAddToPrivate" onclick="handleAddToPrivate()">
-            <i data-lucide="user-plus"></i>
+            <span class="od-icon" id="ctxAddToPrivateIcon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg></span>
             <span id="ctxAddToPrivateText">Add to Private</span>
         </button>
     </div>
@@ -565,17 +552,15 @@
             }
 
             const addBtnText = document.getElementById('ctxAddToPrivateText');
-            const addBtnIcon = document.querySelector('#ctxAddToPrivate i');
+            const addBtnIcon = document.getElementById('ctxAddToPrivateIcon');
 
             if (isFollowing) {
                 if (addBtnText) addBtnText.textContent = 'Remove from Private';
-                if (addBtnIcon) addBtnIcon.setAttribute('data-lucide', 'user-minus');
+                if (addBtnIcon) addBtnIcon.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="23" y1="11" x2="17" y2="11"/></svg>';
             } else {
                 if (addBtnText) addBtnText.textContent = 'Add to Private';
-                if (addBtnIcon) addBtnIcon.setAttribute('data-lucide', 'user-plus');
+                if (addBtnIcon) addBtnIcon.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>';
             }
-
-            if (typeof lucide !== 'undefined') lucide.createIcons();
 
             // Position menu
             const rect = btn.getBoundingClientRect();
@@ -693,62 +678,271 @@
             if (form) form.reset();
         }
 
+        // Create Group Logic...
         function createGroup() {
-            const name = document.getElementById('groupName')?.value.trim();
-            const description = document.getElementById('groupDescription')?.value.trim();
-            const maxParticipants = document.getElementById('maxParticipants')?.value;
-            const isPublic = document.getElementById('isPublic')?.checked;
+             // ... existing createGroup code ...
+             const name = document.getElementById('groupName')?.value.trim();
+             const description = document.getElementById('groupDescription')?.value.trim();
+             const maxParticipants = document.getElementById('maxParticipants')?.value;
+             const isPublic = document.getElementById('isPublic')?.checked;
 
-            if (!name) {
-                alert('Please enter a group name');
+             if (!name) { alert('Please enter a group name'); return; }
+
+             const csrfToken = getCSRFToken();
+             fetch('{% url "create_group" %}', {
+                 method: 'POST',
+                 headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+                 body: JSON.stringify({ name, description, max_participants: parseInt(maxParticipants)||50, is_public: isPublic||false })
+             })
+             .then(r => r.json())
+             .then(data => {
+                 if (data.success) {
+                     const groupId = data.group_id || data.group?.id || data.id;
+                     if (groupId) { closeCreateGroupModal(); window.location.href = `/chat/${groupId}/`; }
+                     else { window.location.reload(); }
+                 } else {
+                     alert(data.error || 'Failed');
+                 }
+             })
+             .catch(console.error);
+        }
+
+        // --- Messaage Requests Logic ---
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchRequestCount();
+        });
+
+        function fetchRequestCount() {
+            fetch('{% url "get_chat_requests_count" %}')
+            .then(r => r.json())
+            .then(data => {
+                const badge = document.getElementById('requestsBadge');
+                if (data.count > 0) {
+                    badge.textContent = data.count;
+                    badge.style.display = 'inline-block';
+                } else {
+                    badge.style.display = 'none';
+                }
+            })
+            .catch(console.error);
+        }
+
+        function filterDirectCategory(category, btn) {
+            document.querySelectorAll('.od-categories .od-cat-btn').forEach(b => b.classList.remove('active'));
+            if (btn) btn.classList.add('active');
+            
+            const directList = document.querySelector('.od-direct-list');
+            const requestsList = document.getElementById('requestsList');
+            const searchBar = document.getElementById('directSearchInput');
+
+            if (category === 'requests') {
+                directList.style.display = 'none';
+                requestsList.style.display = 'flex';
+                if(searchBar) searchBar.disabled = true; // Disable search for requests for now
+                fetchChatRequests();
+            } else {
+                directList.style.display = 'flex';
+                requestsList.style.display = 'none';
+                if(searchBar) searchBar.disabled = false;
+                
+                document.querySelectorAll('.od-direct-list .od-direct-item').forEach(item => {
+                    const type = item.getAttribute('data-type');
+                    const followingVal = (item.getAttribute('data-following') || '').trim();
+                    const isFollowing = followingVal.includes('true');
+
+                    let show = false;
+                    if (category === 'all') show = true;
+                    else if (category === 'group') show = (type === 'group');
+                    else if (category === 'private') show = (type === 'private' && isFollowing);
+                    item.style.display = show ? 'flex' : 'none';
+                });
+                
+                if (searchBar && searchBar.value.trim()) filterDirectChats({ target: searchBar });
+            }
+        }
+
+        function fetchChatRequests() {
+            const container = document.getElementById('requestsList');
+            container.innerHTML = '<div class="od-loading" style="padding:20px;text-align:center;"><div class="od-spinner" style="border:2px solid var(--od-border);border-top:2px solid var(--color-primary);border-radius:50%;width:20px;height:20px;animation:spin 1s linear infinite;margin:0 auto;"></div></div>';
+            
+            fetch('{% url "get_chat_requests" %}')
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    renderRequests(data.requests);
+                    // Update badge too
+                    const badge = document.getElementById('requestsBadge');
+                    if (data.requests.length > 0) {
+                        badge.textContent = data.requests.length;
+                        badge.style.display = 'inline-block';
+                    } else {
+                        badge.style.display = 'none';
+                    }
+                } else {
+                    container.innerHTML = '<div style="padding:20px;text-align:center;">Failed to load requests</div>';
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                container.innerHTML = '<div style="padding:20px;text-align:center;">Error loading requests</div>';
+            });
+        }
+
+        function renderRequests(requests) {
+            const container = document.getElementById('requestsList');
+            if (!requests || requests.length === 0) {
+                container.innerHTML = `
+                    <div style="padding:40px 20px;text-align:center;color:var(--od-text-secondary);">
+                        <span class="od-icon" style="opacity:0.5;margin-bottom:12px;display:inline-block;"><svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></span>
+                        <p>No pending requests</p>
+                    </div>
+                `;
                 return;
             }
 
-            const csrfToken = getCSRFToken();
-            console.log('Creating group with:', { name, description, maxParticipants, isPublic, csrfToken });
-
-            fetch('{% url "create_group" %}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': csrfToken
-                },
-                body: JSON.stringify({
-                    name: name,
-                    description: description,
-                    max_participants: parseInt(maxParticipants) || 50,
-                    is_public: isPublic || false
-                })
-            })
-                .then(response => {
-                    console.log('Response status:', response.status);
-                    return response.json().then(data => {
-                        console.log('Full response:', data);
-                        return { status: response.status, data: data };
-                    });
-                })
-                .then(({ status, data }) => {
-                    console.log('Parsed response:', { status, data });
-
-                    if (data.success) {
-                        const groupId = data.group_id || data.group?.id || data.id;
-                        console.log('Group created with ID:', groupId);
-                        if (groupId) {
-                            closeCreateGroupModal();
-                            window.location.href = `/chat/${groupId}/`;
-                        } else {
-                            alert('Group created but ID not found in response');
-                        }
-                    } else {
-                        const errorMsg = data.error || data.message || JSON.stringify(data);
-                        console.error('API error:', errorMsg);
-                        alert('Could not create group: ' + errorMsg);
+            container.innerHTML = requests.map(req => {
+                let contentPreview = '';
+                const p = req.preview; // Use the preview object from API
+                
+                if (p) {
+                    if (p.type === 'scribe') {
+                        contentPreview = `
+                            <div style="margin-top:8px; border:1px solid var(--od-border); border-radius:8px; overflow:hidden; background:var(--od-surface-hover);">
+                                ${p.image_url ? `<div style="height:120px; background:url('${p.image_url}') center/cover;"></div>` : ''}
+                                <div style="padding:10px;">
+                                    <div style="font-size:11px; color:var(--od-text-secondary); margin-bottom:4px;">
+                                        <div style="display:flex; align-items:center; gap:4px;">
+                                            <img src="${p.author_avatar}" style="width:16px; height:16px; border-radius:50%;">
+                                            <span style="font-weight:600;">${p.author_username}</span>
+                                        </div>
+                                    </div>
+                                    <div style="font-size:13px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">${p.content || 'Shared a post'}</div>
+                                </div>
+                            </div>`;
+                    } else if (p.type === 'omzo') {
+                        contentPreview = `
+                            <div style="margin-top:8px; border:1px solid var(--od-border); border-radius:8px; overflow:hidden; background:var(--od-surface-hover);">
+                                <div style="height:120px; background:#000; display:flex; align-items:center; justify-content:center; position:relative;">
+                                    <div style="color:white;"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>
+                                </div>
+                                <div style="padding:10px;">
+                                     <div style="font-size:11px; color:var(--od-text-secondary); margin-bottom:4px;">From ${p.author_username}</div>
+                                    <div style="font-size:13px;">${p.caption || 'Shared a reel'}</div>
+                                </div>
+                                <a href="/omzo/?id=${p.id}" style="display:block; padding:8px; text-align:center; background:rgba(255,255,255,0.05); color:var(--color-primary); font-size:12px; text-decoration:none;">Watch Reel</a>
+                            </div>`;
+                    } else if (p.type === 'story') {
+                         contentPreview = `
+                            <div style="margin-top:8px; border:1px solid var(--od-border); border-radius:8px; overflow:hidden; background:var(--od-surface-hover);">
+                                    <div style="position:absolute; top:8px; left:8px; background:rgba(0,0,0,0.5); padding:2px 8px; border-radius:12px; color:white; font-size:10px;">Story</div>
+                                </div>
+                                <a href="/profile/${p.author_username}/" onclick="if(window.viewUserStories){viewUserStories('${p.author_username}');return false;}" style="display:block; padding:8px; text-align:center; background:rgba(255,255,255,0.05); color:var(--color-primary); font-size:12px; text-decoration:none;">View Story</a>
+                            </div>`;
                     }
-                })
-                .catch(err => {
-                    console.error('Create group error:', err);
-                    alert('Network error: ' + err.message);
+                }
+
+                return `
+                <div class="od-direct-item request-item" style="flex-direction:column; align-items:stretch; cursor:default; height:auto; padding:12px;">
+                    <div style="display:flex; align-items:flex-start; gap:12px;">
+                         <span style="position:relative;">
+                            <img src="${req.sender.avatar_url}" class="od-direct-item-avatar">
+                            <span style="position:absolute;bottom:-2px;right:-2px;background:var(--od-surface);border-radius:50%;padding:2px;">
+                                ${getContentTypeIcon(req.content_type)}
+                            </span>
+                        </span>
+                        <div class="od-direct-item-info">
+                            <div class="od-direct-item-name">${req.sender.username}</div>
+                            <div class="od-direct-item-preview" style="color:var(--od-text-primary);">
+                                 ${req.message ? req.message : ('Shared ' + (p ? p.type : req.content_type))}
+                            </div>
+                        </div>
+                        <div style="display:flex;gap:8px;margin-left:auto;align-items:center;">
+                             <button onclick="decideRequest(${req.id}, 'decline')" style="padding:6px 12px;border:1px solid var(--od-border);background:transparent;border-radius:99px;cursor:pointer;font-size:12px;color:var(--od-text-primary);">Delete</button>
+                             <button onclick="decideRequest(${req.id}, 'accept')" style="padding:6px 12px;border:none;background:var(--color-primary);color:white;border-radius:99px;cursor:pointer;font-size:12px;font-weight:500;">Accept</button>
+                        </div>
+                    </div>
+                    ${contentPreview}
+                </div>
+            `}).join('');
+            if(typeof lucide !== 'undefined') lucide.createIcons();
+        }
+
+        function getContentTypeIcon(type) {
+            if(type === 'scribe') return '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
+            if(type === 'omzo') return '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>';
+            if(type === 'story') return '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>';
+            return '';
+        }
+
+        function decideRequest(reqId, action) {
+             const url = action === 'accept' 
+                 ? '{% url "accept_chat_request" request_id=0 %}'.replace('0', reqId)
+                 : '{% url "decline_chat_request" request_id=0 %}'.replace('0', reqId);
+             fetch(url, {
+                 method: 'POST',
+                 headers: {
+                     'Content-Type': 'application/json',
+                     'X-CSRFToken': getCSRFToken()
+                 },
+                 body: JSON.stringify({ request_id: reqId })
+             })
+             .then(r => r.json())
+             .then(data => {
+                 if (data.success) {
+                     if (action === 'accept') {
+                         window.location.href = `/chat/${data.chat_id}/`;
+                     } else {
+                         // Remove from list
+                         fetchChatRequests(); // Reload list
+                     }
+                 } else {
+                     alert(data.error || 'Failed');
+                 }
+             })
+             .catch(err => {
+                 console.error(err);
+                 alert('Error processing request');
+             });
+        }
+
+        // Sidebar chat update polling
+        function updateSidebarChats() {
+            fetch('/chat/api/chats/')
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.success) return;
+                    const chats = data.chats;
+                    chats.forEach(chat => {
+                        // Find sidebar item by chat id
+                        const item = document.querySelector('.od-direct-item[href$="/' + chat.id + '/"]');
+                        if (!item) return;
+                        // Update unread badge
+                        const imgWrap = item.querySelector('span[style*="position:relative"]');
+                        let badge = item.querySelector('.unread-badge');
+                        if (chat.unread_count > 0) {
+                            if (!badge && imgWrap) {
+                                badge = document.createElement('span');
+                                badge.className = 'unread-badge';
+                                badge.style = "position:absolute;top:-6px;right:-6px;background:#ff3b3b;color:#fff;border-radius:50%;min-width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:bold;box-shadow:0 0 0 2px #fff;z-index:2;";
+                                imgWrap.appendChild(badge);
+                            }
+                            if (badge) {
+                                badge.textContent = chat.unread_count;
+                                badge.style.display = '';
+                            }
+                        } else if (badge) {
+                            badge.style.display = 'none';
+                        }
+                        // Update last message preview
+                        const preview = item.querySelector('.od-direct-item-preview');
+                        if (preview) {
+                            preview.textContent = chat.last_message || 'No messages yet';
+                        }
+                    });
                 });
         }
+        setInterval(updateSidebarChats, 5000);
+        updateSidebarChats();
     </script>
     {% endblock %}

@@ -59,7 +59,7 @@ class CustomUser(AbstractUser):
 
     name = models.CharField(max_length=50)
     lastname = models.CharField(max_length=50)
-    email = models.EmailField(unique=True)
+    email = models.EmailField(unique=True, null=True, blank=True)
     profile_picture = models.ImageField(
         upload_to='profile_pics/', blank=True, null=True)
     is_online = models.BooleanField(default=False)
@@ -327,6 +327,12 @@ class Story(models.Model):
     image_transform = models.JSONField(default=dict, blank=True)  # Store scale, x, y, rotation
     text_size = models.FloatField(default=22.0)  # Text font size
     # Removed old views ManyToManyField - now using StoryView model
+    
+    # Story Repost - For sharing someone's story to your own story (Instagram-style)
+    shared_from_story = models.ForeignKey(
+        'self', on_delete=models.SET_NULL, null=True, blank=True, 
+        related_name='story_reposts', help_text="Original story if this is a repost"
+    )
 
     class Meta:
         ordering = ['-created_at']
@@ -443,6 +449,12 @@ class Scribe(models.Model):
     code_js = models.TextField(blank=True, null=True)
     code_bundle = models.TextField(blank=True, null=True)
 
+    # REPOST FIELDS
+    original_scribe = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='reposts')
+    original_omzo = models.ForeignKey('Omzo', on_delete=models.SET_NULL, null=True, blank=True, related_name='reposts')
+    original_story = models.ForeignKey('Story', on_delete=models.SET_NULL, null=True, blank=True, related_name='reposts')
+    quote_source = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='quotes')
+
     class Meta:
         ordering = ['-timestamp']
 
@@ -476,6 +488,11 @@ class Scribe(models.Model):
         if self.image and hasattr(self.image, 'url'):
             return self.image.url
         return None
+
+    @property
+    def is_repost(self):
+        """Check if this scribe is a repost of other content"""
+        return bool(self.original_scribe or self.original_omzo or self.original_story)
 
 
 class Comment(models.Model):
@@ -1069,3 +1086,251 @@ class ProfileView(models.Model):
 
     def __str__(self):
         return f"{self.viewer.username} viewed {self.viewed_user.username}"
+
+
+class ChatRequest(models.Model):
+    """Model for pending chat/message requests.
+    
+    When a user shares content to someone they don't have an existing chat with,
+    it creates a request that the recipient must accept before the message
+    appears in their regular chat inbox.
+    
+    Flow:
+    1. User A shares Scribe/Omzo/Story to User B (no existing chat)
+    2. ChatRequest is created with status='pending'
+    3. User B sees request in their "Requests" tab
+    4. User B accepts -> Chat created, message sent, status='accepted'
+       OR User B declines -> status='declined'
+    """
+    
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('accepted', 'Accepted'),
+        ('declined', 'Declined'),
+    ]
+    
+    CONTENT_TYPE_CHOICES = [
+        ('scribe', 'Scribe'),
+        ('omzo', 'Omzo'),
+        ('story', 'Story'),
+        ('text', 'Text Message'),
+    ]
+    
+    sender = models.ForeignKey(
+        CustomUser, on_delete=models.CASCADE, related_name='sent_chat_requests',
+        help_text="User who initiated the share")
+    recipient = models.ForeignKey(
+        CustomUser, on_delete=models.CASCADE, related_name='received_chat_requests',
+        help_text="User receiving the shared content")
+    
+    # Shared content - only ONE of these should be set based on content_type
+    shared_scribe = models.ForeignKey(
+        'Scribe', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='share_requests', help_text="Shared scribe if content_type='scribe'")
+    shared_omzo = models.ForeignKey(
+        'Omzo', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='share_requests', help_text="Shared omzo if content_type='omzo'")
+    shared_story = models.ForeignKey(
+        'Story', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='share_requests', help_text="Shared story if content_type='story'")
+    
+    # Request metadata
+    message = models.TextField(
+        max_length=500, blank=True, default='',
+        help_text="Optional message sent with the shared content")
+    content_type = models.CharField(
+        max_length=10, choices=CONTENT_TYPE_CHOICES, default='scribe')
+    status = models.CharField(
+        max_length=10, choices=STATUS_CHOICES, default='pending',
+        db_index=True)
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    responded_at = models.DateTimeField(
+        null=True, blank=True, help_text="When request was accepted/declined")
+    
+    # Chat created after acceptance (for reference)
+    created_chat = models.ForeignKey(
+        'Chat', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='origin_request', help_text="Chat created when request was accepted")
+    
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['recipient', 'status', '-created_at']),
+            models.Index(fields=['sender', '-created_at']),
+        ]
+        # Prevent duplicate pending requests for same sender->recipient->content
+        constraints = [
+            models.UniqueConstraint(
+                fields=['sender', 'recipient', 'shared_scribe'],
+                condition=models.Q(status='pending') & ~models.Q(shared_scribe=None),
+                name='unique_pending_scribe_share_request'
+            ),
+            models.UniqueConstraint(
+                fields=['sender', 'recipient', 'shared_omzo'],
+                condition=models.Q(status='pending') & ~models.Q(shared_omzo=None),
+                name='unique_pending_omzo_share_request'
+            ),
+            models.UniqueConstraint(
+                fields=['sender', 'recipient', 'shared_story'],
+                condition=models.Q(status='pending') & ~models.Q(shared_story=None),
+                name='unique_pending_story_share_request'
+            ),
+        ]
+    
+    def __str__(self):
+        content_preview = ''
+        if self.shared_scribe:
+            content_preview = f"Scribe #{self.shared_scribe_id}"
+        elif self.shared_omzo:
+            content_preview = f"Omzo #{self.shared_omzo_id}"
+        elif self.shared_story:
+            content_preview = f"Story #{self.shared_story_id}"
+        return f"{self.sender.username} → {self.recipient.username}: {content_preview} ({self.status})"
+    
+    @property
+    def shared_content(self):
+        """Get the actual shared content object"""
+        return self.shared_scribe or self.shared_omzo or self.shared_story
+    
+    @property
+    def shared_content_preview(self):
+        """Get a preview of the shared content for UI display"""
+        if self.shared_scribe:
+            scribe = self.shared_scribe
+            return {
+                'type': 'scribe',
+                'id': scribe.id,
+                'content': scribe.content[:100] if scribe.content else '',
+                'has_image': scribe.has_media,
+                'image_url': scribe.image_url,
+                'author_username': scribe.user.username,
+                'author_name': scribe.user.full_name,
+                'author_avatar': scribe.user.profile_picture_url,
+            }
+        elif self.shared_omzo:
+            omzo = self.shared_omzo
+            return {
+                'type': 'omzo',
+                'id': omzo.id,
+                'caption': omzo.caption[:100] if omzo.caption else '',
+                'video_url': omzo.video_file.url if omzo.video_file else None,
+                'author_username': omzo.user.username,
+                'author_name': omzo.user.full_name,
+                'author_avatar': omzo.user.profile_picture_url,
+            }
+        elif self.shared_story:
+            story = self.shared_story
+            return {
+                'type': 'story',
+                'id': story.id,
+                'content': story.content[:100] if story.content else '',
+                'media_url': story.media_url,
+                'author_username': story.user.username,
+                'author_name': story.user.full_name,
+                'author_avatar': story.user.profile_picture_url,
+            }
+        return None
+    
+    def accept(self):
+        """Accept the request and create/return the chat"""
+        from django.utils import timezone
+        
+        if self.status != 'pending':
+            return self.created_chat
+        
+        # Find or create private chat between sender and recipient
+        existing_chat = Chat.objects.filter(
+            chat_type='private',
+            participants=self.sender
+        ).filter(participants=self.recipient).first()
+        
+        if existing_chat:
+            chat = existing_chat
+        else:
+            chat = Chat.objects.create(chat_type='private')
+            chat.participants.add(self.sender, self.recipient)
+        
+        # Create message with shared content
+        from chat.models import Message
+        message_content = self.message if self.message else "Shared content"
+        
+        # Build shared content reference in message
+        shared_data = {
+            'type': self.content_type,
+        }
+        if self.shared_scribe:
+            shared_data['scribe_id'] = self.shared_scribe_id
+        elif self.shared_omzo:
+            shared_data['omzo_id'] = self.shared_omzo_id
+        elif self.shared_story:
+            shared_data['story_id'] = self.shared_story_id
+        
+        Message.objects.create(
+            chat=chat,
+            sender=self.sender,
+            content=message_content,
+            message_type='text',
+            reactions={'shared_content': shared_data}  # Store shared ref in reactions JSON
+        )
+        
+        # Update request status
+        self.status = 'accepted'
+        self.responded_at = timezone.now()
+        self.created_chat = chat
+        self.save(update_fields=['status', 'responded_at', 'created_chat'])
+        
+        return chat
+    
+    def decline(self):
+        """Decline the request"""
+        from django.utils import timezone
+        
+        if self.status != 'pending':
+            return
+        
+        self.status = 'declined'
+        self.responded_at = timezone.now()
+        self.save(update_fields=['status', 'responded_at'])
+
+
+class Notification(models.Model):
+
+    """Model to store and persist user notifications"""
+    NOTIFICATION_TYPES = [
+        ('message', 'New Message'),
+        ('call', 'Incoming Call'),
+        ('missed_call', 'Missed Call'),
+        ('follow', 'New Follower'),
+        ('like', 'Post Liked'),
+        ('comment', 'New Comment'),
+        ('mention', 'Mentioned You'),
+        ('story_view', 'Story Viewed'),
+        ('story_reply', 'Story Reply'),
+    ]
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='notifications')
+    sender = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='sent_notifications',
+        null=True, blank=True)
+    notification_type = models.CharField(max_length=20, choices=NOTIFICATION_TYPES)
+    title = models.CharField(max_length=100)
+    message = models.TextField(max_length=500)
+    data = models.JSONField(default=dict, blank=True)  # Extra data (chat_id, post_id, etc.)
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['user', 'is_read', '-created_at']),
+        ]
+
+    def __str__(self):
+        return f"{self.notification_type}: {self.title} -> {self.user.username}"
+
+    def mark_read(self):
+        self.is_read = True
+        self.save(update_fields=['is_read'])

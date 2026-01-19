@@ -2057,7 +2057,7 @@ a:hover {
   gap: var(--spacing-3xl);
   margin-bottom: var(--spacing-3xl);
   padding-bottom: var(--spacing-3xl);
-  border-bottom: 1px solid var(--od-border);
+  /* border-bottom: 1px solid var(--od-border); - COMMENTED OUT: highlights section disabled */
 }
 
 .od-profile-avatar-container {
@@ -3619,7 +3619,7 @@ body.story-viewer-open {
   gap: var(--spacing-3xl);
   margin-bottom: var(--spacing-2xl);
   padding-bottom: var(--spacing-2xl);
-  border-bottom: 1px solid var(--od-border-light);
+  /* border-bottom: 1px solid var(--od-border-light); - COMMENTED OUT: highlights section disabled */
 }
 
 .od-profile-avatar-section {
@@ -5366,7 +5366,11 @@ body.story-viewer-open {
 .od-typing-indicator {
   display: flex;
   align-items: center;
-  padding: var(--spacing-sm) 0;
+  padding: var(--spacing-sm) var(--spacing-md);
+  position: sticky;
+  bottom: 0;
+  background: var(--od-surface);
+  z-index: 10;
 }
 
 .od-typing-dots {

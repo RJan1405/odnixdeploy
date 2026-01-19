@@ -157,7 +157,7 @@ AUTH_USER_MODEL = 'chat.CustomUser'
 # Login URLs
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/dashboard/'
-LOGOUT_REDIRECT_URL = '/login/'
+LOGOUT_REDIRECT_URL = '/'  # Redirect to landing page after logout
 
 # FIXED: Email settings for verification using provided credentials
 # FIXED: Email settings for verification using Gmail

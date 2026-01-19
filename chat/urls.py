@@ -80,6 +80,7 @@ urlpatterns = [
          views.get_scribe_comments, name='get_scribe_comments'),
 
     # Chat API endpoints - FIXED
+    path('api/chat/<int:chat_id>/details/', views.get_chat_details_api, name='get_chat_details_api'),
     path('api/chats/', views.get_chats_api, name='get_chats_api'),
     path('api/send-message/', views.send_message, name='send_message'),
     path('api/chat/<int:chat_id>/messages/',
@@ -122,6 +123,7 @@ urlpatterns = [
     path('api/story/toggle-like/', views.toggle_story_like,
          name='toggle_story_like'),
     path('api/story/add-reply/', views.add_story_reply, name='add_story_reply'),
+    path('api/story/repost/', views.repost_story, name='repost_story'),  # NEW: Repost story to your story
     path('api/story/<int:story_id>/replies/',
          views.get_story_replies, name='get_story_replies'),
     path('api/story/<int:story_id>/viewers/',
@@ -203,6 +205,7 @@ urlpatterns = [
          views.p2p_get_signals, name='p2p_get_signals'),
     path('api/p2p/<int:chat_id>/participants/',
          views.get_chat_participants_for_p2p, name='p2p_participants'),
+    path('api/p2p/clear-signals/', views.p2p_clear_signals, name='p2p_clear_signals'),
 
     # Call Notifications (HTTP fallback)
     path('api/call/notify/', views.send_call_notification,
@@ -219,6 +222,14 @@ urlpatterns = [
          views.get_omzo_comments, name='get_omzo_comments'),
     path('api/omzo/comment/', views.add_omzo_comment, name='add_omzo_comment'),
     path('api/omzo/report/', views.report_omzo, name='report_omzo'),
+
+    # Share API & Chat Requests
+    path('api/share/send/', views.share_content_to_user, name='share_content_to_user'),
+    path('api/share/search-users/', views.search_users_for_share, name='search_users_for_share'),
+    path('api/chat-requests/', views.get_chat_requests, name='get_chat_requests'),
+    path('api/chat-requests/count/', views.get_chat_requests_count, name='get_chat_requests_count'),
+    path('api/chat-requests/<int:request_id>/accept/', views.accept_chat_request, name='accept_chat_request'),
+    path('api/chat-requests/<int:request_id>/decline/', views.decline_chat_request, name='decline_chat_request'),
 ]
 
 # Serve media files in development

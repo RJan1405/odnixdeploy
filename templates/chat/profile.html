@@ -1,5 +1,6 @@
 {% extends 'chat/base.html' %}
 {% load scribe_extras %}
+{% load odnix_icons %}
 
 {% block title %}
 {% if is_own_profile %}Your Profile{% else %}{{ profile_user.full_name }}{% endif %} - Odnix
@@ -9,6 +10,27 @@
 <meta name="user-id" content="{{ current_user.id }}">
 <meta name="csrf-token" content="{{ csrf_token }}">
 <style>
+    /* Custom Icon Styles */
+    .od-icon {
+        width: 24px;
+        height: 24px;
+        display: inline-block;
+        vertical-align: middle;
+    }
+    .od-icon svg {
+        width: 100%;
+        height: 100%;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 1.8;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+    }
+    .od-icon.filled svg {
+        fill: currentColor;
+        stroke: currentColor;
+    }
+
     /* Adjust for shared navbar */
     .sidebar-enhanced {
         display: none !important;
@@ -21,6 +43,11 @@
     .od-profile-container {
         padding-top: 90px !important;
         padding-bottom: 100px !important;
+    }
+
+    /* Dashboard-style toggle to ensure legacy main-container doesn't interfere */
+    .main-container {
+        display: none !important;
     }
 
     /* ===== PROFILE RESPONSIVE STYLES ===== */
@@ -619,7 +646,7 @@
             height: 16px;
         }
 
-        /* Mobile Highlights Section */
+        /* Mobile Highlights Section - COMMENTED OUT FOR FUTURE USE
         .od-m-highlights-section {
             margin-top: 8px;
         }
@@ -633,6 +660,7 @@
         .od-m-highlights {
             padding: 8px 16px 12px !important;
         }
+        */
 
         /* Profile Tabs - Instagram Style */
         .od-m-profile-tabs {
@@ -777,7 +805,7 @@
         }
     }
 
-    /* Enhanced Highlights Section - Instagram Style */
+    /* Enhanced Highlights Section - Instagram Style - COMMENTED OUT FOR FUTURE USE
     .od-highlights {
         display: flex;
         gap: 15px;
@@ -880,8 +908,9 @@
         font-weight: 400;
         text-align: center;
     }
+    */
 
-    /* Mobile highlights */
+    /* Mobile highlights - COMMENTED OUT FOR FUTURE USE
     @media (max-width: 480px) {
         .od-highlights {
             padding: 12px 16px;
@@ -899,6 +928,7 @@
             max-width: 58px;
         }
     }
+    */
 
     /* ===== IMPROVED CREATE POST MODAL STYLES ===== */
     #createPostModal .od-create-modal {
@@ -1544,6 +1574,30 @@
         color: #ed4956;
     }
 
+    /* Story Repost Badge */
+    .od-story-repost-badge {
+        position: absolute;
+        top: 80px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        padding: 8px 16px;
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        color: white;
+        font-size: 13px;
+        font-weight: 500;
+        z-index: 10;
+    }
+
+    .od-story-repost-badge i {
+        color: #a855f7;
+    }
+
     /* Story Text Content */
     .od-story-text-content {
         width: 100%;
@@ -1563,6 +1617,99 @@
         font-size: 24px;
         line-height: 1.4;
         text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Repost Confirmation Dialog */
+    .od-confirm-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.75);
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10000;
+        animation: fadeIn 0.2s ease;
+    }
+
+    .od-confirm-dialog {
+        background: var(--od-bg-secondary, #262626);
+        border-radius: 16px;
+        padding: 32px;
+        max-width: 400px;
+        width: 90%;
+        text-align: center;
+        animation: scaleIn 0.2s ease;
+    }
+
+    .od-confirm-icon {
+        color: #a855f7;
+        margin-bottom: 16px;
+    }
+
+    .od-confirm-dialog h3 {
+        color: var(--od-text-primary, #fff);
+        font-size: 20px;
+        font-weight: 600;
+        margin: 0 0 12px 0;
+    }
+
+    .od-confirm-dialog p {
+        color: var(--od-text-secondary, #a8a8a8);
+        font-size: 14px;
+        line-height: 1.5;
+        margin: 0 0 24px 0;
+    }
+
+    .od-confirm-dialog p strong {
+        color: #a855f7;
+    }
+
+    .od-confirm-actions {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+    }
+
+    .od-confirm-btn {
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border: none;
+    }
+
+    .od-confirm-cancel {
+        background: transparent;
+        color: var(--od-text-primary, #fff);
+        border: 1px solid var(--od-border, #363636);
+    }
+
+    .od-confirm-cancel:hover {
+        background: var(--od-bg-tertiary, #363636);
+    }
+
+    .od-confirm-primary {
+        background: linear-gradient(135deg, #a855f7, #6366f1);
+        color: white;
+    }
+
+    .od-confirm-primary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(168, 85, 247, 0.3);
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    @keyframes scaleIn {
+        from { transform: scale(0.95); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
     }
 
     /* Responsive Story Viewer */
@@ -1597,7 +1744,6 @@
             width: 35%;
             top: 100px;
         }
-    }
     }
 
     .od-story-action-btn {
@@ -1949,6 +2095,37 @@
         .scribe-feed {
             max-width: 100%;
         }
+        
+        /* Responsive Repost Card Styles */
+        .od-post > div[style*="margin: 8px 12px"] {
+            margin: 6px 8px !important;
+            border-radius: 10px !important;
+        }
+        
+        .od-post > div[style*="margin: 8px 12px"] > div:first-child {
+            padding: 8px 10px !important;
+        }
+        
+        .od-post > div[style*="margin: 8px 12px"] img[style*="32px"] {
+            width: 28px !important;
+            height: 28px !important;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .od-post > div[style*="margin: 8px 12px"] {
+            margin: 4px 6px !important;
+        }
+        
+        .od-post > div[style*="margin: 8px 12px"] > div:first-child {
+            padding: 6px 8px !important;
+            gap: 8px !important;
+        }
+        
+        .od-post > div[style*="margin: 8px 12px"] img[style*="32px"] {
+            width: 24px !important;
+            height: 24px !important;
+        }
     }
 </style>
 {% endblock %}
@@ -1968,20 +2145,20 @@
                 <div class="od-m-topbar-username">
                     {{ profile_user.username }}
                     {% if profile_user.is_verified %}
-                    <i data-lucide="badge-check" style="color: #0095f6;"></i>
+                    {% icon "verified" "od-icon" "color: #0095f6;" %}
                     {% endif %}
                     {% if profile_user.is_private %}
-                    <i data-lucide="lock"></i>
+                    {% icon "lock" %}
                     {% endif %}
                 </div>
                 <div class="od-m-topbar-actions">
                     {% if is_own_profile %}
                     <button class="od-m-topbar-btn" onclick="openActivityPanel()" title="Activity">
-                        <i data-lucide="heart"></i>
+                        {% icon "heart" %}
                     </button>
                     {% endif %}
                     <button class="od-m-topbar-btn" onclick="openSettingsModal()">
-                        <i data-lucide="menu"></i>
+                        {% icon "menu" %}
                     </button>
                 </div>
             </div>
@@ -2001,11 +2178,11 @@
                     {% endif %}
                         <img src="{{ profile_user.profile_picture_url }}" alt="{{ profile_user.username }}"
                             class="od-m-avatar"
-                            onerror="this.outerHTML='<div class=\\'od-profile-avatar-placeholder\\' style=\\'width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:var(--odnix-gradient);border-radius:22%;font-size:28px;font-weight:600;color:white;\\'>{{ profile_user.initials }}</div>'">
+                            onerror="this.outerHTML='<div class=\'od-profile-avatar-placeholder\' style=\'width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:var(--odnix-gradient);border-radius:22%;font-size:28px;font-weight:600;color:white;\'>{{ profile_user.initials }}</div>'">
                     </div>
                     {% if is_own_profile %}
                     <div class="od-plus-badge" onclick="openStoryModal()">
-                        <i data-lucide="plus" style="width: 12px; height: 12px;"></i>
+                        {% icon "plus" "" 12 %}
                     </div>
                     {% endif %}
                 </div>
@@ -2037,7 +2214,7 @@
                 {% endif %}
                 {% if profile_user.location %}
                 <div style="font-size: 14px; color: var(--od-text-secondary); margin-top: 4px;">
-                    <i data-lucide="map-pin" style="width: 12px; height: 12px; display: inline-block; vertical-align: middle; margin-right: 4px;"></i>
+                    {% icon "map-pin" "" 12 %}
                     {{ profile_user.location }}
                 </div>
                 {% endif %}
@@ -2065,7 +2242,7 @@
                 <button class="od-m-btn">Share profile</button>
                 {% if pending_requests_count > 0 %}
                 <button class="od-m-btn-icon" onclick="openFollowRequestsModal()" style="position: relative;">
-                    <i data-lucide="user-plus" style="width: 16px; height: 16px;"></i>
+                    {% icon "user-plus" "" 16 %}
                     <span style="position: absolute; top: -4px; right: -4px; background: #ff3040; color: white; font-size: 10px; font-weight: 600; padding: 2px 5px; border-radius: 10px;">{{ pending_requests_count }}</span>
                 </button>
                 {% endif %}
@@ -2073,11 +2250,11 @@
                 <button class="od-m-btn following" onclick="toggleFollow('{{ profile_user.username }}')"
                     data-username="{{ profile_user.username }}">
                     Following
-                    <i data-lucide="chevron-down" style="width: 12px; height: 12px;"></i>
+                    {% icon "check" "" 12 %}
                 </button>
                 <button class="od-m-btn" onclick="startChat('{{ profile_user.username }}')">Message</button>
                 <button class="od-m-btn-icon">
-                    <i data-lucide="user-plus" style="width: 16px; height: 16px;"></i>
+                    {% icon "user-check" "" 16 %}
                 </button>
                 {% elif follow_request_status == 'pending' %}
                 <button class="od-m-btn" onclick="toggleFollow('{{ profile_user.username }}')"
@@ -2088,12 +2265,13 @@
                     data-username="{{ profile_user.username }}">Follow</button>
                 <button class="od-m-btn" onclick="startChat('{{ profile_user.username }}')">Message</button>
                 <button class="od-m-btn-icon">
-                    <i data-lucide="user-plus" style="width: 16px; height: 16px;"></i>
+                    {% icon "user-plus" "" 16 %}
                 </button>
                 {% endif %}
             </div>
 
-            <!-- Mobile Story Highlights Section - Instagram Style -->
+            {% comment %}
+            <!-- Mobile Story Highlights Section - COMMENTED OUT FOR FUTURE USE -->
             {% if is_own_profile or user_stories %}
             <div class="od-m-highlights-section">
                 <div class="od-m-highlights-separator"></div>
@@ -2102,7 +2280,7 @@
                     <!-- Add New Story Button -->
                     <button class="od-highlight-item" onclick="openStoryModal()">
                         <div class="od-highlight-add">
-                            <i data-lucide="plus"></i>
+                            {% icon "plus" %}
                         </div>
                         <span class="od-highlight-label">New</span>
                     </button>
@@ -2126,18 +2304,22 @@
                 </div>
             </div>
             {% endif %}
+            {% endcomment %}
 
             <!-- Profile Tabs - Instagram Style -->
             <div class="od-m-profile-tabs">
                 <button class="od-m-tab active" data-tab="posts">
-                    <i data-lucide="grid-3x3" style="width: 24px; height: 24px;"></i>
+                    {% icon "grid" "" 24 %}
                 </button>
                 <button class="od-m-tab" data-tab="reels">
-                    <i data-lucide="film" style="width: 24px; height: 24px;"></i>
+                    {% icon "film" "" 24 %}
+                </button>
+                <button class="od-m-tab" data-tab="reposts">
+                    {% icon "repeat" "" 24 %}
                 </button>
                 {% if is_own_profile %}
                 <button class="od-m-tab" data-tab="tagged">
-                    <i data-lucide="bookmark" style="width: 24px; height: 24px;"></i>
+                    {% icon "bookmark" "" 24 %}
                 </button>
                 {% endif %}
             </div>
@@ -2158,7 +2340,7 @@
                         {% endif %}
                                 <img src="{{ profile_user.profile_picture_url }}" alt="{{ profile_user.full_name }}"
                                     class="od-profile-avatar"
-                                    onerror="this.outerHTML='<div class=\\'od-profile-avatar-placeholder\\'>{{ profile_user.initials }}</div>'">
+                                    onerror="this.outerHTML='<div class=\'od-profile-avatar-placeholder\'>{{ profile_user.initials }}</div>'">
                             </div>
                         </div>
                     </div>
@@ -2169,8 +2351,7 @@
                             <h1 class="od-profile-username">
                                 {{ profile_user.username }}
                                 {% if profile_user.is_private %}
-                                <i data-lucide="lock" class="od-private-badge" title="Private Account"
-                                    style="width: 16px; height: 16px; margin-left: 6px; color: var(--od-text-secondary);"></i>
+                                {% icon "lock" "od-private-badge" 16 %}
                                 {% endif %}
                             </h1>
 
@@ -2179,12 +2360,12 @@
                             {% if pending_requests_count > 0 %}
                             <button class="od-profile-btn secondary" onclick="openFollowRequestsModal()"
                                 style="position: relative;">
-                                <i data-lucide="user-plus" style="width: 16px; height: 16px;"></i>
+                                {% icon "user-plus" "" 16 %}
                                 <span class="od-requests-badge">{{ pending_requests_count }}</span>
                             </button>
                             {% endif %}
                             <button class="od-profile-settings-btn" onclick="openSettingsModal()">
-                                <i data-lucide="settings"></i>
+                                {% icon "settings" %}
                             </button>
                             {% elif is_blocked %}
                             <button class="od-profile-btn blocked" disabled>Blocked</button>
@@ -2231,7 +2412,7 @@
                             {% endif %}
                             {% if profile_user.location %}
                             <span class="od-profile-location">
-                                <i data-lucide="map-pin" style="width: 12px; height: 12px;"></i>
+                                {% icon "map-pin" "" 12 %}
                                 {{ profile_user.location }}
                             </span>
                             {% endif %}
@@ -2240,14 +2421,15 @@
             </header>
         </div>
 
-        <!-- Story Highlights Section - Instagram Style (Desktop Only) -->
+        {% comment %}
+        <!-- Story Highlights Section - Desktop Only - COMMENTED OUT FOR FUTURE USE -->
         {% if is_own_profile or user_stories %}
         <div class="od-highlights desktop-only-flex">
             {% if is_own_profile %}
             <!-- Add New Story Button -->
             <button class="od-highlight-item" onclick="openStoryModal()">
                 <div class="od-highlight-add">
-                    <i data-lucide="plus"></i>
+                    {% icon "plus" %}
                 </div>
                 <span class="od-highlight-label">New</span>
             </button>
@@ -2270,20 +2452,25 @@
             {% endif %}
         </div>
         {% endif %}
+        {% endcomment %}
 
         <!-- Content Tabs -->
         <div class="od-profile-tabs">
             <button class="od-profile-tab active" data-tab="posts">
-                <i data-lucide="grid-3x3"></i>
+                {% icon "grid" %}
                 <span class="tab-text">Scribe</span>
             </button>
             <button class="od-profile-tab" data-tab="omzo">
-                <i data-lucide="film"></i>
+                {% icon "play-square" %}
                 <span class="tab-text">Omzo</span>
+            </button>
+            <button class="od-profile-tab" data-tab="reposts">
+                {% icon "repeat" %}
+                <span class="tab-text">Reposts</span>
             </button>
             {% if is_own_profile %}
             <button class="od-profile-tab" data-tab="saved">
-                <i data-lucide="bookmark"></i>
+                {% icon "bookmark" %}
                 <span class="tab-text">Saved</span>
             </button>
             {% endif %}
@@ -2352,24 +2539,55 @@
                                 <span class="od-post-username">{{ scribe.user.username }}</span>
                             </div>
                         </a>
-                        <button class="od-post-more" onclick="openPostDetail({{ scribe.id }})">
-                            <i data-lucide="more-horizontal"></i>
+                        <button class="od-post-more" onclick="openPostDetail('{{ scribe.id }}')">
+                            {% icon "more-horizontal" %}
                         </button>
                     </header>
 
                     <!-- Post Media -->
                     {% if scribe.content_type == 'code_scribe' %}
-                    <div class="od-post-media">
-                        <iframe class="od-code-scribe-view" title="Code Scribe"
-                            style="width: 100%; min-height: 260px; border: none; background: var(--od-bg);"
-                            data-code-bundle="{{ scribe.code_bundle|urlencode }}"
-                            data-code-html="{{ scribe.code_html|default:''|urlencode }}"
-                            data-code-css="{{ scribe.code_css|default:''|urlencode }}"
-                            data-code-js="{{ scribe.code_js|default:''|urlencode }}"></iframe>
+                    <div class="od-post-media" style="padding: 12px; background: var(--od-surface-hover);">
+                        <div class="code-scribe-card">
+                            <div class="code-card-header">
+                                <div class="code-window-controls">
+                                    <span class="code-dot red"></span>
+                                    <span class="code-dot yellow"></span>
+                                    <span class="code-dot green"></span>
+                                </div>
+                                <span class="code-lang-badge">CODE</span>
+                            </div>
+                            <div class="code-scroller">
+                                <pre class="code-block"><code>{{ scribe.code_html|default:scribe.code_bundle|default:scribe.content|escape }}</code></pre>
+                            </div>
+                        </div>
                     </div>
                     {% elif scribe.image_url %}
                     <div class="od-post-media" onclick="openImageModal('{{ scribe.image_url }}')">
                         <img src="{{ scribe.image_url }}" alt="Post image">
+                    </div>
+                    {% elif scribe.content %}
+                    <!-- Plain Text Scribe (Dashboard Style) -->
+                    <div style="padding: 20px 20px 10px 20px;">
+                        <span style="font-size: 15px; line-height: 1.5; color: var(--od-text-primary); white-space: pre-wrap;">{{ scribe.content|linkify_hashtags_mentions }}</span>
+                    </div>
+                    {% endif %}
+
+                    <!-- Quote Scribe Card -->
+                    {% if scribe.quote_source %}
+                    <div class="od-post-media" style="padding: 12px; background: var(--od-surface-hover); border: 1px solid var(--od-border); border-radius: 12px; margin: 0 20px 12px 20px; cursor: pointer;" onclick="event.stopPropagation(); window.location.href='/post/{{ scribe.quote_source.id }}/'">
+                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                            <img src="{{ scribe.quote_source.user.profile_picture_url }}" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover;">
+                            <span style="font-weight: 600; font-size: 13px; color: var(--od-text-primary);">{{ scribe.quote_source.user.username }}</span>
+                            <span style="font-size: 12px; color: var(--od-text-secondary);">{{ scribe.quote_source.timestamp|timesince }} ago</span>
+                        </div>
+                        {% if scribe.quote_source.content %}
+                        <p style="font-size: 14px; color: var(--od-text-primary); margin: 0 0 8px 0; line-height: 1.4;">{{ scribe.quote_source.content|truncatechars:140 }}</p>
+                        {% endif %}
+                        {% if scribe.quote_source.image_url %}
+                        <div style="height: 150px; border-radius: 8px; overflow: hidden;">
+                            <img src="{{ scribe.quote_source.image_url }}" style="width: 100%; height: 100%; object-fit: cover;">
+                        </div>
+                        {% endif %}
                     </div>
                     {% endif %}
 
@@ -2377,17 +2595,25 @@
                     <div class="od-post-actions">
                         <div class="od-post-actions-left">
                             <button class="od-post-action-btn like-btn {% if scribe.is_liked %}liked{% endif %}"
-                                onclick="toggleLike({{ scribe.id }})" data-scribe-id="{{ scribe.id }}">
-                                <i data-lucide="thumbs-up"></i>
+                                onclick="toggleLike('{{ scribe.id }}')" data-scribe-id="{{ scribe.id }}">
+                                {% icon "thumbs-up" %}
                             </button>
                             <button class="od-post-action-btn dislike-btn {% if scribe.is_disliked %}disliked{% endif %}"
-                                onclick="toggleDislike({{ scribe.id }})" data-scribe-id="{{ scribe.id }}">
-                                <i data-lucide="thumbs-down"></i>
+                                onclick="toggleDislike('{{ scribe.id }}')" data-scribe-id="{{ scribe.id }}">
+                                {% icon "thumbs-down" %}
                             </button>
-                            <button class="od-post-action-btn" onclick="toggleComments({{ scribe.id }})">
-                                <i data-lucide="message-circle"></i>
+                            <button class="od-post-action-btn" onclick="toggleComments('{{ scribe.id }}')">
+                                {% icon "message-circle" %}
+                            </button>
+
+                            <button class="od-post-action-btn" onclick="sharePost('{{ scribe.id }}')">
+                                {% icon "send" %}
                             </button>
                         </div>
+                        <button class="od-post-action-btn {% if scribe.is_saved %}saved{% endif %}"
+                            onclick="savePost('{{ scribe.id }}')" data-action="save">
+                            {% icon "bookmark" %}
+                        </button>
                     </div>
 
                     <!-- Post Details -->
@@ -2396,7 +2622,7 @@
                             <span class="like-count" data-scribe-id="{{ scribe.id }}">{{ scribe.like_count }}</span> likes
                         </div>
 
-                        {% if scribe.content %}
+                        {% if scribe.content and scribe.image_url or scribe.content_type == 'code_scribe' %}
                         <div class="od-post-caption">
                             <span class="username">{{ scribe.user.username }}</span>
                             <span>{{ scribe.content|linkify_hashtags_mentions }}</span>
@@ -2404,7 +2630,7 @@
                         {% endif %}
 
                         {% if scribe.comment_count > 0 %}
-                        <div class="od-post-view-comments" onclick="openPostDetail({{ scribe.id }})">
+                        <div class="od-post-view-comments" onclick="openPostDetail('{{ scribe.id }}')">
                             View all {{ scribe.comment_count }} comments
                         </div>
                         {% endif %}
@@ -2415,8 +2641,8 @@
                     <!-- Comment Input -->
                     <div class="od-post-comment-input">
                         <input type="text" placeholder="Add a comment..." id="comment-input-{{ scribe.id }}"
-                            maxlength="500" onkeypress="handleCommentKeypress(event, {{ scribe.id }})">
-                        <button onclick="addComment({{ scribe.id }})">Post</button>
+                            maxlength="500" onkeypress="handleCommentKeypress(event, '{{ scribe.id }}')">
+                        <button onclick="addComment('{{ scribe.id }}')">Post</button>
                     </div>
 
                     <!-- Comments Section (Hidden by default) -->
@@ -2431,7 +2657,7 @@
             <div class="od-no-posts">
                 {% if is_own_profile %}
                 <div class="od-no-posts-icon">
-                    <i data-lucide="camera"></i>
+                    {% icon "camera" %}
                 </div>
                 <h3>Share Scribes</h3>
                 <p>When you share scribes, they will appear in your profile timeline.</p>
@@ -2439,10 +2665,164 @@
                     style="width: auto; padding: 8px 16px; margin-top: 16px;">Share your first scribe</button>
                 {% else %}
                 <div class="od-no-posts-icon">
-                    <i data-lucide="camera-off"></i>
+                    {% icon "grid-off" %}
                 </div>
                 <h3>No Scribes Yet</h3>
                 {% endif %}
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Reposts Tab Content -->
+        <div class="od-profile-content" id="repostsTab" style="display: none;">
+            {% if reposts %}
+            <section class="od-posts" id="profileRepostsFeed">
+                {% for scribe in reposts %}
+                <article class="od-post" data-scribe-id="{{ scribe.id }}">
+                <!-- Reposter Header (who reposted) -->
+                    <header class="od-post-header">
+                        <a href="{% url 'user_profile' scribe.user.username %}" class="od-post-user">
+                            <img src="{{ scribe.user.profile_picture_url }}" alt="{{ scribe.user.full_name }}" class="od-post-avatar"
+                                onerror="this.outerHTML='<div class=\'od-post-avatar-placeholder\'>{{ scribe.user.initials }}</div>'">
+                            <div class="od-post-user-info">
+                                <span class="od-post-username">{{ scribe.user.username }}</span>
+                                <span style="font-size: 11px; color: var(--od-text-secondary); display: flex; align-items: center; gap: 4px;">
+                                    <span class="od-icon" style="width: 12px; height: 12px;">{% icon "repeat" %}</span>
+                                    Reposted
+                                </span>
+                            </div>
+                        </a>
+                        <button class="od-post-more" onclick="openPostDetail('{{ scribe.id }}')">
+                            {% icon "more-horizontal" %}
+                        </button>
+                    </header>
+
+                    <!-- Original Content Card -->
+                    <div style="margin: 8px 12px; border: 1px solid var(--od-border); border-radius: 12px; overflow: hidden; background: var(--od-surface);">
+                        <!-- Original Author Header -->
+                        <div style="padding: 10px 12px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--od-border);">
+                            {% if scribe.original_scribe %}
+                            <a href="{% url 'user_profile' scribe.original_scribe.user.username %}" style="display: flex; align-items: center; gap: 10px; text-decoration: none; color: inherit;">
+                                <img src="{{ scribe.original_scribe.user.profile_picture_url }}" alt="" style="width: 32px; height: 32px; border-radius: 22%; object-fit: cover;"
+                                    onerror="this.outerHTML='<div style=\'width:32px;height:32px;border-radius:22%;background:var(--od-surface-hover);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;\'>{{ scribe.original_scribe.user.initials }}</div>'">
+                                <span style="font-weight: 600; font-size: 14px;">{{ scribe.original_scribe.user.username }}</span>
+                            </a>
+                            {% elif scribe.original_omzo %}
+                            <a href="{% url 'user_profile' scribe.original_omzo.user.username %}" style="display: flex; align-items: center; gap: 10px; text-decoration: none; color: inherit;">
+                                <img src="{{ scribe.original_omzo.user.profile_picture_url }}" alt="" style="width: 32px; height: 32px; border-radius: 22%; object-fit: cover;"
+                                    onerror="this.outerHTML='<div style=\'width:32px;height:32px;border-radius:22%;background:var(--od-surface-hover);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;\'>{{ scribe.original_omzo.user.initials }}</div>'">
+                                <div>
+                                    <span style="font-weight: 600; font-size: 14px;">{{ scribe.original_omzo.user.username }}</span>
+                                    <span style="font-size: 11px; color: var(--od-text-secondary); margin-left: 6px;">• Omzo</span>
+                                </div>
+                            </a>
+                            {% elif scribe.original_story %}
+                            <a href="{% url 'user_profile' scribe.original_story.user.username %}" style="display: flex; align-items: center; gap: 10px; text-decoration: none; color: inherit;">
+                                <img src="{{ scribe.original_story.user.profile_picture_url }}" alt="" style="width: 32px; height: 32px; border-radius: 22%; object-fit: cover;"
+                                    onerror="this.outerHTML='<div style=\'width:32px;height:32px;border-radius:22%;background:var(--od-surface-hover);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;\'>{{ scribe.original_story.user.initials }}</div>'">
+                                <div>
+                                    <span style="font-weight: 600; font-size: 14px;">{{ scribe.original_story.user.username }}</span>
+                                    <span style="font-size: 11px; color: var(--od-text-secondary); margin-left: 6px;">• Story</span>
+                                </div>
+                            </a>
+                            {% endif %}
+                        </div>
+
+                    <!-- Content Rendering -->
+                    {% if scribe.original_omzo %}
+                    <!-- Reposted Omzo - Show Video -->
+                    {% with omzo=scribe.original_omzo %}
+                    <div class="od-post-media" style="position: relative; max-height: 500px; cursor: pointer;" onclick="window.location.href='{% url 'omzo' %}'">
+                        <video src="{{ omzo.video.url }}" style="width: 100%; max-height: 500px; object-fit: cover;" playsinline muted loop
+                            onmouseenter="this.play()" onmouseleave="this.pause()"></video>
+                        <div style="position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.6); padding: 4px 8px; border-radius: 4px; font-size: 11px; color: white;">
+                            {% icon "play" %} Omzo
+                        </div>
+                        {% if omzo.caption %}
+                        <div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 12px; background: linear-gradient(transparent, rgba(0,0,0,0.7)); color: white; font-size: 14px;">
+                            {{ omzo.caption|truncatechars:100 }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endwith %}
+                    {% elif scribe.original_story %}
+                    <!-- Reposted Story - Show Story Content -->
+                    {% with story=scribe.original_story %}
+                    <div class="od-post-media" style="position: relative; max-height: 500px; cursor: pointer;">
+                        {% if story.media %}
+                        <img src="{{ story.media.url }}" style="width: 100%; max-height: 500px; object-fit: cover;" alt="Story">
+                        {% else %}
+                        <div style="width: 100%; height: 300px; display: flex; align-items: center; justify-content: center; background: {{ story.background_color|default:'#6366f1' }};">
+                            <p style="color: {{ story.text_color|default:'#ffffff' }}; font-size: 18px; padding: 20px; text-align: center;">{{ story.content|truncatechars:150 }}</p>
+                        </div>
+                        {% endif %}
+                        <div style="position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.6); padding: 4px 8px; border-radius: 4px; font-size: 11px; color: white;">
+                            {% icon "circle" %} Story
+                        </div>
+                    </div>
+                    {% endwith %}
+                    {% elif scribe.original_scribe %}
+                        {% with original=scribe.original_scribe %}
+                            {% if original.content_type == 'code_scribe' %}
+                            <div class="od-post-media" style="padding: 12px; background: var(--od-surface-hover);">
+                                <div class="code-scribe-card">
+                                    <div class="code-card-header">
+                                        <div class="code-window-controls">
+                                            <span class="code-dot red"></span>
+                                            <span class="code-dot yellow"></span>
+                                            <span class="code-dot green"></span>
+                                        </div>
+                                        <span class="code-lang-badge">CODE</span>
+                                    </div>
+                                    <div class="code-scroller">
+                                        <pre class="code-block"><code>{{ original.code_html|default:original.code_bundle|default:original.content|escape }}</code></pre>
+                                    </div>
+                                </div>
+                            </div>
+                            {% elif original.image_url %}
+                            <div class="od-post-media" onclick="openImageModal('{{ original.image_url }}')">
+                                <img src="{{ original.image_url }}" alt="Post image">
+                            </div>
+                            {% elif original.content %}
+                            <div style="padding: 20px 20px 10px 20px;">
+                                <span style="font-size: 15px; line-height: 1.5; color: var(--od-text-primary); white-space: pre-wrap;">{{ original.content|linkify_hashtags_mentions }}</span>
+                            </div>
+                            {% endif %}
+                        {% endwith %}
+                    {% endif %}
+                    </div><!-- Close embedded card -->
+
+                     <!-- Post Actions -->
+                    <div class="od-post-actions">
+                        <div class="od-post-actions-left">
+                            <button class="od-post-action-btn like-btn {% if scribe.is_liked %}liked{% endif %}"
+                                onclick="toggleLike('{{ scribe.id }}')" data-scribe-id="{{ scribe.id }}">
+                                {% icon "thumbs-up" %}
+                            </button>
+                            <button class="od-post-action-btn dislike-btn {% if scribe.is_disliked %}disliked{% endif %}"
+                                onclick="toggleDislike('{{ scribe.id }}')" data-scribe-id="{{ scribe.id }}">
+                                {% icon "thumbs-down" %}
+                            </button>
+                            <button class="od-post-action-btn" onclick="toggleComments('{{ scribe.id }}')">
+                                {% icon "message-circle" %}
+                            </button>
+
+                            <button class="od-post-action-btn" onclick="sharePost('{{ scribe.id }}')">
+                                {% icon "send" %}
+                            </button>
+                        </div>
+                        <button class="od-post-action-btn {% if scribe.is_saved %}saved{% endif %}"
+                            onclick="savePost('{{ scribe.id }}')" data-action="save">
+                            {% icon "bookmark" %}
+                        </button>
+                    </div>
+                </article>
+                {% endfor %}
+            </section>
+            {% else %}
+            <div class="od-no-posts">
+                <div class="od-no-posts-icon">{% icon "repeat" %}</div>
+                <h3>No Reposts Yet</h3>
             </div>
             {% endif %}
         </div>
@@ -2460,14 +2840,14 @@
                     <!-- Permanent View Count Overlay -->
                     <div
                         style="position: absolute; bottom: 8px; left: 8px; color: white; display: flex; align-items: center; gap: 4px; font-weight: 600; font-size: 13px; text-shadow: 0 1px 3px rgba(0,0,0,0.8); z-index: 2; pointer-events: none;">
-                        <i data-lucide="play" style="width: 14px; height: 14px; fill: white;"></i>
+                        <span class="od-icon" style="width: 14px; height: 14px; fill: white;">{% icon "play" "" "" True %}</span>
                         <span>{{ omzo.views_count|default:"0" }}</span>
                     </div>
 
                     <div class="od-grid-overlay">
                         <div class="od-grid-stats">
-                            <span><i data-lucide="heart"></i> {{ omzo.likes.count }}</span>
-                            <span><i data-lucide="message-circle"></i> {{ omzo.comments.count }}</span>
+                            <span>{% icon "heart" %} {{ omzo.likes.count }}</span>
+                            <span>{% icon "message-circle" %} {{ omzo.comments.count }}</span>
                         </div>
                     </div>
                 </div>
@@ -2476,7 +2856,7 @@
             {% else %}
             <div class="od-no-posts">
                 <div class="od-no-posts-icon">
-                    <i data-lucide="video-off"></i>
+                    {% icon "video-off" %}
                 </div>
                 <h3>No Omzo Yet</h3>
                 {% if is_own_profile %}
@@ -2495,29 +2875,31 @@
             {% if saved_posts %}
             <div class="od-posts-grid">
                 {% for post in saved_posts %}
-                <div class="od-grid-item" onclick="openPostDetail({{ post.id }})">
+                <div class="od-grid-item" onclick="openPostDetail('{{ post.id }}')">
                     {% if post.content_type == 'code_scribe' %}
-                    <!-- Code Scribe Display -->
-                    <div
-                        style="width: 100%; height: 100%; background: var(--od-surface); display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden;">
-                        <iframe class="od-code-scribe-view" sandbox="allow-scripts allow-modals"
-                            data-code-bundle="{{ post.code_bundle|urlencode }}"
-                            data-code-html="{{ post.code_html|default:''|urlencode }}"
-                            data-code-css="{{ post.code_css|default:''|urlencode }}"
-                            data-code-js="{{ post.code_js|default:''|urlencode }}"
-                            style="width: 100%; height: 100%; border: none; display: block; background: white;"></iframe>
+                    <!-- Code Scribe Display (Grid) -->
+                    <div style="width: 100%; height: 100%; background: #1e1e1e; display: flex; flex-direction: column; overflow: hidden; position: relative;">
+                        <div style="padding: 6px 8px; background: #252526; border-bottom: 1px solid #111; display: flex; align-items: center; justify-content: space-between;">
+                            <div style="display: flex; gap: 4px;">
+                                <div style="width: 6px; height: 6px; border-radius: 50%; background: #ff5f56;"></div>
+                                <div style="width: 6px; height: 6px; border-radius: 50%; background: #ffbd2e;"></div>
+                                <div style="width: 6px; height: 6px; border-radius: 50%; background: #27c93f;"></div>
+                            </div>
+                            <span style="font-size: 8px; color: #9aa0a6; font-family: monospace;">CODE</span>
+                        </div>
+                        <div style="padding: 8px; font-family: 'Fira Code', monospace; font-size: 8px; color: #d4d4d4; white-space: pre-wrap; word-break: break-all; overflow: hidden;">{{ post.content|default:"Code Snippet"|truncatechars:150 }}</div>
                     </div>
                     {% elif post.image_url %}
                     <img src="{{ post.image_url }}" alt="" loading="lazy">
                     {% else %}
-                    <div class="od-grid-text-post">
-                        <p>{{ post.content|truncatechars:100 }}</p>
+                    <div class="od-grid-text-post" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;padding:12px;text-align:center;background: var(--od-surface-hover); border: 1px solid var(--od-border);">
+                        <p style="color:var(--od-text-primary);font-weight:500;font-size:14px;margin:0;line-height:1.4;">{{ post.content|truncatechars:100 }}</p>
                     </div>
                     {% endif %}
                     <div class="od-grid-overlay">
                         <div class="od-grid-stats">
-                            <span><i data-lucide="heart"></i> {{ post.like_count }}</span>
-                            <span><i data-lucide="message-circle"></i> {{ post.comment_count }}</span>
+                            <span>{% icon "heart" %} {{ post.like_count }}</span>
+                            <span>{% icon "message-circle" %} {{ post.comment_count }}</span>
                         </div>
                     </div>
                 </div>
@@ -2527,7 +2909,7 @@
             <!-- No Saved Posts -->
             <div class="od-no-posts">
                 <div class="od-no-posts-icon">
-                    <i data-lucide="bookmark"></i>
+                    {% icon "bookmark" %}
                 </div>
                 <h3>Save</h3>
                 <p>Save photos and videos that you want to see again. No one is notified, and only you can see what
@@ -2543,13 +2925,13 @@
         <div class="od-private-profile">
             {% if is_blocked %}
             <div class="od-private-icon">
-                <i data-lucide="ban"></i>
+                {% icon "ban" %}
             </div>
             <h3>Profile Unavailable</h3>
             <p>This profile is not available.</p>
             {% else %}
             <div class="od-private-icon">
-                <i data-lucide="lock"></i>
+                {% icon "lock" %}
             </div>
             <h3>This Account is Private</h3>
             <p>Follow this account to see their photos and videos.</p>
@@ -2567,11 +2949,11 @@
             <header class="od-direct-header">
                 <button onclick="closeChatsPanel()"
                     style="background: none; border: none; cursor: pointer; padding: 8px;">
-                    <i data-lucide="arrow-left" style="width: 24px; height: 24px;"></i>
+                    <span class="od-icon" style="width: 24px; height: 24px;">{% icon "arrow-left" %}</span>
                 </button>
                 <h2 class="od-direct-title">{{ current_user.username }}</h2>
                 <button class="od-direct-new">
-                    <i data-lucide="edit"></i>
+                    {% icon "edit-3" %}
                 </button>
             </header>
             <div class="od-direct-list">
@@ -2593,7 +2975,7 @@
                 <a href="{% url 'chat_detail' chat.id %}" class="od-direct-item">
                     <div
                         style="width: 56px; height: 56px; border-radius: 22%; background: var(--brand-gradient); display: flex; align-items: center; justify-content: center;">
-                        <i data-lucide="users" style="color: white; width: 24px; height: 24px;"></i>
+                        <span class="od-icon" style="color: white; width: 24px; height: 24px;">{% icon "users" %}</span>
                     </div>
                     <div class="od-direct-item-info">
                         <div class="od-direct-item-name">{{ chat.name }}</div>
@@ -2611,7 +2993,7 @@
     <div class="od-create-modal" onclick="event.stopPropagation()">
         <header class="od-create-header">
             <button class="od-create-back" onclick="closeCreatePostModal()">
-                <i data-lucide="x"></i>
+                {% icon "x" %}
             </button>
             <h2 class="od-create-title">Create Scribe</h2>
             <button class="od-create-next" onclick="submitPost()" id="sharePostBtn">Share</button>
@@ -2624,8 +3006,7 @@
                         onerror="this.outerHTML='<div class=\'od-create-avatar-placeholder\'>{{ current_user.initials }}</div>'">
                     <div class="od-create-user-info">
                         <span class="od-create-username">{{ current_user.username }}</span>
-                        <span class="od-create-visibility"><i data-lucide="globe"
-                                style="width: 12px; height: 12px;"></i> Public</span>
+                        <span class="od-create-visibility">{% icon "globe" "od-icon" 12 %} Public</span>
                     </div>
                 </div>
 
@@ -2636,7 +3017,7 @@
                     <!-- Image Preview Area -->
                     <div id="postImagePreview" class="od-create-image-preview" style="display: none;">
                         <button class="od-create-image-remove" onclick="removePostImage()">
-                            <i data-lucide="x"></i>
+                            {% icon "x" %}
                         </button>
                         <img id="postPreviewImg" src="" alt="Preview">
                     </div>
@@ -2646,19 +3027,19 @@
                 <div class="od-create-actions">
                     <div class="od-create-actions-left">
                         <label class="od-create-action-btn" title="Add photo">
-                            <i data-lucide="image"></i>
+                            {% icon "image" %}
                             <input type="file" accept="image/*" id="postImageInput" style="display: none;"
                                 onchange="handlePostImageSelect(event)">
                         </label>
                         <button type="button" class="od-create-action-btn" onclick="toggleGifPicker()" title="Add GIF">
-                            <i data-lucide="sparkles"></i>
+                            {% icon "sparkles" %}
                         </button>
                         <button type="button" class="od-create-action-btn emoji-btn" onclick="toggleEmojiPicker()"
                             title="Add emoji">
-                            <i data-lucide="smile"></i>
+                            {% icon "smile" %}
                         </button>
-                        <button type="button" class="od-create-action-btn" onclick="#" title="Create web code snippet">
-                            <i data-lucide="code-2"></i>
+                        <button type="button" class="od-create-action-btn" onclick="void(0)" title="Create web code snippet">
+                            {% icon "code" %}
                         </button>
                     </div>
                     <div class="od-create-actions-right">
@@ -2679,7 +3060,7 @@
                 <!-- GIF Picker -->
                 <div class="od-gif-picker" id="gifPicker" style="display: none;">
                     <div class="od-gif-search">
-                        <i data-lucide="search"></i>
+                        {% icon "search" %}
                         <input type="text" id="gifSearchInput" placeholder="Search GIFs..."
                             oninput="searchGifs(this.value)">
                     </div>
@@ -2719,11 +3100,11 @@
     <div class="od-story-create-wrapper" onclick="event.stopPropagation()">
         <header class="od-story-create-header">
             <button class="od-story-close-btn" onclick="closeStoryModal()">
-                <i data-lucide="x"></i>
+                {% icon "x" %}
             </button>
             <h2 class="od-story-create-title">Create Story</h2>
             <button class="od-story-share-btn" onclick="createStory()">
-                <i data-lucide="send"></i>
+                {% icon "send" %}
                 Share
             </button>
         </header>
@@ -2747,7 +3128,7 @@
             <!-- Story Controls Panel -->
             <div class="od-story-controls-panel">
                 <h3 class="od-story-panel-title">
-                    <i data-lucide="wand-2"></i>
+                    {% icon "sliders" %}
                     Customize Your Story
                 </h3>
 
@@ -2755,7 +3136,7 @@
                     <!-- Add Photo -->
                     <label class="od-story-control-item">
                         <div class="od-story-control-icon photo">
-                            <i data-lucide="image-plus"></i>
+                            {% icon "image" %}
                         </div>
                         <div class="od-story-control-info">
                             <span class="od-story-control-label">Add Photo</span>
@@ -2768,7 +3149,7 @@
                     <!-- Image Controls (shown when image is added) -->
                     <div id="storyImageControls" class="od-story-image-controls" style="display: none;">
                         <button type="button" class="od-story-remove-img" onclick="removeStoryImage()">
-                            <i data-lucide="trash-2"></i>
+                            {% icon "trash" %}
                             Remove Image
                         </button>
                     </div>
@@ -2780,19 +3161,19 @@
                         <span class="od-story-preset-label">Text Position</span>
                         <div class="od-story-position-btns">
                             <button type="button" class="od-story-pos-btn" onclick="setTextPosition('top')" title="Top">
-                                <i data-lucide="align-start-vertical"></i>
+                                {% icon "align-top" %}
                             </button>
                             <button type="button" class="od-story-pos-btn active" onclick="setTextPosition('center')"
                                 title="Center">
-                                <i data-lucide="align-center-vertical"></i>
+                                {% icon "align-center" %}
                             </button>
                             <button type="button" class="od-story-pos-btn" onclick="setTextPosition('bottom')"
                                 title="Bottom">
-                                <i data-lucide="align-end-vertical"></i>
+                                {% icon "align-bottom" %}
                             </button>
                             <button type="button" class="od-story-pos-btn" onclick="enableTextDrag()" title="Custom"
                                 id="customPosBtn">
-                                <i data-lucide="move"></i>
+                                {% icon "move" %}
                             </button>
                         </div>
                     </div>
@@ -3432,7 +3813,7 @@
 <!-- Post Detail Modal -->
 <div id="postDetailModal" class="od-modal-overlay" style="display: none;" onclick="closePostDetail(event)">
     <button class="od-detail-close-btn" onclick="closePostDetail()">
-        <i data-lucide="x"></i>
+        <span class="od-icon">{% icon "x" %}</span>
     </button>
     <div class="od-post-detail-wrapper" onclick="event.stopPropagation()">
         <div class="od-post-detail-media" id="postDetailMedia"></div>
@@ -3444,7 +3825,7 @@
             <div class="od-detail-actions" id="postDetailActions"></div>
             <div class="od-detail-info" id="postDetailInfo"></div>
             <div class="od-detail-comment-form">
-                <button class="od-emoji-btn"><i data-lucide="smile"></i></button>
+                <button class="od-emoji-btn">{% icon "smile" %}</button>
                 <input type="text" id="postDetailCommentInput" placeholder="Add a comment..."
                     class="od-detail-comment-input">
                 <button class="od-post-comment-btn" id="postCommentBtn" onclick="postCommentFromDetail()">Post</button>
@@ -3459,7 +3840,7 @@
         <header class="od-modal-header">
             <h2 class="od-modal-title">Followers</h2>
             <button class="od-modal-close" onclick="closeFollowersModal()">
-                <i data-lucide="x"></i>
+                <span class="od-icon">{% icon "x" %}</span>
             </button>
         </header>
         <div class="od-modal-body" id="followersList">
@@ -3476,7 +3857,7 @@
         <header class="od-modal-header">
             <h2 class="od-modal-title">Following</h2>
             <button class="od-modal-close" onclick="closeFollowingModal()">
-                <i data-lucide="x"></i>
+                <span class="od-icon">{% icon "x" %}</span>
             </button>
         </header>
         <div class="od-modal-body" id="followingList">
@@ -3493,7 +3874,7 @@
         <header class="od-modal-header">
             <h2 class="od-modal-title">Follow Requests</h2>
             <button class="od-modal-close" onclick="closeFollowRequestsModal()">
-                <i data-lucide="x"></i>
+                <span class="od-icon">{% icon "x" %}</span>
             </button>
         </header>
         <div class="od-modal-body" id="followRequestsList" style="padding: 0; max-height: 60vh; overflow-y: auto;">
@@ -3510,12 +3891,12 @@
         <header class="od-modal-header">
             <h2 class="od-modal-title">Settings</h2>
             <button class="od-modal-close" onclick="closeSettingsModal()">
-                <i data-lucide="x"></i>
+                <span class="od-icon">{% icon "x" %}</span>
             </button>
         </header>
         <div class="od-settings-list">
             <a href="{% url 'update_profile' %}" class="od-settings-item">
-                <i data-lucide="user"></i>
+                {% icon "user" %}
                 <span>Edit Profile</span>
             </a>
 
@@ -3523,10 +3904,10 @@
             <div class="od-settings-section">
                 <h3 class="od-settings-section-title">Appearance</h3>
                 <a href="{% url 'update_profile' %}#theme-section" class="od-settings-item">
-                    <i data-lucide="palette"></i>
+                    {% icon "theme" %}
                     <span>Customize Theme</span>
                     <span class="od-settings-value">{{ user.theme|default:"light"|title }}</span>
-                    <i data-lucide="chevron-right" style="width: 16px; height: 16px; opacity: 0.5;"></i>
+                    <span class="od-icon" style="width: 16px; height: 16px; opacity: 0.5;">{% icon "chevron-right" %}</span>
                 </a>
             </div>
 
@@ -3534,7 +3915,7 @@
             <div class="od-settings-section">
                 <h3 class="od-settings-section-title">Privacy</h3>
                 <button class="od-settings-item" onclick="togglePrivacy()">
-                    <i data-lucide="lock"></i>
+                    {% icon "lock" %}
                     <span>Private Account</span>
                     <div class="od-toggle {% if current_user.is_private %}active{% endif %}" id="privacyToggle"></div>
                 </button>
@@ -3544,7 +3925,7 @@
             <div class="od-settings-section">
                 <h3 class="od-settings-section-title">Account</h3>
                 <a href="{% url 'logout' %}" class="od-settings-item danger">
-                    <i data-lucide="log-out"></i>
+                    {% icon "log-out" %}
                     <span>Log Out</span>
                 </a>
             </div>
@@ -3559,11 +3940,11 @@
             <div style="display: flex; align-items: center; justify-content: space-between;">
                 <h2 class="od-modal-title">Search</h2>
                 <button class="od-modal-close" onclick="closeSearchModal()">
-                    <i data-lucide="x"></i>
+                    <span class="od-icon">{% icon "x" %}</span>
                 </button>
             </div>
             <div class="od-search-bar" style="width: 100%; display: flex;">
-                <i data-lucide="search" class="search-icon"></i>
+                {% icon "search" "search-icon" %}
                 <input type="text" placeholder="Search users..." id="mobileSearchInput"
                     onkeyup="handleMobileSearch(event)" style="width: 100%;">
             </div>
@@ -3571,7 +3952,7 @@
         <div class="od-modal-body" style="padding: 0; overflow-y: auto;">
             <div id="searchResults">
                 <div style="text-align: center; padding: 40px 20px; color: var(--color-text-secondary);">
-                    <i data-lucide="search" style="width: 40px; height: 40px; margin-bottom: 12px;"></i>
+                    <span class="od-icon" style="margin-bottom: 12px;">{% icon "search" "" 40 %}</span>
                     <p style="font-size: 14px;">Search for users by username or name</p>
                 </div>
             </div>
@@ -3584,7 +3965,7 @@
     <div class="od-create-modal" onclick="event.stopPropagation()">
         <header class="od-create-header">
             <button class="od-create-back" onclick="closeCreatePostModal()">
-                <i data-lucide="x"></i>
+                <span class="od-icon">{% icon "x" %}</span>
             </button>
             <h2 class="od-create-title">Create new scribe</h2>
             <button class="od-create-next" onclick="submitPost()" id="sharePostBtn">Share</button>
@@ -3592,7 +3973,7 @@
         <div class="od-create-body">
             <div class="od-create-media" id="createMediaArea">
                 <div class="od-create-dropzone" id="createDropzone">
-                    <i data-lucide="image"></i>
+                    {% icon "image" %}
                     <h3>Drag photos here</h3>
                     <label class="od-create-select-btn">
                         Select from computer
@@ -3636,7 +4017,7 @@
             </div>
             <div class="od-story-actions-top">
                 <button class="od-story-action-top" onclick="event.stopPropagation(); closeStoryViewer()">
-                    <i data-lucide="x"></i>
+                    <span class="od-icon">{% icon "x" %}</span>
                 </button>
             </div>
         </header>
@@ -3668,11 +4049,14 @@
                 <input type="text" class="od-story-reply-input" id="storyReplyInput" placeholder="Send message..."
                     maxlength="500" onclick="event.stopPropagation()">
                 <div class="od-story-reply-actions">
-                    <button class="od-story-reply-btn" onclick="event.stopPropagation(); toggleStoryLike()" id="storyLikeBtn">
-                        <i data-lucide="heart" id="storyLikeIcon"></i>
+                    <button class="od-story-reply-btn" onclick="event.stopPropagation(); toggleStoryLike()" id="storyLikeBtn" title="Like">
+                        <span class="od-icon" id="storyLikeIcon">{% icon "heart" %}</span>
+                    </button>
+                    <button class="od-story-reply-btn" onclick="event.stopPropagation(); repostStoryToMyStory()" id="storyRepostBtn" title="Repost to your story" style="display: none;">
+                        <span class="od-icon">{% icon "repeat" %}</span>
                     </button>
                     <button class="od-story-reply-btn" onclick="event.stopPropagation(); sendStoryReply()">
-                        <i data-lucide="send"></i>
+                        <span class="od-icon"><svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></span>
                     </button>
                 </div>
             </div>
@@ -3735,7 +4119,7 @@
         if (query.length === 0) {
             container.innerHTML = `
             <div style="text-align: center; padding: 40px 20px; color: var(--color-text-secondary);">
-                <i data-lucide="search" style="width: 40px; height: 40px; margin-bottom: 12px;"></i>
+                <span class="od-icon" style="margin-bottom: 12px;">{% icon "search" "" 40 %}</span>
                 <p style="font-size: 14px;">Search for users by username or name</p>
             </div>
         `;
@@ -4426,7 +4810,7 @@
                 } else {
                     listContainer.innerHTML = `
                 <div class="od-no-requests">
-                    <i data-lucide="user-check"></i>
+                    <span class="od-icon"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><polyline points="17 11 19 13 23 9"/></svg></span>
                     <h3>No Follow Requests</h3>
                     <p>When someone requests to follow you, you'll see it here.</p>
                 </div>
@@ -4438,7 +4822,7 @@
                 console.error('Error loading follow requests:', err);
                 listContainer.innerHTML = `
             <div class="od-no-requests">
-                <i data-lucide="alert-circle"></i>
+                <span class="od-icon">{% icon "alert-circle" %}</span>
                 <h3>Error</h3>
                 <p>Could not load follow requests. Try again later.</p>
             </div>
@@ -4482,7 +4866,7 @@
                         if (!listContainer.querySelector('.od-follow-request-item')) {
                             listContainer.innerHTML = `
                         <div class="od-no-requests">
-                            <i data-lucide="user-check"></i>
+                            <span class="od-icon">{% icon "user-check" %}</span>
                             <h3>No Follow Requests</h3>
                             <p>When someone requests to follow you, you'll see it here.</p>
                         </div>
@@ -4595,7 +4979,7 @@
                     </div>
                 </a>
                 <button class="od-detail-more-btn">
-                    <i data-lucide="more-horizontal"></i>
+                    <span class="od-icon">{% icon "more-horizontal" %}</span>
                 </button>
             `;
 
@@ -4619,17 +5003,17 @@
                 <div class="od-detail-actions-row">
                     <div class="od-detail-actions-left">
                         <button class="od-detail-action-btn ${scribe.is_liked ? 'liked' : ''}" onclick="toggleLikeFromDetail(${scribe.id})" id="detailLikeBtn">
-                            <i data-lucide="${scribe.is_liked ? 'heart' : 'heart'}"></i>
+                            <span class="od-icon">{% icon "heart" %}</span>
                         </button>
                         <button class="od-detail-action-btn" onclick="document.getElementById('postDetailCommentInput').focus()">
-                            <i data-lucide="message-circle"></i>
+                            {% icon "message-circle" %}
                         </button>
                         <button class="od-detail-action-btn">
-                            <i data-lucide="send"></i>
+                            {% icon "send" %}
                         </button>
                     </div>
                     <button class="od-detail-action-btn">
-                        <i data-lucide="bookmark"></i>
+                        {% icon "bookmark" %}
                     </button>
                 </div>
             `;
@@ -4642,7 +5026,7 @@
                 <time class="od-detail-time">${scribe.time_ago}</time>
             `;
 
-                    lucide.createIcons();
+                if (typeof lucide !== 'undefined') lucide.createIcons();
                     document.getElementById('postDetailModal').style.display = 'flex';
                     document.body.style.overflow = 'hidden';
                 }
@@ -4669,7 +5053,7 @@
                         </div>
                     </div>
                     <button class="od-detail-comment-like">
-                        <i data-lucide="heart"></i>
+                        <span class="od-icon"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
                     </button>
                 </div>
             `).join('');
@@ -4681,7 +5065,7 @@
                     <span>Start the conversation.</span>
                 </div>`;
                 }
-                lucide.createIcons();
+                if (typeof lucide !== 'undefined') lucide.createIcons();
             })
             .catch(() => {
                 // If comments API doesn't exist, just show caption
@@ -4949,6 +5333,35 @@
             });
     }
 
+    function repostPost(type, id) {
+        showConfirmationModal('Repost Scribe', 'Repost this to your profile?', function() {
+            const formData = new FormData();
+            formData.append('repost_type', type);
+            formData.append('repost_id', id);
+
+            fetch('{% url "post_scribe" %}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCSRFToken()
+                },
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showIGToast('Reposted successfully!', 'success');
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    showIGToast(data.error || 'Failed to repost', 'error');
+                }
+            })
+            .catch(err => {
+                console.error('Repost error:', err);
+                showIGToast('Failed to repost', 'error');
+            });
+        });
+    }
+
     // Story Viewer Functions
     let currentStories = [];
     let currentStoryIndex = 0;
@@ -5107,23 +5520,41 @@
         document.getElementById('storyViewerUsername').textContent = username;
         document.getElementById('storyViewerTime').textContent = story.created_at || '';
 
+        // Show/hide repost button (hide for own stories)
+        const repostBtn = document.getElementById('storyRepostBtn');
+        if (repostBtn) {
+            if (username === '{{ request.user.username }}') {
+                repostBtn.style.display = 'none';
+            } else {
+                repostBtn.style.display = '';
+            }
+        }
+
         // Update content (preserve pause indicator)
         const contentDiv = document.getElementById('storyViewerContent');
         const pauseIndicatorHTML = `
             <div class="od-story-pause-indicator" id="storyPauseIndicator">
-                <svg viewBox="0 0 24 24" fill="currentColor">
-                    <rect x="6" y="4" width="4" height="16" rx="1"/>
-                    <rect x="14" y="4" width="4" height="16" rx="1"/>
-                </svg>
+                {% icon "pause" fill=True %}
             </div>
         `;
         
+        // Add repost badge if this is a reposted story
+        let repostBadgeHTML = '';
+        if (story.is_repost && story.shared_from && story.shared_from.user) {
+            repostBadgeHTML = `
+                <div class="od-story-repost-badge">
+                    <i data-lucide="repeat" style="width: 14px; height: 14px;"></i>
+                    <span>Reposted from @${story.shared_from.user.username}</span>
+                </div>
+            `;
+        }
+        
         if (story.media_url) {
-            contentDiv.innerHTML = pauseIndicatorHTML + `<img src="${story.media_url}" alt="Story">`;
+            contentDiv.innerHTML = pauseIndicatorHTML + repostBadgeHTML + `<img src="${story.media_url}" alt="Story">`;
             contentDiv.style.background = '';
         } else {
             contentDiv.style.background = story.background_color || '#6366f1';
-            contentDiv.innerHTML = pauseIndicatorHTML + `
+            contentDiv.innerHTML = pauseIndicatorHTML + repostBadgeHTML + `
             <div class="od-story-text-content">
                 <p style="color: ${story.text_color || '#ffffff'}">${story.content || ''}</p>
             </div>
@@ -5296,6 +5727,88 @@
             });
     }
 
+    function repostStoryToMyStory() {
+        if (!currentStories.length) return;
+        const story = currentStories[currentStoryIndex];
+
+        // Don't allow reposting own stories
+        const storyUsername = story.user?.username || '{{ profile_user.username }}';
+        if (storyUsername === '{{ request.user.username }}') {
+            showIGToast("You can't repost your own story", 'error');
+            return;
+        }
+
+        // Show confirmation dialog
+        showRepostConfirmDialog(story, storyUsername);
+    }
+
+    function showRepostConfirmDialog(story, storyUsername) {
+        // Pause story timer
+        if (storyProgressInterval) clearInterval(storyProgressInterval);
+        if (storyTimer) clearTimeout(storyTimer);
+        
+        // Create modal overlay
+        const overlay = document.createElement('div');
+        overlay.className = 'od-confirm-overlay';
+        overlay.id = 'repostConfirmOverlay';
+        overlay.innerHTML = `
+            <div class="od-confirm-dialog">
+                <div class="od-confirm-icon">
+                    <svg viewBox="0 0 24 24" width="48" height="48" stroke="currentColor" stroke-width="1.5" fill="none">
+                        <polyline points="17 1 21 5 17 9"/>
+                        <path d="M3 11V9a4 4 0 0 1 4-4h14"/>
+                        <polyline points="7 23 3 19 7 15"/>
+                        <path d="M21 13v2a4 4 0 0 1-4 4H3"/>
+                    </svg>
+                </div>
+                <h3>Repost to Your Story?</h3>
+                <p>This will share <strong>@${storyUsername}</strong>'s story to your story for 24 hours. Your followers will see it with a "Reposted from @${storyUsername}" label.</p>
+                <div class="od-confirm-actions">
+                    <button class="od-confirm-btn od-confirm-cancel" onclick="closeRepostConfirmDialog()">Cancel</button>
+                    <button class="od-confirm-btn od-confirm-primary" onclick="confirmRepostStory(${story.id})">Repost</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+        
+        // Close on overlay click
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) closeRepostConfirmDialog();
+        });
+    }
+
+    function closeRepostConfirmDialog() {
+        const overlay = document.getElementById('repostConfirmOverlay');
+        if (overlay) overlay.remove();
+        // Resume story progress
+        startStoryProgress();
+    }
+
+    function confirmRepostStory(storyId) {
+        closeRepostConfirmDialog();
+        
+        fetch('/api/story/repost/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken()
+            },
+            body: JSON.stringify({ story_id: storyId })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showIGToast('Story reposted to your story!', 'success');
+                } else {
+                    showIGToast(data.error || 'Failed to repost story', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error reposting story:', error);
+                showIGToast('Failed to repost story', 'error');
+            });
+    }
+
     // Profile Tab Switching (Desktop + Mobile)
     document.addEventListener('DOMContentLoaded', () => {
         // Desktop tabs
@@ -5306,6 +5819,7 @@
         const contents = {
             'posts': document.getElementById('postsTab'),
             'omzo': document.getElementById('omzoTab'),
+            'reposts': document.getElementById('repostsTab'),
             'reels': document.getElementById('omzoTab'), // Mobile "reels" maps to omzo
             'saved': document.getElementById('savedTab'),
             'tagged': document.getElementById('savedTab') // Mobile "tagged" maps to saved for now
@@ -5516,5 +6030,315 @@
             })
             .catch(() => { });
     }
+</script>
+
+<style>
+    /* ===== TEXT & CODE SCRIBE FEED STYLES (Ported from Dashboard) ===== */
+    
+    /* Text Scribe Gradients */
+    .text-scribe-wrapper {
+        min-height: 300px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 40px;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .text-scribe-gradient-1 { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    .text-scribe-gradient-2 { background: linear-gradient(135deg, #FF9A9E 0%, #FECFEF 99%, #FECFEF 100%); }
+    .text-scribe-gradient-3 { background: linear-gradient(120deg, #84fab0 0%, #8fd3f4 100%); }
+    .text-scribe-gradient-4 { background: linear-gradient(120deg, #e0c3fc 0%, #8ec5fc 100%); }
+    .text-scribe-gradient-5 { background: linear-gradient(120deg, #f093fb 0%, #f5576c 100%); }
+
+    .text-scribe-text {
+        color: white;
+        font-weight: 700;
+        font-size: 26px;
+        line-height: 1.4;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        z-index: 2;
+        word-break: break-word; /* Ensure long words don't overflow */
+        max-width: 100%;
+        white-space: pre-wrap; /* Preserve newlines */
+    }
+
+    .text-scribe-text.long { font-size: 20px; }
+    .text-scribe-text.very-long { font-size: 16px; text-align: left; }
+
+    /* Code Scribe Card */
+    .code-scribe-card {
+        background: #1e1e1e;
+        border-radius: 8px;
+        overflow: hidden;
+        border: 1px solid rgba(128, 128, 128, 0.2); /* Subtle border for all themes */
+        font-family: 'Fira Code', 'SFMono-Regular', Consolas, monospace;
+        margin: 0;
+        width: 100%;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15); /* Shadow to lift from background */
+        position: relative;
+    }
+
+    .code-card-header {
+        background: #252526;
+        padding: 8px 12px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid #111;
+    }
+
+    .code-window-controls {
+        display: flex;
+        gap: 6px;
+    }
+
+    .code-dot { width: 10px; height: 10px; border-radius: 50%; opacity: 0.8;}
+    .code-dot.red { background-color: #ff5f56; }
+    .code-dot.yellow { background-color: #ffbd2e; }
+    .code-dot.green { background-color: #27c93f; }
+
+    .code-lang-badge {
+        font-size: 11px;
+        color: #9aa0a6;
+        background: rgba(255,255,255,0.05);
+        padding: 2px 6px;
+        border-radius: 4px;
+        letter-spacing: 0.5px;
+    }
+
+    .code-scroller {
+        padding: 16px;
+        overflow-x: auto;
+        background: #1e1e1e;
+        scrollbar-width: thin;
+        scrollbar-color: #444 #1e1e1e;
+    }
+    
+    .code-scroller::-webkit-scrollbar { height: 8px; }
+    .code-scroller::-webkit-scrollbar-track { background: #1e1e1e; }
+    .code-scroller::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
+
+    .code-block {
+        margin: 0;
+        color: #d4d4d4; /* Default light text */
+        font-size: 13px;
+        line-height: 1.5;
+        white-space: pre;
+        tab-size: 4;
+    }
+    
+    .code-block code {
+        font-family: inherit;
+        color: #9cdcfe; /* Light blue variable color */
+    }
+</style>
+</style>
+
+<!-- Share Options Modal -->
+<div id="sharePostModal" class="od-modal-overlay" style="display: none; z-index: 10002;" onclick="closeShareModal(event)">
+    <div class="od-post-menu-modal" onclick="event.stopPropagation()">
+        <div class="od-post-menu-content" style="background: var(--od-surface); border-radius: 16px 16px 0 0; max-height: 80vh;">
+            <div style="width: 40px; height: 4px; background: var(--od-border); border-radius: 2px; margin: 12px auto;"></div>
+            <div style="padding: 16px; border-bottom: 1px solid var(--od-border); text-align: center; font-weight: 600;">Share</div>
+            
+            <div style="display: grid; grid-template-columns: repeat(5, 1fr); padding: 24px 16px; gap: 16px;">
+                <!-- Send to (New) -->
+                 <button onclick="handleShareAction('send')" style="background: none; border: none; display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; color: var(--od-text-primary);">
+                    <div style="width: 56px; height: 56px; border-radius: 50%; background: var(--od-surface-hover); display: flex; align-items: center; justify-content: center; border: 1px solid var(--od-border);">
+                        {% icon "send" %}
+                    </div>
+                    <span style="font-size: 12px; font-weight: 500;">Send to</span>
+                </button>
+
+                <!-- Repost -->
+                <button onclick="handleShareAction('repost')" style="background: none; border: none; display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; color: var(--od-text-primary);">
+                    <div style="width: 56px; height: 56px; border-radius: 50%; background: var(--od-surface-hover); display: flex; align-items: center; justify-content: center; border: 1px solid var(--od-border);">
+                        {% icon "repeat" %}
+                    </div>
+                    <span style="font-size: 12px; font-weight: 500;">Repost</span>
+                </button>
+                
+                <!-- Quote -->
+                <button onclick="handleShareAction('quote')" style="background: none; border: none; display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; color: var(--od-text-primary);">
+                    <div style="width: 56px; height: 56px; border-radius: 50%; background: var(--od-surface-hover); display: flex; align-items: center; justify-content: center; border: 1px solid var(--od-border);">
+                        {% icon "edit-3" %}
+                    </div>
+                    <span style="font-size: 12px; font-weight: 500;">Quote</span>
+                </button>
+                
+                <!-- Copy Link -->
+                <button onclick="handleShareAction('copy')" style="background: none; border: none; display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; color: var(--od-text-primary);">
+                    <div style="width: 56px; height: 56px; border-radius: 50%; background: var(--od-surface-hover); display: flex; align-items: center; justify-content: center; border: 1px solid var(--od-border);">
+                        {% icon "link" %}
+                    </div>
+                    <span style="font-size: 12px; font-weight: 500;">Copy Link</span>
+                </button>
+
+                 <!-- System Share -->
+                 <button onclick="handleShareAction('system')" style="background: none; border: none; display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; color: var(--od-text-primary);">
+                    <div style="width: 56px; height: 56px; border-radius: 50%; background: var(--od-surface-hover); display: flex; align-items: center; justify-content: center; border: 1px solid var(--od-border);">
+                        {% icon "share-2" %}
+                    </div>
+                    <span style="font-size: 12px; font-weight: 500;">More</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quote Scribe Modal -->
+<div id="quoteScribeModal" class="od-modal-overlay" style="display: none; z-index: 10003;" onclick="closeQuoteModal(event)">
+    <div class="od-modal" style="width: 100%; max-width: 600px; border-radius: 16px; background: var(--od-bg);" onclick="event.stopPropagation()">
+        <header class="od-modal-header" style="justify-content: space-between; padding: 16px; border-bottom: 1px solid var(--od-border);">
+            <button onclick="closeQuoteModal()" style="background: none; border: none; cursor: pointer; color: var(--od-text-primary);">Cancel</button>
+            <h3 style="margin: 0; font-size: 16px; font-weight: 600;">Quote Scribe</h3>
+            <button onclick="submitQuote()" style="background: var(--color-primary); border: none; color: white; padding: 6px 16px; border-radius: 20px; font-weight: 600; cursor: pointer;">Post</button>
+        </header>
+        <div class="od-modal-body" style="padding: 16px;">
+            <div style="display: flex; gap: 12px;">
+                <img src="{{ current_user.profile_picture_url }}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
+                <div style="flex: 1;">
+                    <textarea id="quoteContent" placeholder="Add a comment..." style="width: 100%; min-height: 80px; background: transparent; border: none; color: var(--od-text-primary); font-size: 16px; resize: none; outline: none; margin-bottom: 12px;"></textarea>
+                    
+                    <!-- Quoted Content Preview Card -->
+                    <div id="quotePreviewCard" style="border: 1px solid var(--od-border); border-radius: 12px; overflow: hidden; background: var(--od-surface);">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentShareId = null;
+    let currentShareType = 'scribe'; // 'scribe', 'omzo'
+
+    window.sharePost = function(id) {
+        currentShareId = id;
+        currentShareType = 'scribe'; // Default to scribe for now, can extend
+        document.getElementById('sharePostModal').style.display = 'flex';
+    };
+
+    window.closeShareModal = function(e) {
+        if (e && e.target !== e.currentTarget) return;
+        document.getElementById('sharePostModal').style.display = 'none';
+    };
+
+    window.handleShareAction = function(action) {
+        if (!currentShareId) return;
+
+        if (action === 'send') {
+            openSendToModal();
+            closeShareModal();
+        } else if (action === 'repost') {
+            repostPost(currentShareType, currentShareId); // Use existing function
+            closeShareModal();
+        } else if (action === 'quote') {
+            openQuoteModal();
+            closeShareModal();
+        } else if (action === 'copy') {
+             const url = window.location.origin + '/post/' + currentShareId + '/';
+             navigator.clipboard.writeText(url).then(() => {
+                 showGlobalToast('Link copied to clipboard', 'success');
+             });
+             closeShareModal();
+        } else if (action === 'system') {
+             if (navigator.share) {
+                const url = window.location.origin + '/post/' + currentShareId + '/';
+                navigator.share({
+                    title: 'Check out this post on Odnix',
+                    url: url
+                }).catch(console.error);
+            } else {
+                showGlobalToast('System share not available', 'error');
+            }
+            closeShareModal();
+        }
+    };
+
+    // Quote Modal Logic
+    window.openQuoteModal = function() {
+        const modal = document.getElementById('quoteScribeModal');
+        const preview = document.getElementById('quotePreviewCard');
+        
+        // Find the post element to get data
+        const postEl = document.querySelector(`article[data-scribe-id="${currentShareId}"]`);
+        if (!postEl) return;
+
+        // Extract data (Simplified for MVP - ideally fetch fresh data)
+        const username = postEl.querySelector('.od-post-username').textContent.trim();
+        const avatar = postEl.querySelector('.od-post-avatar').src;
+        // Try to get content - this is tricky with HTML structure, best effort grab
+        let content = "";
+        const contentEl = postEl.querySelector('.od-post-caption span:last-child') || postEl.querySelector('.od-post-media + div span');
+        if (contentEl) content = contentEl.textContent.trim();
+        
+        // Check for media
+        const mediaImg = postEl.querySelector('.od-post-media img');
+        let mediaHtml = '';
+        if (mediaImg) {
+            mediaHtml = `<div style="height: 150px; overflow: hidden;"><img src="${mediaImg.src}" style="width: 100%; height: 100%; object-fit: cover;"></div>`;
+        }
+
+        preview.innerHTML = `
+            <div style="padding: 12px; display: flex; gap: 8px; align-items: center; border-bottom: 1px solid var(--od-border);">
+                <img src="${avatar}" style="width: 24px; height: 24px; border-radius: 50%;">
+                <span style="font-weight: 600; font-size: 13px;">${username}</span>
+            </div>
+            ${mediaHtml}
+            <div style="padding: 12px;">
+                <p style="font-size: 13px; margin: 0; color: var(--od-text-primary); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">${content}</p>
+            </div>
+        `;
+
+        modal.style.display = 'flex';
+        document.getElementById('quoteContent').focus();
+    };
+
+    window.closeQuoteModal = function(e) {
+        if (e && e.target !== e.currentTarget) return;
+        document.getElementById('quoteScribeModal').style.display = 'none';
+        document.getElementById('quoteContent').value = '';
+    };
+
+    window.submitQuote = function() {
+        const content = document.getElementById('quoteContent').value.trim();
+        if (!content) {
+            showGlobalToast('Please add a comment to quote.', 'error');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('content', content);
+        formData.append('repost_type', 'quote');
+        formData.append('repost_id', currentShareId);
+
+        fetch('{% url "post_scribe" %}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showGlobalToast('Quote posted!', 'success');
+                closeQuoteModal();
+                // Ideally reload or prepend post, for now reload to show
+                setTimeout(() => window.location.reload(), 1000);
+            } else {
+                showGlobalToast(data.error || 'Failed to post quote', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showGlobalToast('An error occurred', 'error');
+        });
+    };
 </script>
 {% endblock %}

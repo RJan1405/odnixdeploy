@@ -15,7 +15,7 @@
         (function () {
             // Get user's server-saved theme (source of truth for logged-in users)
             const userTheme = '{{ user.theme|default:"light" }}';
-            const isAuthenticated = {{ user.is_authenticated|yesno:"true,false" }};
+            const isAuthenticated = "{{ user.is_authenticated|yesno:'true,false' }}" === "true";
 
         if (isAuthenticated) {
             // For authenticated users: server theme is the source of truth
@@ -41,6 +41,27 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <!-- OdnixProto Security Client -->
     <script src="{% static 'js/odnix_client.js' %}"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Debug Script for 404 /undefined Fetch -->
+    <script>
+        (function() {
+            const originalFetch = window.fetch;
+            window.fetch = function() {
+                const url = arguments[0];
+                if (typeof url === 'string' && url.includes('undefined')) {
+                    console.error('Trapped undefined fetch:', url);
+                    console.trace();
+                    // Render to DOM for browser agent to see
+                    const errDiv = document.createElement('div');
+                    errDiv.id = 'debug-fetch-error';
+                    errDiv.style.cssText = 'position:fixed;top:0;left:0;z-index:99999;background:red;color:white;padding:20px;font-size:16px;';
+                    errDiv.textContent = 'UNDEFINED FETCH TRAPPED: ' + url + ' | Stack: ' + (new Error().stack);
+                    document.body.appendChild(errDiv);
+                }
+                return originalFetch.apply(this, arguments);
+            };
+        })();
+    </script>
     {% block extra_head %}{% endblock %}
 </head>
 
@@ -56,27 +77,27 @@
     {% endblock %}
 
     <!-- Django messages (hidden, handled by JS) -->
-    {% if messages %}
-    <script>
-        window.djangoMessages = [
+    <script id="django-messages-data" type="application/json">
+        [
             {% for message in messages %}
-        { text: "{{ message|escapejs }}", type: "{{ message.tags }}" } {% if not forloop.last %}, {% endif %}
-        {% endfor %}
-            ];
+                { "text": "{{ message|escapejs }}", "type": "{{ message.tags }}" }{% if not forloop.last %}, {% endif %}
+            {% endfor %}
+        ]
     </script>
-    {% endif %}
+    <script>
+        try {
+            window.djangoMessages = JSON.parse(document.getElementById('django-messages-data').textContent);
+        } catch(e) { window.djangoMessages = []; }
+    </script>
 
     {% block content %}
     {% endblock %}
 
-    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
     <script src="{% static 'js/app.js' %}?v=20251209"></script>
+    <script src="{% static 'js/notifications.js' %}?v=20260116"></script>
     <script>
-        // Initialize Lucide icons
         document.addEventListener('DOMContentLoaded', function () {
-            if (typeof lucide !== 'undefined') {
-                lucide.createIcons();
-            }
+            // Show Django messages as toasts
             // Show Django messages as toasts
             if (window.djangoMessages) {
                 window.djangoMessages.forEach(function (msg) {
@@ -119,8 +140,9 @@
             // Update theme icon if present
             const themeIcon = document.querySelector('#themeIcon');
             if (themeIcon) {
-                themeIcon.setAttribute('data-lucide', newTheme === 'dark' ? 'sun' : 'moon');
-                if (typeof lucide !== 'undefined') lucide.createIcons();
+                const sunSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>';
+                const moonSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
+                themeIcon.innerHTML = newTheme === 'dark' ? sunSvg : moonSvg;
             }
 
             // Update theme label if present
@@ -154,20 +176,16 @@
             }
             return cookieValue;
         }
-
-        // Instagram-style toast notification - disabled, just log to console
-        function showIGToast(message, type) {
-            console.log(`[${type || 'info'}] ${message}`);
-            // Toasts disabled per user request
-        }
     </script>
+
+
 
     {% block extra_js %}{% endblock %}
 
     <!-- Global incoming call banner and WebSocket -->
     <script>
         (function () {
-            const isAuthenticated = {{ user.is_authenticated|yesno:"true,false" }};
+            const isAuthenticated = "{{ user.is_authenticated|yesno:'true,false' }}" === "true";
             if (!isAuthenticated) return;
         const wsScheme = (window.location.protocol === 'https:' ? 'wss' : 'ws');
         const notifyUrl = `${wsScheme}://${window.location.host}/ws/notify/`;
@@ -213,16 +231,37 @@
                 console.log('DEBUG: notifyWS received message', evt.data);
                 try {
                     const msg = JSON.parse(evt.data);
+                    
+                    // Handle incoming call notifications
                     if (msg.type === 'incoming.call') {
                         console.log('DEBUG: incoming.call payload', msg);
 
-                        // Check if we are already handling this call locally (on chat page)
-                        // If we are on the chat page for this specific chat, call.js should handle it
-                        // But we still show the notification to ensure User B knows about the call
+                        // Show browser notification for calls
+                        if (window.OdnixNotifications) {
+                            OdnixNotifications.notifyCall(
+                                msg.from_full_name || 'Someone',
+                                !msg.audioOnly,
+                                msg.chat_id,
+                                msg.from_avatar
+                            );
+                        }
+
+                        // Check if we are on the correct chat page with call.js loaded
                         if (window.OdnixCallConfig && window.OdnixCallConfig.chatId == msg.chat_id) {
-                            console.log('DEBUG: On chat page for this call - call.js should handle it via WebSocket/polling');
-                            // Don't suppress - still show notification as backup
-                            // The call.js polling will pick up the signal from DB
+                            console.log('DEBUG: On chat page for this call - triggering local incoming modal');
+                            
+                            // Trigger the local call UI via the exposed handler (Wake Up Signal)
+                            if (window.OdnixCall && window.OdnixCall.handleIncomingCall) {
+                                window.OdnixCall.handleIncomingCall({
+                                    callerName: msg.from_full_name,
+                                    callerAvatar: msg.from_avatar,
+                                    audioOnly: !msg.audioOnly // Note: msg.audioOnly is boolean in notify consumer? Double check.
+                                    // Actually looking at code above: !msg.audioOnly is passed as "isVideo".
+                                    // Let's pass the raw audioOnly flag if available, or derive it.
+                                    // In notify consumer: 'audioOnly': audio_only (boolean)
+                                });
+                            }
+                            return;
                         }
 
                         const localIncoming = document.getElementById('incomingCallModal');
@@ -242,13 +281,55 @@
                         const chatId = msg.chat_id;
                         accept.onclick = function () {
                             banner.style.display = 'none';
-                            // Navigate to chat detail; signals are stored in DB and will be polled
                             window.location.href = `/chat/${chatId}/`;
                         };
                         decline.onclick = function () {
                             banner.style.display = 'none';
                         };
                     }
+                    
+                    // Handle new message notifications
+                    else if (msg.type === 'new.message') {
+                        console.log('DEBUG: new.message payload', msg);
+                        
+                        // Don't notify if user is already on that chat page
+                        if (window.location.pathname === `/chat/${msg.chat_id}/`) {
+                            return;
+                        }
+                        
+                        if (window.OdnixNotifications) {
+                            OdnixNotifications.notifyMessage(
+                                msg.sender_name || 'New Message',
+                                msg.message_preview || 'You have a new message',
+                                msg.chat_id,
+                                msg.sender_avatar
+                            );
+                        }
+                    }
+                    
+                    // Handle follow notifications
+                    else if (msg.type === 'new.follow') {
+                        if (window.OdnixNotifications) {
+                            OdnixNotifications.notifyFollow(
+                                msg.follower_name,
+                                msg.follower_username,
+                                msg.follower_avatar
+                            );
+                        }
+                    }
+                    
+                    // Handle missed call notifications
+                    else if (msg.type === 'missed.call') {
+                        if (window.OdnixNotifications) {
+                            OdnixNotifications.notifyMissedCall(
+                                msg.caller_name || 'Someone',
+                                !msg.audio_only,
+                                msg.chat_id,
+                                msg.caller_avatar
+                            );
+                        }
+                    }
+                    
                 } catch (e) {
                     console.error('DEBUG: Error parsing notify message', e);
                 }
@@ -261,7 +342,125 @@
         }
 
         try { openNotify(); } catch (e) { console.error('DEBUG: openNotify failed', e); }
-    }) ();
+
+        // Notification permission prompt (Instagram/WhatsApp style - top banner)
+        (function() {
+            if (localStorage.getItem('odnix_notif_prompted')) return;
+            if (!('Notification' in window)) return;
+            if (Notification.permission !== 'default') return;
+            
+            const showPrompt = () => {
+                if (localStorage.getItem('odnix_notif_prompted')) return;
+                localStorage.setItem('odnix_notif_prompted', '1');
+                
+                const banner = document.createElement('div');
+                banner.id = 'notifPermissionBanner';
+                banner.innerHTML = `
+                    <style>
+                        #notifPermissionBanner {
+                            position: fixed;
+                            top: 0;
+                            left: 0;
+                            right: 0;
+                            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                            color: #fff;
+                            padding: 12px 16px;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            gap: 16px;
+                            z-index: 99999;
+                            transform: translateY(-100%);
+                            animation: slideDown 0.3s ease forwards;
+                            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+                        }
+                        @keyframes slideDown {
+                            to { transform: translateY(0); }
+                        }
+                        @keyframes slideUp {
+                            from { transform: translateY(0); }
+                            to { transform: translateY(-100%); }
+                        }
+                        #notifPermissionBanner.hiding {
+                            animation: slideUp 0.3s ease forwards;
+                        }
+                        #notifPermissionBanner .notif-icon {
+                            width: 24px;
+                            height: 24px;
+                            flex-shrink: 0;
+                        }
+                        #notifPermissionBanner .notif-text {
+                            font-size: 14px;
+                            font-weight: 500;
+                        }
+                        #notifPermissionBanner .notif-actions {
+                            display: flex;
+                            gap: 8px;
+                            flex-shrink: 0;
+                        }
+                        #notifPermissionBanner button {
+                            border: none;
+                            border-radius: 6px;
+                            padding: 8px 16px;
+                            font-size: 13px;
+                            font-weight: 600;
+                            cursor: pointer;
+                            transition: opacity 0.2s;
+                        }
+                        #notifPermissionBanner button:hover {
+                            opacity: 0.9;
+                        }
+                        #notifPermissionBanner .enable-btn {
+                            background: #fff;
+                            color: #764ba2;
+                        }
+                        #notifPermissionBanner .skip-btn {
+                            background: rgba(255,255,255,0.2);
+                            color: #fff;
+                        }
+                        @media (max-width: 600px) {
+                            #notifPermissionBanner {
+                                flex-wrap: wrap;
+                                gap: 10px;
+                                padding: 10px 12px;
+                            }
+                            #notifPermissionBanner .notif-text {
+                                font-size: 13px;
+                            }
+                        }
+                    </style>
+                    <svg class="notif-icon" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2zm-2 1H8v-6c0-2.48 1.51-4.5 4-4.5s4 2.02 4 4.5v6z"/>
+                    </svg>
+                    <span class="notif-text">Turn on notifications to get updates about messages and calls</span>
+                    <div class="notif-actions">
+                        <button class="enable-btn" id="enableNotifBtn">Turn On</button>
+                        <button class="skip-btn" id="skipNotifBtn">Not Now</button>
+                    </div>
+                `;
+                document.body.appendChild(banner);
+                
+                const closeBanner = () => {
+                    banner.classList.add('hiding');
+                    setTimeout(() => banner.remove(), 300);
+                };
+                
+                document.getElementById('enableNotifBtn').onclick = async function() {
+                    if (window.OdnixNotifications) {
+                        await OdnixNotifications.requestPermission();
+                    }
+                    closeBanner();
+                };
+                document.getElementById('skipNotifBtn').onclick = closeBanner;
+                
+                // Auto-hide after 10 seconds
+                setTimeout(closeBanner, 10000);
+            };
+            
+            // Show after 3 seconds of being on the page
+            setTimeout(showPrompt, 3000);
+        })();
     </script>
 
     <!-- Create Selection Modal (Global) -->
@@ -276,19 +475,19 @@
                 <h3 style="margin: 0; font-size: 18px; font-weight: 600; color: var(--text-primary, #000);">Create</h3>
                 <button onclick="closeCreateSelectionModal()"
                     style="background: none; border: none; padding: 5px; cursor: pointer; color: var(--text-primary, #000);">
-                    <i data-lucide="x" style="width: 20px; height: 20px;"></i>
+                    <span class="od-icon" style="width: 20px; height: 20px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
                 </button>
             </header>
 
             <div style="display: flex; flex-direction: column; gap: 12px;">
                 <button onclick="triggerGlobalPostCreate()"
                     style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; border: 1px solid var(--border-color, #dbdbdb); border-radius: 8px; background: transparent; cursor: pointer; text-align: left; transition: background 0.2s; color: var(--text-primary, #000);">
-                    <i data-lucide="image" style="width: 20px; height: 20px;"></i>
+                    <span class="od-icon" style="width: 20px; height: 20px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></span>
                     <span style="font-weight: 500; font-size: 15px;">Scribe</span>
                 </button>
                 <button onclick="triggerGlobalOmzoCreate()"
                     style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; border: 1px solid var(--border-color, #dbdbdb); border-radius: 8px; background: transparent; cursor: pointer; text-align: left; transition: background 0.2s; color: var(--text-primary, #000);">
-                    <i data-lucide="play-square" style="width: 20px; height: 20px;"></i>
+                    <span class="od-icon" style="width: 20px; height: 20px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none"/></svg></span>
                     <span style="font-weight: 500; font-size: 15px;">Omzo</span>
                 </button>
             </div>
@@ -308,7 +507,7 @@
                 style="padding: 16px 20px; border-bottom: 1px solid var(--od-border, rgba(255,255,255,0.1)); display: flex; align-items: center; justify-content: space-between;">
                 <button onclick="closeGlobalOmzoModal()"
                     style="background: none; border: none; color: var(--od-text, white); cursor: pointer; padding: 4px;">
-                    <i data-lucide="x" style="width: 24px; height: 24px;"></i>
+                    <span class="od-icon" style="width: 24px; height: 24px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
                 </button>
                 <h3 style="margin: 0; font-size: 16px; font-weight: 600; color: var(--od-text, white);">New Omzo</h3>
                 <button id="globalOmzoShareBtn" onclick="submitGlobalOmzo()"
@@ -323,7 +522,7 @@
                         muted playsinline></video>
                     <div id="globalOmzoPreviewOverlay"
                         style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.5);">
-                        <i data-lucide="play-circle" style="width: 48px; height: 48px; color: white; opacity: 0.8;"></i>
+                        <span class="od-icon" style="width: 48px; height: 48px; color: white; opacity: 0.8;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none"/></svg></span>
                         <p style="color: white; margin-top: 12px; font-size: 13px; opacity: 0.8;">Click to preview</p>
                     </div>
                 </div>
@@ -626,6 +825,133 @@
         if (typeof window.navCreatePost === 'undefined') {
             window.navCreatePost = openCreateMenu;
         }
+
+        // =====================================================
+        // GLOBAL OMZO PRELOADER - Background Video Caching
+        // Preloads first 5 Omzo videos on ANY page for instant playback
+        // =====================================================
+        (function() {
+            const OMZO_PRELOAD_KEY = 'omzo_preload_session';
+            const MAX_PRELOAD = 5;
+
+            // Only preload once per session to avoid repeated fetches
+            if (sessionStorage.getItem(OMZO_PRELOAD_KEY)) {
+                console.log('[OmzoPreload] Already preloaded this session');
+                return;
+            }
+
+            function preloadOmzos() {
+                // Fetch omzo list from API
+                fetch('/chat/api/omzo/batch/?cursor=0&limit=' + MAX_PRELOAD, {
+                    priority: 'low',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                .then(r => r.json())
+                .then(data => {
+                    if (!data.omzos || !data.omzos.length) {
+                        console.log('[OmzoPreload] No omzos to preload');
+                        return;
+                    }
+
+                    let loaded = 0;
+                    const toLoad = Math.min(MAX_PRELOAD, data.omzos.length);
+                    console.log(`[OmzoPreload] Starting background preload of ${toLoad} videos...`);
+
+                    data.omzos.slice(0, MAX_PRELOAD).forEach((omzo, i) => {
+                        const url = omzo.url;
+                        if (!url) return;
+
+                        // Stagger preloads to avoid network congestion
+                        const delay = i * 800;
+
+                        const doPreload = () => {
+                            // Use link preload for browser-native caching
+                            const link = document.createElement('link');
+                            link.rel = 'prefetch';
+                            link.as = 'video';
+                            link.href = url;
+                            document.head.appendChild(link);
+
+                            loaded++;
+                            console.log(`[OmzoPreload] Cached ${loaded}/${toLoad}: ${url.split('/').pop().substring(0, 30)}...`);
+                        };
+
+                        // Use requestIdleCallback for zero main-thread impact
+                        if ('requestIdleCallback' in window) {
+                            setTimeout(() => {
+                                requestIdleCallback(doPreload, { timeout: 10000 });
+                            }, delay);
+                        } else {
+                            setTimeout(doPreload, delay + 1000);
+                        }
+                    });
+
+                    // Mark as preloaded for this session
+                    sessionStorage.setItem(OMZO_PRELOAD_KEY, Date.now().toString());
+                })
+                .catch(err => {
+                    console.warn('[OmzoPreload] Failed to fetch omzo list:', err.message);
+                });
+            }
+
+            // Start preloading after page is fully loaded and idle
+            if (document.readyState === 'complete') {
+                setTimeout(preloadOmzos, 2000);
+            } else {
+                window.addEventListener('load', () => {
+                    setTimeout(preloadOmzos, 2000);
+                });
+            }
+
+        })();
+    </script>
+    
+    <!-- Generic Confirmation Modal (Global) -->
+    <div id="confirmationModal" class="od-modal-overlay" style="display: none; z-index: 10005;" onclick="closeConfirmationModal(event)">
+        <div class="od-modal" style="max-width: 400px; width: 90%; border-radius: 16px; overflow: hidden;" onclick="event.stopPropagation()">
+            <header class="od-modal-header" style="background: var(--od-surface); border-bottom: 1px solid var(--od-border);">
+                <h2 class="od-modal-title" id="confirmationTitle">Confirm</h2>
+                <button class="od-modal-close" onclick="closeConfirmationModal()">
+                    <span class="od-icon"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
+                </button>
+            </header>
+            <div class="od-modal-body" style="padding: 24px;">
+                <p id="confirmationMessage" style="color: var(--od-text-primary); font-size: 16px; margin-bottom: 24px; text-align: center; line-height: 1.5;"></p>
+                <div style="display: flex; gap: 12px; justify-content: center;">
+                    <button onclick="closeConfirmationModal()" style="padding: 10px 20px; border-radius: 8px; border: 1px solid var(--od-border); background: var(--od-bg); color: var(--od-text); font-weight: 500; cursor: pointer;">Cancel</button>
+                    <button id="confirmationConfirmBtn" style="padding: 10px 20px; border-radius: 8px; border: none; background: var(--color-primary); color: white; font-weight: 600; cursor: pointer;">Confirm</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global Confirmation Modal Logic
+        window.showConfirmationModal = function(title, message, onConfirm) {
+            document.getElementById('confirmationTitle').innerText = title;
+            document.getElementById('confirmationMessage').innerText = message;
+            
+            const confirmBtn = document.getElementById('confirmationConfirmBtn');
+            // Remove old event listeners by cloning
+            const newBtn = confirmBtn.cloneNode(true);
+            confirmBtn.parentNode.replaceChild(newBtn, confirmBtn);
+            
+            newBtn.onclick = function() {
+                closeConfirmationModal();
+                if (onConfirm) onConfirm();
+            };
+
+            const modal = document.getElementById('confirmationModal');
+            modal.style.display = 'flex';
+            // Ensure lucid icons if needed
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        };
+
+        window.closeConfirmationModal = function(event) {
+            if (event && event.target !== event.currentTarget) return;
+            document.getElementById('confirmationModal').style.display = 'none';
+        };
     </script>
 
+</body>
 </html>

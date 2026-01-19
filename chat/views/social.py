@@ -106,10 +106,15 @@ def profile_view(request, username=None):
         )
 
     # Get user's scribes (only if profile is accessible)
-    scribes = []
+    posts = []
+    reposts = []
     if can_view_profile:
         scribes_queryset = Scribe.objects.filter(user=profile_user).select_related(
-            'user').distinct().order_by('-id', '-timestamp')
+            'user', 
+            'original_scribe', 'original_scribe__user',
+            'original_omzo', 'original_omzo__user',
+            'original_story', 'original_story__user'
+        ).distinct().order_by('-id', '-timestamp')
         processed_scribe_ids = set()
 
         for scribe in scribes_queryset:
@@ -119,6 +124,8 @@ def profile_view(request, username=None):
 
             like_count = Like.objects.filter(scribe=scribe).count()
             is_liked = Like.objects.filter(scribe=scribe, user=request.user).exists(
+            ) if request.user.is_authenticated else False
+            is_disliked = Dislike.objects.filter(scribe=scribe, user=request.user).exists(
             ) if request.user.is_authenticated else False
 
             # Get comment count
@@ -137,10 +144,17 @@ def profile_view(request, username=None):
                 'user': scribe.user,
                 'like_count': like_count,
                 'is_liked': is_liked,
+                'is_disliked': is_disliked,
                 'comment_count': comment_count,
                 'image_url': scribe.image_url,
                 'has_media': scribe.has_media,
                 'recent_comments': recent_comments,
+                # Repost fields
+                'is_repost': scribe.is_repost,
+                'original_scribe': scribe.original_scribe,
+                'original_omzo': scribe.original_omzo,
+                'original_story': scribe.original_story,
+                'quote_source': scribe.quote_source,
                 # Code Scribe fields
                 'content_type': getattr(scribe, 'content_type', ''),
                 'code_bundle': getattr(scribe, 'code_bundle', ''),
@@ -148,7 +162,10 @@ def profile_view(request, username=None):
                 'code_css': getattr(scribe, 'code_css', ''),
                 'code_js': getattr(scribe, 'code_js', ''),
             }
-            scribes.append(scribe_data)
+            if scribe.is_repost:
+                reposts.append(scribe_data)
+            else:
+                posts.append(scribe_data)
 
     # Check if there's an existing chat
     existing_chat = None
@@ -289,7 +306,8 @@ def profile_view(request, username=None):
 
     context = {
         'profile_user': profile_user,
-        'scribes': scribes,
+        'scribes': posts,  # Main tab only shows original posts
+        'reposts': reposts,
         'omzo': omzo,
         'is_own_profile': is_own_profile,
         'existing_chat': existing_chat,
@@ -477,6 +495,38 @@ def post_scribe(request):
         code_css = request.POST.get('code_css')
         code_js = request.POST.get('code_js')
         code_bundle = request.POST.get('code_bundle')
+        
+        repost_type = request.POST.get('repost_type')
+        repost_id = request.POST.get('repost_id')
+
+        # Handle Reposts
+        if repost_type and repost_id:
+            try:
+                if repost_type == 'scribe':
+                    original = Scribe.objects.get(id=repost_id)
+                    Scribe.objects.create(user=request.user, original_scribe=original, content=content)
+                elif repost_type == 'omzo':
+                    original = Omzo.objects.get(id=repost_id)
+                    Scribe.objects.create(user=request.user, original_omzo=original, content=content)
+                elif repost_type == 'story':
+                    original = Story.objects.get(id=repost_id)
+                    Scribe.objects.create(user=request.user, original_story=original, content=content)
+                elif repost_type == 'quote':
+                    original = Scribe.objects.get(id=repost_id)
+                    # Quote creates a new scribe with content AND a reference to the original
+                    scribe = Scribe.objects.create(
+                        user=request.user, 
+                        quote_source=original, 
+                        content=content
+                    )
+                    # Process hashtags and mentions for the quote text
+                    process_scribe_hashtags_mentions(scribe)
+                    return JsonResponse({'success': True})
+
+                return JsonResponse({'success': True})
+            except Exception as e:
+                logger.error(f"Error creating repost: {str(e)}")
+                return JsonResponse({'success': False, 'error': str(e)}, status=400)
 
         logger.info(
             f"Content: {content[:50]}..., Has image: {bool(image_file)}")

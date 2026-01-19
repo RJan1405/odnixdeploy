@@ -1,5 +1,27 @@
-This is odnix. you have to improve its ui.
-make ocean theme as default one
-make all profile pictures rounded squared everywhere
-profile page in mobile view is not so good make it better like instagram type
-reel ko like kerte hai to heart ke side me ek circle banta hai wo nahi hona chaiye
+Features to add:
+
+- Change icons of all the things in navbar, save icon in profile page, comments icon, share icon, 
+
+
+
+Completed:
+
+# Day 1
+- Make dislike actually functional not only front end
+- Make suggestion for you box in desktop view symmetrical
+- Remove highlights feature from profile page.
+- Make a landing page [it should not be a login page]
+- That p2p file share option in chat page it is on top bar bring it on down 
+- In chat page put send media icon on emoji side
+- Make the Follow Button In suggestion box Work.
+
+# Day 2
+- While uplaoding stories we cant move media like we can move text so upgrade it also
+- When user opens applicaiton start loading first 5 omzos in bg it should not slow down whole page
+- When we get notificaiton, message or call we should get a notification
+- Make calling and video calling actually work
+
+
+
+Completed but Unsure if 100% proper working:
+- Make view once option actually working because it works as many times we click on it.

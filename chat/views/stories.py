@@ -11,6 +11,89 @@ from chat.models import CustomUser, Story, StoryView, StoryLike, StoryReply
 
 logger = logging.getLogger(__name__)
 
+
+@login_required
+@require_POST
+def repost_story(request):
+    """
+    Repost someone else's story to your own story (Instagram-style).
+    Creates a new Story that references the original, auto-expires after 24hrs.
+    """
+    try:
+        data = json.loads(request.body)
+        original_story_id = data.get('story_id')
+        
+        if not original_story_id:
+            return JsonResponse({'success': False, 'error': 'Story ID is required'})
+        
+        # Get the original story
+        original_story = get_object_or_404(
+            Story, 
+            id=original_story_id,
+            is_active=True,
+            expires_at__gt=timezone.now()
+        )
+        
+        # Can't repost your own story
+        if original_story.user == request.user:
+            return JsonResponse({'success': False, 'error': "You can't repost your own story"})
+        
+        # Check if user already reposted this story (prevent duplicates)
+        existing_repost = Story.objects.filter(
+            user=request.user,
+            shared_from_story=original_story,
+            is_active=True,
+            expires_at__gt=timezone.now()
+        ).exists()
+        
+        if existing_repost:
+            return JsonResponse({'success': False, 'error': 'You already reposted this story'})
+        
+        # Create a new story that references the original
+        # The repost inherits the original's media but adds "Reposted from @username" context
+        repost_story = Story.objects.create(
+            user=request.user,
+            content=original_story.content,  # Copy original content
+            media_file=original_story.media_file.name if original_story.media_file else None,
+            story_type=original_story.story_type,
+            background_color=original_story.background_color,
+            text_color=original_story.text_color,
+            text_position=original_story.text_position,
+            text_size=original_story.text_size,
+            image_transform=original_story.image_transform,
+            shared_from_story=original_story,  # Link to original
+            # expires_at automatically set to 24 hours from now
+        )
+        
+        logger.info(f"Story {original_story.id} reposted by {request.user.username} as story {repost_story.id}")
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Story reposted successfully!',
+            'story': {
+                'id': repost_story.id,
+                'content': repost_story.content,
+                'media_url': repost_story.media_url,
+                'story_type': repost_story.story_type,
+                'shared_from': {
+                    'id': original_story.id,
+                    'user': {
+                        'id': original_story.user.id,
+                        'username': original_story.user.username,
+                        'full_name': original_story.user.full_name,
+                        'profile_picture_url': original_story.user.profile_picture_url,
+                    }
+                }
+            }
+        })
+        
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'error': 'Invalid JSON data'})
+    except Exception as e:
+        logger.error(f"Error reposting story: {e}")
+        return JsonResponse({'success': False, 'error': str(e)})
+
+
 @login_required
 @require_POST
 def create_story(request):
@@ -104,6 +187,21 @@ def view_story(request, story_id):
         if not story.story_views.filter(viewer=request.user).exists():
             StoryView.objects.create(story=story, viewer=request.user)
         
+        # Build shared_from info if this is a repost
+        shared_from = None
+        if story.shared_from_story:
+            original = story.shared_from_story
+            shared_from = {
+                'id': original.id,
+                'user': {
+                    'id': original.user.id,
+                    'username': original.user.username,
+                    'full_name': original.user.full_name,
+                    'profile_picture_url': original.user.profile_picture_url,
+                },
+                'is_expired': original.is_expired,
+            }
+        
         return JsonResponse({
             'success': True,
             'story': {
@@ -128,6 +226,8 @@ def view_story(request, story_id):
                 'reply_count': story.reply_count,
                 'is_liked': story.story_likes.filter(user=request.user).exists(),
                 'user_has_replied': story.story_replies.filter(replier=request.user).exists(),
+                'shared_from': shared_from,
+                'is_repost': story.shared_from_story is not None,
             }
         })
         
@@ -155,6 +255,21 @@ def get_user_stories(request, username):
             if not story.story_views.filter(viewer=request.user).exists():
                 StoryView.objects.create(story=story, viewer=request.user)
             
+            # Build shared_from info if this is a repost
+            shared_from = None
+            if story.shared_from_story:
+                original = story.shared_from_story
+                shared_from = {
+                    'id': original.id,
+                    'user': {
+                        'id': original.user.id,
+                        'username': original.user.username,
+                        'full_name': original.user.full_name,
+                        'profile_picture_url': original.user.profile_picture_url,
+                    },
+                    'is_expired': original.is_expired,
+                }
+            
             stories_data.append({
                 'id': story.id,
                 'content': story.content,
@@ -177,6 +292,8 @@ def get_user_stories(request, username):
                 'reply_count': story.reply_count,
                 'is_liked': story.story_likes.filter(user=request.user).exists(),
                 'user_has_replied': story.story_replies.filter(replier=request.user).exists(),
+                'shared_from': shared_from,
+                'is_repost': story.shared_from_story is not None,
             })
         
         return JsonResponse({

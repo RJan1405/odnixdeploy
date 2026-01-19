@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 def home(request):
     if request.user.is_authenticated:
         return redirect('dashboard')
-    return render(request, 'chat/login.html')
+    return render(request, 'chat/landing.html')
 
 def login_view(request):
     if request.user.is_authenticated:

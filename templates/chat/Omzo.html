@@ -1,10 +1,32 @@
 {% extends 'chat/base.html' %}
 {% load static %}
+{% load odnix_icons %}
 
 {% block title %}Omzo - Odnix{% endblock %}
 
 {% block extra_head %}
 <style>
+    /* Custom Icon Styles */
+    .od-icon {
+        width: 24px;
+        height: 24px;
+        display: inline-block;
+        vertical-align: middle;
+    }
+    .od-icon svg {
+        width: 100%;
+        height: 100%;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 1.8;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+    }
+    .od-icon.filled svg {
+        fill: currentColor;
+        stroke: currentColor;
+    }
+
     /* Omzo specific styles */
     .omzo-wrapper {
         background: #000;
@@ -95,11 +117,12 @@
 
     .omzo-actions {
         position: absolute;
-        right: 16px;
-        bottom: 120px;
+        right: 12px;
+        bottom: 140px;
         display: flex;
         flex-direction: column;
-        gap: 20px;
+        align-items: center;
+        gap: 16px;
         z-index: 20;
     }
 
@@ -107,37 +130,48 @@
         display: flex;
         flex-direction: column;
         align-items: center;
+        justify-content: center;
         color: white;
         background: none;
         border: none;
         cursor: pointer;
-        font-size: 13px;
+        font-size: 11px;
         font-weight: 500;
         text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
-        padding: 8px;
-        border-radius: 50%;
-        transition: background 0.2s, transform 0.2s;
-        min-width: 56px;
-        min-height: 56px;
+        padding: 4px;
+        transition: transform 0.2s;
         outline: none;
         -webkit-tap-highlight-color: transparent;
+        position: relative;
+    }
+
+    .action-btn span:not(.od-icon) {
+        margin-top: 4px;
+        font-size: 12px;
+        font-weight: 600;
+        white-space: nowrap;
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
     }
 
     .action-btn:focus {
         outline: none;
     }
 
-    /* Commented out - looks bad
-    .action-btn:hover {
-        background: rgba(255, 255, 255, 0.1);
+    .action-btn:active {
+        transform: scale(0.9);
     }
-    */
 
-    .action-btn i,
-    .action-btn svg {
-        width: 28px !important;
-        height: 28px !important;
-        margin-bottom: 4px;
+    .action-btn .od-icon {
+        width: 28px;
+        height: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .action-btn .od-icon svg {
+        width: 24px !important;
+        height: 24px !important;
         filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
         transition: transform 0.2s;
     }
@@ -169,21 +203,24 @@
 
     /* Desktop improvements for action buttons */
     @media (min-width: 768px) {
-        .action-btn {
-            min-width: 64px;
-            min-height: 64px;
-            padding: 12px;
+        .action-btn .od-icon {
+            width: 30px;
+            height: 30px;
         }
 
-        .action-btn i,
-        .action-btn svg {
-            width: 32px !important;
-            height: 32px !important;
+        .action-btn .od-icon svg {
+            width: 28px !important;
+            height: 28px !important;
+        }
+
+        .action-btn span:not(.od-icon) {
+            font-size: 12px;
         }
 
         .omzo-actions {
-            right: 20px;
-            gap: 16px;
+            right: 16px;
+            bottom: 160px;
+            gap: 12px;
         }
     }
 
@@ -993,30 +1030,34 @@
 
             <div class="omzo-actions">
                 <!--<button class="action-btn" style="cursor: default;" title="Views">
-                    <i data-lucide="eye"></i>
+                    <span class="od-icon"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></span>
                     <span class="view-count">{{ omzo.views }}</span>
                 </button>-->
                 <button class="action-btn mute-btn" onclick="toggleOmzoMute(this, event)" data-muted="false"
                     title="Toggle sound">
-                    <i data-lucide="volume-2"></i>
+                    <span class="od-icon volume-icon"><svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg></span>
                 </button>
-                <button class="action-btn like-btn" onclick="toggleOmzoLike({{ omzo.id }}, this)" title="Like">
-                    <i data-lucide="thumbs-up" class="{% if omzo.is_liked %}liked-thumb{% endif %}"></i>
+                <button class="action-btn like-btn" onclick="toggleOmzoLike('{{ omzo.id }}', this)" title="Like">
+                    <span class="od-icon {% if omzo.is_liked %}liked-thumb{% endif %}"><svg viewBox="0 0 24 24"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg></span>
                     <span class="like-count">{{ omzo.likes }}</span>
                 </button>
-                <button class="action-btn dislike-btn" onclick="toggleOmzoDislike({{ omzo.id }}, this)" title="Dislike">
-                    <i data-lucide="thumbs-down" class="{% if omzo.is_disliked %}disliked-thumb{% endif %}"></i>
+                <button class="action-btn dislike-btn" onclick="toggleOmzoDislike('{{ omzo.id }}', this)" title="Dislike">
+                    <span class="od-icon {% if omzo.is_disliked %}disliked-thumb{% endif %}"><svg viewBox="0 0 24 24"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/></svg></span>
                 </button>
-                <button class="action-btn" onclick="openOmzoComments({{ omzo.id }})" title="Comments">
-                    <i data-lucide="message-circle"></i>
+                <button class="action-btn" onclick="openOmzoComments('{{ omzo.id }}')" title="Comments">
+                    <span class="od-icon"><svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></span>
                     <span class="comment-count" data-omzo-id="{{ omzo.id }}">{{ omzo.comments_count }}</span>
                 </button>
+                <button class="action-btn" onclick="repostPost('omzo', '{{ omzo.id }}')" title="Repost">
+                    <span class="od-icon">{% icon "repeat" %}</span>
+                    <span>Repost</span>
+                </button>
                 <button class="action-btn" onclick="shareOmzo('{{ omzo.url }}')" title="Share">
-                    <i data-lucide="share-2"></i>
+                    <span class="od-icon"><svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></span>
                     <span>Share</span>
                 </button>
-                <button class="action-btn" onclick="openReportModal({{ omzo.id }})" title="More">
-                    <i data-lucide="more-vertical"></i>
+                <button class="action-btn" onclick="openReportModal('{{ omzo.id }}')" title="More">
+                    <span class="od-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg></span>
                     <span>Report</span>
                 </button>
             </div>
@@ -1041,7 +1082,7 @@
                     <p class="omzo-caption">{{ omzo.caption }}</p>
                     {% endif %}
                     <div class="omzo-audio">
-                        <i data-lucide="music-2" style="width: 14px; height: 14px;"></i>
+                        <span class="od-icon" style="width: 14px; height: 14px;"><svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></span>
                         <span style="font-weight: 500;">Original Audio • {{ omzo.user.username }}</span>
                     </div>
                 </div>
@@ -1050,7 +1091,7 @@
         {% empty %}
         <div class="omzo-item" style="background: #000; color: white;">
             <div style="text-align: center; padding: 20px;">
-                <i data-lucide="film" style="width: 64px; height: 64px; opacity: 0.5; margin-bottom: 20px;"></i>
+                <span class="od-icon" style="width: 64px; height: 64px; opacity: 0.5; margin-bottom: 20px;"><svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="2" y1="7" x2="7" y2="7"/><line x1="2" y1="17" x2="7" y2="17"/><line x1="17" y1="17" x2="22" y2="17"/><line x1="17" y1="7" x2="22" y2="7"/></svg></span>
                 <h3>No Omzo yet</h3>
                 <p style="opacity: 0.7; margin-top: 10px;">Be the first to create one!</p>
                 <button onclick="document.getElementById('uploadOmzoInput').click()" style="margin-top: 20px; background: var(--odnix-gradient); border: none; padding: 10px 20px;
@@ -1070,7 +1111,7 @@
             style="background: #1e1e1e; padding: 25px; border-radius: 12px; max-width: 90%; width: 350px; text-align: center; border: 1px solid #333;">
             <div
                 style="width: 50px; height: 50px; background: rgba(255, 68, 68, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px;">
-                <i data-lucide="alert-circle" style="color: #ff4444; width: 28px; height: 28px;"></i>
+                <span class="od-icon" style="color: #ff4444; width: 28px; height: 28px;"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span>
             </div>
             <h3 style="color: white; margin: 0 0 10px; font-size: 18px;">Video Too Long</h3>
             <p id="errorModalText" style="color: #bbb; font-size: 14px; margin-bottom: 20px; line-height: 1.5;"></p>
@@ -1098,7 +1139,7 @@
             <div class="omzo-comments-header">
                 <h3>Comments</h3>
                 <button class="omzo-comments-close" onclick="closeOmzoComments()">
-                    <i data-lucide="x" style="width: 20px; height: 20px;"></i>
+                    <span class="od-icon" style="width: 20px; height: 20px;"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
                 </button>
             </div>
             <div class="omzo-comments-list" id="omzoCommentsList">
@@ -1118,7 +1159,7 @@
             <div class="caption-modal-header">
                 <h3>New Omzo</h3>
                 <button class="caption-modal-close" onclick="closeCaptionModal()">
-                    <i data-lucide="x" style="width: 20px; height: 20px;"></i>
+                    <span class="od-icon" style="width: 20px; height: 20px;"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
                 </button>
             </div>
             <div class="caption-modal-body">
@@ -1142,7 +1183,7 @@
                 <h3>Report Omzo</h3>
                 <button class="caption-modal-close" onclick="closeReportModal()"
                     style="background:none;border:none;color:#fff;cursor:pointer;padding:8px;">
-                    <i data-lucide="x" style="width:20px;height:20px;"></i>
+                    <span class="od-icon" style="width:20px;height:20px;"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
                 </button>
             </div>
             <div class="report-modal-body">
@@ -1217,7 +1258,7 @@
                                     transition: all 0.3s ease;
                                 " onmouseover="this.style.background='rgba(255, 165, 0, 0.3)'; this.style.borderColor='rgba(255, 165, 0, 0.8)';"
                                     onmouseout="this.style.background='rgba(255, 165, 0, 0.2)'; this.style.borderColor='rgba(255, 165, 0, 0.5)';">
-                                    <i data-lucide="external-link" style="width: 14px; height: 14px;"></i>
+                                    <span class="od-icon" style="width: 14px; height: 14px;"><svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></span>
                                     <span>Open in Admin</span>
                                 </button>
                             </div>
@@ -1782,25 +1823,25 @@
                     <div class="omzo-actions">
                         <button class="action-btn mute-btn" onclick="toggleOmzoMute(this, event)" data-muted="false"
                             title="Toggle sound">
-                            <i data-lucide="volume-2"></i>
+                            <span class="od-icon volume-icon"><svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg></span>
                         </button>
                         <button class="action-btn like-btn" onclick="toggleOmzoLike(${omzo.id}, this)" title="Like">
-                            <i data-lucide="thumbs-up" class="${omzo.is_liked ? 'liked-thumb' : ''}"></i>
+                            <span class="od-icon ${omzo.is_liked ? 'liked-thumb' : ''}"><svg viewBox="0 0 24 24"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg></span>
                             <span class="like-count">${omzo.likes}</span>
                         </button>
                         <button class="action-btn dislike-btn" onclick="toggleOmzoDislike(${omzo.id}, this)" title="Dislike">
-                            <i data-lucide="thumbs-down" class="${omzo.is_disliked ? 'disliked-thumb' : ''}"></i>
+                            <span class="od-icon ${omzo.is_disliked ? 'disliked-thumb' : ''}"><svg viewBox="0 0 24 24"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/></svg></span>
                         </button>
                         <button class="action-btn" onclick="openOmzoComments(${omzo.id})" title="Comments">
-                            <i data-lucide="message-circle"></i>
+                            <span class="od-icon"><svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></span>
                             <span class="comment-count" data-omzo-id="${omzo.id}">${omzo.comments_count}</span>
                         </button>
                         <button class="action-btn" onclick="shareOmzo('${omzo.url}')" title="Share">
-                            <i data-lucide="share-2"></i>
+                            <span class="od-icon"><svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></span>
                             <span>Share</span>
                         </button>
                         <button class="action-btn" onclick="openReportModal(${omzo.id})" title="More">
-                            <i data-lucide="more-vertical"></i>
+                            <span class="od-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg></span>
                             <span>Report</span>
                         </button>
                     </div>
@@ -1824,7 +1865,7 @@
                             </div>
                             ${omzo.caption ? `<p class="omzo-caption">${omzo.caption}</p>` : ''}
                             <div class="omzo-audio">
-                                <i data-lucide="music-2" style="width: 14px; height: 14px;"></i>
+                                <span class="od-icon" style="width: 14px; height: 14px;"><svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></span>
                                 <span style="font-weight: 500;">Original Audio • ${omzo.username}</span>
                             </div>
                         </div>
@@ -1851,7 +1892,7 @@
                 indicator.className = 'omzo-end-indicator';
                 indicator.innerHTML = `
                     <div style="display: flex; align-items: center; gap: 8px;">
-                        <i data-lucide="check-circle" style="width: 20px; height: 20px;"></i>
+                        <span class="od-icon" style="width: 20px; height: 20px;"><svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></span>
                         <span>You're all caught up!</span>
                     </div>
                 `;
@@ -1957,10 +1998,13 @@
     function syncMuteIcon(video) {
         const btn = video.closest('.omzo-item').querySelector('.mute-btn');
         if (!btn) return;
-        const icon = btn.querySelector('i') || btn.querySelector('svg');
-        if (icon) {
-            icon.setAttribute('data-lucide', video.muted ? 'volume-x' : 'volume-2');
-            if (typeof lucide !== 'undefined') lucide.createIcons();
+        const iconSpan = btn.querySelector('.od-icon');
+        if (iconSpan) {
+            if (video.muted) {
+                iconSpan.innerHTML = '<svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>';
+            } else {
+                iconSpan.innerHTML = '<svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>';
+            }
         }
     }
 
@@ -2084,13 +2128,13 @@
         soundUnlocked = !video.muted;
         localStorage.setItem('omzo_sound_unlocked', soundUnlocked);
 
-        const icon = btn.querySelector('i') || btn.querySelector('svg');
-        if (icon) {
-            icon.setAttribute('data-lucide', video.muted ? 'volume-x' : 'volume-2');
-        }
-
-        if (typeof lucide !== 'undefined') {
-            lucide.createIcons();
+        const iconSpan = btn.querySelector('.od-icon');
+        if (iconSpan) {
+            if (video.muted) {
+                iconSpan.innerHTML = '<svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>';
+            } else {
+                iconSpan.innerHTML = '<svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>';
+            }
         }
     }
 
@@ -2100,17 +2144,17 @@
         const toastId = 'toast-' + Date.now();
 
         const iconMap = {
-            'success': 'check-circle',
-            'error': 'alert-circle',
-            'info': 'info',
-            'uploading': 'upload'
+            'success': '<svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>',
+            'error': '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>',
+            'info': '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>',
+            'uploading': '<svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>'
         };
 
         const toast = document.createElement('div');
         toast.className = `omzo-toast ${type}`;
         toast.id = toastId;
         toast.innerHTML = `
-            <i data-lucide="${iconMap[type] || 'info'}" class="omzo-toast-icon"></i>
+            <span class="od-icon omzo-toast-icon">${iconMap[type] || iconMap['info']}</span>
             <div class="omzo-toast-content">
                 <div class="omzo-toast-title">${title}</div>
                 <div class="omzo-toast-message">${message}</div>
@@ -2119,10 +2163,6 @@
         `;
 
         container.appendChild(toast);
-
-        if (typeof lucide !== 'undefined') {
-            lucide.createIcons();
-        }
 
         if (!persistent) {
             setTimeout(() => {
@@ -2286,7 +2326,7 @@
                 } else {
                     list.innerHTML = `
                     <div class="omzo-comments-empty">
-                        <i data-lucide="message-circle"></i>
+                        <span class="od-icon"><svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></span>
                         <p>No comments yet</p>
                         <p style="font-size: 13px; opacity: 0.7;">Be the first to comment!</p>
                     </div>
@@ -2300,7 +2340,7 @@
                 console.error(err);
                 list.innerHTML = `
                 <div class="omzo-comments-empty">
-                    <i data-lucide="message-circle"></i>
+                    <span class="od-icon"><svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></span>
                     <p>No comments yet</p>
                     <p style="font-size: 13px; opacity: 0.7;">Be the first to comment!</p>
                 </div>
@@ -2317,7 +2357,7 @@
         if (!comments || comments.length === 0) {
             list.innerHTML = `
                 <div class="omzo-comments-empty">
-                    <i data-lucide="message-circle"></i>
+                    <span class="od-icon"><svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></span>
                     <p>No comments yet</p>
                     <p style="font-size: 13px; opacity: 0.7;">Be the first to comment!</p>
                 </div>
@@ -2701,6 +2741,34 @@
             document.getElementById('isContentCopyrightOmzo').checked = false;
             document.getElementById('copyrightDescriptionOmzo').value = '';
         }
+    }
+
+    function repostPost(type, id) {
+        showConfirmationModal('Repost', 'Repost this to your profile?', function() {
+            const formData = new FormData();
+            formData.append('repost_type', type);
+            formData.append('repost_id', id);
+
+            fetch('{% url "post_scribe" %}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showOmzoToast('Success', 'Reposted successfully!', 'success');
+                } else {
+                    showOmzoToast('Error', data.error || 'Failed to repost', 'error');
+                }
+            })
+            .catch(err => {
+                console.error('Repost error:', err);
+                showOmzoToast('Error', 'Failed to repost', 'error');
+            });
+        });
     }
 
     // ===== Initialize Omzo =====

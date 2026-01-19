@@ -11,8 +11,9 @@ import json
 import logging
 import random
 from datetime import timedelta
-from chat.utils import notify_sidebar_for_chat
+from chat.utils import notify_sidebar_for_chat, broadcast_message_to_chat, broadcast_message_consumed
 from chat.utils import clear_sidebar_unread
+from chat.recommendations import ContentRecommender
 
 
 from chat.models import (
@@ -189,16 +190,15 @@ def dashboard(request):
     user_story = user_stories.first()
     user_story_count = user_stories.count()
 
-    # Get scribes from followed users (social media feed)
-    scribes_queryset = Scribe.objects.filter(
-        Q(user__in=following_users) | Q(user=request.user)  # Include own scribes
-    ).select_related('user').prefetch_related('comments__user').distinct().order_by('-timestamp')
+    # Use Recommendation Engine for scribes (with balanced like/dislike scoring)
+    recommender = ContentRecommender(request.user)
+    scribes_queryset = recommender.get_scribes(following_users, limit=20)
 
     # Process scribes with like/comment data
     scribes_data = []
     processed_scribe_ids = set()
 
-    for scribe in scribes_queryset[:20]:  # Limit to 20 most recent
+    for scribe in scribes_queryset:
         if scribe.id in processed_scribe_ids:
             continue
         processed_scribe_ids.add(scribe.id)
@@ -206,6 +206,7 @@ def dashboard(request):
         # Get like count and if current user liked it
         like_count = Like.objects.filter(scribe=scribe).count()
         is_liked = Like.objects.filter(scribe=scribe, user=request.user).exists()
+        is_disliked = Dislike.objects.filter(scribe=scribe, user=request.user).exists()
 
         # Check if current user has saved this post
         is_saved = SavedPost.objects.filter(
@@ -248,11 +249,18 @@ def dashboard(request):
             'like_count': like_count,
             'comment_count': comment_count,
             'is_liked': is_liked,
+            'is_disliked': is_disliked,
             'is_saved': is_saved,
             'is_own': scribe.user == request.user,
             'image_url': scribe.image_url,
             'has_media': scribe.has_media,
             'recent_comments': recent_comments,
+            # Repost fields
+            'is_repost': scribe.is_repost,
+            'original_scribe': scribe.original_scribe,
+            'original_omzo': scribe.original_omzo,
+            'original_story': scribe.original_story,
+            'quote_source': scribe.quote_source,
         })
 
     # Create scribe form instance for proper rendering
@@ -681,6 +689,10 @@ def send_message(request):
             sender=request.user,
             last_message_text=message.content
         )
+        
+        # 🔥 Broadcast the message to all participants via WebSocket
+        # This ensures receivers see the message in real-time without refresh
+        broadcast_message_to_chat(chat, message, exclude_sender=True)
 
         return JsonResponse({
             'success': True,
@@ -1364,6 +1376,10 @@ def consume_one_time_message(request, message_id):
         # Mark as consumed
         message.consumed_at = timezone.now()
         message.save(update_fields=['consumed_at'])
+        
+        # 🔥 Broadcast the consumed status to all participants (including sender)
+        # This ensures the sender sees the message was opened without needing to refresh
+        broadcast_message_consumed(message.chat, message, request.user)
 
         return JsonResponse({
             'success': True,
@@ -1477,8 +1493,8 @@ def update_typing_status(request, chat_id):
         else:
             typing_users.discard(request.user.id)
 
-        # Set cache with 5 second expiry for more responsive typing indicators
-        cache.set(cache_key, typing_users, 5)
+        # Set cache with 4 second expiry (slightly longer than 2s keep-alive to prevent flicker)
+        cache.set(cache_key, typing_users, 4)
 
         return JsonResponse({'success': True})
 
@@ -2354,10 +2370,17 @@ def p2p_send_signal(request):
         # Clean up old signals first
         P2PSignal.cleanup_old_signals()
 
+        # For file transfers, check if target user is online
+        signal_type = signal_data.get('type', '') if isinstance(signal_data, dict) else ''
+        is_file_signal = signal_type.startswith('file.')
+        
         # If target_user_id is None, send to all other participants (for calls)
         if target_user_id is None:
             others = chat.participants.exclude(id=request.user.id)
             for target_user in others:
+                # For file transfers, skip offline users
+                if is_file_signal and not target_user.is_online:
+                    continue
                 P2PSignal.objects.create(
                     chat=chat,
                     sender=request.user,
@@ -2372,6 +2395,10 @@ def p2p_send_signal(request):
             if not target_user:
                 return JsonResponse({'success': False, 'error': 'Target user not in chat'}, status=403)
 
+            # For file transfers, check if target user is online
+            if is_file_signal and not target_user.is_online:
+                return JsonResponse({'success': False, 'error': 'User is offline', 'offline': True})
+
             # Store signal in database
             P2PSignal.objects.create(
                 chat=chat,
@@ -2381,6 +2408,43 @@ def p2p_send_signal(request):
             )
             logger.info(
                 f"P2P signal stored: {signal_data.get('type', 'unknown')} from user {request.user.id} to user {target_user_id}")
+
+        # CRITICAL FIX: If this is an offer, we MUST trigger the notification via Channels
+        # otherwise the receiver (who listens on base.html) assumes no call is coming.
+        if signal_data.get('type') == 'webrtc.offer':
+            from channels.layers import get_channel_layer
+            from asgiref.sync import async_to_sync
+            channel_layer = get_channel_layer()
+            
+            # Construct the exact payload that base.html expects
+            notif_payload = {
+                'type': 'incoming.call',
+                'chat_id': chat.id,
+                'from_user_id': request.user.id,
+                'from_username': request.user.username,
+                'from_full_name': request.user.full_name,
+                'from_avatar': request.user.profile_picture.url if request.user.profile_picture else None,
+                'audioOnly': signal_data.get('audioOnly', False)
+            }
+            
+            # Send to chat group so participants receive it via NotifyConsumer
+            # Note: NotifyConsumer listens to 'user_{id}' groups usually, but let's check.
+            # Base.html connects to /ws/notify/ which subscribes to user-specific group.
+            # So we should send to the TARGET users individually.
+            
+            targets = []
+            if target_user_id:
+                targets = [target_user] # Already fetched above
+            else:
+                targets = chat.participants.exclude(id=request.user.id)
+                
+            for target in targets:
+                async_to_sync(channel_layer.group_send)(
+                    f"user_{target.id}",  # Standard user notification group
+                    notif_payload
+                )
+            
+            logger.info(f"Broadcasted incoming.call notification for HTTP relay offer to {len(targets)} users")
 
         return JsonResponse({'success': True})
 
@@ -2465,6 +2529,39 @@ def p2p_get_signals(request, chat_id):
     except Exception as e:
         logger.error(f"Error in p2p_get_signals: {str(e)}")
         return JsonResponse({'success': False, 'error': 'Failed to get signals'})
+
+
+@login_required
+@require_POST
+def p2p_clear_signals(request):
+    """Clear all P2P signals for a user when they go offline - frees server load"""
+    try:
+        from chat.models import P2PSignal
+        
+        # Delete all unconsumed signals where this user is sender or target
+        deleted_as_sender = P2PSignal.objects.filter(
+            sender=request.user,
+            is_consumed=False
+        ).delete()[0]
+        
+        deleted_as_target = P2PSignal.objects.filter(
+            target_user=request.user,
+            is_consumed=False
+        ).delete()[0]
+        
+        total_deleted = deleted_as_sender + deleted_as_target
+        
+        if total_deleted > 0:
+            logger.info(f"P2P signals cleared for user {request.user.id}: {total_deleted} signals removed")
+        
+        return JsonResponse({
+            'success': True,
+            'cleared': total_deleted
+        })
+        
+    except Exception as e:
+        logger.error(f"Error in p2p_clear_signals: {str(e)}")
+        return JsonResponse({'success': False, 'error': 'Failed to clear signals'})
 
 
 @login_required

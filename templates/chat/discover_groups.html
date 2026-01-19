@@ -642,7 +642,7 @@
             <h1 class="od-discover-title">Explore</h1>
             <p class="od-discover-subtitle">Discover new people and content</p>
             <div class="od-discover-search">
-                <i data-lucide="search"></i>
+                <span class="od-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
                 <input type="text" id="exploreSearchInput" placeholder="Search people, scribes, omzo..."
                     onkeyup="debounceGlobalSearch(this.value)" onfocus="activateSearch()">
             </div>
@@ -652,12 +652,12 @@
             </div>
 
             <div id="searchLoader" style="display: none; text-align: center; padding: 20px;">
-                <i data-lucide="loader" style="width: 24px; height: 24px; animation: spin 1s linear infinite;"></i>
+                <span class="od-icon" style="width: 24px; height: 24px; animation: spin 1s linear infinite;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/></svg></span>
             </div>
 
             <div id="searchNoResults"
                 style="display: none; text-align: center; padding: 40px; color: var(--od-text-secondary);">
-                <i data-lucide="search" style="width: 48px; height: 48px; opacity: 0.5;"></i>
+                <span class="od-icon" style="width: 48px; height: 48px; opacity: 0.5;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
                 <p>No results found matching your query.</p>
             </div>
         </header>
@@ -678,7 +678,7 @@
                         </div>
                     </a>
                     <button class="od-post-more" onclick="openPostMenu({{ item.id }}, event)">
-                        <i data-lucide="more-horizontal"></i>
+                        <span class="od-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></span>
                     </button>
                 </header>
 
@@ -701,22 +701,22 @@
                     <div class="od-post-actions-left">
                         <button class="od-post-action-btn like-btn {% if item.is_liked %}liked{% endif %}"
                             onclick="toggleLike({{ item.id }})" data-scribe-id="{{ item.id }}">
-                            <i data-lucide="thumbs-up"></i>
+                            <span class="od-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg></span>
                         </button>
                         <button class="od-post-action-btn dislike-btn {% if item.is_disliked %}disliked{% endif %}"
                             onclick="toggleDislike({{ item.id }})" data-scribe-id="{{ item.id }}">
-                            <i data-lucide="thumbs-down"></i>
+                            <span class="od-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/></svg></span>
                         </button>
                         <button class="od-post-action-btn" onclick="toggleComments({{ item.id }})">
-                            <i data-lucide="message-circle"></i>
+                            <span class="od-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></span>
                         </button>
                         <button class="od-post-action-btn" onclick="sharePost({{ item.id }})">
-                            <i data-lucide="send"></i>
+                            <span class="od-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></span>
                         </button>
                     </div>
                     <button class="od-post-action-btn {% if item.is_saved %}saved{% endif %}"
                         onclick="savePost({{ item.id }})" data-action="save">
-                        <i data-lucide="bookmark"></i>
+                        <span class="od-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></span>
                     </button>
                 </div>
 
@@ -779,7 +779,7 @@
                         </div>
                     </a>
                     <button class="od-post-more">
-                        <i data-lucide="more-horizontal"></i>
+                        <span class="od-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></span>
                     </button>
                 </header>
 
@@ -790,7 +790,7 @@
                         <source src="{{ omzo.video_file.url }}" type="video/mp4">
                     </video>
                     <div class="od-video-play-overlay">
-                        <i data-lucide="play"></i>
+                        <span class="od-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg></span>
                     </div>
                     {% endif %}
                 </div>
@@ -800,17 +800,17 @@
                     <div class="od-post-actions-left">
                         <button class="od-post-action-btn like-btn {% if item.is_liked %}liked{% endif %}"
                             onclick="toggleOmzoLike({{ omzo.id }})" data-omzo-id="{{ omzo.id }}">
-                            <i data-lucide="thumbs-up"></i>
+                            <span class="od-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg></span>
                         </button>
                         <button class="od-post-action-btn dislike-btn {% if item.is_disliked %}disliked{% endif %}"
                             onclick="toggleOmzoDislike({{ omzo.id }})" data-omzo-id="{{ omzo.id }}">
-                            <i data-lucide="thumbs-down"></i>
+                            <span class="od-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/></svg></span>
                         </button>
                         <button class="od-post-action-btn" onclick="openOmzoInOmzo({{ omzo.id }})">
-                            <i data-lucide="message-circle"></i>
+                            <span class="od-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></span>
                         </button>
                         <button class="od-post-action-btn" onclick="shareOmzo({{ omzo.id }})">
-                            <i data-lucide="send"></i>
+                            <span class="od-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></span>
                         </button>
                     </div>
                 </div>
@@ -837,7 +837,7 @@
         </section>
         {% else %}
         <div class="od-empty-state">
-            <i data-lucide="sparkles"></i>
+            <span class="od-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L9 8 3 9l5 4-1 6 5-3 5 3-1-6 5-4-6-1-3-6z"/></svg></span>
             <h3>Nothing to explore yet</h3>
             <p>Follow some people or wait for new content!</p>
         </div>
@@ -849,7 +849,7 @@
 <div class="post-modal-overlay" id="postModal">
     <div class="post-modal-content">
         <button class="post-modal-close" onclick="document.getElementById('postModal').classList.remove('show')">
-            <i data-lucide="x"></i>
+            <span class="od-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
         </button>
         <div class="post-modal-body" id="postModalBody"></div>
     </div>
@@ -859,7 +859,7 @@
 <div class="post-modal-overlay" id="omzoModal">
     <div class="post-modal-content">
         <button class="post-modal-close" onclick="document.getElementById('omzoModal').classList.remove('show')">
-            <i data-lucide="x"></i>
+            <span class="od-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
         </button>
         <div class="post-modal-body" id="omzoModalBody"></div>
     </div>
@@ -938,13 +938,13 @@
         
         menu.innerHTML = `
             <button onclick="reportPost(${postId}); this.closest('.od-post-menu-dropdown').remove();" style="display:flex;align-items:center;gap:12px;padding:12px 16px;width:100%;border:none;background:none;color:#ef4444;cursor:pointer;font-size:14px;">
-                <i data-lucide="flag" style="width:18px;height:18px;"></i> Report
+                <span class="od-icon" style="width:18px;height:18px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg></span> Report
             </button>
             <button onclick="copyPostLink(${postId}); this.closest('.od-post-menu-dropdown').remove();" style="display:flex;align-items:center;gap:12px;padding:12px 16px;width:100%;border:none;background:none;color:var(--od-text);cursor:pointer;font-size:14px;">
-                <i data-lucide="link" style="width:18px;height:18px;"></i> Copy Link
+                <span class="od-icon" style="width:18px;height:18px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></span> Copy Link
             </button>
             <button onclick="this.closest('.od-post-menu-dropdown').remove();" style="display:flex;align-items:center;gap:12px;padding:12px 16px;width:100%;border:none;background:none;color:var(--od-text-secondary);cursor:pointer;font-size:14px;">
-                <i data-lucide="x" style="width:18px;height:18px;"></i> Cancel
+                <span class="od-icon" style="width:18px;height:18px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span> Cancel
             </button>
         `;
         
@@ -1336,7 +1336,7 @@
         body.innerHTML = `
             <div class="post-modal-loading">
                 <div style="animation: spin 1s linear infinite;">
-                    <i data-lucide="loader" style="width: 32px; height: 32px;"></i>
+                    <span class="od-icon" style="width: 32px; height: 32px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/></svg></span>
                 </div>
                 <p style="margin-top: 16px;">Loading post...</p>
             </div>
@@ -1361,7 +1361,7 @@
                             escapeHtml(`<style>${scribe.code_css || ''}</style>${scribe.code_html}<script>${scribe.code_js || ''}<\/script>`);
                         mediaSection = `<iframe style="width: 100%; height: 400px; border: none;" sandbox="allow-scripts" srcdoc="${srcContent}"></iframe>`;
                     } else {
-                        mediaSection = `<div style="width: 100%; height: 250px; background: var(--od-surface-hover); display: flex; align-items: center; justify-content: center; color: var(--od-text-secondary);"><i data-lucide="file-text" style="width: 48px; height: 48px; opacity: 0.3;"></i></div>`;
+                        mediaSection = `<div style="width: 100%; height: 250px; background: var(--od-surface-hover); display: flex; align-items: center; justify-content: center; color: var(--od-text-secondary);"><span class="od-icon" style="width: 48px; height: 48px; opacity: 0.3;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg></span></div>`;
                     }
 
                     body.innerHTML = `
@@ -1390,18 +1390,18 @@
                             
                             <div class="post-modal-actions">
                                 <button class="post-modal-action-btn like-btn ${isLiked ? 'liked' : ''}" onclick="event.stopPropagation(); toggleLikeInModal(${postId}, this)" data-liked="${isLiked ? 'true' : 'false'}" data-post-id="${postId}">
-                                    <i data-lucide="heart" style="width: 18px; height: 18px; ${isLiked ? 'fill: currentColor;' : ''}"></i>
+                                    <span class="od-icon" style="width: 18px; height: 18px;"><svg viewBox="0 0 24 24" fill="${isLiked ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
                                     <span>Like</span>
                                 </button>
                                 <button class="post-modal-action-btn" onclick="event.stopPropagation(); document.getElementById('commentInput${postId}').focus()">
-                                    <i data-lucide="message-circle" style="width: 18px; height: 18px;"></i>
+                                    <span class="od-icon" style="width: 18px; height: 18px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></span>
                                     <span>Comment</span>
                                 </button>
                             </div>
                             
                             <div class="post-modal-comments-section" id="commentsSection${postId}">
                                 <div style="text-align: center; padding: 20px; color: var(--od-text-secondary);">
-                                    <i data-lucide="loader" style="width: 24px; height: 24px; animation: spin 1s linear infinite;"></i>
+                                    <span class="od-icon" style="width: 24px; height: 24px; animation: spin 1s linear infinite;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/></svg></span>
                                 </div>
                             </div>
                             
@@ -1428,7 +1428,7 @@
     function renderErrorState(message) {
         return `
             <div class="post-modal-loading">
-                <i data-lucide="alert-circle" style="width: 40px; height: 40px; opacity: 0.5;"></i>
+                <span class="od-icon" style="width: 40px; height: 40px; opacity: 0.5;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span>
                 <p style="margin-top: 12px;">${message}</p>
             </div>
         `;
@@ -1477,7 +1477,7 @@
                     if (data.comments.length === 0) {
                         commentsSection.innerHTML = `
                             <div style="text-align: center; padding: 20px; color: var(--od-text-secondary);">
-                                <i data-lucide="message-circle" style="width: 24px; height: 24px; opacity: 0.3; margin-bottom: 8px;"></i>
+                                <span class="od-icon" style="width: 24px; height: 24px; opacity: 0.3; margin-bottom: 8px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></span>
                                 <div style="font-size: 13px;">No comments yet</div>
                             </div>
                         `;
@@ -1579,7 +1579,7 @@
                 noResults.id = 'exploreNoResults';
                 noResults.className = 'od-search-no-results';
                 noResults.innerHTML = `
-                    <i data-lucide="search"></i>
+                    <span class="od-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
                     <h3 style="color: var(--od-text-primary); margin: 12px 0 8px 0;">No results found</h3>
                     <p>Try searching for different keywords</p>
                 `;
@@ -1738,7 +1738,7 @@
         } else {
             // Omzo video
             if (item.video_url) {
-                mediaHTML = `<div class="od-post-media od-post-video" onclick="openOmzoInOmzo(${item.id})"><video src="${item.video_url}" muted loop playsinline preload="metadata"></video><div class="od-video-play-overlay"><i data-lucide="play"></i></div></div>`;
+                mediaHTML = `<div class="od-post-media od-post-video" onclick="openOmzoInOmzo(${item.id})"><video src="${item.video_url}" muted loop playsinline preload="metadata"></video><div class="od-video-play-overlay"><span class="od-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg></span></div></div>`;
             }
         }
 
@@ -1759,7 +1759,7 @@
                     </div>
                 </a>
                 <button class="od-post-more" onclick="event.stopPropagation();">
-                    <i data-lucide="more-horizontal"></i>
+                    <span class="od-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></span>
                 </button>
             </header>
             
@@ -1768,20 +1768,20 @@
             <div class="od-post-actions">
                 <div class="od-post-actions-left">
                     <button class="od-post-action-btn like-btn ${isLiked ? 'liked' : ''}" data-${isScribe ? 'scribe' : 'omzo'}-id="${item.id}" onclick="${isScribe ? 'toggleLike' : 'toggleOmzoLike'}(${item.id})">
-                        <i data-lucide="thumbs-up"></i>
+                        <span class="od-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg></span>
                     </button>
                     <button class="od-post-action-btn dislike-btn ${isDisliked ? 'disliked' : ''}" data-${isScribe ? 'scribe' : 'omzo'}-id="${item.id}" onclick="${isScribe ? 'toggleDislike' : 'toggleOmzoDislike'}(${item.id})">
-                        <i data-lucide="thumbs-down"></i>
+                        <span class="od-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/></svg></span>
                     </button>
                     <button class="od-post-action-btn" onclick="${isScribe ? `toggleComments(${item.id})` : `openOmzoInOmzo(${item.id})`}">
-                        <i data-lucide="message-circle"></i>
+                        <span class="od-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></span>
                     </button>
                     <button class="od-post-action-btn" onclick="${isScribe ? 'sharePost' : 'shareOmzo'}(${item.id})">
-                        <i data-lucide="send"></i>
+                        <span class="od-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></span>
                     </button>
                 </div>
                 ${isScribe ? `<button class="od-post-action-btn save-btn ${isSaved ? 'saved' : ''}" onclick="toggleSavePost(${item.id}, this)" data-action="save">
-                    <i data-lucide="bookmark"></i>
+                    <span class="od-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></span>
                 </button>` : ''}
             </div>
             
@@ -1833,7 +1833,7 @@
             indicator = document.createElement('div');
             indicator.id = 'loadingIndicator';
             indicator.style.cssText = 'position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%); background: var(--od-surface); border: 1px solid var(--od-border); border-radius: 8px; padding: 12px 20px; display: flex; align-items: center; gap: 12px; z-index: 100; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);';
-            indicator.innerHTML = '<i data-lucide="loader" style="width: 20px; height: 20px; animation: spin 1s linear infinite;"></i><span style="color: var(--od-text-primary); font-size: 14px;">Loading more content...</span>';
+            indicator.innerHTML = '<span class="od-icon" style="width: 20px; height: 20px; animation: spin 1s linear infinite;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/></svg></span><span style="color: var(--od-text-primary); font-size: 14px;">Loading more content...</span>';
             document.body.appendChild(indicator);
             if (typeof lucide !== 'undefined') lucide.createIcons();
         }
@@ -2020,25 +2020,25 @@
         if (item.type === 'person') {
             clickAction = `window.location.href='/profile/${item.data.username}/'`;
             icon = 'user'; tag = 'User';
-            imageHtml = item.image_url ? `<img src="${item.image_url}" class="explore-card-media">` : `<div class="explore-card-media" style="background:#f0f2f5;display:flex;align-items:center;justify-content:center;"><i data-lucide="user" style="width:48px;height:48px;opacity:0.3;"></i></div>`;
+            imageHtml = item.image_url ? `<img src="${item.image_url}" class="explore-card-media">` : `<div class="explore-card-media" style="background:#f0f2f5;display:flex;align-items:center;justify-content:center;"><span class="od-icon" style="width:48px;height:48px;opacity:0.3;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span></div>`;
         } else if (item.type === 'group') {
             clickAction = `window.location.href='/chat/${item.data.id}/'`;
             icon = 'users'; tag = 'Group';
-            imageHtml = `<div class="explore-card-media" style="background:#e0f2f1;display:flex;align-items:center;justify-content:center;"><i data-lucide="users" style="width:48px;height:48px;opacity:0.3;color:#26a69a;"></i></div>`;
+            imageHtml = `<div class="explore-card-media" style="background:#e0f2f1;display:flex;align-items:center;justify-content:center;"><span class="od-icon" style="width:48px;height:48px;opacity:0.3;color:#26a69a;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span></div>`;
         } else if (item.type === 'scribe' || item.type === 'post') {
             clickAction = `openScribePost(${item.id})`;
             icon = 'file-text'; 
             tag = (item.data && item.data.has_code) ? 'Code Scribe' : 'Scribe';
             if (item.data && item.data.user) userHtml = getUserHtml(item.data.user);
             if (item.image_url) { imageHtml = `<img src="${item.image_url}" class="explore-card-media">`; }
-            else if (item.data.has_code) { imageHtml = `<div class="explore-card-media" style="background:#263238;display:flex;align-items:center;justify-content:center;"><i data-lucide="code" style="width:48px;height:48px;color:#fff;opacity:0.8;"></i></div>`; }
+            else if (item.data.has_code) { imageHtml = `<div class="explore-card-media" style="background:#263238;display:flex;align-items:center;justify-content:center;"><span class="od-icon" style="width:48px;height:48px;color:#fff;opacity:0.8;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></span></div>`; }
             else { imageHtml = `<div class="explore-card-media" style="background:#f0f2f5;display:flex;align-items:center;justify-content:center;"><div style="padding:20px;font-size:12px;overflow:hidden;">${item.data.content || 'Text Post'}</div></div>`; }
         } else if (item.type === 'omzo') {
             clickAction = `openOmzoInOmzo(${item.id})`;
             icon = 'video'; tag = 'Omzo';
             if (item.data && item.data.user) userHtml = getUserHtml(item.data.user);
             if (item.image_url) { imageHtml = `<video src="${item.image_url}" class="explore-card-media" muted></video>`; }
-            else { imageHtml = `<div class="explore-card-media" style="background:#000;display:flex;align-items:center;justify-content:center;"><i data-lucide="video" style="width:48px;height:48px;color:#fff;"></i></div>`; }
+            else { imageHtml = `<div class="explore-card-media" style="background:#000;display:flex;align-items:center;justify-content:center;"><span class="od-icon" style="width:48px;height:48px;color:#fff;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2" ry="2"/><polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none"/></svg></span></div>`; }
         }
 
         article.setAttribute('onclick', clickAction);

@@ -1,4 +1,5 @@
 {% extends 'chat/base.html' %}
+{% load odnix_icons %}
 
 {% block title %}Edit Profile - Odnix{% endblock %}
 
@@ -1084,9 +1085,9 @@
         {% for message in messages %}
         <div class="od-message od-message-{{ message.tags }}">
             {% if message.tags == 'success' %}
-            <i data-lucide="check-circle"></i>
+            {% icon "check-circle" %}
             {% else %}
-            <i data-lucide="alert-circle"></i>
+            {% icon "alert-circle" %}
             {% endif %}
             {{ message }}
         </div>
@@ -1107,7 +1108,7 @@
                         {{ request.user.name.0 }}{{ request.user.lastname.0 }}
                     </div>
                     <label class="od-edit-avatar-overlay" for="profilePictureInput">
-                        <i data-lucide="camera"></i>
+                        {% icon "camera" %}
                     </label>
                 </div>
                 <div class="od-edit-user-info">
@@ -1123,7 +1124,7 @@
             <!-- Personal Information -->
             <div class="od-form-section">
                 <div class="od-form-section-title">
-                    <i data-lucide="user"></i>
+                    {% icon "user" %}
                     Personal Information
                 </div>
                 
@@ -1148,7 +1149,7 @@
             <!-- Privacy Settings -->
             <div class="od-form-section">
                 <div class="od-form-section-title">
-                    <i data-lucide="shield"></i>
+                    {% icon "lock" %}
                     Privacy
                 </div>
                 
@@ -1167,7 +1168,7 @@
             <!-- Theme Settings Section -->
             <div id="theme-section" class="od-form-section theme-section">
                 <div class="od-form-section-title">
-                    <i data-lucide="palette"></i>
+                    {% icon "theme" %}
                     Appearance
                 </div>
                 
@@ -1585,7 +1586,7 @@
                 
                 <!-- Current Theme Indicator -->
                 <div class="current-theme-indicator">
-                    <i data-lucide="check-circle"></i>
+                    {% icon "verified" %}
                     <span>Current: <strong id="currentThemeName">{{ request.user.theme|default:"light"|title }}</strong></span>
                 </div>
             </div>
@@ -1593,11 +1594,11 @@
             <!-- Form Actions -->
             <div class="od-form-actions">
                 <a href="{% url 'profile' %}" class="od-btn od-btn-cancel">
-                    <i data-lucide="x"></i>
+                    {% icon "x" %}
                     Cancel
                 </a>
                 <button type="submit" class="od-btn od-btn-save">
-                    <i data-lucide="check"></i>
+                    {% icon "check" %}
                     Save Changes
                 </button>
             </div>
@@ -1607,11 +1608,11 @@
         <div class="od-danger-zone">
             <div class="od-danger-card">
                 <div class="od-danger-title">
-                    <i data-lucide="alert-triangle"></i>
+                    {% icon "alert-triangle" %}
                     Account Actions
                 </div>
                 <a href="{% url 'logout' %}" class="od-logout-btn">
-                    <i data-lucide="log-out"></i>
+                    {% icon "log-out" %}
                     Sign Out
                 </a>
             </div>
@@ -1625,7 +1626,7 @@
         <div class="od-crop-header">
             <h3>Crop Profile Picture</h3>
             <button type="button" class="od-crop-close" onclick="closeCropper()">
-                <i data-lucide="x"></i>
+                {% icon "x" %}
             </button>
         </div>
         <div class="od-crop-body">
@@ -1633,22 +1634,22 @@
         </div>
         <div class="od-crop-controls">
             <button type="button" class="od-crop-tool-btn" onclick="zoomImage(-0.1)" title="Zoom Out">
-                <i data-lucide="zoom-out"></i>
+                {% icon "zoom-out" %}
             </button>
             <button type="button" class="od-crop-tool-btn" onclick="zoomImage(0.1)" title="Zoom In">
-                <i data-lucide="zoom-in"></i>
+                {% icon "zoom-in" %}
             </button>
             <button type="button" class="od-crop-tool-btn" onclick="rotateImage(-90)" title="Rotate Left">
-                <i data-lucide="rotate-ccw"></i>
+                {% icon "rotate-ccw" %}
             </button>
             <button type="button" class="od-crop-tool-btn" onclick="rotateImage(90)" title="Rotate Right">
-                <i data-lucide="rotate-cw"></i>
+                {% icon "rotate-cw" %}
             </button>
         </div>
         <div class="od-crop-footer">
             <button type="button" class="od-crop-btn od-crop-cancel" onclick="closeCropper()">Cancel</button>
             <button type="button" class="od-crop-btn od-crop-apply" onclick="applyCrop()">
-                <i data-lucide="check"></i>
+                {% icon "check" %}
                 Apply
             </button>
         </div>

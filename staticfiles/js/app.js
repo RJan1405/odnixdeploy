@@ -2,9 +2,13 @@
 console.log('Odnix messaging platform loaded - Enhanced version');
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize Lucide icons
-    if (typeof lucide !== 'undefined') {
-        lucide.createIcons();
+    // Initialize Lucide icons safely
+    if (typeof lucide !== 'undefined' && lucide.createIcons) {
+        try {
+            lucide.createIcons();
+        } catch (e) {
+            console.warn('Lucide init failed:', e);
+        }
     }
     
     initializeAuth();
@@ -64,70 +68,72 @@ function initializeAuth() {
 function initializeScribes() {
     console.log('initializeScribes called');
     
-    // Handle scribe posting - only attach submit listener if not on profile page
+    // Handle scribe posting - only attach submit listener if checks pass
     const scribeForm = document.getElementById('scribeForm');
     console.log('scribeForm element:', scribeForm);
     
-    if (scribeForm && !window.location.pathname.includes('/profile')) {
-        console.log('Attaching submit event listener to scribeForm (not profile page)');
-        scribeForm.addEventListener('submit', function(e) {
-            console.log('Form submit event triggered');
-            e.preventDefault();
-            console.log('Default prevented');
-            
-            const scribeContent = document.getElementById('scribeContent');
-            console.log('scribeContent element:', scribeContent);
-            console.log('scribeContent value:', scribeContent ? scribeContent.value : 'null');
-            
-            const content = scribeContent.value.trim();
-            console.log('Trimmed content:', content);
-            console.log('Content length:', content.length);
+    if (scribeForm) {
+        if (!window.location.pathname.includes('/profile')) {
+            console.log('Attaching submit event listener to scribeForm (not profile page)');
+            scribeForm.addEventListener('submit', function(e) {
+                console.log('Form submit event triggered');
+                e.preventDefault();
+                console.log('Default prevented');
+                
+                const scribeContent = document.getElementById('scribeContent');
+                console.log('scribeContent element:', scribeContent);
+                console.log('scribeContent value:', scribeContent ? scribeContent.value : 'null');
+                
+                const content = scribeContent.value.trim();
+                console.log('Trimmed content:', content);
+                console.log('Content length:', content.length);
 
-            if (!content) {
-                console.log('Content is empty, showing error');
-                showNotification('Please enter some content for your scribe', 'error');
-                return;
-            }
+                if (!content) {
+                    console.log('Content is empty, showing error');
+                    showNotification('Please enter some content for your scribe', 'error');
+                    return;
+                }
 
-            if (content.length > 280) {
-                console.log('Content too long, showing error');
-                showNotification('Scribe must be 280 characters or less', 'error');
-                return;
-            }
+                if (content.length > 280) {
+                    console.log('Content too long, showing error');
+                    showNotification('Scribe must be 280 characters or less', 'error');
+                    return;
+                }
 
-            console.log('Calling postScribe with content');
-            postScribe(content, scribeContent);
-        });
-    } else if (scribeForm && window.location.pathname.includes('/profile')) {
-        console.log('On profile page - using onclick handler instead of submit listener');
+                console.log('Calling postScribe with content');
+                postScribe(content, scribeContent);
+            });
+        } else {
+            console.log('On profile page - using onclick handler instead of submit listener');
+        }
     } else {
         console.log('scribeForm not found on this page');
     }
 
-        // Enhanced character counter for scribes
-        const scribeContent = document.getElementById('scribeContent');
-        if (scribeContent) {
-            console.log('Setting up character counter for scribeContent');
-            scribeContent.addEventListener('input', function() {
-                const remaining = 280 - this.value.length;
-                const charCounter = document.getElementById('charCounter');
+    // Enhanced character counter for scribes
+    const scribeContent = document.getElementById('scribeContent');
+    if (scribeContent) {
+        console.log('Setting up character counter for scribeContent');
+        scribeContent.addEventListener('input', function() {
+            const remaining = 280 - this.value.length;
+            const charCounter = document.getElementById('charCounter');
 
-                if (charCounter) {
-                    charCounter.textContent = remaining + ' characters remaining';
+            if (charCounter) {
+                charCounter.textContent = remaining + ' characters remaining';
 
-                    // Change color based on remaining characters
-                    charCounter.className = 'char-counter';
-                    if (remaining < 0) {
-                        charCounter.className += ' danger';
-                        charCounter.textContent = Math.abs(remaining) + ' characters over limit';
-                    } else if (remaining < 20) {
-                        charCounter.className += ' danger';
-                    } else if (remaining < 50) {
-                        charCounter.className += ' warning';
-                    }
+                // Change color based on remaining characters
+                charCounter.className = 'char-counter';
+                if (remaining < 0) {
+                    charCounter.className += ' danger';
+                    charCounter.textContent = Math.abs(remaining) + ' characters over limit';
+                } else if (remaining < 20) {
+                    charCounter.className += ' danger';
+                } else if (remaining < 50) {
+                    charCounter.className += ' warning';
                 }
-            });
-        }
+            }
+        });
+    }
 }
 
 function initializeNavigation() {
@@ -1061,3 +1067,73 @@ window.openCreateChatModal = function() {
 };
 
 console.log('✅ Enhanced Odnix JavaScript initialized successfully');
+
+// ===== SHARED POST FUNCTIONS =====
+// Available globally for dashboard, profile, and discover pages
+
+function sharePost(scribeId) {
+    // Use Web Share API if available
+    if (navigator.share) {
+        navigator.share({
+            title: 'Check out this post on Odnix',
+            url: window.location.origin + '/post/' + scribeId + '/'
+        }).catch(err => {
+            if (err.name !== 'AbortError') {
+                copyPostLink(scribeId);
+            }
+        });
+    } else {
+        copyPostLink(scribeId);
+    }
+}
+
+function copyPostLink(scribeId) {
+    // Generate link locally if possible to avoid server roundtrip, or use the API if needed
+    // Using the same pattern as dashboard.html logic but adapted for app.js
+    
+    fetch('/api/copy-post-link/', {  // Corrected URL to match likely API endpoint or kept as in dashboard
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCSRFToken()
+        },
+        body: JSON.stringify({ scribe_id: scribeId })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Copy to clipboard
+            navigator.clipboard.writeText(data.link).then(() => {
+                showNotification('Link copied to clipboard', 'success');
+            }).catch(() => {
+                // Fallback for older browsers
+                const textarea = document.createElement('textarea');
+                textarea.value = data.link;
+                document.body.appendChild(textarea);
+                textarea.select();
+                try {
+                    document.execCommand('copy');
+                    showNotification('Link copied to clipboard', 'success');
+                } catch (e) {
+                    showNotification('Failed to copy link', 'error');
+                }
+                document.body.removeChild(textarea);
+            });
+            
+            // Close menu if it exists
+            if (typeof closePostMenu === 'function') {
+                closePostMenu();
+            }
+        } else {
+            showNotification(data.error || 'Failed to copy link', 'error');
+        }
+    })
+    .catch(err => {
+        console.error('Copy link error:', err);
+        // Fallback to client-side link generation if API fails
+        const fallbackLink = window.location.origin + '/post/' + scribeId + '/';
+        navigator.clipboard.writeText(fallbackLink)
+            .then(() => showNotification('Link copied to clipboard', 'success'))
+            .catch(() => showNotification('Failed to copy link', 'error'));
+    });
+}

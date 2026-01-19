@@ -1,5 +1,6 @@
 {% extends 'chat/base.html' %}
 {% load static %}
+{% load chat_extras %}
 
 
 
@@ -8,6 +9,27 @@
 <meta name="chat-id" content="{{ chat.id }}">
 <meta name="user-id" content="{{ request.user.id }}">
 <style>
+    /* Custom Icon Styles */
+    .od-icon {
+        width: 24px;
+        height: 24px;
+        display: inline-block;
+        vertical-align: middle;
+    }
+    .od-icon svg {
+        width: 100%;
+        height: 100%;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 1.8;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+    }
+    .od-icon.filled svg {
+        fill: currentColor;
+        stroke: currentColor;
+    }
+
     /* CSS Animations for P2P and loading states */
     @keyframes spin {
         from {
@@ -160,6 +182,34 @@
         text-decoration: none;
         color: inherit;
         transition: background .15s;
+        position: relative;
+    }
+
+    .od-direct-options-btn {
+        display: none;
+        position: absolute;
+        right: 8px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: transparent;
+        border: none;
+        color: var(--od-text-secondary);
+        padding: 6px;
+        border-radius: 50%;
+        cursor: pointer;
+        z-index: 5;
+    }
+
+    .od-direct-item:hover .od-direct-options-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--od-bg);
+    }
+
+    .od-direct-options-btn:hover {
+        background: var(--od-surface-hover);
+        color: var(--od-text-primary);
     }
 
     .od-direct-item:hover {
@@ -275,16 +325,7 @@
     }
 
     .od-messages-list {
-            {
-            % comment %
-        }
-
-        overflow-x: hidden !important;
-
-            {
-            % endcomment %
-        }
-
+        /* overflow-x: hidden !important; */
         max-width: 100%;
         margin-top: auto;
         /* Push messages to bottom */
@@ -739,7 +780,8 @@
     .od-chat-send,
     .od-chat-emoji,
     .od-chat-viewonce,
-    .od-chat-mic {
+    .od-chat-mic,
+    .od-chat-p2p {
         background: none;
         border: none;
         cursor: pointer;
@@ -763,7 +805,9 @@
     .od-chat-emoji svg,
     .od-chat-viewonce svg,
     .od-chat-mic i,
-    .od-chat-mic svg {
+    .od-chat-mic svg,
+    .od-chat-p2p i,
+    .od-chat-p2p svg {
         width: 22px;
         height: 22px;
     }
@@ -772,7 +816,8 @@
     .od-chat-like:hover,
     .od-chat-emoji:hover,
     .od-chat-viewonce:hover,
-    .od-chat-mic:hover {
+    .od-chat-mic:hover,
+    .od-chat-p2p:hover {
         background: var(--od-surface-hover);
         color: var(--color-primary);
     }
@@ -1602,12 +1647,13 @@
 
     .od-chat-footer {
         position: relative;
-        overflow: hidden;
+        overflow: visible;
     }
 
     .od-chat-form {
         max-width: 100%;
-        overflow: hidden;
+        overflow: visible;
+        position: relative;
     }
 
     /* New Messages Button */
@@ -1951,7 +1997,7 @@
     <div class="od-direct-sidebar">
         <header class="od-direct-header">
             <a href="{% url 'dashboard' %}" class="od-direct-back" title="Back">
-                <i data-lucide="arrow-left"></i>
+                <span class="od-icon"><svg viewBox="0 0 24 24"><path d="M19 12H5"/><polyline points="12 19 5 12 12 5"/></svg></span>
             </a>
             <img src="{{ request.user.profile_picture_url }}" alt="{{ request.user.full_name }}"
                 class="od-direct-header-avatar" onerror="this.style.display='none';">
@@ -1960,28 +2006,54 @@
                 <div class="od-direct-sub">@{{ request.user.username }}</div>
             </div>
             <button class="od-direct-new" onclick="openNewMessageModal()" title="New Chat">
-                <i data-lucide="plus"></i>
+                <span class="od-icon"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
             </button>
         </header>
 
+        <style>
+            .od-categories::-webkit-scrollbar {
+                height: 4px; /* Horizontal scrollbar height */
+            }
+            .od-categories::-webkit-scrollbar-track {
+                background: transparent;
+            }
+            .od-categories::-webkit-scrollbar-thumb {
+                background: var(--od-border, #363636);
+                border-radius: 10px;
+                /* border: 2px solid transparent; Remove border for thinner feel on horizontal */
+                background-clip: padding-box;
+            }
+            .od-categories::-webkit-scrollbar-thumb:hover {
+                background: var(--od-text-secondary, #737373);
+            }
+            [data-theme="light"] .od-categories::-webkit-scrollbar-thumb {
+                background: var(--od-border, #dbdbdb);
+            }
+            [data-theme="light"] .od-categories::-webkit-scrollbar-thumb:hover {
+                background: var(--od-text-secondary, #737373);
+            }
+        </style>
         <div class="od-direct-controls" style="padding:10px 12px; border-bottom:1px solid var(--od-border);">
             <div class="od-search-bar"
                 style="display:flex;align-items:center;gap:8px;background:var(--od-bg);border:1px solid var(--od-border);border-radius:12px;padding:10px 12px;">
-                <i data-lucide="search"></i>
+                <span class="od-icon"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
                 <input id="directSearchInput" type="text" placeholder="Search messages"
                     onkeyup="filterDirectChats(event)"
                     style="flex:1;background:transparent;border:none;outline:none;color:var(--od-text-primary);">
             </div>
-            <div class="od-categories" style="display:flex;gap:8px;margin-top:10px;">
+            <div class="od-categories" style="display:flex;gap:8px;margin-top:10px;overflow-x:auto;padding-bottom:5px;">
                 <button class="od-cat-btn active" onclick="filterDirectCategory('all', this)"
-                    style="display:flex;align-items:center;gap:6px;padding:8px 12px;background:var(--od-bg);border:1px solid var(--od-border);border-radius:999px;font-size:13px;color:var(--od-text-secondary);cursor:pointer;"><i
-                        data-lucide="inbox"></i> All</button>
+                    style="display:flex;align-items:center;gap:6px;padding:8px 12px;background:var(--od-bg);border:1px solid var(--od-border);border-radius:999px;font-size:13px;color:var(--od-text-secondary);cursor:pointer;flex-shrink:0;"><span class="od-icon"><svg viewBox="0 0 24 24"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg></span> All</button>
                 <button class="od-cat-btn" onclick="filterDirectCategory('private', this)"
-                    style="display:flex;align-items:center;gap:6px;padding:8px 12px;background:var(--od-bg);border:1px solid var(--od-border);border-radius:999px;font-size:13px;color:var(--od-text-secondary);cursor:pointer;"><i
-                        data-lucide="user"></i> Private</button>
+                    style="display:flex;align-items:center;gap:6px;padding:8px 12px;background:var(--od-bg);border:1px solid var(--od-border);border-radius:999px;font-size:13px;color:var(--od-text-secondary);cursor:pointer;flex-shrink:0;"><span class="od-icon"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span> Private</button>
                 <button class="od-cat-btn" onclick="filterDirectCategory('group', this)"
-                    style="display:flex;align-items:center;gap:6px;padding:8px 12px;background:var(--od-bg);border:1px solid var(--od-border);border-radius:999px;font-size:13px;color:var(--od-text-secondary);cursor:pointer;"><i
-                        data-lucide="users"></i> Groups</button>
+                    style="display:flex;align-items:center;gap:6px;padding:8px 12px;background:var(--od-bg);border:1px solid var(--od-border);border-radius:999px;font-size:13px;color:var(--od-text-secondary);cursor:pointer;flex-shrink:0;"><span class="od-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span> Groups</button>
+                <button class="od-cat-btn" id="requestsTabBtn" onclick="filterDirectCategory('requests', this)"
+                    style="display:flex;align-items:center;gap:6px;padding:8px 12px;background:var(--od-bg);border:1px solid var(--od-border);border-radius:999px;font-size:13px;color:var(--od-text-secondary);cursor:pointer;white-space:nowrap;flex-shrink:0;">
+                    <span class="od-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></span>
+                    <span style="white-space:nowrap;">Requests</span> 
+                    <span id="requestsBadge" style="display:none; background:#ff3b3b; color:white; border-radius:50%; padding:2px 6px; font-size:10px; margin-left:4px; min-width: 15px; text-align: center;">0</span>
+                </button>
             </div>
         </div>
 
@@ -1989,7 +2061,7 @@
 
             <!-- PRIVATE CHATS -->
             {% for chat in private_chats %}
-            <a href="{% url 'chat_detail' chat.id %}"
+            <a href="{% url 'chat_detail' chat.id %}" onclick="loadChat('{{ chat.id }}'); return false;"
                 class="od-direct-item{% if chat.id == active_chat_id %} active{% endif %}" data-type="private"
                 data-following="{% if chat.is_private %}true{% endif %}"
                 data-username="{% for p in chat.participants %}{% if p != request.user %}{{ p.username }}{% endif %}{% endfor %}"
@@ -2015,7 +2087,7 @@
                     </div>
                 </div>
                 <div class="od-direct-options-btn" role="button" onclick="toggleDirectOptions(event)">
-                    <i data-lucide="more-vertical" style="width:16px;height:16px;"></i>
+                    <span class="od-icon" style="width:16px;height:16px;"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg></span>
                 </div>
                 {% endif %}
                 {% endfor %}
@@ -2025,12 +2097,12 @@
 
             <!-- GROUP CHATS -->
             {% for chat in group_chats %}
-            <a href="{% url 'chat_detail' chat.id %}"
+            <a href="{% url 'chat_detail' chat.id %}" onclick="loadChat('{{ chat.id }}'); return false;"
                 class="od-direct-item{% if chat.id == active_chat_id %} active{% endif %}" data-type="group"
                 data-name="{{ chat.name|lower }}">
 
                 <div class="od-direct-item-avatar group">
-                    <i data-lucide="users"></i>
+                    <span class="od-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
                 </div>
 
                 <div class="od-direct-item-info">
@@ -2053,6 +2125,9 @@
             {% endif %}
 
         </div>
+        <!-- Requests List -->
+        <div id="requestsList" style="display:none;flex-direction:column;overflow-y:auto;padding:10px;"></div>
+
 
     </div>
 
@@ -2062,13 +2137,13 @@
         <header class="od-chat-header">
 
             <a href="{% url 'dashboard' %}" class="od-chat-back mobile-only">
-                <i data-lucide="arrow-left"></i>
+                <span class="od-icon"><svg viewBox="0 0 24 24"><path d="M19 12H5"/><polyline points="12 19 5 12 12 5"/></svg></span>
             </a>
 
             {% if chat.chat_type == 'group' %}
             <div class="od-chat-user" onclick="openGroupInfo()" style="display:flex;align-items:center;">
                 <div class="od-chat-avatar group">
-                    <i data-lucide="users"></i>
+                    <span class="od-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
                 </div>
                 <div class="od-chat-user-info">
                     <span class="od-chat-username">{{ chat.name }}</span>
@@ -2080,7 +2155,7 @@
             <a href="{% url 'user_profile' participant.username %}" class="od-chat-user"
                 style="display:flex;align-items:center;">
                 <img src="{{ participant.profile_picture_url }}" alt="" class="od-chat-avatar"
-                    onerror="this.outerHTML='<div class='od-chat-avatar placeholder'>{{ participant.initials }}</div>'">
+                    onerror="this.outerHTML='<div class=\'od-chat-avatar placeholder\'>{{ participant.initials }}</div>'">
                 <div class="od-chat-user-info">
                     <span class="od-chat-username">{{ participant.full_name }}</span>
                     <span class="od-chat-status">
@@ -2094,16 +2169,13 @@
 
             <div class="od-chat-actions">
                 <button class="od-chat-action" onclick="startVideoCall()" title="Video Call">
-                    <i data-lucide="video"></i>
+                    <span class="od-icon"><svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg></span>
                 </button>
                 <button class="od-chat-action" onclick="startVoiceCall()" title="Voice Call">
-                    <i data-lucide="phone"></i>
-                </button>
-                <button class="od-chat-action" onclick="openP2PModal()" title="Share File (P2P)">
-                    <i data-lucide="share-2"></i>
+                    <span class="od-icon"><svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg></span>
                 </button>
                 <button class="od-chat-action" onclick="openChatInfo()" title="Info">
-                    <i data-lucide="info"></i>
+                    <span class="od-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></span>
                 </button>
             </div>
         </header>
@@ -2111,14 +2183,14 @@
         <!-- Pinned Message Banner -->
         <div class="od-pinned-banner" id="pinnedBanner" style="display: none;">
             <div class="od-pinned-icon">
-                <i data-lucide="pin"></i>
+                <span class="od-icon"><svg viewBox="0 0 24 24"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V17z"/></svg></span>
             </div>
             <div class="od-pinned-content" onclick="scrollToPinnedMessage()">
                 <span class="od-pinned-label">Pinned Message</span>
                 <span class="od-pinned-text" id="pinnedMessageText"></span>
             </div>
             <button class="od-pinned-close" onclick="closePinnedBanner()">
-                <i data-lucide="x"></i>
+                <span class="od-icon"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
             </button>
         </div>
 
@@ -2200,7 +2272,11 @@
                         {% else %}
                         {# Receiver can tap to view #}
                         <div class="od-viewonce-message"
-                            onclick="openViewOnceMessage({{ message.id }}, '{{ message.media_url|default:'' }}', '{{ message.content|escapejs }}', '{% if message.media_url %}photo{% else %}text{% endif %}')">
+                            data-id="{{ message.id }}"
+                            data-url="{{ message.media_url|default:'' }}"
+                            data-content="{{ message.content|escapejs }}"
+                            data-type="{{ message.media_url|yesno:'photo,text' }}"
+                            onclick="openViewOnceMessage(this.dataset.id, this.dataset.url, this.dataset.content, this.dataset.type)">
                             <div class="od-viewonce-placeholder {% if message.media_url %}photo{% endif %}">
                                 <svg class="od-viewonce-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                     stroke-width="2">
@@ -2216,7 +2292,7 @@
                         {% else %}
                         {# Regular message content #}
                         {% if message.reply_to %}
-                        <div class="od-reply-context" onclick="scrollToMessage('{{ message.reply_to.id }}')">
+                        <div class="od-reply-context" data-reply-id="{{ message.reply_to.id }}" onclick="scrollToMessage(this.dataset.replyId)">
                             <span class="od-reply-context-name">{{ message.reply_to.sender.full_name }}</span>
                             <span class="od-reply-context-text">
                                 {% if message.reply_to.media_url %}📷 Photo{% else
@@ -2246,7 +2322,7 @@
                         {% elif message.media_url %}
                         <div class="od-message-media">
                             <a href="{{ message.media_url }}" target="_blank" style="color: var(--color-primary);">
-                                <i data-lucide="file"></i> {{ message.media_filename|default:"Download file" }}
+                                <span class="od-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span> {{ message.media_filename|default:"Download file" }}
                             </a>
                         </div>
                         {% endif %}
@@ -2254,6 +2330,54 @@
                         {% if message.content %}
                         <p class="od-message-text">{{ message.content }}</p>
                         {% endif %}
+
+
+                        {% with shared=message.reactions|get_shared_content content_type=message.reactions|get_content_type %}
+                            {% if shared %}
+                                <div class="od-shared-content-card" style="margin-top:8px; border:1px solid rgba(255,255,255,0.1); border-radius:8px; overflow:hidden; background:rgba(0,0,0,0.2); max-width:300px;">
+                                    {% if content_type == 'scribe' %}
+                                        <div style="padding:10px; border-bottom:1px solid rgba(255,255,255,0.05); display:flex; align-items:center; gap:8px;">
+                                            <img src="{{ shared.user.profile_picture_url }}" style="width:20px; height:20px; border-radius:50%;">
+                                            <span style="font-size:12px; font-weight:600;">{{ shared.user.username }}</span>
+                                        </div>
+                                        {% if shared.has_media %}
+                                            <div style="height:140px; background:url('{{ shared.image_url }}') center/cover;"></div>
+                                        {% endif %}
+                                        <div style="padding:10px;">
+                                            <p style="font-size:13px; margin:0; display:-webkit-box; -webkit-line-clamp:3; line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;">
+                                                {{ shared.content }}
+                                            </p>
+                                        </div>
+                                        <a href="{% url 'view_post' shared.id %}" style="display:block; padding:8px; text-align:center; background:rgba(255,255,255,0.05); color:var(--color-primary); font-size:12px; text-decoration:none;">View Post</a>
+                                    
+                                    {% elif content_type == 'omzo' %}
+                                        <div style="padding:10px; border-bottom:1px solid rgba(255,255,255,0.05); display:flex; align-items:center; gap:8px;">
+                                            <img src="{{ shared.user.profile_picture_url }}" style="width:20px; height:20px; border-radius:50%;">
+                                            <span style="font-size:12px; font-weight:600;">{{ shared.user.username }}</span>
+                                        </div>
+                                        <div style="height:160px; background:#000; display:flex; align-items:center; justify-content:center;">
+                                           <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                                        </div>
+                                        <div style="padding:10px;">
+                                            <p style="font-size:13px; margin:0; display:-webkit-box; -webkit-line-clamp:3; line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;">{{ shared.caption|truncatechars:100 }}</p>
+                                        </div>
+                                        <a href="{% url 'omzo' %}?id={{ shared.id }}" style="display:block; padding:8px; text-align:center; background:rgba(255,255,255,0.05); color:var(--color-primary); font-size:12px; text-decoration:none;">Watch Reel</a>
+                                        
+                                    {% elif content_type == 'story' %}
+                                        <div style="height:180px; position:relative; background-color:#333; background-position:center; background-size:cover; background-image:url('{{ shared.media_url }}');">
+                                            <div style="position:absolute; top:8px; left:8px; display:flex; align-items:center; gap:6px; background:rgba(0,0,0,0.5); padding:4px 8px; border-radius:12px;">
+                                                <img src="{{ shared.user.profile_picture_url }}" style="width:16px; height:16px; border-radius:50%;">
+                                                <span style="color:white; font-size:11px; font-weight:600;">{{ shared.user.username }}</span>
+                                            </div>
+                                            <div style="position:absolute; bottom:0; left:0; right:0; padding:10px; background:linear-gradient(transparent, rgba(0,0,0,0.8));">
+                                                <p style="color:white; font-size:12px; margin:0;">{{ shared.content|default:"Story" }}</p>
+                                            </div>
+                                        </div>
+                                        <a href="{% url 'user_profile' shared.user.username %}" onclick="if(window.viewUserStories){viewUserStories('{{ shared.user.username }}');return false;}" style="display:block; padding:8px; text-align:center; background:rgba(255,255,255,0.05); color:var(--color-primary); font-size:12px; text-decoration:none;">View Story</a>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                        {% endwith %}
                         {% endif %}
 
                         <span class="od-message-time">
@@ -2281,29 +2405,244 @@
 
                     {% if not message.one_time %}
                     <!-- Message menu button - only for regular messages -->
-                    <button class="od-message-menu-btn" onclick="toggleMessageMenu({{ message.id }}, event)"
+                    <button class="od-message-menu-btn" onclick="toggleMessageMenu('{{ message.id }}', event)"
                         title="More options">
-                        <i data-lucide="more-vertical"></i>
+                        <span class="od-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg></span>
                     </button>
                     <div class="od-message-menu" id="menu-{{ message.id }}">
                         {% if message.sender == request.user %}
-                        <button onclick="editMessage({{ message.id }})"><i data-lucide="edit-2"></i> Edit</button>
-                        <button onclick="pinMessage({{ message.id }})"><i data-lucide="pin"></i> {% if message.is_pinned%}Unpin{% else %}Pin{% endif %}</button>
-                        <button onclick="deleteMessage({{ message.id }}, true)" class="danger"><i
-                                data-lucide="trash-2"></i> Delete</button>
+                        <button onclick="editMessage('{{ message.id }}')"><span class="od-icon"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></span> Edit</button>
+                        <button onclick="pinMessage('{{ message.id }}')"><span class="od-icon"><svg viewBox="0 0 24 24"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V17z"/></svg></span> {% if message.is_pinned%}Unpin{% else %}Pin{% endif %}</button>
+                        <button onclick="deleteMessage('{{ message.id }}', true)" class="danger"><span class="od-icon"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg></span> Delete</button>
                         {% else %}
-                        <button onclick="reactToMessage({{ message.id }}, '❤️')"><i data-lucide="heart"></i>
+                        <button onclick="reactToMessage('{{ message.id }}', '❤️')"><span class="od-icon"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
                             Like</button>
                         <button
-                            onclick="replyToMessage({{ message.id }}, '{{ message.sender.username }}', '{{ message.content|escapejs }}')"><i
-                                data-lucide="corner-up-left"></i> Reply</button>
-                        <button onclick="pinMessage({{ message.id }})"><i data-lucide="pin"></i>
+                            onclick="replyToMessage('{{ message.id }}', '{{ message.sender.username }}', '{{ message.content|escapejs }}')"><span class="od-icon"><svg viewBox="0 0 24 24"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg></span> Reply</button>
+                        <button onclick="pinMessage('{{ message.id }}')"><span class="od-icon"><svg viewBox="0 0 24 24"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V17z"/></svg></span>
                             {% if message.is_pinned%}Unpin{% else %}Pin{% endif %}</button>
-                        <button onclick="deleteMessage({{ message.id }}, false)" class="danger"><i
-                                data-lucide="trash-2"></i> Delete</button>
+                        <button onclick="deleteMessage('{{ message.id }}', false)" class="danger"><span class="od-icon"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg></span> Delete</button>
                         {% endif %}
                     </div>
                     {% endif %}
+
+    <script>
+    // == REQUESTS AND ESC LOGIC ==
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+             // Go back to messages list
+             window.location.href = "{% url 'dashboard' %}?tab=messages";
+        }
+    });
+
+    // Mirror logic from messages.html for Requests
+    document.addEventListener('DOMContentLoaded', () => {
+        fetchRequestCount();
+    });
+
+    function fetchRequestCount() {
+        fetch('{% url "get_chat_requests_count" %}')
+        .then(r => r.json())
+        .then(data => {
+            const badge = document.getElementById('requestsBadge');
+            if (badge) {
+                if (data.count > 0) {
+                    badge.textContent = data.count;
+                    badge.style.display = 'inline-block';
+                } else {
+                    badge.style.display = 'none';
+                }
+            }
+        })
+        .catch(console.error);
+    }
+
+    // Reuse filter logic but adapted since filterDirectCategory might not be defined or minimal here
+    // We overwrite or extend filterDirectCategory if it exists in another block, but here we define it inline for safety or ensure it merges.
+    // The previous block didn't show JS, so I will redefine/enhance it.
+
+    function getCSRFTokenSimple() {
+         const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+         if (csrfMeta) return csrfMeta.getAttribute('content');
+         return '';
+    }
+
+    window.filterDirectCategory = function(category, btn) {
+        document.querySelectorAll('.od-categories .od-cat-btn').forEach(b => b.classList.remove('active'));
+        if (btn) btn.classList.add('active');
+        
+        const directList = document.querySelector('.od-direct-list');
+        const requestsList = document.getElementById('requestsList');
+        const searchBar = document.getElementById('directSearchInput');
+
+        if (category === 'requests') {
+            if(directList) directList.style.display = 'none';
+            if(requestsList) requestsList.style.display = 'flex';
+            if(searchBar) searchBar.disabled = true;
+            fetchChatRequests();
+        } else {
+            if(directList) directList.style.display = 'flex';
+            if(requestsList) requestsList.style.display = 'none';
+            if(searchBar) searchBar.disabled = false;
+            
+            // Existing filtering logic ...
+            if (typeof filterDirectChats === 'function') {
+                 // re-trigger filter
+                 const input = document.getElementById('directSearchInput');
+                 // We need to set a global category var if filterDirectChats uses it, 
+                 // or we re-implement simplified filtering here
+                 document.querySelectorAll('.od-direct-list .od-direct-item').forEach(item => {
+                    const type = item.getAttribute('data-type');
+                    const followingVal = (item.getAttribute('data-following') || '').trim();
+                    const isFollowing = followingVal.includes('true');
+
+                    let show = false;
+                    if (category === 'all') show = true;
+                    else if (category === 'group') show = (type === 'group');
+                    else if (category === 'private') show = (type === 'private' && isFollowing);
+                    item.style.display = show ? 'flex' : 'none';
+                 });
+            }
+        }
+    };
+
+    function fetchChatRequests() {
+        const container = document.getElementById('requestsList');
+        if(!container) return;
+        
+        container.innerHTML = '<div style="padding:20px;text-align:center;color:var(--od-text-secondary);">Loading...</div>';
+        
+        fetch('{% url "get_chat_requests" %}')
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                renderRequests(data.requests);
+                // Update badge
+                const badge = document.getElementById('requestsBadge');
+                if(badge) {
+                    if (data.requests.length > 0) {
+                        badge.textContent = data.requests.length;
+                        badge.style.display = 'inline-block';
+                    } else {
+                        badge.style.display = 'none';
+                    }
+                }
+            } else {
+                container.innerHTML = '<div style="padding:20px;text-align:center;">Failed</div>';
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            container.innerHTML = '<div style="padding:20px;text-align:center;">Error</div>';
+        });
+    }
+
+    function renderRequests(requests) {
+        const container = document.getElementById('requestsList');
+        if (!requests || requests.length === 0) {
+            container.innerHTML = `
+                <div style="padding:40px 20px;text-align:center;color:var(--od-text-secondary);">
+                    <p>No pending requests</p>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = requests.map(req => {
+            let contentPreview = '';
+            const p = req.preview; 
+            
+            if (p) {
+                if (p.type === 'scribe') {
+                    contentPreview = `
+                        <div style="margin-top:8px; border:1px solid var(--od-border); border-radius:8px; overflow:hidden; background:var(--od-surface-hover);">
+                            ${p.image_url ? `<div style="height:100px; background:url('${p.image_url}') center/cover;"></div>` : ''}
+                            <div style="padding:8px;">
+                                <div style="font-size:12px;">${p.content || 'Shared a post'}</div>
+                            </div>
+                        </div>`;
+                } else if (p.type === 'omzo') {
+                    contentPreview = `<div style="margin-top:8px; font-size:12px; color:var(--od-text-secondary);">Shared a reel</div>`;
+                } else if (p.type === 'story') {
+                    contentPreview = `<div style="margin-top:8px; font-size:12px; color:var(--od-text-secondary);">Shared a story</div>`;
+                }
+            }
+
+            // Prepare user object for helper
+            const senderUser = {
+                username: req.sender.username,
+                avatar_url: req.sender.avatar_url
+            };
+
+            return `
+            <div class="od-direct-item request-item" style="flex-direction:column; align-items:stretch; cursor:default; height:auto; padding:12px;">
+                <div style="display:flex; align-items:flex-start; gap:12px;">
+                     ${getAvatarHTML(senderUser, 'od-direct-item-avatar')}
+                    <div class="od-direct-item-info">
+                        <div class="od-direct-item-name">${req.sender.username}</div>
+                        <div class="od-direct-item-preview" style="color:var(--od-text-primary);">
+                             ${req.message ? req.message : 'Shared content'}
+                        </div>
+                    </div>
+                </div>
+                ${contentPreview}
+                <div style="display:flex;gap:8px;margin-top:8px;justify-content:flex-end;">
+                     <button onclick="decideRequest(${req.id}, 'decline')" style="padding:4px 10px;border:1px solid var(--od-border);background:transparent;border-radius:99px;cursor:pointer;font-size:11px;color:var(--od-text-primary);">Delete</button>
+                     <button onclick="decideRequest(${req.id}, 'accept')" style="padding:4px 10px;border:none;background:var(--color-primary);color:white;border-radius:99px;cursor:pointer;font-size:11px;font-weight:500;">Accept</button>
+                </div>
+            </div>
+        `}).join('');
+    }
+
+    function getAvatarHTML(user, className='od-direct-item-avatar') {
+        const name = user.username || user.name || 'User';
+        const initials = name.substring(0, 2).toUpperCase();
+        
+        // Check for avatar URL
+        const url = user.avatar_url || user.avatar;
+        
+        // If url is valid string and not 'null'/'undefined'
+        if (url && typeof url === 'string' && url !== 'null' && url !== 'undefined' && url.trim() !== '') {
+             // Use handleAvatarError for cleaner logic
+             return `<img src="${url}" class="${className}" onerror="handleAvatarError(this, '${initials}', '${className}')">`;
+        }
+        
+        return `<div class="${className} placeholder">${initials}</div>`;
+    }
+
+    function decideRequest(reqId, action) {
+         const url = action === 'accept' 
+             ? '{% url "accept_chat_request" request_id=0 %}'.replace('0', reqId)
+             : '{% url "decline_chat_request" request_id=0 %}'.replace('0', reqId);
+         
+         const token = getCSRFTokenSimple();
+             
+         fetch(url, {
+             method: 'POST',
+             headers: {
+                 'Content-Type': 'application/json',
+                 'X-CSRFToken': token
+             },
+             body: JSON.stringify({ request_id: reqId })
+         })
+         .then(r => r.json())
+         .then(data => {
+             if (data.success) {
+                 if (action === 'accept') {
+                     window.location.href = `/chat/${data.chat_id}/`;
+                 } else {
+                     fetchChatRequests();
+                 }
+             } else {
+                 alert(data.error || 'Failed');
+             }
+         })
+         .catch(err => {
+             console.error(err);
+         });
+    }
+    </script>
+
                 </div>
                 {% endfor %}
             </div>
@@ -2342,13 +2681,13 @@
                 <span class="od-reply-text" id="replyText"></span>
             </div>
             <button onclick="cancelReply()" class="od-reply-close">
-                <i data-lucide="x"></i>
+                <span class="od-icon"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
             </button>
         </div>
 
         <!-- New Messages Button (shows when scrolled up and new messages arrive) -->
         <button id="newMessagesBtn" class="od-new-messages-btn" onclick="scrollToNewMessages()" style="display: none;">
-            <i data-lucide="chevron-down"></i>
+            <span class="od-icon"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></span>
             <span id="newMessagesCount">New messages</span>
         </button>
 
@@ -2356,18 +2695,23 @@
         <footer class="od-chat-footer">
             <form class="od-chat-form" id="messageForm" onsubmit="sendMessage(event)">
                 <button type="button" class="od-chat-emoji" onclick="toggleEmojiPicker()">
-                    <i data-lucide="smile"></i>
+                    <span class="od-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg></span>
                 </button>
+
+                <label class="od-chat-attachment">
+                    <span class="od-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></span>
+                    <input type="file" accept="image/*" id="imageInput" style="display: none;"
+                        onchange="handleImageSelect(event)">
+                </label>
 
                 <input type="text" class="od-chat-input" id="messageInput" placeholder="Message..." autocomplete="off"
                     maxlength="5000">
 
                 <div class="od-chat-input-actions">
-                    <label class="od-chat-attachment">
-                        <i data-lucide="image"></i>
-                        <input type="file" accept="image/*" id="imageInput" style="display: none;"
-                            onchange="handleImageSelect(event)">
-                    </label>
+                    <button type="button" class="od-chat-p2p" onclick="openP2PModal()" title="Share File (P2P)">
+                        <span class="od-icon"><svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></span>
+                    </button>
+
                     <button type="button" class="od-chat-viewonce" id="viewOnceToggleBtn" onclick="toggleOneTimeMode()"
                         title="View once message">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -2378,10 +2722,10 @@
                         </svg>
                     </button>
                     <button type="button" class="od-chat-mic" id="voiceBtn" onclick="toggleVoiceRecording()">
-                        <i data-lucide="mic"></i>
+                        <span class="od-icon"><svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg></span>
                     </button>
                     <button type="submit" class="od-chat-send" id="sendBtn" style="display: none;">
-                        <i data-lucide="send"></i>
+                        <span class="od-icon"><svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></span>
                     </button>
                 </div>
             </form>
@@ -2389,7 +2733,7 @@
             <!-- Voice Recording UI -->
             <div class="od-voice-recording" id="voiceRecordingUI" style="display: none;">
                 <button type="button" class="od-voice-cancel" onclick="cancelVoiceRecording()">
-                    <i data-lucide="trash-2"></i>
+                    <span class="od-icon"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg></span>
                 </button>
                 <div class="od-voice-timer">
                     <div class="od-voice-dot"></div>
@@ -2397,7 +2741,7 @@
                     <span class="od-voice-status">Recording...</span>
                 </div>
                 <button type="button" class="od-voice-send" onclick="stopAndSendVoice()">
-                    <i data-lucide="send"></i>
+                    <span class="od-icon"><svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></span>
                 </button>
             </div>
 
@@ -2405,7 +2749,7 @@
             <div class="od-image-preview" id="imagePreview" style="display: none;">
                 <img id="previewImg" src="" alt="Preview">
                 <button type="button" onclick="clearImagePreview()">
-                    <i data-lucide="x"></i>
+                    <span class="od-icon"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
                 </button>
             </div>
         </footer>
@@ -2418,7 +2762,7 @@
         <header class="od-modal-header">
             <h2 class="od-modal-title">Details</h2>
             <button class="od-modal-close" onclick="closeChatInfo()">
-                <i data-lucide="x"></i>
+                <span class="od-icon"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
             </button>
         </header>
         <div class="od-modal-body">
@@ -2437,11 +2781,11 @@
 
             <div class="od-settings-list" style="margin-top: 16px;">
                 <button class="od-settings-item">
-                    <i data-lucide="bell-off"></i>
+                    <span class="od-icon"><svg viewBox="0 0 24 24"><path d="M13.73 21a2 2 0 0 1-3.46 0"/><path d="M18.63 13A17.89 17.89 0 0 1 18 8"/><path d="M6.26 6.26A5.86 5.86 0 0 0 6 8c0 7-3 9-3 9h14"/><path d="M18 8a6 6 0 0 0-9.33-5"/><line x1="1" y1="1" x2="23" y2="23"/></svg></span>
                     <span>Mute Messages</span>
                 </button>
                 <button class="od-settings-item danger" onclick="deleteChat()">
-                    <i data-lucide="trash-2"></i>
+                    <span class="od-icon"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg></span>
                     <span>Delete Chat</span>
                 </button>
             </div>
@@ -2455,7 +2799,7 @@
         <header class="od-modal-header">
             <h2 class="od-modal-title">{{ chat.name }}</h2>
             <button class="od-modal-close" onclick="closeGroupInfo()">
-                <i data-lucide="x"></i>
+                <span class="od-icon"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
             </button>
         </header>
         <div class="od-modal-body">
@@ -2477,7 +2821,7 @@
                         {% endif %}
                     </div>
                     {% if is_admin and participant != request.user %}
-                    <button onclick="removeMember({{ participant.id }})"
+                    <button onclick="removeMember('{{ participant.id }}')"
                         style="color: var(--od-error); background: none; border: none; cursor: pointer; font-size: 14px;">Remove</button>
                     {% endif %}
                 </div>
@@ -2487,7 +2831,7 @@
             {% if is_admin %}
             <div style="padding: 16px 0; border-top: 1px solid var(--od-border-light); margin-top: 16px;">
                 <button class="od-auth-btn" onclick="openInviteLink()" style="margin-bottom: 12px;">
-                    <i data-lucide="link" style="width: 16px; height: 16px; margin-right: 8px;"></i>
+                    <span class="od-icon" style="width: 16px; height: 16px; margin-right: 8px;"><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></span>
                     Copy Invite Link
                 </button>
             </div>
@@ -2495,7 +2839,7 @@
 
             <div class="od-settings-list">
                 <button class="od-settings-item danger" onclick="leaveGroup()">
-                    <i data-lucide="log-out"></i>
+                    <span class="od-icon"><svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></span>
                     <span>Leave Group</span>
                 </button>
             </div>
@@ -2508,11 +2852,11 @@
     <div class="od-modal" style="max-width: 420px;" onclick="event.stopPropagation()">
         <header class="od-modal-header">
             <div style="display: flex; align-items: center; gap: 10px;">
-                <i data-lucide="share-2" style="width: 20px; height: 20px; color: var(--color-primary);"></i>
+                <span class="od-icon" style="width: 20px; height: 20px; color: var(--color-primary);"><svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></span>
                 <h2 class="od-modal-title" style="margin: 0;">P2P File Share</h2>
             </div>
             <button class="od-modal-close" onclick="closeP2PModal()">
-                <i data-lucide="x"></i>
+                <span class="od-icon"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
             </button>
         </header>
         <div class="od-modal-body" style="padding: 16px;">
@@ -2520,7 +2864,7 @@
                 <div
                     style="background: linear-gradient(135deg, var(--color-primary), #6366f1); padding: 16px; border-radius: 12px; margin-bottom: 16px; color: white;">
                     <div style="display: flex; align-items: center; gap: 12px;">
-                        <i data-lucide="zap" style="width: 24px; height: 24px;"></i>
+                        <span class="od-icon" style="width: 24px; height: 24px;"><svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></span>
                         <div>
                             <div style="font-weight: 600; font-size: 14px;">Direct Transfer</div>
                             <div style="font-size: 12px; opacity: 0.9;">Files are sent directly to the recipient - fast
@@ -2536,7 +2880,7 @@
                 <div style="text-align: center; padding: 30px 20px;">
                     <div
                         style="width: 80px; height: 80px; margin: 0 auto 20px; background: var(--od-surface); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                        <i data-lucide="file" style="width: 32px; height: 32px; color: var(--color-primary);"></i>
+                        <span class="od-icon" style="width: 32px; height: 32px; color: var(--color-primary);"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span>
                     </div>
                     <h3 id="p2pStatus"
                         style="margin: 0 0 16px; font-size: 16px; color: var(--od-text-primary); display: flex; align-items: center; justify-content: center; gap: 8px;">
@@ -2566,7 +2910,7 @@
         style="max-width: 90vw; max-height: 90vh; object-fit: contain; border-radius: 4px;">
     <button onclick="closeImageModal()"
         style="position: absolute; top: 20px; right: 20px; background: none; border: none; cursor: pointer;">
-        <i data-lucide="x" style="width: 32px; height: 32px; color: white;"></i>
+        <span class="od-icon" style="width: 32px; height: 32px; color: white;"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
     </button>
 </div>
 
@@ -2574,7 +2918,7 @@
 <div id="deleteModal" class="od-delete-modal-overlay">
     <div class="od-delete-modal">
         <div class="od-delete-modal-header">
-            <i data-lucide="trash-2" class="od-delete-modal-icon"></i>
+            <span class="od-icon od-delete-modal-icon"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg></span>
             <h3>Delete message?</h3>
         </div>
         <div class="od-delete-modal-body">
@@ -2582,12 +2926,12 @@
         </div>
         <div class="od-delete-modal-actions">
             <button class="od-delete-btn od-delete-for-me" onclick="confirmDeleteForMe()">
-                <i data-lucide="user"></i>
+                <span class="od-icon"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
                 Delete for me
             </button>
             <button class="od-delete-btn od-delete-for-everyone" id="deleteForEveryoneBtn"
                 onclick="confirmDeleteForEveryone()">
-                <i data-lucide="users"></i>
+                <span class="od-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
                 Delete for everyone
             </button>
             <button class="od-delete-btn od-delete-cancel" onclick="closeDeleteModal()">
@@ -2603,7 +2947,7 @@
         <div class="od-edit-modal-header">
             <h3>Edit message</h3>
             <button class="od-edit-modal-close" onclick="closeEditModal()">
-                <i data-lucide="x"></i>
+                <span class="od-icon"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
             </button>
         </div>
         <div class="od-edit-modal-body">
@@ -2653,14 +2997,14 @@
         }
 
         const addBtnText = document.getElementById('ctxAddToPrivateText');
-        const addBtnIcon = document.querySelector('#ctxAddToPrivate i');
+        const addBtnIcon = document.querySelector('#ctxAddToPrivate .od-icon');
 
         if (isFollowing) {
             if (addBtnText) addBtnText.textContent = 'Remove from Private';
-            if (addBtnIcon) addBtnIcon.setAttribute('data-lucide', 'user-minus');
+            if (addBtnIcon) addBtnIcon.innerHTML = '<svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="23" y1="11" x2="17" y2="11"/></svg>';
         } else {
             if (addBtnText) addBtnText.textContent = 'Add to Private';
-            if (addBtnIcon) addBtnIcon.setAttribute('data-lucide', 'user-plus');
+            if (addBtnIcon) addBtnIcon.innerHTML = '<svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>';
         }
 
         if (typeof lucide !== 'undefined') lucide.createIcons();
@@ -2801,8 +3145,8 @@
     });
 </script>
 <script>
-    const chatId = {{ chat.id }};
-    const currentUserId = {{ request.user.id }};
+    var chatId = "{{ chat.id }}";
+    var currentUserId = "{{ request.user.id }}";
     const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
     let chatSocket = null;
     let typingTimeout = null;
@@ -2858,6 +3202,28 @@
         setTimeout(forceScrollToBottom, 1000);
         setTimeout(forceScrollToBottom, 2000);
         setTimeout(forceScrollToBottom, 3000);
+    });
+    
+    // Cleanup P2P signals when user leaves the page
+    window.addEventListener('beforeunload', function() {
+        // Clear any pending P2P file transfer signals
+        if (typeof clearP2PSignals === 'function') {
+            clearP2PSignals();
+        }
+        stopBackgroundSignalPolling();
+    });
+    
+    // Also cleanup on visibility change (user switches tabs/minimizes)
+    document.addEventListener('visibilitychange', function() {
+        if (document.hidden) {
+            // User is leaving - clear signals after a delay
+            // (in case they come back quickly)
+            setTimeout(function() {
+                if (document.hidden && typeof clearP2PSignals === 'function') {
+                    clearP2PSignals();
+                }
+            }, 60000); // 1 minute delay before cleanup
+        }
     });
 
     // Also scroll on full page load (including images)
@@ -3237,10 +3603,42 @@
             case 'message_reaction':
                 handleReactionUpdate(data);
                 break;
+            case 'p2p.signal':
+                // Handle real-time P2P signals
+                handleP2PSignalFromWS(data);
+                break;
             case 'error':
                 console.error('WebSocket error:', data.message);
                 break;
         }
+    }
+
+    // Handle P2P signals received via WebSocket (real-time)
+    function handleP2PSignalFromWS(data) {
+        // Only process if signal is meant for us or we're the sender
+        const targetUserId = data.signal.target_user_id || data.target_user_id;
+        
+        // If signal has a target and it's not us, ignore
+        if (targetUserId && targetUserId !== currentUserId) {
+            return;
+        }
+        
+        // Don't process our own signals
+        if (data.sender_id === currentUserId) {
+            return;
+        }
+        
+        console.log('P2P signal received via WebSocket:', data.signal.type);
+        
+        // Convert to the format handleSignal expects
+        const signalWrapper = {
+            sender_id: data.sender_id,
+            sender_name: data.sender_name,
+            sender_avatar: data.sender_avatar,
+            signal: data.signal
+        };
+        
+        handleSignal(signalWrapper);
     }
 
     // Handle message read receipts
@@ -3254,12 +3652,26 @@
 
     // Handle one-time message consumption
     function handleMessageConsumed(data) {
+        console.log('Message consumed:', data.message_id, 'by user:', data.consumed_by);
         const msg = document.querySelector(`[data-message-id="${data.message_id}"]`);
         if (msg) {
             msg.classList.add('od-message-consumed');
+            msg.setAttribute('data-consumed', 'true');
             const bubble = msg.querySelector('.od-message-bubble');
             if (bubble) {
-                // Remove one-time indicator
+                // Find and update the view-once placeholder
+                const viewOncePlaceholder = bubble.querySelector('.od-viewonce-placeholder');
+                if (viewOncePlaceholder) {
+                    // Replace with "Opened" indicator
+                    viewOncePlaceholder.innerHTML = `
+                        <span class="od-icon" style="width: 24px; height: 24px; margin-bottom: 4px; opacity: 0.7;"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></span>
+                        <span style="font-size: 13px;">Opened</span>
+                    `;
+                    viewOncePlaceholder.style.background = 'linear-gradient(135deg, #6b7280 0%, #4b5563 100%)';
+                    viewOncePlaceholder.style.cursor = 'default';
+                    if (typeof lucide !== 'undefined') lucide.createIcons();
+                }
+                // Also remove one-time indicator if present
                 const oneTimeIndicator = bubble.querySelector('.od-message-onetime');
                 if (oneTimeIndicator) oneTimeIndicator.remove();
             }
@@ -3366,7 +3778,7 @@
                 } else if (data.media_type === 'audio') {
                     mediaContent = `<div class="od-message-media audio" style="width: 200px; max-width: 100%;"><audio src="${data.media_url}" controls style="width: 100%;"></audio></div>`;
                 } else {
-                    mediaContent = `<div class="od-message-media"><a href="${data.media_url}" target="_blank" style="color: var(--color-primary);"><i data-lucide="file"></i> ${data.media_filename || 'Download file'}</a></div>`;
+                    mediaContent = `<div class="od-message-media"><a href="${data.media_url}" target="_blank" style="color: var(--color-primary);"><span class="od-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span> ${data.media_filename || 'Download file'}</a></div>`;
                 }
             }
 
@@ -3400,18 +3812,18 @@
             </div>
             ${!isOneTime ? `
             <button class="od-message-menu-btn" onclick="toggleMessageMenu(${data.id}, event)" title="More options">
-                <i data-lucide="more-vertical"></i>
+                <span class="od-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg></span>
             </button>
             <div class="od-message-menu" id="menu-${data.id}">
                 ${isSent ? `
-                    <button onclick="editMessage(${data.id})"><i data-lucide="edit-2"></i> Edit</button>
-                    <button onclick="pinMessage(${data.id})"><i data-lucide="pin"></i> Pin</button>
-                    <button onclick="deleteMessage(${data.id}, true)" class="danger"><i data-lucide="trash-2"></i> Delete</button>
+                    <button onclick="editMessage(${data.id})"><span class="od-icon"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></span> Edit</button>
+                    <button onclick="pinMessage(${data.id})"><span class="od-icon"><svg viewBox="0 0 24 24"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V17z"/></svg></span> Pin</button>
+                    <button onclick="deleteMessage(${data.id}, true)" class="danger"><span class="od-icon"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg></span> Delete</button>
                 ` : `
-                    <button onclick="reactToMessage(${data.id}, '❤️')"><i data-lucide="heart"></i> Like</button>
-                    <button onclick="replyToMessage(${data.id}, '${escapeHtml(data.sender_name)}', '${escapeHtml(data.content || 'Photo')}')"><i data-lucide="corner-up-left"></i> Reply</button>
-                    <button onclick="pinMessage(${data.id})"><i data-lucide="pin"></i> Pin</button>
-                    <button onclick="deleteMessage(${data.id}, false)" class="danger"><i data-lucide="trash-2"></i> Delete</button>
+                    <button onclick="reactToMessage(${data.id}, '❤️')"><span class="od-icon"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span> Like</button>
+                    <button onclick="replyToMessage(${data.id}, '${escapeHtml(data.sender_name)}', '${escapeHtml(data.content || 'Photo')}')"><span class="od-icon"><svg viewBox="0 0 24 24"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg></span> Reply</button>
+                    <button onclick="pinMessage(${data.id})"><span class="od-icon"><svg viewBox="0 0 24 24"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V17z"/></svg></span> Pin</button>
+                    <button onclick="deleteMessage(${data.id}, false)" class="danger"><span class="od-icon"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg></span> Delete</button>
                 `}
             </div>
             ` : ''}
@@ -3430,23 +3842,41 @@
         }
     }
 
-    // View Once Message Viewer - Manual close (no timer)
+    // View Once Message Viewer - Robust Implementation
     let currentViewOnceMessageId = null;
     let currentViewOnceType = null;
 
     function openViewOnceMessage(messageId, mediaUrl, content, type) {
-        // Check if already consumed
+        // Strict check if already consumed
         const msgEl = document.querySelector(`[data-message-id="${messageId}"]`);
-        if (msgEl && msgEl.dataset.consumed === 'true') {
+        
+        // Defensive check
+        if (msgEl && (msgEl.dataset.consumed === 'true' || msgEl.dataset.consumed === true)) {
             if (typeof showIGToast === 'function') {
                 showIGToast('This message has already been opened', 'info');
+            } else {
+                alert('This message has already been opened');
             }
             return;
         }
 
-        // Store message info for when user closes
+        // IMMEDIATELY mark as consumed to prevent multiple views
+        if (msgEl) {
+            msgEl.dataset.consumed = 'true';
+        }
+
+        // Store message info
         currentViewOnceMessageId = messageId;
         currentViewOnceType = type;
+
+        // IMMEDIATELY call API to mark as consumed (before showing content)
+        fetch(`/api/consume-message/${messageId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCSRFToken(),
+                'Content-Type': 'application/json'
+            }
+        }).catch(err => console.error("Failed to mark message as consumed:", err));
 
         // Create modal
         const modal = document.createElement('div');
@@ -3492,72 +3922,55 @@
         const messageId = currentViewOnceMessageId;
         const type = currentViewOnceType;
 
-        // Remove modal first for better UX
+        // Remove modal immediately
         modal.remove();
         document.body.style.overflow = '';
 
         if (!messageId) return;
 
-        // Mark as consumed on server when user closes
-        fetch(`/api/consume-message/${messageId}/`, {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': getCSRFToken(),
-                'Content-Type': 'application/json'
-            }
-        })
-            .then(r => r.json())
-            .then(data => {
-                if (data.success) {
-                    // Update the message in UI to show as consumed
-                    const msgEl = document.querySelector(`[data-message-id="${messageId}"]`);
-                    if (msgEl) {
-                        msgEl.dataset.consumed = 'true';
-                        const bubble = msgEl.querySelector('.od-message-bubble');
-                        if (bubble) {
-                            const viewOnceEl = bubble.querySelector('.od-viewonce-message');
-                            if (viewOnceEl) {
-                                viewOnceEl.classList.add('opened');
-                                viewOnceEl.onclick = null;
-                                viewOnceEl.style.cursor = 'default';
-                                viewOnceEl.innerHTML = `
-                            <div class="od-viewonce-placeholder opened">
-                                <svg class="od-viewonce-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <circle cx="12" cy="12" r="10"></circle>
-                                    <path d="M9 12l2 2 4-4"></path>
-                                </svg>
-                                <span class="od-viewonce-text">Opened</span>
-                                <span class="od-viewonce-subtext">${type === 'photo' ? 'Photo' : 'Message'}</span>
-                            </div>
-                        `;
-                            }
-
-                            // Also update placeholder if it exists
-                            const placeholder = bubble.querySelector('.od-viewonce-placeholder');
-                            if (placeholder && !placeholder.classList.contains('opened')) {
-                                placeholder.classList.add('opened');
-                                placeholder.innerHTML = `
+        // OPTIMISTIC UPDATE: Mark as consumed immediately in UI to prevent re-opening
+        const msgEl = document.querySelector(`[data-message-id="${messageId}"]`);
+        if (msgEl) {
+            msgEl.dataset.consumed = 'true';
+            
+            // Visual update
+            const bubble = msgEl.querySelector('.od-message-bubble');
+            if (bubble) {
+                // Update the clickable element
+                const viewOnceEl = bubble.querySelector('.od-viewonce-message');
+                if (viewOnceEl) {
+                    viewOnceEl.classList.add('opened');
+                    viewOnceEl.onclick = null; // Remove handler
+                    viewOnceEl.style.cursor = 'default';
+                    // Replace content with "Opened" state
+                    viewOnceEl.innerHTML = `
+                        <div class="od-viewonce-placeholder opened">
                             <svg class="od-viewonce-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <circle cx="12" cy="12" r="10"></circle>
                                 <path d="M9 12l2 2 4-4"></path>
                             </svg>
                             <span class="od-viewonce-text">Opened</span>
                             <span class="od-viewonce-subtext">${type === 'photo' ? 'Photo' : 'Message'}</span>
-                        `;
-                            }
-                        }
-                    }
-
-                    if (typeof showIGToast === 'function') {
-                        showIGToast('Message viewed and deleted', 'info');
-                    }
+                        </div>
+                    `;
                 }
-            })
-            .catch(err => console.error('Error consuming message:', err))
-            .finally(() => {
-                currentViewOnceMessageId = null;
-                currentViewOnceType = null;
-            });
+
+                // Also update placeholder if it exists independently
+                const placeholder = bubble.querySelector('.od-viewonce-placeholder');
+                if (placeholder && !placeholder.classList.contains('opened')) {
+                    placeholder.classList.add('opened');
+                    placeholder.innerHTML = `
+                        <svg class="od-viewonce-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <path d="M9 12l2 2 4-4"></path>
+                        </svg>
+                        <span class="od-viewonce-text">Opened</span>
+                    `;
+                }
+            }
+        }
+        
+        // API call is now made in openViewOnceMessage(), not here
     }
 
     function removeMessage(messageId) {
@@ -3871,48 +4284,48 @@
         }
     }
 
-    // Typing Indicators - Optimized HTTP-based
+    // Typing Indicators - Improved with proper debouncing
     let typingPollInterval = null;
-    let lastTypingUpdate = 0;
+    let typingDebounceTimer = null;
+    let typingKeepAliveTimer = null;
     let isTyping = false;
 
     function sendTyping() {
-        clearTimeout(typingTimeout);
-
-        // Throttle to max once per 1.5 seconds
-        const now = Date.now();
-        if (now - lastTypingUpdate < 1500) {
-            typingTimeout = setTimeout(sendStopTyping, 3000);
-            return;
-        }
-
+        // Clear the stop-typing debounce timer (user is still typing)
+        clearTimeout(typingDebounceTimer);
+        
+        // If not already marked as typing, start typing
         if (!isTyping) {
             isTyping = true;
-            lastTypingUpdate = now;
-
-            // Try WebSocket first
-            if (!wsSend({ type: 'typing', is_typing: true })) {
-                // Fallback to HTTP
-                fetch(`/api/chat/${chatId}/typing/`, {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRFToken': getCSRFToken(),
-                        'Content-Type': 'application/x-www-form-urlencoded'
-                    },
-                    body: 'is_typing=true'
-                }).catch(() => { });
-            }
+            sendTypingSignal(true);
+            
+            // Start keep-alive: send typing=true every 2 seconds while typing
+            startTypingKeepAlive();
         }
 
-        typingTimeout = setTimeout(sendStopTyping, 3000);
+        // Set debounce: stop typing 1.5 seconds after last keystroke
+        typingDebounceTimer = setTimeout(() => {
+            sendStopTyping();
+        }, 1500);
     }
 
-    function sendStopTyping() {
-        if (!isTyping) return;
-        isTyping = false;
+    function startTypingKeepAlive() {
+        // Clear any existing keep-alive
+        clearInterval(typingKeepAliveTimer);
+        
+        // Send typing signal every 2 seconds to keep the indicator alive
+        typingKeepAliveTimer = setInterval(() => {
+            if (isTyping) {
+                sendTypingSignal(true);
+            } else {
+                clearInterval(typingKeepAliveTimer);
+            }
+        }, 2000);
+    }
 
+    function sendTypingSignal(typing) {
         // Try WebSocket first
-        if (!wsSend({ type: 'typing', is_typing: false })) {
+        if (!wsSend({ type: 'typing', is_typing: typing })) {
             // Fallback to HTTP
             fetch(`/api/chat/${chatId}/typing/`, {
                 method: 'POST',
@@ -3920,15 +4333,26 @@
                     'X-CSRFToken': getCSRFToken(),
                     'Content-Type': 'application/x-www-form-urlencoded'
                 },
-                body: 'is_typing=false'
+                body: `is_typing=${typing}`
             }).catch(() => { });
         }
     }
 
-    // Start polling for typing status - Optimized
+    function sendStopTyping() {
+        if (!isTyping) return;
+        isTyping = false;
+        
+        // Stop the keep-alive timer
+        clearInterval(typingKeepAliveTimer);
+        
+        // Send stop typing signal
+        sendTypingSignal(false);
+    }
+
+    // Start polling for typing status - Faster polling for responsive indicators
     function startTypingPoll() {
         if (typingPollInterval) return;
-        typingPollInterval = setInterval(pollTypingStatus, 2500); // Poll every 2.5 seconds
+        typingPollInterval = setInterval(pollTypingStatus, 1500); // Poll every 1.5 seconds
     }
 
     function stopTypingPoll() {
@@ -4027,11 +4451,6 @@
         if (!isCurrentlyOpen) {
             menu.style.display = 'flex';
             currentOpenMenuId = messageId;
-
-            // Reinitialize icons in the menu
-            if (typeof lucide !== 'undefined') {
-                lucide.createIcons({ nodes: menu.querySelectorAll('[data-lucide]') });
-            }
 
             // Adjust position if menu goes off screen
             requestAnimationFrame(() => {
@@ -4428,11 +4847,37 @@
 
     const p2pConfig = {
         'iceServers': [
+            // Google STUN servers (free, reliable)
             { 'urls': 'stun:stun.l.google.com:19302' },
             { 'urls': 'stun:stun1.l.google.com:19302' },
-            { 'urls': 'stun:stun2.l.google.com:19302' }
-        ]
+            { 'urls': 'stun:stun2.l.google.com:19302' },
+            // Metered.ca TURN servers (free tier, reliable as of 2024)
+            {
+                'urls': 'turn:a.relay.metered.ca:80',
+                'username': 'e8dd65c92f82d5f8c3c1c2c0',
+                'credential': 'uuSvtTtKCn/RIQ8M'
+            },
+            {
+                'urls': 'turn:a.relay.metered.ca:80?transport=tcp',
+                'username': 'e8dd65c92f82d5f8c3c1c2c0',
+                'credential': 'uuSvtTtKCn/RIQ8M'
+            },
+            {
+                'urls': 'turn:a.relay.metered.ca:443',
+                'username': 'e8dd65c92f82d5f8c3c1c2c0',
+                'credential': 'uuSvtTtKCn/RIQ8M'
+            },
+            {
+                'urls': 'turn:a.relay.metered.ca:443?transport=tcp',
+                'username': 'e8dd65c92f82d5f8c3c1c2c0',
+                'credential': 'uuSvtTtKCn/RIQ8M'
+            }
+        ],
+        'iceCandidatePoolSize': 10
     };
+
+    // Queue for ICE candidates that arrive before remote description is set
+    let p2pPendingCandidates = [];
 
     function openP2PModal() {
         document.getElementById('p2pModal').style.display = 'flex';
@@ -4459,7 +4904,7 @@
                     if (data.participants.length === 0) {
                         container.innerHTML = `
                     <div style="text-align: center; padding: 30px; color: var(--od-text-secondary);">
-                        <i data-lucide="users" style="width: 48px; height: 48px; margin-bottom: 12px; opacity: 0.5;"></i>
+                        <span class="od-icon" style="width: 48px; height: 48px; margin-bottom: 12px; opacity: 0.5;"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
                         <p style="margin: 0;">No other participants in this chat.</p>
                     </div>
                 `;
@@ -4485,7 +4930,7 @@
                             <div style="font-size: 12px; color: #22c55e;">● Online - Ready to receive</div>
                         </div>
                         <button class="od-auth-btn" style="width: auto; padding: 8px 16px; font-size: 13px; display: flex; align-items: center; gap: 6px;" onclick="event.stopPropagation(); startP2PWith(${p.id}, '${escapeHtml(p.full_name)}')">
-                            <i data-lucide="send" style="width: 14px; height: 14px;"></i>
+                            <span class="od-icon" style="width: 14px; height: 14px;"><svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></span>
                             Send File
                         </button>
                     </div>
@@ -4510,7 +4955,7 @@
                     if (onlineUsers.length === 0) {
                         html = `
                     <div style="text-align: center; padding: 30px; color: var(--od-text-secondary);">
-                        <i data-lucide="wifi-off" style="width: 48px; height: 48px; margin-bottom: 12px; opacity: 0.5;"></i>
+                        <span class="od-icon" style="width: 48px; height: 48px; margin-bottom: 12px; opacity: 0.5;"><svg viewBox="0 0 24 24"><line x1="1" y1="1" x2="23" y2="23"/><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"/><path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"/><path d="M10.71 5.05A16 16 0 0 1 22.58 9"/><path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg></span>
                         <p style="margin: 0 0 8px;">No users are online right now</p>
                         <p style="margin: 0; font-size: 12px;">They need to be in this chat to receive files directly</p>
                     </div>
@@ -4555,11 +5000,11 @@
         // Update UI
         document.getElementById('p2pSetup').style.display = 'none';
         document.getElementById('p2pTransfer').style.display = 'block';
-        document.getElementById('p2pStatus').innerHTML = '<i data-lucide="loader" style="width: 20px; height: 20px; animation: spin 1s linear infinite;"></i> Initializing secure connection...';
+        document.getElementById('p2pStatus').innerHTML = '<span class="od-icon" style="width: 20px; height: 20px; animation: spin 1s linear infinite;"><svg viewBox="0 0 24 24"><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/></svg></span> Initializing secure connection...';
         document.getElementById('p2pProgress').style.width = '0%';
         document.getElementById('p2pFileInfo').innerHTML = `
         <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
-            <i data-lucide="file" style="width: 16px; height: 16px;"></i>
+            <span class="od-icon" style="width: 16px; height: 16px;"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span>
             <span>${escapeHtml(file.name)}</span>
             <span style="opacity: 0.7;">(${formatBytes(file.size)})</span>
         </div>
@@ -4576,8 +5021,17 @@
         if (p2pConnectionTimeout) clearTimeout(p2pConnectionTimeout);
         p2pConnectionTimeout = setTimeout(() => {
             if (p2pConnection && p2pConnection.connectionState !== 'connected') {
-                document.getElementById('p2pStatus').innerHTML = '<i data-lucide="alert-circle" style="width: 20px; height: 20px; color: #ef4444;"></i> Connection timed out. Peer may be offline.';
-                if (typeof lucide !== 'undefined') lucide.createIcons();
+                console.log('P2P connection timeout - notifying receiver');
+                // Notify the receiver that the transfer was cancelled due to timeout
+                sendSignal(targetUserId, { type: 'timeout', reason: 'Sender connection timed out' });
+                
+                document.getElementById('p2pStatus').innerHTML = '<span class="od-icon" style="width: 20px; height: 20px; color: #ef4444;"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span> Connection timed out. Peer may be offline.';
+                
+                // Clean up connection
+                if (p2pConnection) {
+                    p2pConnection.close();
+                    p2pConnection = null;
+                }
                 setTimeout(() => resetP2PUI(), 3000);
             }
         }, 45000); // 45 second timeout
@@ -4591,18 +5045,18 @@
 
                 switch (p2pConnection.connectionState) {
                     case 'connecting':
-                        statusEl.innerHTML = '<i data-lucide="loader" style="width: 20px; height: 20px; animation: spin 1s linear infinite;"></i> Establishing secure connection...';
+                        statusEl.innerHTML = '<span class="od-icon" style="width: 20px; height: 20px; animation: spin 1s linear infinite;"><svg viewBox="0 0 24 24"><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/></svg></span> Establishing secure connection...';
                         break;
                     case 'connected':
                         if (p2pConnectionTimeout) clearTimeout(p2pConnectionTimeout);
-                        statusEl.innerHTML = '<i data-lucide="check-circle" style="width: 20px; height: 20px; color: #22c55e;"></i> Connected! Transferring file...';
+                        statusEl.innerHTML = '<span class="od-icon" style="width: 20px; height: 20px; color: #22c55e;"><svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></span> Connected! Transferring file...';
                         break;
                     case 'disconnected':
-                        statusEl.innerHTML = '<i data-lucide="wifi-off" style="width: 20px; height: 20px; color: #f59e0b;"></i> Connection lost. Reconnecting...';
+                        statusEl.innerHTML = '<span class="od-icon" style="width: 20px; height: 20px; color: #f59e0b;"><svg viewBox="0 0 24 24"><line x1="1" y1="1" x2="23" y2="23"/><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"/><path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"/><path d="M10.71 5.05A16 16 0 0 1 22.58 9"/><path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg></span> Connection lost. Reconnecting...';
                         break;
                     case 'failed':
                         if (p2pConnectionTimeout) clearTimeout(p2pConnectionTimeout);
-                        statusEl.innerHTML = '<i data-lucide="x-circle" style="width: 20px; height: 20px; color: #ef4444;"></i> Connection failed. Please try again.';
+                        statusEl.innerHTML = '<span class="od-icon" style="width: 20px; height: 20px; color: #ef4444;"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></span> Connection failed. Please try again.';
                         setTimeout(() => resetP2PUI(), 3000);
                         break;
                     case 'closed':
@@ -4620,20 +5074,54 @@
             // ICE candidate handling
             p2pConnection.onicecandidate = (event) => {
                 if (event.candidate) {
-                    console.log('Sending ICE candidate');
+                    console.log('Sending ICE candidate:', event.candidate.candidate);
                     sendSignal(targetUserId, { type: 'candidate', candidate: event.candidate });
+                } else {
+                    console.log('ICE gathering complete');
                 }
             };
 
             p2pConnection.onicegatheringstatechange = () => {
                 console.log('ICE gathering state:', p2pConnection.iceGatheringState);
+                if (p2pConnection.iceGatheringState === 'complete') {
+                    console.log('ICE gathering complete - all candidates gathered');
+                }
+            };
+
+            // Monitor ICE connection state for better debugging
+            p2pConnection.oniceconnectionstatechange = () => {
+                console.log('ICE connection state:', p2pConnection.iceConnectionState);
+                const statusEl = document.getElementById('p2pStatus');
+                
+                if (p2pConnection.iceConnectionState === 'failed') {
+                    console.error('ICE connection failed - TURN relay may be unavailable or blocked');
+                    statusEl.innerHTML = '<span class="od-icon" style="width: 20px; height: 20px; color: #ef4444;"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></span> P2P connection failed. Network may be blocking WebRTC.';
+                    if (typeof lucide !== 'undefined') lucide.createIcons();
+                    // Try ICE restart once
+                    console.log('Attempting ICE restart...');
+                    p2pConnection.restartIce();
+                } else if (p2pConnection.iceConnectionState === 'disconnected') {
+                    console.warn('ICE disconnected - connection may recover');
+                    statusEl.innerHTML = '<span class="od-icon" style="width: 20px; height: 20px; color: #f59e0b;"><svg viewBox="0 0 24 24"><line x1="1" y1="1" x2="23" y2="23"/><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"/><path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"/><path d="M10.71 5.05A16 16 0 0 1 22.58 9"/><path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg></span> Connection interrupted, reconnecting...';
+                    if (typeof lucide !== 'undefined') lucide.createIcons();
+                } else if (p2pConnection.iceConnectionState === 'checking') {
+                    statusEl.innerHTML = '<span class="od-icon" style="width: 20px; height: 20px; animation: spin 1s linear infinite;"><svg viewBox="0 0 24 24"><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/></svg></span> Establishing P2P connection...';
+                    if (typeof lucide !== 'undefined') lucide.createIcons();
+                } else if (p2pConnection.iceConnectionState === 'connected') {
+                    console.log('ICE connection established successfully!');
+                }
             };
 
             // Create and send offer
+            console.log('Creating WebRTC offer...');
             p2pConnection.createOffer()
-                .then(offer => p2pConnection.setLocalDescription(offer))
+                .then(offer => {
+                    console.log('Offer created, setting local description...');
+                    return p2pConnection.setLocalDescription(offer);
+                })
                 .then(() => {
-                    document.getElementById('p2pStatus').innerHTML = '<i data-lucide="radio" style="width: 20px; height: 20px; animation: pulse 1.5s ease-in-out infinite;"></i> Waiting for peer to accept...';
+                    console.log('Local description set, sending offer to peer...');
+                    document.getElementById('p2pStatus').innerHTML = '<span class="od-icon" style="width: 20px; height: 20px; animation: pulse 1.5s ease-in-out infinite;"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="2"/><path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49m11.31-2.82a10 10 0 0 1 0 14.14m-14.14 0a10 10 0 0 1 0-14.14"/></svg></span> Waiting for peer to accept...';
                     if (typeof lucide !== 'undefined') lucide.createIcons();
                     sendSignal(targetUserId, {
                         type: 'offer',
@@ -4644,17 +5132,18 @@
                             type: file.type || 'application/octet-stream'
                         }
                     });
+                    console.log('Offer sent successfully');
                 })
                 .catch(err => {
                     console.error('Error creating offer:', err);
-                    document.getElementById('p2pStatus').innerHTML = '<i data-lucide="alert-circle" style="width: 20px; height: 20px; color: #ef4444;"></i> Failed to create connection';
+                    document.getElementById('p2pStatus').innerHTML = '<span class="od-icon" style="width: 20px; height: 20px; color: #ef4444;"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span> Failed to create connection';
                     if (typeof lucide !== 'undefined') lucide.createIcons();
                     if (p2pConnectionTimeout) clearTimeout(p2pConnectionTimeout);
                     setTimeout(() => resetP2PUI(), 3000);
                 });
         } catch (err) {
             console.error('P2P initialization error:', err);
-            document.getElementById('p2pStatus').innerHTML = '<i data-lucide="alert-circle" style="width: 20px; height: 20px; color: #ef4444;"></i> Failed to initialize P2P';
+            document.getElementById('p2pStatus').innerHTML = '<span class="od-icon" style="width: 20px; height: 20px; color: #ef4444;"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span> Failed to initialize P2P';
             if (typeof lucide !== 'undefined') lucide.createIcons();
             if (p2pConnectionTimeout) clearTimeout(p2pConnectionTimeout);
             setTimeout(() => resetP2PUI(), 3000);
@@ -4666,15 +5155,13 @@
 
         channel.onopen = () => {
             console.log('Data channel opened - starting file transfer');
-            document.getElementById('p2pStatus').innerHTML = '<i data-lucide="upload" style="width: 20px; height: 20px; color: #22c55e;"></i> Sending file...';
-            if (typeof lucide !== 'undefined') lucide.createIcons();
+            document.getElementById('p2pStatus').innerHTML = '<span class="od-icon" style="width: 20px; height: 20px; color: #22c55e;"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></span> Sending file...';
             sendFileData(channel, file);
         };
 
         channel.onerror = (error) => {
             console.error('Data channel error:', error);
-            document.getElementById('p2pStatus').innerHTML = '<i data-lucide="alert-circle" style="width: 20px; height: 20px; color: #ef4444;"></i> Transfer error';
-            if (typeof lucide !== 'undefined') lucide.createIcons();
+            document.getElementById('p2pStatus').innerHTML = '<span class="od-icon" style="width: 20px; height: 20px; color: #ef4444;"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span> Transfer error';
         };
 
         channel.onclose = () => {
@@ -4689,7 +5176,7 @@
 
         fileReader.onerror = (error) => {
             console.error('FileReader error:', error);
-            document.getElementById('p2pStatus').innerHTML = '<i data-lucide="alert-circle" style="width: 20px; height: 20px; color: #ef4444;"></i> Error reading file';
+            document.getElementById('p2pStatus').innerHTML = '<span class="od-icon" style="width: 20px; height: 20px; color: #ef4444;"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span> Error reading file';
             if (typeof lucide !== 'undefined') lucide.createIcons();
         };
 
@@ -4707,7 +5194,7 @@
                     readSlice(offset);
                 } else {
                     // File sent completely
-                    document.getElementById('p2pStatus').innerHTML = '<i data-lucide="check-circle" style="width: 20px; height: 20px; color: #22c55e;"></i> File sent successfully!';
+                    document.getElementById('p2pStatus').innerHTML = '<span class="od-icon" style="width: 20px; height: 20px; color: #22c55e;"><svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></span> File sent successfully!';
                     document.getElementById('p2pProgress').style.width = '100%';
                     if (typeof lucide !== 'undefined') lucide.createIcons();
 
@@ -4782,31 +5269,44 @@
     let p2pBackgroundInterval = null;
 
     function startBackgroundSignalPolling() {
-        if (p2pBackgroundInterval) return;
+        if (p2pBackgroundInterval) {
+            console.log('[P2P Polling] Already running');
+            return;
+        }
 
-        // Poll for incoming P2P signals every 3 seconds
-        p2pBackgroundInterval = setInterval(() => {
-            fetch(`/api/p2p/${chatId}/signals/`)
+        // Determine chat ID safely
+        let pollingChatId = null;
+        try {
+            if (typeof chatId !== 'undefined') pollingChatId = chatId;
+            else if (typeof ACTIVE_CHAT_ID !== 'undefined') pollingChatId = ACTIVE_CHAT_ID;
+        } catch (e) {
+            console.error('[P2P Polling] Error determining chat ID:', e);
+        }
+
+        if (!pollingChatId) {
+            console.log('[P2P Polling] No active chat ID found, skipping polling.');
+            return;
+        }
+
+        console.log(`[P2P Polling] Starting background polling for chat ${pollingChatId} every 2s`);
+
+        const pollFn = () => {
+            fetch(`/api/p2p/${pollingChatId}/signals/`)
                 .then(r => r.json())
                 .then(data => {
                     if (data.success && data.signals && data.signals.length > 0) {
-                        console.log('Received P2P signals:', data.signals.length);
+                        console.log('[P2P Polling] ✓ Received', data.signals.length, 'signal(s)');
                         data.signals.forEach(handleSignal);
                     }
                 })
-                .catch(err => console.error('P2P signal poll error:', err));
-        }, 3000);
+                .catch(err => console.error('[P2P Polling] ✗ Poll error:', err));
+        };
 
-        // Also do an immediate check
-        fetch(`/api/p2p/${chatId}/signals/`)
-            .then(r => r.json())
-            .then(data => {
-                if (data.success && data.signals && data.signals.length > 0) {
-                    console.log('Received P2P signals on init:', data.signals.length);
-                    data.signals.forEach(handleSignal);
-                }
-            })
-            .catch(err => console.error('P2P signal init error:', err));
+        // Poll for incoming P2P signals every 1 second (faster for better responsiveness)
+        p2pBackgroundInterval = setInterval(pollFn, 1000);
+        
+        // Immediate check
+        pollFn();
     }
 
     function stopBackgroundSignalPolling() {
@@ -4818,14 +5318,30 @@
 
     function stopP2P() {
         if (p2pSignalInterval) clearInterval(p2pSignalInterval);
+        if (p2pConnectionTimeout) clearTimeout(p2pConnectionTimeout);
         if (p2pConnection) p2pConnection.close();
         p2pConnection = null;
         p2pDataChannel = null;
         p2pTargetUserId = null;
         p2pSelectedFile = null;
+        p2pPendingCandidates = []; // Clear queued ICE candidates
         document.getElementById('p2pSetup').style.display = 'block';
         document.getElementById('p2pTransfer').style.display = 'none';
         document.getElementById('p2pProgress').style.width = '0%';
+        
+        // Clear any pending P2P signals on the server to free up resources
+        clearP2PSignals();
+    }
+    
+    // Clear P2P signals when user goes offline or closes modal
+    function clearP2PSignals() {
+        fetch('/api/p2p/clear-signals/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken()
+            }
+        }).catch(err => console.log('Signal cleanup error:', err));
     }
 
     function resetP2PUI() {
@@ -4836,7 +5352,34 @@
     }
 
     function sendSignal(targetId, data) {
-        console.log('Sending signal:', data.type, 'to user:', targetId);
+        console.log('[P2P Signal] Sending:', data.type, 'to user:', targetId);
+        
+        // Try WebSocket first for real-time delivery
+        if (isWSReady()) {
+            console.log('[P2P Signal] WebSocket is ready, attempting WS delivery...');
+            const sent = wsSend({
+                type: 'p2p.signal',
+                target_user_id: targetId,
+                signal: data
+            });
+            if (sent) {
+                console.log('[P2P Signal] ✓ Sent via WebSocket successfully');
+                // Also send via HTTP as backup for reliability
+                sendSignalViaHTTP(targetId, data);
+                return;
+            } else {
+                console.log('[P2P Signal] WebSocket send failed, falling back to HTTP');
+            }
+        } else {
+            console.log('[P2P Signal] WebSocket not ready, using HTTP');
+        }
+        
+        // Fallback to HTTP
+        sendSignalViaHTTP(targetId, data);
+    }
+    
+    function sendSignalViaHTTP(targetId, data) {
+        console.log('[P2P Signal] Sending via HTTP POST...');
         fetch('/api/p2p/send-signal/', {
             method: 'POST',
             headers: {
@@ -4851,19 +5394,37 @@
         })
             .then(r => r.json())
             .then(result => {
-                if (!result.success) {
-                    console.error('Failed to send signal:', result.error);
+                if (result.success) {
+                    console.log('[P2P Signal] ✓ HTTP signal sent successfully');
+                } else if (result.offline) {
+                    // Target user is offline - abort the transfer
+                    console.error('[P2P Signal] ✗ Target user is offline');
+                    const statusEl = document.getElementById('p2pStatus');
+                    if (statusEl) {
+                        statusEl.innerHTML = '<span class="od-icon" style="width: 20px; height: 20px; color: #ef4444;"><svg viewBox="0 0 24 24"><line x1="1" y1="1" x2="23" y2="23"/><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"/><path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg></span> User went offline. Transfer cancelled.';
+                    }
+                    // Clean up connection
+                    if (p2pConnectionTimeout) clearTimeout(p2pConnectionTimeout);
+                    if (p2pConnection) {
+                        p2pConnection.close();
+                        p2pConnection = null;
+                    }
+                    setTimeout(() => resetP2PUI(), 3000);
+                } else {
+                    console.error('[P2P Signal] ✗ HTTP signal failed:', result.error);
                 }
             })
-            .catch(err => console.error('Signal send error:', err));
+            .catch(err => console.error('[P2P Signal] ✗ HTTP request error:', err));
     }
 
     async function handleSignal(signalWrapper) {
-        console.log('Received signal:', signalWrapper);
+        console.log('[P2P Signal] Received signal wrapper:', signalWrapper);
         const data = signalWrapper.signal;
         const senderId = signalWrapper.sender_id;
         const senderName = signalWrapper.sender_name || 'User';
         const senderAvatar = signalWrapper.sender_avatar;
+        
+        console.log('[P2P Signal] Signal type:', data.type, 'from user:', senderId, '(' + senderName + ')');
 
         try {
             // Check if this is a WebRTC call signal (not a file transfer signal)
@@ -4892,12 +5453,21 @@
                     const fileSize = formatBytes(data.fileInfo.size);
                     const fileName = data.fileInfo.name;
 
+                    // Show system message in chat for the file request
+                    showP2PSystemMessage(senderName, fileName, fileSize, senderId, data);
+
                     // Create custom confirm dialog
                     const accept = await showP2PIncomingModal(senderName, senderAvatar, fileName, fileSize);
                     if (!accept) {
                         console.log('User rejected file transfer');
+                        // Send rejection signal so sender knows
+                        sendSignal(senderId, { type: 'rejected' });
+                        removeP2PSystemMessage();
                         return;
                     }
+                    
+                    // Remove system message since user responded
+                    removeP2PSystemMessage();
 
                     // Store file info for receiving
                     p2pFileInfo = data.fileInfo;
@@ -4909,16 +5479,15 @@
                     openP2PModal();
                     document.getElementById('p2pSetup').style.display = 'none';
                     document.getElementById('p2pTransfer').style.display = 'block';
-                    document.getElementById('p2pStatus').innerHTML = '<i data-lucide="download" style="width: 20px; height: 20px; color: #3b82f6;"></i> Connecting to receive file...';
+                    document.getElementById('p2pStatus').innerHTML = '<span class="od-icon" style="width: 20px; height: 20px; color: #3b82f6;"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></span> Connecting to receive file...';
                     document.getElementById('p2pProgress').style.width = '0%';
                     document.getElementById('p2pFileInfo').innerHTML = `
                     <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
-                        <i data-lucide="file" style="width: 16px; height: 16px;"></i>
+                        <span class="od-icon" style="width: 16px; height: 16px;"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span>
                         <span>${escapeHtml(fileName)}</span>
                         <span style="opacity: 0.7;">(${fileSize})</span>
                     </div>
                 `;
-                    if (typeof lucide !== 'undefined') lucide.createIcons();
 
                     // Create peer connection
                     p2pConnection = new RTCPeerConnection(p2pConfig);
@@ -4928,19 +5497,32 @@
                         const statusEl = document.getElementById('p2pStatus');
 
                         if (p2pConnection.connectionState === 'connected') {
-                            statusEl.innerHTML = '<i data-lucide="download" style="width: 20px; height: 20px; color: #22c55e;"></i> Receiving file...';
-                            if (typeof lucide !== 'undefined') lucide.createIcons();
+                            statusEl.innerHTML = '<span class="od-icon" style="width: 20px; height: 20px; color: #22c55e;"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></span> Receiving file...';
                         } else if (p2pConnection.connectionState === 'failed') {
-                            statusEl.innerHTML = '<i data-lucide="x-circle" style="width: 20px; height: 20px; color: #ef4444;"></i> Connection failed';
-                            if (typeof lucide !== 'undefined') lucide.createIcons();
+                            statusEl.innerHTML = '<span class="od-icon" style="width: 20px; height: 20px; color: #ef4444;"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></span> Connection failed';
                             setTimeout(() => resetP2PUI(), 3000);
                         }
                     };
 
                     p2pConnection.onicecandidate = (event) => {
                         if (event.candidate) {
-                            console.log('Sending ICE candidate (receiver)');
+                            console.log('Sending ICE candidate (receiver):', event.candidate.candidate);
                             sendSignal(senderId, { type: 'candidate', candidate: event.candidate });
+                        } else {
+                            console.log('ICE gathering complete (receiver)');
+                        }
+                    };
+
+                    // Monitor ICE connection state
+                    p2pConnection.oniceconnectionstatechange = () => {
+                        console.log('ICE connection state (receiver):', p2pConnection.iceConnectionState);
+                        
+                        if (p2pConnection.iceConnectionState === 'failed') {
+                            console.error('ICE connection failed (receiver) - may need TURN relay');
+                            p2pConnection.restartIce();
+                        } else if (p2pConnection.iceConnectionState === 'checking') {
+                            const statusEl = document.getElementById('p2pStatus');
+                            statusEl.innerHTML = '<span class="od-icon" style="width: 20px; height: 20px; animation: spin 1s linear infinite;"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-dasharray="30 60"/></svg></span> Establishing P2P connection...';
                         }
                     };
 
@@ -4961,13 +5543,53 @@
                 if (data.type === 'answer') {
                     console.log('Received answer');
                     await p2pConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
+                    
+                    // Process any queued ICE candidates
+                    console.log(`Processing ${p2pPendingCandidates.length} queued ICE candidates`);
+                    for (const candidate of p2pPendingCandidates) {
+                        try {
+                            await p2pConnection.addIceCandidate(new RTCIceCandidate(candidate));
+                            console.log('Added queued ICE candidate');
+                        } catch (e) {
+                            console.error('Error adding queued ICE candidate:', e);
+                        }
+                    }
+                    p2pPendingCandidates = [];
                 } else if (data.type === 'candidate' && data.candidate) {
                     console.log('Received ICE candidate');
-                    try {
-                        await p2pConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
-                    } catch (e) {
-                        console.error('Error adding ICE candidate:', e);
+                    // If remote description isn't set yet, queue the candidate
+                    if (!p2pConnection.remoteDescription) {
+                        console.log('Queueing ICE candidate (remote description not set yet)');
+                        p2pPendingCandidates.push(data.candidate);
+                    } else {
+                        try {
+                            await p2pConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
+                        } catch (e) {
+                            console.error('Error adding ICE candidate:', e);
+                        }
                     }
+                } else if (data.type === 'rejected') {
+                    console.log('File transfer was rejected by recipient');
+                    document.getElementById('p2pStatus').innerHTML = '<span class="od-icon" style="width: 20px; height: 20px; color: #ef4444;"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></span> Transfer declined by recipient';
+                    if (typeof lucide !== 'undefined') lucide.createIcons();
+                    if (p2pConnectionTimeout) clearTimeout(p2pConnectionTimeout);
+                    if (p2pConnection) {
+                        p2pConnection.close();
+                        p2pConnection = null;
+                    }
+                    setTimeout(() => resetP2PUI(), 3000);
+                } else if (data.type === 'timeout') {
+                    console.log('Sender connection timed out');
+                    document.getElementById('p2pStatus').innerHTML = '<span class="od-icon" style="width: 20px; height: 20px; color: #ef4444;"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span> Sender connection timed out';
+                    if (typeof lucide !== 'undefined') lucide.createIcons();
+                    if (p2pConnectionTimeout) clearTimeout(p2pConnectionTimeout);
+                    if (p2pConnection) {
+                        p2pConnection.close();
+                        p2pConnection = null;
+                    }
+                    // Also remove any pending system message
+                    removeP2PSystemMessage();
+                    setTimeout(() => resetP2PUI(), 3000);
                 }
             }
         } catch (error) {
@@ -4998,7 +5620,7 @@
                     <div style="background: var(--od-surface); border-radius: 12px; padding: 16px; margin-bottom: 20px;">
                         <div style="display: flex; align-items: center; gap: 12px;">
                             <div style="width: 40px; height: 40px; background: var(--color-primary); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
-                                <i data-lucide="file" style="width: 20px; height: 20px; color: white;"></i>
+                                <span class="od-icon" style="width: 20px; height: 20px; color: white;"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span>
                             </div>
                             <div style="flex: 1; text-align: left;">
                                 <div style="font-weight: 600; color: var(--od-text-primary); font-size: 14px; word-break: break-all;">${escapeHtml(fileName)}</div>
@@ -5046,6 +5668,160 @@
         });
     }
 
+    // Show a system message in chat for incoming P2P file request
+    let pendingP2PRequestData = null;
+    
+    function showP2PSystemMessage(senderName, fileName, fileSize, senderId, offerData) {
+        // Store the offer data for later use
+        pendingP2PRequestData = { senderId, offerData };
+        
+        const list = document.getElementById('messagesList');
+        const existingMsg = document.getElementById('p2pSystemMessage');
+        if (existingMsg) existingMsg.remove();
+        
+        const msgDiv = document.createElement('div');
+        msgDiv.id = 'p2pSystemMessage';
+        msgDiv.className = 'od-message-row od-message-system';
+        msgDiv.style.cssText = 'justify-content: center; margin: 16px 0;';
+        msgDiv.innerHTML = `
+            <div style="background: linear-gradient(135deg, var(--color-primary), #6366f1); border-radius: 16px; padding: 16px 20px; max-width: 350px; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);">
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+                    <div style="width: 36px; height: 36px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <span class="od-icon" style="width: 18px; height: 18px; color: white;"><svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></span>
+                    </div>
+                    <div style="flex: 1;">
+                        <div style="font-weight: 600; color: white; font-size: 14px;">${escapeHtml(senderName)}</div>
+                        <div style="font-size: 12px; color: rgba(255,255,255,0.8);">wants to send you a file</div>
+                    </div>
+                </div>
+                <div style="background: rgba(255,255,255,0.15); border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; display: flex; align-items: center; gap: 10px;">
+                    <span class="od-icon" style="width: 20px; height: 20px; color: white; flex-shrink: 0;"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span>
+                    <div style="flex: 1; min-width: 0;">
+                        <div style="font-size: 13px; color: white; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(fileName)}</div>
+                        <div style="font-size: 11px; color: rgba(255,255,255,0.7);">${fileSize}</div>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <button onclick="handleP2PSystemDecline()" style="flex: 1; padding: 10px; border: 1px solid rgba(255,255,255,0.3); background: transparent; border-radius: 8px; font-weight: 600; cursor: pointer; color: white; font-size: 13px; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'">
+                        Decline
+                    </button>
+                    <button onclick="handleP2PSystemAccept()" style="flex: 1; padding: 10px; border: none; background: white; border-radius: 8px; font-weight: 600; cursor: pointer; color: var(--color-primary); font-size: 13px; transition: all 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
+                        Accept
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        list.appendChild(msgDiv);
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+        scrollToBottom();
+        
+        // Play notification sound
+        playNotificationSound();
+    }
+    
+    function removeP2PSystemMessage() {
+        const existingMsg = document.getElementById('p2pSystemMessage');
+        if (existingMsg) existingMsg.remove();
+        pendingP2PRequestData = null;
+    }
+    
+    async function handleP2PSystemAccept() {
+        if (!pendingP2PRequestData) return;
+        
+        const { senderId, offerData } = pendingP2PRequestData;
+        removeP2PSystemMessage();
+        
+        // Process the offer
+        const data = offerData;
+        const fileSize = formatBytes(data.fileInfo.size);
+        const fileName = data.fileInfo.name;
+        
+        // Store file info for receiving
+        p2pFileInfo = data.fileInfo;
+        p2pReceivedBuffers = [];
+        p2pReceivedSize = 0;
+        p2pTargetUserId = senderId;
+
+        // Show receiving UI
+        openP2PModal();
+        document.getElementById('p2pSetup').style.display = 'none';
+        document.getElementById('p2pTransfer').style.display = 'block';
+        document.getElementById('p2pStatus').innerHTML = '<span class="od-icon" style="width: 20px; height: 20px; color: #3b82f6;"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></span> Connecting to receive file...';
+        document.getElementById('p2pProgress').style.width = '0%';
+        document.getElementById('p2pFileInfo').innerHTML = `
+            <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+                <span class="od-icon" style="width: 16px; height: 16px;"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span>
+                <span>${escapeHtml(fileName)}</span>
+                <span style="opacity: 0.7;">(${fileSize})</span>
+            </div>
+        `;
+
+        // Create peer connection
+        try {
+            p2pConnection = new RTCPeerConnection(p2pConfig);
+
+            p2pConnection.onconnectionstatechange = () => {
+                console.log('Receiver connection state:', p2pConnection.connectionState);
+                const statusEl = document.getElementById('p2pStatus');
+
+                if (p2pConnection.connectionState === 'connected') {
+                    statusEl.innerHTML = '<span class="od-icon" style="width: 20px; height: 20px; color: #22c55e;"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></span> Receiving file...';
+                } else if (p2pConnection.connectionState === 'failed') {
+                    statusEl.innerHTML = '<span class="od-icon" style="width: 20px; height: 20px; color: #ef4444;"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></span> Connection failed';
+                    setTimeout(() => resetP2PUI(), 3000);
+                }
+            };
+
+            p2pConnection.onicecandidate = (event) => {
+                if (event.candidate) {
+                    console.log('Sending ICE candidate (receiver):', event.candidate.candidate);
+                    sendSignal(senderId, { type: 'candidate', candidate: event.candidate });
+                } else {
+                    console.log('ICE gathering complete (receiver)');
+                }
+            };
+
+            // Monitor ICE connection state
+            p2pConnection.oniceconnectionstatechange = () => {
+                console.log('ICE connection state (receiver):', p2pConnection.iceConnectionState);
+                
+                if (p2pConnection.iceConnectionState === 'failed') {
+                    console.error('ICE connection failed (receiver) - may need TURN relay');
+                    p2pConnection.restartIce();
+                } else if (p2pConnection.iceConnectionState === 'checking') {
+                    const statusEl = document.getElementById('p2pStatus');
+                    statusEl.innerHTML = '<span class="od-icon" style="width: 20px; height: 20px; animation: spin 1s linear infinite;"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-dasharray="30 60"/></svg></span> Establishing P2P connection...';
+                }
+            };
+
+            // Handle incoming data channel
+            p2pConnection.ondatachannel = (event) => {
+                console.log('Data channel received');
+                setupReceiverDataChannel(event.channel, data.fileInfo);
+            };
+
+            // Set remote description and create answer
+            await p2pConnection.setRemoteDescription(new RTCSessionDescription(data.offer));
+            const answer = await p2pConnection.createAnswer();
+            await p2pConnection.setLocalDescription(answer);
+            sendSignal(senderId, { type: 'answer', answer: answer });
+        } catch (error) {
+            console.error('Error setting up P2P connection:', error);
+            document.getElementById('p2pStatus').innerHTML = '<span class="od-icon" style="width: 20px; height: 20px; color: #ef4444;"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></span> Connection setup failed';
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+            setTimeout(() => resetP2PUI(), 3000);
+        }
+    }
+    
+    function handleP2PSystemDecline() {
+        if (!pendingP2PRequestData) return;
+        
+        const { senderId } = pendingP2PRequestData;
+        sendSignal(senderId, { type: 'rejected' });
+        removeP2PSystemMessage();
+    }
+
     function setupReceiverDataChannel(channel, fileInfo) {
         channel.binaryType = 'arraybuffer';
         p2pReceivedBuffers = [];
@@ -5078,9 +5854,8 @@
                 document.body.removeChild(a);
 
                 // Update UI
-                document.getElementById('p2pStatus').innerHTML = '<i data-lucide="check-circle" style="width: 20px; height: 20px; color: #22c55e;"></i> File received successfully!';
+                document.getElementById('p2pStatus').innerHTML = '<span class="od-icon" style="width: 20px; height: 20px; color: #22c55e;"><svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></span> File received successfully!';
                 document.getElementById('p2pProgress').style.width = '100%';
-                if (typeof lucide !== 'undefined') lucide.createIcons();
 
                 // Clean up and close
                 setTimeout(() => {
@@ -5093,8 +5868,7 @@
 
         channel.onerror = (error) => {
             console.error('Receiver channel error:', error);
-            document.getElementById('p2pStatus').innerHTML = '<i data-lucide="alert-circle" style="width: 20px; height: 20px; color: #ef4444;"></i> Transfer error';
-            if (typeof lucide !== 'undefined') lucide.createIcons();
+            document.getElementById('p2pStatus').innerHTML = '<span class="od-icon" style="width: 20px; height: 20px; color: #ef4444;"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span> Transfer error';
         };
     }
 
@@ -5499,6 +6273,10 @@
                 item.style.display = 'none';
             }
         });
+
+        // Ensure requests list is hidden when searching standard chats
+        const requestsList = document.getElementById('requestsList');
+        if (requestsList) requestsList.style.display = 'none';
     }
 
     function filterDirectCategory(category, btn) {
@@ -5514,19 +6292,39 @@
             if (targetBtn) targetBtn.classList.add('active');
         }
 
-        // Trigger search filter to re-apply logic with new category
-        const searchInput = document.getElementById('directSearchInput');
-        if (searchInput) {
-            filterDirectChats({ target: searchInput });
+        const chatList = document.querySelector('.od-direct-list');
+        const requestsList = document.getElementById('requestsList');
+
+        if (category === 'requests') {
+            if (chatList) chatList.style.display = 'none';
+            if (requestsList) {
+                requestsList.style.display = 'flex';
+                // Trigger render
+                if (window.renderRequests) window.renderRequests(); 
+                else if (window.fetchChatRequests) window.fetchChatRequests();
+            }
+        } else {
+            if (chatList) chatList.style.display = 'block';
+            if (requestsList) requestsList.style.display = 'none';
+            
+            // Trigger search filter to re-apply logic with new category
+            const searchInput = document.getElementById('directSearchInput');
+            if (searchInput) {
+                filterDirectChats({ target: searchInput });
+            } else {
+                 // Fallback if no search input found immediately
+                 filterDirectChats({ target: { value: '' } });
+            }
         }
     }
 
     // Initialize Filter State
     document.addEventListener('DOMContentLoaded', () => {
-        const savedCategory = localStorage.getItem('ig_direct_filter');
-        if (savedCategory) {
-            filterDirectCategory(savedCategory);
-        }
+        // Always default to 'all' to ensure chat list is visible
+        filterDirectCategory('all');
+
+        // Start listening for P2P signals
+        startBackgroundSignalPolling();
     });
 
 
@@ -5600,29 +6398,76 @@
 </script>
 
 <!-- Odnix Call configuration + script -->
+<!-- Odnix Call Configuration Data -->
+<div id="odnix-call-data" style="display:none;"
+    data-chat-id="{{ chat.id|default:'' }}"
+    data-user-id="{{ request.user.id|default:'' }}"
+    data-user-name="{{ request.user.full_name|escapejs }}"
+    data-user-avatar="{{ request.user.profile_picture_url|escapejs }}"
+    {% if not chat.is_group and other_participants %}
+    {% with peer=other_participants.0 %}
+    data-peer-name="{{ peer.full_name|escapejs }}"
+    data-peer-avatar="{{ peer.profile_picture_url|escapejs }}"
+    {% endwith %}
+    {% endif %}
+></div>
+
 <script>
-    try {
-        window.OdnixCallConfig = {
-            chatId: {{ chat.id |default: "null" }
-    },
-    userId: { { request.user.id |default: "null" } },
-    wsScheme: (window.location.protocol === 'https:' ? 'wss' : 'ws'),
-        host: window.location.host,
-            iceServers: []
-        };
-    if (typeof window.OdnixCallConfig.chatId === 'undefined' || typeof window.OdnixCallConfig.userId === 'undefined' || window.OdnixCallConfig.chatId === null || window.OdnixCallConfig.userId === null) {
-        throw new Error('chatId or userId is undefined or null');
-    }
-    console.log('[CallJS] Config set successfully:', window.OdnixCallConfig);
-    } catch (e) {
-        console.error('[CallJS] Error setting config:', e);
-        alert('Error configuring call system: ' + e.message);
-    }
+    (function() {
+        try {
+            var el = document.getElementById('odnix-call-data');
+            if (!el) throw new Error('Configuration data not found');
+
+            var configChatId = el.dataset.chatId;
+            var configUserId = el.dataset.userId;
+
+            window.OdnixCallConfig = {
+                chatId: configChatId ? parseInt(configChatId) : null,
+                userId: configUserId ? parseInt(configUserId) : null,
+                wsScheme: (window.location.protocol === 'https:' ? 'wss' : 'ws'),
+                host: window.location.host,
+                iceServers: [],
+                currentUserName: el.dataset.userName || '',
+                currentUserAvatar: el.dataset.userAvatar || '',
+                peerName: el.dataset.peerName || null,
+                peerAvatar: el.dataset.peerAvatar || null
+            };
+
+            if (window.OdnixCallConfig.chatId === null || window.OdnixCallConfig.userId === null) {
+                // Determine if we should throw or just log. For dashboard view, it might be null.
+                if (window.location.pathname.includes('/chat/')) {
+                     // Only strictly required inside a chat
+                     console.warn('[CallJS] chatId or userId is missing in config');
+                }
+            } else {
+                console.log('[CallJS] Config set successfully:', window.OdnixCallConfig);
+            }
+        } catch (e) {
+            console.error('[CallJS] Error setting config:', e);
+        }
+    })();
 </script>
 <script src="{% static 'js/call.js' %}?v={% now 'U' %}"
     onload="console.log('call.js loaded successfully'); if(!window.OdnixCall) console.error('ERROR: window.OdnixCall is undefined after script load. Check call.js for syntax errors.');"
     onerror="console.error('Failed to load call.js'); alert('Error loading call functionality. Check console.');"></script>
 <script>
+    // Global Helper: Handle Avatar Load Errors
+    function handleAvatarError(img, initials, className) {
+        if (!img) return;
+        // Prevent infinite loop
+        img.onerror = null;
+        
+        // Create placeholder
+        const div = document.createElement('div');
+        div.className = className + ' placeholder';
+        div.textContent = initials;
+        
+        // Replace image with placeholder
+        if (img.parentNode) {
+            img.parentNode.replaceChild(div, img);
+        }
+    }
+
     let sidebarSocket = null;
 
     function connectSidebarSocket() {
@@ -5652,6 +6497,211 @@
     connectSidebarSocket();
 </script>
 <script>
+    // AJAX Chat Loading Logic
+    function loadChat(newChatId) {
+        if (newChatId == chatId) return;
+        
+        // Show loading state
+        const messagesList = document.getElementById('messagesList');
+        if(messagesList) messagesList.style.opacity = '0.5';
+        
+        // Update URL
+        const newUrl = `/chat/${newChatId}/`;
+        history.pushState({chatId: newChatId}, '', newUrl);
+        
+        // Fetch new chat data
+        fetch(`/api/chat/${newChatId}/details/`)
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    updateChatUI(data);
+                } else {
+                    console.error('Failed to load chat:', data.error);
+                    alert('Failed to load chat');
+                }
+            })
+            .catch(err => {
+                console.error('Error loading chat:', err);
+                messagesList.style.opacity = '1'; 
+            });
+    }
+
+    function updateChatUI(data) {
+        // Update Globals
+        chatId = data.chat.id;
+        ACTIVE_CHAT_ID = data.chat.id;
+        // Update chat socket
+        if (chatSocket) {
+            chatSocket.close();
+            chatSocket = null;
+        }
+        
+        // Update Header
+        const headerUsername = document.querySelector('.od-chat-header .od-chat-username');
+        const headerStatus = document.querySelector('.od-chat-header .od-chat-status');
+        const headerAvatar = document.querySelector('.od-chat-header .od-chat-avatar');
+        const headerUserLink = document.querySelector('.od-chat-header .od-chat-user');
+        
+        if (headerUsername) headerUsername.textContent = data.chat.name;
+        
+        if (headerStatus) {
+            if (data.chat.is_group) {
+                headerStatus.textContent = `${data.chat.participant_count} members`;
+            } else if (data.chat.is_online) {
+                headerStatus.textContent = 'Active now';
+            } else if (data.chat.last_seen) {
+                headerStatus.textContent = 'Active recently'; // Simplification for now
+            } else {
+                headerStatus.textContent = '';
+            }
+        }
+        
+        if (headerAvatar) {
+            if (data.chat.avatar) {
+                 headerAvatar.outerHTML = `<img src="${data.chat.avatar}" alt="" class="od-chat-avatar" onerror="handleAvatarError(this, '${data.chat.initials}', 'od-chat-avatar')">`;
+            } else {
+                 headerAvatar.outerHTML = `<div class="od-chat-avatar placeholder">${data.chat.initials}</div>`;
+            }
+        }
+        
+        if (headerUserLink && !data.chat.is_group && data.messages.length > 0) {
+             // Try to find the other user's username from a message or use a placeholder/API
+             // Ideally the API should return the other user's username for the link
+             // For now, let's leave the link as is or disable it if we can't reliably resolve it without more data
+             // Actually, updateChatUI data.chat doesn't have other username directly unless we added it.
+             // "name" is usually the name.
+        }
+
+        // Render Messages
+        const messagesList = document.getElementById('messagesList');
+        if (messagesList) {
+            messagesList.innerHTML = data.messages.map(msg => renderMessageAPI(msg, data.current_user_id)).join('');
+            messagesList.style.opacity = '1';
+        }
+        
+        // Re-initialize socket
+        initMessaging();
+        
+        // Scroll to bottom
+        scrollToBottom();
+        
+        // Update Sidebar Active State
+        document.querySelectorAll('.od-direct-item').forEach(el => {
+            el.classList.remove('active');
+            if(el.getAttribute('href').includes(`/${chatId}/`)) {
+                el.classList.add('active');
+                // Remove badge
+                const badge = el.querySelector('.unread-badge');
+                if(badge) badge.style.display = 'none';
+            }
+        });
+        
+        // Close sidebar on mobile
+        const sidebar = document.querySelector('.od-sidebar'); 
+        if(window.innerWidth <= 768 && sidebar && sidebar.classList.contains('active')) {
+             sidebar.classList.remove('active');
+        }
+    }
+    
+    function renderMessageAPI(msg, currentUserId) {
+        const isOwn = msg.sender.id == currentUserId;
+        let contentHtml = '';
+        
+        if (msg.one_time) {
+            // View Once Logic
+            if (msg.consumed) {
+                // Opened state
+                contentHtml = `
+                <div class="od-viewonce-placeholder opened">
+                    <svg class="od-viewonce-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <path d="M12 6v6l4 2"></path>
+                    </svg>
+                    <span class="od-viewonce-text">Opened</span>
+                    <span class="od-viewonce-subtext">${msg.media_url ? 'Photo' : 'Message'}</span>
+                </div>`;
+            } else if (isOwn) {
+                // Sender pending state
+                contentHtml = `
+                <div class="od-viewonce-placeholder ${msg.media_url ? 'photo' : ''}">
+                    <svg class="od-viewonce-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <line x1="1" y1="1" x2="23" y2="23"></line>
+                    </svg>
+                    <span class="od-viewonce-text">View once ${msg.media_url ? 'photo' : 'message'}</span>
+                    <span class="od-viewonce-subtext">Waiting to be opened</span>
+                </div>`;
+            } else {
+                // Receiver viewable state
+                // Note: passing strings safely to JS function
+                const safeContent = (msg.content || '').replace(/'/g, "\\'"); 
+                contentHtml = `
+                <div class="od-viewonce-message" onclick="openViewOnceMessage('${msg.id}', '${msg.media_url || ''}', '${safeContent}', '${msg.media_url ? 'photo' : 'text'}')">
+                    <div class="od-viewonce-placeholder ${msg.media_url ? 'photo' : ''}">
+                        <svg class="od-viewonce-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                        <span class="od-viewonce-text">${msg.media_url ? 'Photo' : 'Message'}</span>
+                        <span class="od-viewonce-subtext">Tap to view</span>
+                    </div>
+                </div>`;
+            }
+        } else {
+            // Regular Message Logic
+            
+            // Media
+            if (msg.media_url) {
+                if (msg.media_type === 'image') {
+                    contentHtml += `<div class="od-message-media" onclick="openImageModal('${msg.media_url}')">
+                        <img src="${msg.media_url}" alt="Image">
+                    </div>`;
+                } else if (msg.media_type === 'video') {
+                    contentHtml += `<div class="od-message-media"><video src="${msg.media_url}" controls style="max-width: 100%; border-radius: 8px;"></video></div>`;
+                } else if (msg.media_type === 'audio') {
+                     contentHtml += `<div class="od-message-media audio" style="width: 200px; max-width: 100%;"><audio src="${msg.media_url}" controls style="width: 100%;"></audio></div>`;
+                } else {
+                     contentHtml += `<div class="od-message-media"><a href="${msg.media_url}" target="_blank" style="color: var(--color-primary);">Download file</a></div>`;
+                }
+            }
+            
+            // Text
+            if (msg.content) {
+                contentHtml += `<p class="od-message-text">${msg.content}</p>`;
+            }
+        }
+        
+        const avatarHtml = !isOwn ? getAvatarHTML({
+            username: msg.sender.username,
+            avatar_url: msg.sender.avatar,
+            name: msg.sender.name
+        }, 'od-message-avatar') : '';
+        
+        return `
+        <div class="od-message ${isOwn ? 'sent' : 'received'}" data-message-id="${msg.id}">
+            ${avatarHtml}
+            <div class="od-message-bubble">
+                ${msg.reply_to ? `<div class="od-reply-context"><span class="od-reply-context-name">${msg.reply_to.sender_name}</span><span class="od-reply-context-text">${msg.reply_to.content}</span></div>` : ''}
+                ${contentHtml}
+                <div class="od-message-meta">
+                    <span class="od-message-time">${msg.timestamp}</span>
+                    ${isOwn ? `<span class="od-read-receipt ${msg.is_read ? 'read' : ''}" data-message-id="${msg.id}"><span class="checkmark ${msg.is_read ? 'read' : 'delivered'}">L</span></span>` : ''}
+                </div>
+            </div>
+        </div>
+        `;
+    }
+    
+    // Handle Browser Back Button
+    window.addEventListener('popstate', function(event) {
+        if (event.state && event.state.chatId) {
+            loadChat(event.state.chatId);
+        } else {
+             location.reload(); 
+        }
+    });
+
     function updateSidebarUI(chatId, unreadCount, lastMessage) {
         const item = document.querySelector(
             `.od-direct-item[href$="/${chatId}/"]`
@@ -5711,7 +6761,7 @@
 
 </script>
 <script>
-    const ACTIVE_CHAT_ID = {{ active_chat_id|default:"null" }};
+    var ACTIVE_CHAT_ID = "{{ active_chat_id|default:'' }}";
 </script>
 
 
@@ -5721,17 +6771,17 @@
     style="display:none;position:absolute;z-index:9999;min-width:160px;background:#23243a;color:#fff;border-radius:8px;box-shadow:0 4px 24px rgba(0,0,0,0.25);padding:8px 0;">
     <button id="ctxAddToPrivate"
         style="width:100%;background:none;border:none;color:inherit;padding:10px 20px;text-align:left;display:flex;align-items:center;gap:8px;cursor:pointer;">
-        <i data-lucide="user-plus"></i>
+        <span class="od-icon"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg></span>
         <span id="ctxAddToPrivateText">Add to Private</span>
     </button>
     <button id="ctxMuteChat"
         style="width:100%;background:none;border:none;color:inherit;padding:10px 20px;text-align:left;display:flex;align-items:center;gap:8px;cursor:pointer;">
-        <i data-lucide="volume-x"></i>
+        <span class="od-icon"><svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg></span>
         <span>Mute Chat</span>
     </button>
     <button id="ctxDeleteChat"
         style="width:100%;background:none;border:none;color:#ff3b3b;padding:10px 20px;text-align:left;display:flex;align-items:center;gap:8px;cursor:pointer;">
-        <i data-lucide="trash-2"></i>
+        <span class="od-icon"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg></span>
         <span>Delete Chat</span>
     </button>
 </div>
