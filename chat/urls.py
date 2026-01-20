@@ -214,6 +214,7 @@ urlpatterns = [
 
     # Omzo
     path('omzo/', views.omzo_view, name='omzo'),
+    path('omzo/<int:omzo_id>/', views.view_omzo, name='view_omzo'),  # Single Omzo view for sharing
     path('api/omzo/upload/', views.upload_omzo, name='upload_omzo'),
     path('api/omzo/batch/', views.get_omzo_batch, name='get_omzo_batch'),
     path('api/omzo/like/', views.toggle_omzo_like, name='toggle_omzo_like'),

@@ -2394,6 +2394,99 @@ def omzo_view(request):
     })
 
 
+def view_omzo(request, omzo_id):
+    """
+    View a single Omzo - accessible without login for sharing (like Instagram).
+    Shows the Omzo in a proper UI with branding instead of just the raw video.
+    """
+    try:
+        omzo = get_object_or_404(Omzo, id=omzo_id)
+
+        # Get comments for this Omzo
+        comments = omzo.comments.select_related('user').order_by('-created_at')[:20]
+        comments_data = [{
+            'id': comment.id,
+            'username': comment.user.username,
+            'user_avatar': comment.user.profile_picture_url,
+            'content': comment.content,
+            'timestamp': comment.created_at,
+        } for comment in comments]
+
+        # For non-authenticated users, show a standalone Omzo detail page
+        omzo_data = {
+            'id': omzo.id,
+            'url': omzo.video_file.url,
+            'caption': omzo.caption,
+            'user': omzo.user,
+            'username': omzo.user.username,
+            'user_avatar': omzo.user.profile_picture_url,
+            'likes': omzo.like_count,
+            'comments_count': omzo.comment_count,
+            'views': omzo.views_count,
+            'timestamp': omzo.created_at,
+            'is_muted': omzo.is_muted,
+        }
+
+        # Get more Omzos from same user
+        more_from_user = Omzo.objects.filter(
+            user=omzo.user
+        ).exclude(id=omzo_id).order_by('-created_at')[:6]
+        
+        more_from_user_data = [{
+            'id': o.id,
+            'url': o.video_file.url,
+            'thumbnail': o.video_file.url,
+            'caption': o.caption[:50] if o.caption else '',
+            'likes': o.like_count,
+            'comments_count': o.comment_count,
+            'views': o.views_count,
+        } for o in more_from_user]
+
+        # Get suggested/explore Omzos (random popular ones)
+        explore_omzos = Omzo.objects.exclude(
+            id=omzo_id
+        ).exclude(
+            user=omzo.user
+        ).order_by('-views_count', '-created_at')[:12]
+        
+        explore_data = [{
+            'id': o.id,
+            'url': o.video_file.url,
+            'thumbnail': o.video_file.url,
+            'caption': o.caption[:50] if o.caption else '',
+            'username': o.user.username,
+            'likes': o.like_count,
+            'views': o.views_count,
+        } for o in explore_omzos]
+
+        # Check if authenticated safely
+        is_authenticated = False
+        try:
+            is_authenticated = request.user.is_authenticated
+        except:
+            is_authenticated = False
+
+        return render(request, 'chat/omzo_detail.html', {
+            'omzo': omzo_data,
+            'omzo_id': omzo_id,
+            'comments': comments_data,
+            'more_from_user': more_from_user_data,
+            'explore_omzos': explore_data,
+            'is_authenticated': is_authenticated,
+        })
+
+    except Omzo.DoesNotExist:
+        # Omzo not found - redirect to home
+        logger.error(f"Omzo {omzo_id} does not exist")
+        return redirect('/')
+    except Exception as e:
+        import traceback
+        logger.error(f"Error in view_omzo: {str(e)}")
+        logger.error(traceback.format_exc())
+        # On error, show a simple error page or redirect home
+        return redirect('/')
+
+
 @login_required
 def get_omzo_batch(request):
     """

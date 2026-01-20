@@ -65,7 +65,7 @@
     {% block extra_head %}{% endblock %}
 </head>
 
-<body class="{% if user.theme and user.theme != 'light' %}theme-{{ user.theme }}{% endif %}">
+<body class="{% if user.theme and user.theme != 'light' %}theme-{{ user.theme }}{% endif %} {% block body_class %}{% endblock %}">
     <!-- Toast Notifications Container -->
     <div id="od-toast-container"></div>
 

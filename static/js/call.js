@@ -296,73 +296,217 @@
         modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.95);display:none;z-index:10000;flex-direction:column;';
         modal.innerHTML = `
       <style>
-        .call-container { padding: 16px !important; display: flex; flex-direction: column; max-height: 100vh; min-height: 500px; box-sizing: border-box; }
-        .call-header { display: flex; gap: 12px; align-items: center; justify-content: space-between; padding-bottom: 12px; }
-        .video-container { flex: 1; position: relative; min-height: 350px; display: flex; align-items: center; justify-content: center; background: #000; border-radius: 12px; overflow: hidden;}
-        #remoteVideo { width: 100%; height: 100%; object-fit: contain; }
-        .controls-bar { display: flex; justify-content: center; padding-top: 16px; background: transparent; flex-shrink: 0; }
+        /* Base Full Screen Layout */
+        .call-container { 
+            width: 100% !important; 
+            height: 100% !important; 
+            max-width: none !important; 
+            border-radius: 0 !important; 
+            padding: 0 !important; 
+            margin: 0 !important; 
+            position: relative; 
+            background: #000; 
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Video Layer */
+        .video-container { 
+            position: absolute; 
+            inset: 0; 
+            width: 100%; 
+            height: 100%; 
+            z-index: 0; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #000;
+        }
         
+        #remoteVideo { 
+            width: 100%; 
+            height: 100%; 
+            object-fit: cover; 
+            display: block;
+        }
+        
+        /* Using object-fit: contain on very large screens to avoid too much cropping if preferred, 
+           but 'cover' is usually requested for 'full screen' feel. 
+           We'll stick to cover but ensure faces are centered if possible (default). */
+
+        /* Overlays */
+        .call-header { 
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            right: 0; 
+            z-index: 10; 
+            padding: 16px 20px; 
+            background: linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .controls-bar { 
+            position: absolute; 
+            bottom: 0; 
+            left: 0; 
+            right: 0; 
+            z-index: 20; 
+            padding: 40px 20px 50px; 
+            background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 100%);
+            display: flex; 
+            justify-content: center; 
+            align-items: flex-end;
+        }
+
+        /* Local Video (PIP) */
+        #localVideo, #localVideoPlaceholder { 
+            position: absolute; 
+            right: 20px; 
+            bottom: 120px; /* Above controls */
+            width: 110px; 
+            height: 160px; 
+            background: #1a1a1a; 
+            border-radius: 12px; 
+            object-fit: cover; 
+            border: 2px solid rgba(255,255,255,0.2); 
+            z-index: 15; 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            transition: all 0.3s ease;
+        }
+        
+        #localVideoPlaceholder {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        /* Placeholders */
+        .remote-placeholder {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            background: #111;
+        }
+        
+        /* Buttons */
+        .call-controls { display: flex; gap: 24px; align-items: center; }
+        .call-btn { 
+            width: 60px; 
+            height: 60px; 
+            border-radius: 50%; 
+            border: none; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            cursor: pointer; 
+            transition: all 0.2s ease; 
+            backdrop-filter: blur(5px);
+            background: rgba(255,255,255,0.15); /* Glassmorphism */
+            color: #fff;
+        }
+        .call-btn:hover { background: rgba(255,255,255,0.25); transform: scale(1.05); }
+        .call-btn:active { transform: scale(0.95); }
+        .call-btn svg { width: 28px; height: 28px; }
+        
+        .end-btn { 
+            background: #ef4444 !important; /* Always red */
+            width: 72px;
+            height: 60px;
+            border-radius: 24px;
+        }
+        .end-btn:hover { background: #dc2626 !important; }
+
+        /* Mobile specific adjustments */
         @media (max-width: 640px) {
-          #callModal { height: 100% !important; width: 100% !important; overflow: hidden !important; }
-          #callModal .call-container { padding: 0 !important; border-radius: 0 !important; height: 100% !important; width: 100vw !important; max-width: none !important; min-height: 100vh !important; }
-          #callModal .call-header { position: absolute !important; top: 0 !important; left: 0 !important; right: 0 !important; z-index: 50 !important; padding: 12px 16px !important; background: linear-gradient(rgba(0,0,0,0.8), transparent) !important; flex-shrink: 0 !important; pointer-events: none; }
-          #callModal .call-header * { pointer-events: auto; }
-          #callModal .call-controls { gap: 16px !important; justify-content: space-evenly !important; width: 100% !important; }
-          #callModal .call-btn { width: 60px !important; height: 60px !important; border-radius: 50% !important; padding: 0 !important; justify-content: center !important; backdrop-filter: blur(10px); }
-          #callModal .call-btn svg { width: 26px !important; height: 26px !important; }
-          #callModal .end-btn { width: 70px !important; height: 60px !important; border-radius: 30px !important; }
-          #callModal #localVideo, #callModal #localVideoPlaceholder { width: 100px !important; height: 134px !important; right: 16px !important; bottom: 130px !important; border-radius: 12px !important; border-width: 1.5px !important; }
-          #callModal .video-container { width: 100vw !important; height: 100vh !important; border-radius: 0 !important; margin: 0 !important; position: absolute !important; inset: 0 !important; z-index: 1 !important; }
-          #callModal #remoteVideo { object-fit: cover !important; }
-          #callModal .controls-bar { position: absolute !important; bottom: 0 !important; left: 0 !important; right: 0 !important; background: linear-gradient(transparent, rgba(0,0,0,0.95)) !important; padding: 40px 24px 48px !important; z-index: 20 !important; }
-          #callModal .remote-placeholder { width: 140px !important; height: 140px !important; font-size: 56px !important; }
-          #callModal .remote-placeholder-name { font-size: 22px !important; margin-top: 16px !important;}
-          #callModal .camera-off-label { font-size: 14px !important; margin-top: 8px !important; opacity: 0.8 !important;}
+            #localVideo, #localVideoPlaceholder {
+                width: 90px;
+                height: 130px;
+                right: 16px;
+                bottom: 110px;
+            }
+            .call-btn { width: 50px; height: 50px; }
+            .call-btn svg { width: 24px; height: 24px; }
+            .end-btn { width: 80px; height: 50px; }
+            .controls-bar { padding-bottom: 40px; }
+        }
+        
+        /* Desktop specific adjustments */
+        @media (min-width: 1024px) {
+             #localVideo, #localVideoPlaceholder {
+                width: 180px;
+                height: 240px;
+                right: 30px;
+                bottom: 140px;
+            }
         }
       </style>
-      <div class="call-container" style="background:#111;color:#fff;border-radius:12px;max-width:900px;width:95%;margin:auto;">
+      <div class="call-container">
         <div class="call-header">
-          <div style="display:flex;gap:8px;align-items:center;font-weight:600;font-size:16px;text-shadow:0 1px 3px rgba(0,0,0,0.5);">Odnix Call <span id="callModeLabel" style="opacity:.8;font-weight:400;margin-left:6px;font-size:14px;"></span></div>
+          <div style="display:flex;gap:10px;align-items:center;font-weight:600;font-size:18px;text-shadow:0 1px 3px rgba(0,0,0,0.8);">
+            <div style="width:10px;height:10px;background:#10b981;border-radius:50%;box-shadow:0 0 10px #10b981;"></div>
+            Odnix Call <span id="callModeLabel" style="opacity:.9;font-weight:400;margin-left:6px;font-size:14px;background:rgba(255,255,255,0.1);padding:2px 8px;border-radius:12px;">Connecting...</span>
+          </div>
+          <div>
+            <!-- Optional: Header actions like 'Minimize' could go here -->
+          </div>
         </div>
+        
         <div class="video-container">
+          <!-- Remote Video -->
           <video id="remoteVideo" playsinline autoplay></video>
-          <div id="remoteVideoPlaceholder" style="display:none;position:absolute;inset:0;background:#1a1a1a;flex-direction:column;align-items:center;justify-content:center;gap:16px;z-index:5;">
-            <div id="remotePlaceholderAvatar" class="remote-placeholder" style="width:160px;height:160px;border-radius:50%;background:#374151;display:flex;align-items:center;justify-content:center;font-size:64px;font-weight:600;color:#fff;overflow:hidden;"></div>
-            <div id="remotePlaceholderName" class="remote-placeholder-name" style="font-size:20px;font-weight:500;color:#fff;"></div>
-            <div class="camera-off-label" style="font-size:14px;color:#9ca3af;display:flex;align-items:center;gap:6px;">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M21 6.5l-4 4V7c0-.55-.45-1-1-1H9.82L21 17.18V6.5zM3.27 2L2 3.27 4.73 6H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.21 0 .39-.08.54-.18L19.73 21 21 19.73 3.27 2z"/></svg>
+          
+          <!-- Remote Placeholder (for audio calls or camera off) -->
+          <div id="remoteVideoPlaceholder" class="remote-placeholder">
+            <div id="remotePlaceholderAvatar" style="width:140px;height:140px;border-radius:50%;background:#374151;display:flex;align-items:center;justify-content:center;font-size:64px;font-weight:600;color:#fff;overflow:hidden;box-shadow:0 8px 30px rgba(0,0,0,0.5);margin-bottom:20px;"></div>
+            <div id="remotePlaceholderName" style="font-size:24px;font-weight:600;color:#fff;text-shadow:0 2px 4px rgba(0,0,0,0.5);"></div>
+            <div class="camera-off-label" style="font-size:16px;color:#d1d5db;display:flex;align-items:center;gap:8px;margin-top:10px;background:rgba(0,0,0,0.5);padding:6px 12px;border-radius:20px;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M21 6.5l-4 4V7c0-.55-.45-1-1-1H9.82L21 17.18V6.5zM3.27 2L2 3.27 4.73 6H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.21 0 .39-.08.54-.18L19.73 21 21 19.73 3.27 2z"/></svg>
               Camera off
             </div>
           </div>
-          <video id="localVideo" playsinline autoplay muted style="position:absolute;right:16px;bottom:16px;width:140px;height:180px;background:#1a1a1a;border-radius:12px;object-fit:cover;border:2px solid rgba(255,255,255,.2);z-index:10;"></video>
-          <div id="localVideoPlaceholder" style="display:none;position:absolute;right:16px;bottom:16px;width:140px;height:180px;background:#1a1a1a;border-radius:12px;border:2px solid rgba(255,255,255,.2);z-index:10;flex-direction:column;align-items:center;justify-content:center;gap:8px;">
-            <div id="localPlaceholderAvatar" style="width:50px;height:50px;border-radius:50%;background:#374151;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:600;color:#fff;overflow:hidden;"></div>
-            <div id="localPlaceholderName" style="font-size:10px;color:#9ca3af;">Camera off</div>
+          
+          <!-- Local Video (PIP) -->
+          <video id="localVideo" playsinline autoplay muted></video>
+          <div id="localVideoPlaceholder">
+             <div id="localPlaceholderAvatar" style="width:40px;height:40px;border-radius:50%;background:#374151;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:600;color:#fff;overflow:hidden;"></div>
+             <div id="localPlaceholderName" style="font-size:10px;color:#9ca3af;">Camera off</div>
           </div>
         </div>
+
         <div class="controls-bar">
-          <div class="call-controls" style="display:flex;gap:16px;align-items:center;">
-            <button id="muteBtn" class="call-btn" title="Toggle Microphone" style="background:#374151;color:#fff;border:none;border-radius:12px;padding:14px 18px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;transition:all .2s ease;">
-              <svg id="muteIcon" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+          <div class="call-controls">
+            <button id="muteBtn" class="call-btn" title="Toggle Microphone">
+              <svg id="muteIcon" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.91-3c-.49 0-.9.36-.98.85C16.52 14.2 14.47 16 12 16s-4.52-1.8-4.93-4.15c-.08-.49-.49-.85-.98-.85-.61 0-1.09.54-1 1.14.49 3 2.89 5.35 5.91 5.78V20c0 .55.45 1 1 1s1-.45 1-1v-2.08c3.02-.43 5.42-2.78 5.91-5.78.1-.6-.39-1.14-1-1.14z"/>
               </svg>
-              <svg id="muteIconOff" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" style="display:none;">
+              <svg id="muteIconOff" viewBox="0 0 24 24" fill="currentColor" style="display:none;">
                 <path d="M19 11h-1.7c0 .74-.16 1.43-.43 2.05l1.23 1.23c.56-.98.9-2.09.9-3.28zm-4.02.17c0-.06.02-.11.02-.17V5c0-1.66-1.34-3-3-3S9 3.34 9 5v.18l5.98 5.99zM4.27 3L3 4.27l6.01 6.01V11c0 1.66 1.33 3 2.99 3 .22 0 .44-.03.65-.08l1.66 1.66c-.71.33-1.5.52-2.31.52-2.76 0-5.3-2.1-5.3-5.1H5c0 3.41 2.72 6.23 6 6.72V20c0 .55.45 1 1 1s1-.45 1-1v-2.28c.91-.13 1.77-.45 2.54-.9L19.73 21 21 19.73 4.27 3z"/>
               </svg>
             </button>
-            <button id="cameraBtn" class="call-btn" title="Toggle Camera" style="background:#374151;color:#fff;border:none;border-radius:12px;padding:14px 18px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;transition:all .2s ease;">
-              <svg id="cameraIcon" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/>
-              </svg>
-              <svg id="cameraIconOff" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" style="display:none;">
-                <path d="M21 6.5l-4 4V7c0-.55-.45-1-1-1H9.82L21 17.18V6.5zM3.27 2L2 3.27 4.73 6H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.21 0 .39-.08.54-.18L19.73 21 21 19.73 3.27 2z"/>
-              </svg>
-            </button>
-            <button id="endCallBtn" class="call-btn end-btn" style="background:#ef4444;color:#fff;border:none;border-radius:12px;padding:14px 24px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .2s ease;">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+            
+            <button id="endCallBtn" class="call-btn end-btn" title="End Call">
+              <svg viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 9c-1.6 0-3.15.25-4.6.72v3.1c0 .39-.23.74-.56.9-.98.49-1.87 1.12-2.66 1.85-.18.18-.43.28-.7.28-.28 0-.53-.11-.71-.29L.29 13.08c-.18-.17-.29-.42-.29-.7 0-.28.11-.53.29-.71C3.34 8.78 7.46 7 12 7s8.66 1.78 11.71 4.67c.18.18.29.43.29.71 0 .28-.11.53-.29.71l-2.48 2.48c-.18.18-.43.29-.71.29-.27 0-.52-.11-.7-.28-.79-.74-1.68-1.36-2.66-1.85-.33-.16-.56-.5-.56-.9v-3.1C15.15 9.25 13.6 9 12 9z"/>
               </svg>
-              End
+            </button>
+            
+            <button id="cameraBtn" class="call-btn" title="Toggle Camera">
+              <svg id="cameraIcon" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/>
+              </svg>
+              <svg id="cameraIconOff" viewBox="0 0 24 24" fill="currentColor" style="display:none;">
+                <path d="M21 6.5l-4 4V7c0-.55-.45-1-1-1H9.82L21 17.18V6.5zM3.27 2L2 3.27 4.73 6H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.21 0 .39-.08.54-.18L19.73 21 21 19.73 3.27 2z"/>
+              </svg>
             </button>
           </div>
         </div>
@@ -1463,15 +1607,24 @@
     }
 
     async function endCall() {
-        // Send termination signal
+        // Send termination signal via multiple channels to ensure delivery
+        console.log('[CallJS] Ending call - sending termination signals');
+        
         try {
+            // 1. Try WebSocket
             send('webrtc.end', {});
-        } catch (e) {
-            console.error('Failed to send end signal via WS', e);
-            // Fallback to HTTP if WS fails, just in case
+            
+            // 2. Also force a server relay backup for reliability
+            // This ensures that even if WS is in a weird state, the end signal gets through
             sendViaServerRelay('webrtc.end', {});
+        } catch (e) {
+            console.error('Failed to send end signals', e);
         }
-        teardown('Call ended');
+        
+        // Give a small moment for network requests to initiate before tearing down local state
+        setTimeout(() => {
+            teardown('Call ended');
+        }, 200);
     }
 
     function teardown(_reason) {

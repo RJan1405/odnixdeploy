@@ -1,10 +1,10 @@
-<!-- Send To Modal -->
+<!-- Send To Modal with Copy Link and More options -->
 <div id="sendToModal" class="od-modal-overlay" style="display: none; z-index: 10005;" onclick="closeSendToModal(event)">
     <div class="od-modal" style="width: 100%; max-width: 400px; height: 80vh; max-height: 600px; border-radius: 16px; background: var(--od-bg); display: flex; flex-direction: column;" onclick="event.stopPropagation()">
         
         <!-- Header -->
         <header class="od-modal-header" style="padding: 16px; border-bottom: 1px solid var(--od-border); display: flex; align-items: center; justify-content: space-between;">
-            <h3 style="margin: 0; font-size: 16px; font-weight: 600;">Send to</h3>
+            <h3 style="margin: 0; font-size: 16px; font-weight: 600; color: var(--od-text-primary);">Send to</h3>
             <button onclick="closeSendToModal()" style="background: none; border: none; cursor: pointer; color: var(--od-text-primary);">
                 <span class="od-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
             </button>
@@ -34,8 +34,28 @@
             </div>
         </div>
 
-        <!-- Footer -->
+        <!-- Footer with Copy Link, More, and Send buttons -->
         <div style="padding: 16px; border-top: 1px solid var(--od-border);">
+            <!-- Quick Actions Row -->
+            <div style="display: flex; justify-content: center; gap: 24px; margin-bottom: 12px;">
+                <!-- Copy Link -->
+                <button onclick="copyShareLink()" style="background: none; border: none; display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; color: var(--od-text-primary);">
+                    <div style="width: 48px; height: 48px; border-radius: 50%; background: var(--od-surface); display: flex; align-items: center; justify-content: center; border: 1px solid var(--od-border);">
+                        <span class="od-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></span>
+                    </div>
+                    <span style="font-size: 11px; font-weight: 500;">Copy Link</span>
+                </button>
+
+                <!-- More / System Share -->
+                <button onclick="systemShare()" style="background: none; border: none; display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; color: var(--od-text-primary);">
+                    <div style="width: 48px; height: 48px; border-radius: 50%; background: var(--od-surface); display: flex; align-items: center; justify-content: center; border: 1px solid var(--od-border);">
+                        <span class="od-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg></span>
+                    </div>
+                    <span style="font-size: 11px; font-weight: 500;">More</span>
+                </button>
+            </div>
+            
+            <!-- Send Button -->
             <button id="sendShareBtn" onclick="sendShareToSelected()" disabled 
                     style="width: 100%; background: var(--color-primary); color: white; border: none; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer; opacity: 0.5;">
                 Send
@@ -81,6 +101,26 @@
         margin: 16px 0 8px;
         text-transform: uppercase;
         letter-spacing: 0.5px;
+    }
+    
+    /* Custom scrollbar for user list */
+    #sendToUserList {
+        scrollbar-width: thin;
+        scrollbar-color: var(--od-border) transparent;
+    }
+    #sendToUserList::-webkit-scrollbar {
+        width: 6px;
+    }
+    #sendToUserList::-webkit-scrollbar-track {
+        background: transparent;
+        border-radius: 3px;
+    }
+    #sendToUserList::-webkit-scrollbar-thumb {
+        background: var(--od-border);
+        border-radius: 3px;
+    }
+    #sendToUserList::-webkit-scrollbar-thumb:hover {
+        background: var(--od-text-secondary);
     }
 </style>
 
@@ -136,10 +176,6 @@
             listContainer.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--od-text-secondary);">No users found</div>';
             return;
         }
-
-        // Group by status/priority if needed, but the API already sorts nicely
-        // Let's simpler render linear list but maybe add section headers if priority changes?
-        // Actually for simplicity, just render list with status badges
         
         users.forEach(user => {
             const isSelected = selectedShareUsers.has(user.id);
@@ -153,9 +189,9 @@
             }
 
             item.innerHTML = `
-                <img src="${user.avatar_url}" style="width: 44px; height: 44px; border-radius: 50%; object-fit: cover; margin-right: 12px;">
+                <img src="${user.avatar_url}" style="width: 44px; height: 44px; border-radius: 22%; object-fit: cover; margin-right: 12px;">
                 <div style="flex: 1;">
-                    <div style="font-weight: 600; font-size: 14px; display: flex; align-items: center;">
+                    <div style="font-weight: 600; font-size: 14px; display: flex; align-items: center; color: var(--od-text-primary);">
                         ${user.username}
                         ${user.is_verified ? '<span class="od-verified-badge" style="width: 12px; height: 12px; margin-left: 4px;"></span>' : ''}
                     </div>
@@ -189,6 +225,51 @@
         btn.textContent = count > 0 ? `Send (${count})` : 'Send';
     }
 
+    // Get the share URL based on current content type
+    function getShareUrl() {
+        if (!currentShareId) return window.location.href;
+        
+        if (currentShareType === 'omzo') {
+            return window.location.origin + '/omzo/' + currentShareId + '/';
+        } else if (currentShareType === 'story') {
+            return window.location.origin + '/story/' + currentShareId + '/';
+        } else {
+            // Default to scribe/post
+            return window.location.origin + '/post/' + currentShareId + '/';
+        }
+    }
+
+    // Copy link to clipboard
+    function copyShareLink() {
+        const url = getShareUrl();
+        navigator.clipboard.writeText(url).then(() => {
+            if (typeof showIGToast === 'function') {
+                showIGToast('Link copied to clipboard', 'success');
+            } else if (typeof showOmzoToast === 'function') {
+                showOmzoToast('Copied!', 'Link copied to clipboard', 'success');
+            } else if (typeof showGlobalToast === 'function') {
+                showGlobalToast('Link copied to clipboard', 'success');
+            }
+            closeSendToModal();
+        });
+    }
+
+    // System share (or fallback to copy)
+    function systemShare() {
+        const url = getShareUrl();
+        if (navigator.share) {
+            navigator.share({
+                title: 'Check this out on Odnix',
+                url: url
+            }).catch(console.error);
+        } else {
+            // Fallback to copy
+            copyShareLink();
+            return; // copyShareLink already closes modal
+        }
+        closeSendToModal();
+    }
+
     async function sendShareToSelected() {
         if (selectedShareUsers.size === 0) return;
         
@@ -203,12 +284,12 @@
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRFToken': getCSRFToken() // Assumes global function exists
+                    'X-CSRFToken': getCSRFToken()
                 },
                 body: JSON.stringify({
                     recipient_ids: Array.from(selectedShareUsers),
-                    content_type: currentShareType, // Assumes global var from parent
-                    content_id: currentShareId,     // Assumes global var from parent
+                    content_type: currentShareType,
+                    content_id: currentShareId,
                     message: message
                 })
             });
@@ -216,14 +297,14 @@
             const data = await response.json();
             
             if (data.success) {
-                // Show toast
                 if (typeof showIGToast === 'function') {
                     showIGToast('Sent successfully', 'success');
+                } else if (typeof showOmzoToast === 'function') {
+                    showOmzoToast('Sent!', 'Sent successfully', 'success');
                 } else if (typeof showGlobalToast === 'function') {
                     showGlobalToast('Sent successfully', 'success');
                 }
                 closeSendToModal();
-                closeShareModal(); // Close parent modal too
             } else {
                 throw new Error(data.error || 'Failed to send');
             }

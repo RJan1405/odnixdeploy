@@ -30,7 +30,7 @@ from .social import (
     global_search,
     get_profile_followers, get_profile_following,
     toggle_save_post, delete_post, report_post, get_saved_posts, copy_post_link,
-    view_post, omzo_view, get_omzo_batch, upload_omzo, toggle_omzo_like, toggle_omzo_dislike, add_omzo_comment, get_omzo_comments,
+    view_post, view_omzo, omzo_view, get_omzo_batch, upload_omzo, toggle_omzo_like, toggle_omzo_dislike, add_omzo_comment, get_omzo_comments,
     track_omzo_view, report_omzo, toggle_private_chat
 )
 from .stories import (

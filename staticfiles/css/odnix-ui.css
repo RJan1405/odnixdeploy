@@ -5329,7 +5329,7 @@ body.story-viewer-open {
 
 .od-message.sent .od-message-menu {
   right: 10px;
-  left: 0px;
+  left: auto;
 }
 
 .od-message-menu button {

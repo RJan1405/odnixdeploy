@@ -1964,7 +1964,7 @@ async function saveThemeToServer(theme) {
         console.log('Response data:', data);
         
         if (data.success) {
-            showToast(`Theme changed to ${themeNames[theme]}`, 'success');
+            // Theme saved silently - the visual change is feedback enough
         } else {
             showToast('Failed to save theme preference: ' + (data.error || 'Unknown error'), 'error');
             console.error('Theme save failed:', data.error);

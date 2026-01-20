@@ -513,8 +513,31 @@
     .omzo-comments-list {
         flex: 1;
         overflow-y: auto;
+        overflow-x: hidden; /* Force hide horizontal scrollbar */
         padding: 16px 20px;
         min-height: 200px;
+        scrollbar-width: thin;
+        scrollbar-color: #363636 transparent;
+        box-sizing: border-box;
+    }
+
+    /* Custom Scrollbar */
+    .omzo-comments-list::-webkit-scrollbar {
+        width: 6px;
+    }
+    .omzo-comments-list::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    .omzo-comments-list::-webkit-scrollbar-thumb {
+        background: #363636;
+        border-radius: 10px;
+    }
+    .omzo-comments-list::-webkit-scrollbar-thumb:hover {
+        background: #555;
+    }
+    
+    .omzo-comments-container * {
+        box-sizing: border-box;
     }
 
     .omzo-comment-item {
@@ -533,6 +556,7 @@
 
     .omzo-comment-content {
         flex: 1;
+        min-width: 0; /* Critical for text wrapping in flex container */
     }
 
     .omzo-comment-username {
@@ -540,12 +564,34 @@
         font-weight: 600;
         font-size: 14px;
         margin-bottom: 2px;
+        word-break: break-word; /* Prevent username from causing scroll */
     }
 
     .omzo-comment-text {
         color: rgba(255, 255, 255, 0.9);
         font-size: 14px;
         line-height: 1.4;
+        width: 100%;
+        max-width: 100%;
+        word-break: break-all; /* Aggressive breaking for long strings */
+        overflow-wrap: break-word;
+        /* white-space: pre-wrap; */
+    }
+
+    .omzo-comment-more-btn {
+        background: none;
+        border: none;
+        color: rgba(255, 255, 255, 0.5);
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        padding: 0;
+        margin-left: 4px;
+    }
+
+    .omzo-comment-more-btn:hover {
+        color: white;
+        text-decoration: underline;
     }
 
     .omzo-comment-time {
@@ -1052,9 +1098,9 @@
                     <span class="od-icon">{% icon "repeat" %}</span>
                     <span>Repost</span>
                 </button>
-                <button class="action-btn" onclick="shareOmzo('{{ omzo.url }}')" title="Share">
-                    <span class="od-icon"><svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></span>
-                    <span>Share</span>
+                <button class="action-btn" onclick="shareOmzo('{{ omzo.id }}')" title="Send">
+                    <span class="od-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg></span>
+                    <span>Send</span>
                 </button>
                 <button class="action-btn" onclick="openReportModal('{{ omzo.id }}')" title="More">
                     <span class="od-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg></span>
@@ -1836,9 +1882,9 @@
                             <span class="od-icon"><svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></span>
                             <span class="comment-count" data-omzo-id="${omzo.id}">${omzo.comments_count}</span>
                         </button>
-                        <button class="action-btn" onclick="shareOmzo('${omzo.url}')" title="Share">
-                            <span class="od-icon"><svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></span>
-                            <span>Share</span>
+                        <button class="action-btn" onclick="shareOmzo(${omzo.id})" title="Send">
+                            <span class="od-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg></span>
+                            <span>Send</span>
                         </button>
                         <button class="action-btn" onclick="openReportModal(${omzo.id})" title="More">
                             <span class="od-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg></span>
@@ -2365,16 +2411,63 @@
             return;
         }
 
-        list.innerHTML = comments.map(c => `
+        list.innerHTML = comments.map(c => {
+            // Truncation logic
+            const maxLength = 120;
+            let contentHtml = '';
+            
+            if (c.content.length > maxLength) {
+                const truncated = c.content.substring(0, maxLength);
+                // Safe way to handle the content switching
+                contentHtml = `
+                    <span class="comment-short">${escapeHtml(truncated)}...</span>
+                    <span class="comment-full" style="display:none;">${escapeHtml(c.content)}</span>
+                    <button class="omzo-comment-more-btn" onclick="toggleOmzoComment(this)">more</button>
+                `;
+            } else {
+                contentHtml = escapeHtml(c.content);
+            }
+
+            return `
             <div class="omzo-comment-item">
                 <img src="${c.user.avatar || 'https://ui-avatars.com/api/?name=' + c.user.username}" class="omzo-comment-avatar">
                 <div class="omzo-comment-content">
                     <div class="omzo-comment-username">${c.user.username}</div>
-                    <div class="omzo-comment-text">${c.content}</div>
+                    <div class="omzo-comment-text">${contentHtml}</div>
                     <div class="omzo-comment-time">${c.time_ago || ''}</div>
                 </div>
             </div>
-        `).join('');
+            `;
+        }).join('');
+    }
+
+    function toggleOmzoComment(btn) {
+        const container = btn.parentElement;
+        const shortText = container.querySelector('.comment-short');
+        const fullText = container.querySelector('.comment-full');
+        
+        if (shortText.style.display !== 'none') {
+            // Expand
+            shortText.style.display = 'none';
+            fullText.style.display = 'inline'; // use inline or block depending on needs, but text is usually inline flow
+            btn.textContent = 'less';
+        } else {
+            // Collapse
+            shortText.style.display = 'inline';
+            fullText.style.display = 'none';
+            btn.textContent = 'more';
+        }
+    }
+
+    // Helper to prevent XSS when manually building HTML
+    function escapeHtml(text) {
+        if (!text) return '';
+        return text
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
     }
 
     function closeOmzoComments(event) {
@@ -2573,22 +2666,39 @@
     }
 
     // ===== Share Functionality =====
-    function shareOmzo(url) {
-        const fullUrl = window.location.origin + url;
+    let currentShareId = null;
+    let currentShareType = 'omzo';
 
+    function shareOmzo(omzoId) {
+        currentShareId = omzoId;
+        currentShareType = 'omzo';
+        openSendToModal();
+    }
+
+    function copyOmzoLink() {
+        if (!currentShareId) return;
+        const url = window.location.origin + '/omzo/' + currentShareId + '/';
+        navigator.clipboard.writeText(url).then(() => {
+            showOmzoToast('Copied!', 'Link copied to clipboard', 'success');
+        });
+        closeSendToModal();
+    }
+
+    function systemShareOmzo() {
+        if (!currentShareId) return;
+        const url = window.location.origin + '/omzo/' + currentShareId + '/';
         if (navigator.share) {
             navigator.share({
-                title: 'Check out this omzo on Odnix',
-                url: fullUrl
+                title: 'Check out this Omzo on Odnix',
+                url: url
             }).catch(console.error);
         } else {
-            navigator.clipboard.writeText(fullUrl).then(() => {
-                showOmzoToast('Link Copied', 'Omzo link copied to clipboard!', 'success');
-            }).catch(err => {
-                console.error('Failed to copy: ', err);
-                showOmzoToast('Error', 'Failed to copy link.', 'error');
+            // Fallback to copy
+            navigator.clipboard.writeText(url).then(() => {
+                showOmzoToast('Copied!', 'Link copied to clipboard', 'success');
             });
         }
+        closeSendToModal();
     }
 
 
@@ -2805,4 +2915,6 @@
     });
 
 </script>
+
+{% include 'chat/partials/share_send_modal.html' %}
 {% endblock %}

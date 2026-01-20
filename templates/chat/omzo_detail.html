@@ -1,0 +1,1211 @@
+{% load static %}
+{% load odnix_icons %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>{{ omzo.username }} on Odnix</title>
+    
+    <!-- Open Graph / Social Media Meta Tags -->
+    <meta property="og:title" content="{{ omzo.username }} on Odnix">
+    <meta property="og:description" content="{% if omzo.caption %}{{ omzo.caption|truncatechars:150 }}{% else %}Watch this Omzo on Odnix{% endif %}">
+    <meta property="og:type" content="video.other">
+    <meta property="og:url" content="{{ request.build_absolute_uri }}">
+    <meta property="og:video" content="{{ request.scheme }}://{{ request.get_host }}{{ omzo.url }}">
+    <meta property="og:video:type" content="video/mp4">
+    <meta property="og:site_name" content="Odnix">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="player">
+    <meta name="twitter:title" content="{{ omzo.username }} on Odnix">
+    <meta name="twitter:description" content="{% if omzo.caption %}{{ omzo.caption|truncatechars:150 }}{% else %}Watch this Omzo on Odnix{% endif %}">
+    
+    <link rel="icon" type="image/png" href="{% static 'img/logo.png' %}">
+    
+    <style>
+        :root {
+            --odnix-primary: #667eea;
+            --odnix-secondary: #764ba2;
+            --odnix-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --od-bg: #0a0a0f;
+            --od-surface: #16161d;
+            --od-surface-hover: rgba(255, 255, 255, 0.05);
+            --od-text-primary: #ffffff;
+            --od-text-secondary: rgba(255, 255, 255, 0.6);
+            --od-border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: var(--od-bg);
+            color: var(--od-text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Navbar */
+        .omzo-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: rgba(10, 10, 15, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--od-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            z-index: 1000;
+        }
+
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: var(--od-text-primary);
+        }
+
+        .nav-brand img {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+        }
+
+        .nav-brand span {
+            font-size: 22px;
+            font-weight: 800;
+            background: var(--odnix-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn-login, .btn-signup {
+            padding: 10px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+
+        .btn-login {
+            color: var(--od-text-primary);
+            background: transparent;
+            border: 1px solid var(--od-border);
+        }
+
+        .btn-login:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .btn-signup {
+            color: white;
+            background: var(--odnix-gradient);
+            border: none;
+        }
+
+        .btn-signup:hover {
+            opacity: 0.9;
+        }
+
+        /* Main Layout - Post Detail Modal Style */
+        .omzo-page {
+            min-height: calc(100vh - 60px);
+            padding: 100px 20px 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            background: var(--od-bg);
+            width: 100%;
+        }
+
+        .omzo-detail-wrapper {
+            display: flex;
+            background: var(--od-surface);
+            border-radius: 12px;
+            overflow: hidden;
+            max-width: 1100px;
+            max-height: 85vh;
+            width: 100%;
+            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.5);
+            animation: modalSlideIn 0.3s ease;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        /* Video Section - Large like post detail */
+        .omzo-video-section {
+            flex: 1;
+            max-width: 700px;
+            min-width: 400px;
+            background: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .omzo-video {
+            width: 100%;
+            height: 100%;
+            max-height: 90vh;
+            object-fit: contain;
+            cursor: pointer;
+        }
+
+        .video-play-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.4);
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .video-play-overlay.show {
+            opacity: 1;
+        }
+
+        .play-icon {
+            width: 80px;
+            height: 80px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s;
+        }
+
+        .play-icon:hover {
+            transform: scale(1.1);
+        }
+
+        .play-icon svg {
+            width: 32px;
+            height: 32px;
+            fill: var(--odnix-primary);
+            margin-left: 4px;
+        }
+
+        .sound-toggle {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            width: 44px;
+            height: 44px;
+            background: rgba(0, 0, 0, 0.7);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            transition: background 0.2s;
+        }
+
+        .sound-toggle:hover {
+            background: rgba(0, 0, 0, 0.9);
+        }
+
+        .sound-toggle svg {
+            width: 22px;
+            height: 22px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+        }
+
+        /* Sidebar - Like Instagram/Post Detail */
+        .omzo-sidebar {
+            width: 400px;
+            display: flex;
+            flex-direction: column;
+            border-left: 1px solid var(--od-border);
+            background: var(--od-surface);
+            max-height: 90vh;
+        }
+
+        /* Header */
+        .omzo-header {
+            display: flex;
+            align-items: center;
+            padding: 16px;
+            border-bottom: 1px solid var(--od-border);
+            gap: 12px;
+        }
+
+        .omzo-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid transparent;
+            background: linear-gradient(var(--od-surface), var(--od-surface)) padding-box,
+                        var(--odnix-gradient) border-box;
+        }
+
+        .omzo-user-info {
+            flex: 1;
+        }
+
+        .omzo-username {
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--od-text-primary);
+        }
+
+        .omzo-time {
+            font-size: 12px;
+            color: var(--od-text-secondary);
+            margin-top: 2px;
+        }
+
+        /* Content area with caption */
+        .omzo-content {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 16px;
+            scrollbar-width: thin;
+            scrollbar-color: #363636 transparent;
+        }
+
+        /* Custom Scrollbar */
+        .omzo-content::-webkit-scrollbar {
+            width: 6px;
+        }
+        .omzo-content::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .omzo-content::-webkit-scrollbar-thumb {
+            background: #363636;
+            border-radius: 10px;
+        }
+        .omzo-content::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+        .omzo-caption-section {
+            display: flex;
+            gap: 12px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--od-border);
+        }
+
+        .omzo-caption-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+
+        .omzo-caption-content {
+            flex: 1;
+            min-width: 0; /* Fix flex overflow */
+        }
+
+        .omzo-caption-username {
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--od-text-primary);
+            margin-right: 8px;
+        }
+
+        .omzo-caption-text {
+            font-size: 14px;
+            color: var(--od-text-primary);
+            line-height: 1.5;
+            word-break: break-word;
+            overflow-wrap: anywhere;
+        }
+
+        .omzo-caption-time {
+            font-size: 12px;
+            color: var(--od-text-secondary);
+            margin-top: 8px;
+        }
+
+        /* Comments section */
+        .omzo-comments-list {
+            padding-top: 16px;
+        }
+
+        .omzo-comment {
+            display: flex;
+            gap: 12px;
+            padding: 12px 0;
+        }
+
+        .omzo-comment-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+
+        .omzo-comment-content {
+            flex: 1;
+            min-width: 0; /* Important for text wrapping */
+        }
+
+        .omzo-comment-username {
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--od-text-primary);
+            margin-right: 6px;
+        }
+
+        .omzo-comment-more-btn {
+            background: none;
+            border: none;
+            color: var(--od-text-secondary);
+            cursor: pointer;
+            padding: 0;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 4px;
+            vertical-align: baseline;
+            display: inline-block;
+        }
+
+        .omzo-comment-more-btn:hover {
+            color: var(--od-text-primary);
+            text-decoration: underline;
+        }
+
+        .omzo-comment-text {
+            font-size: 14px;
+            color: var(--od-text-primary);
+            line-height: 1.4;
+            width: 100%;
+            max-width: 100%;
+            word-break: break-all;
+            overflow-wrap: anywhere;
+            /* white-space: pre-wrap; */
+        }
+
+        .omzo-comment-meta {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 6px;
+        }
+
+        .omzo-comment-time {
+            font-size: 12px;
+            color: var(--od-text-secondary);
+        }
+
+        .omzo-comment-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .omzo-comment-action {
+            font-size: 12px;
+            color: var(--od-text-secondary);
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 0;
+        }
+
+        .omzo-comment-action:hover {
+            color: var(--od-text-primary);
+        }
+
+        .omzo-no-comments {
+            padding: 30px 16px;
+            text-align: center;
+            color: var(--od-text-secondary);
+            font-size: 14px;
+        }
+
+        /* Actions bar */
+        .omzo-actions {
+            padding: 12px 16px;
+            border-top: 1px solid var(--od-border);
+            display: flex;
+            gap: 16px;
+        }
+
+        .omzo-action-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 50%;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .omzo-action-btn:hover {
+            background: var(--od-surface-hover);
+        }
+
+        .omzo-action-btn svg {
+            width: 26px;
+            height: 26px;
+            stroke: var(--od-text-primary);
+            fill: none;
+            stroke-width: 1.8;
+        }
+
+        /* Stats info */
+        .omzo-stats-info {
+            padding: 0 16px 12px;
+        }
+
+        .omzo-likes {
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--od-text-primary);
+            margin-bottom: 4px;
+        }
+
+        .omzo-timestamp {
+            font-size: 11px;
+            color: var(--od-text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        /* Login prompt - Instagram style */
+        .omzo-login-prompt {
+            padding: 16px;
+            border-top: 1px solid var(--od-border);
+            font-size: 14px;
+            color: var(--od-text-secondary);
+            cursor: pointer;
+        }
+
+        .omzo-login-prompt a {
+            color: var(--odnix-primary);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .omzo-login-prompt a:hover {
+            text-decoration: underline;
+        }
+
+        /* Powered by badge */
+        .powered-badge {
+            padding: 12px 16px;
+            border-top: 1px solid var(--od-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 12px;
+            color: var(--od-text-secondary);
+        }
+
+        .powered-badge img {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+        }
+
+        /* More Posts Section */
+        .more-posts-section {
+            width: 100%;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 40px 20px 60px;
+        }
+
+        .more-posts-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--od-border);
+        }
+
+        .more-posts-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--od-text-primary);
+        }
+
+        .more-posts-username {
+            color: var(--odnix-primary);
+        }
+
+        .more-posts-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 4px;
+        }
+
+        .more-post-item {
+            position: relative;
+            aspect-ratio: 9/16;
+            background: #000;
+            border-radius: 4px;
+            overflow: hidden;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .more-post-item video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .more-post-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .more-post-item:hover .more-post-overlay {
+            opacity: 1;
+        }
+
+        .more-post-stat {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .more-post-stat svg {
+            width: 20px;
+            height: 20px;
+            fill: white;
+        }
+
+        .more-post-play {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .more-post-item:hover .more-post-play {
+            opacity: 1;
+        }
+
+        .more-post-play svg {
+            width: 20px;
+            height: 20px;
+            fill: var(--odnix-primary);
+            margin-left: 3px;
+        }
+
+        .more-post-views {
+            position: absolute;
+            bottom: 8px;
+            left: 8px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 12px;
+            color: white;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+        }
+
+        .more-post-views svg {
+            width: 14px;
+            height: 14px;
+            fill: white;
+        }
+
+        /* Tablet Responsive */
+        @media (max-width: 1024px) {
+            .omzo-page {
+                padding: 80px 16px 30px;
+            }
+
+            .omzo-detail-wrapper {
+                max-width: 100%;
+            }
+
+            .omzo-video-section {
+                min-width: 350px;
+            }
+
+            .omzo-sidebar {
+                width: 350px;
+            }
+
+            .more-posts-section {
+                padding: 30px 16px 40px;
+            }
+
+            .more-posts-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 3px;
+            }
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 900px) {
+            .omzo-page {
+                padding: 70px 0 20px;
+            }
+
+            .omzo-detail-wrapper {
+                flex-direction: column;
+                max-height: none;
+                height: auto;
+                width: 100%;
+                max-width: 100%;
+                border-radius: 0;
+            }
+
+            .omzo-video-section {
+                max-width: 100%;
+                min-width: 100%;
+                height: 60vh;
+                max-height: 60vh;
+            }
+
+            .omzo-video {
+                max-height: 60vh;
+            }
+
+            .omzo-sidebar {
+                width: 100%;
+                max-height: none;
+            }
+
+            .omzo-content {
+                max-height: 300px;
+            }
+
+            .more-posts-section {
+                padding: 24px 12px 30px;
+            }
+
+            .more-posts-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 2px;
+            }
+
+            .more-posts-title {
+                font-size: 14px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .omzo-page {
+                padding: 65px 0 16px;
+            }
+
+            .omzo-nav {
+                padding: 0 12px;
+                height: 56px;
+            }
+
+            .nav-brand span {
+                font-size: 18px;
+            }
+
+            .btn-login {
+                display: none;
+            }
+
+            .btn-signup {
+                padding: 8px 16px;
+                font-size: 13px;
+            }
+
+            .omzo-video-section {
+                height: 50vh;
+                max-height: 50vh;
+            }
+
+            .omzo-header {
+                padding: 12px;
+            }
+
+            .omzo-avatar {
+                width: 38px;
+                height: 38px;
+            }
+
+            .omzo-content {
+                padding: 12px;
+                max-height: 250px;
+            }
+
+            .omzo-actions {
+                padding: 10px 12px;
+                gap: 12px;
+            }
+
+            .omzo-action-btn svg {
+                width: 22px;
+                height: 22px;
+            }
+
+            .omzo-stats-info {
+                padding: 0 12px 10px;
+            }
+
+            .omzo-likes {
+                font-size: 13px;
+            }
+
+            .more-posts-section {
+                padding: 20px 8px 24px;
+            }
+
+            .more-posts-header {
+                padding: 0 4px 12px;
+                margin-bottom: 12px;
+            }
+
+            .more-posts-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 2px;
+            }
+
+            .more-post-views {
+                font-size: 10px;
+                bottom: 6px;
+                left: 6px;
+            }
+
+            .more-post-views svg {
+                width: 12px;
+                height: 12px;
+            }
+
+            .sound-toggle {
+                width: 36px;
+                height: 36px;
+                bottom: 12px;
+                right: 12px;
+            }
+
+            .sound-toggle svg {
+                width: 18px;
+                height: 18px;
+            }
+
+            .play-icon {
+                width: 60px;
+                height: 60px;
+            }
+
+            .play-icon svg {
+                width: 24px;
+                height: 24px;
+            }
+        }
+
+        /* Extra small devices */
+        @media (max-width: 360px) {
+            .omzo-page {
+                padding: 60px 0 12px;
+            }
+
+            .omzo-nav {
+                height: 52px;
+            }
+
+            .nav-brand img {
+                width: 28px;
+                height: 28px;
+            }
+
+            .nav-brand span {
+                font-size: 16px;
+            }
+
+            .omzo-video-section {
+                height: 45vh;
+                max-height: 45vh;
+            }
+
+            .omzo-content {
+                max-height: 200px;
+            }
+
+            .more-posts-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="omzo-nav">
+        <a href="/" class="nav-brand">
+            <img src="{% static 'img/logo.png' %}" alt="Odnix">
+            <span>Odnix</span>
+        </a>
+        <div class="nav-actions">
+            {% if is_authenticated %}
+            <a href="/omzo/" class="btn-signup">Open in App</a>
+            {% else %}
+            <a href="{% url 'login' %}?next=/omzo/{{ omzo_id }}/" class="btn-login">Log In</a>
+            <a href="{% url 'register' %}" class="btn-signup">Sign Up</a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="omzo-page">
+        <div class="omzo-detail-wrapper">
+            <!-- Video Section -->
+            <div class="omzo-video-section">
+                <video 
+                    class="omzo-video" 
+                    src="{{ omzo.url }}" 
+                    loop 
+                    playsinline 
+                    id="omzoVideo"
+                    onclick="toggleVideo()"
+                ></video>
+                <div class="video-play-overlay show" id="playOverlay" onclick="toggleVideo()">
+                    <div class="play-icon">
+                        <svg viewBox="0 0 24 24">
+                            <polygon points="5 3 19 12 5 21 5 3"/>
+                        </svg>
+                    </div>
+                </div>
+                <button class="sound-toggle" id="soundToggle" onclick="toggleSound(event)">
+                    <svg viewBox="0 0 24 24" id="soundIcon">
+                        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+                        <line x1="23" y1="9" x2="17" y2="15" id="muteLine1"/>
+                        <line x1="17" y1="9" x2="23" y2="15" id="muteLine2"/>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="omzo-sidebar">
+                <!-- Header -->
+                <div class="omzo-header">
+                    <img 
+                        src="{{ omzo.user_avatar }}" 
+                        alt="{{ omzo.username }}" 
+                        class="omzo-avatar"
+                        onerror="this.src='https://ui-avatars.com/api/?name={{ omzo.username }}&background=667eea&color=fff'"
+                    >
+                    <div class="omzo-user-info">
+                        <div class="omzo-username">{{ omzo.username }}</div>
+                        <div class="omzo-time">{{ omzo.timestamp|timesince }} ago</div>
+                    </div>
+                </div>
+
+                <!-- Content area with caption -->
+                <div class="omzo-content">
+                    {% if omzo.caption %}
+                    <div class="omzo-caption-section">
+                        <img 
+                            src="{{ omzo.user_avatar }}" 
+                            alt="{{ omzo.username }}" 
+                            class="omzo-caption-avatar"
+                            onerror="this.src='https://ui-avatars.com/api/?name={{ omzo.username }}&background=667eea&color=fff'"
+                        >
+                        <div class="omzo-caption-content">
+                            <span class="omzo-caption-username">{{ omzo.username }}</span>
+                            <span class="omzo-caption-text">{{ omzo.caption }}</span>
+                            <div class="omzo-caption-time">{{ omzo.timestamp|timesince }} ago</div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Comments -->
+                    <div class="omzo-comments-list">
+                        {% if comments %}
+                            {% for comment in comments %}
+                            <div class="omzo-comment">
+                                <img 
+                                    src="{{ comment.user_avatar }}" 
+                                    alt="{{ comment.username }}" 
+                                    class="omzo-comment-avatar"
+                                    onerror="this.src='https://ui-avatars.com/api/?name={{ comment.username }}&background=667eea&color=fff&size=32'"
+                                >
+                                <div class="omzo-comment-content">
+                                    <span class="omzo-comment-username">{{ comment.username }}</span>
+                                    <span class="omzo-comment-text">{{ comment.content }}</span>
+                                    <div class="omzo-comment-meta">
+                                        <span class="omzo-comment-time">{{ comment.timestamp|timesince }}</span>
+                                        <button class="omzo-comment-action" data-url="{% url 'login' %}?next=/omzo/{{ omzo_id }}/" onclick="window.location.href=this.dataset.url">Like</button>
+                                        <button class="omzo-comment-action" data-url="{% url 'login' %}?next=/omzo/{{ omzo_id }}/" onclick="window.location.href=this.dataset.url">Reply</button>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="omzo-no-comments">No comments yet.</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="omzo-actions">
+                    <button class="omzo-action-btn" title="Like" data-url="{% url 'login' %}?next=/omzo/{{ omzo_id }}/" onclick="window.location.href=this.dataset.url">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                        </svg>
+                    </button>
+                    <button class="omzo-action-btn" title="Comment" data-url="{% url 'login' %}?next=/omzo/{{ omzo_id }}/" onclick="window.location.href=this.dataset.url">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+                        </svg>
+                    </button>
+                    <button class="omzo-action-btn" title="Share" onclick="shareOmzo()">
+                        <svg viewBox="0 0 24 24">
+                            <line x1="22" y1="2" x2="11" y2="13"/>
+                            <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Stats -->
+                <div class="omzo-stats-info">
+                    <div class="omzo-likes">{{ omzo.likes }} likes • {{ omzo.comments_count }} comments • {{ omzo.views }} views</div>
+                    <div class="omzo-timestamp">{{ omzo.timestamp|date:"F j, Y" }}</div>
+                </div>
+
+                <!-- Login prompt - Instagram style (only for non-authenticated) -->
+                {% if not is_authenticated %}
+                <div class="omzo-login-prompt" data-url="{% url 'login' %}?next=/omzo/{{ omzo_id }}/" onclick="window.location.href=this.dataset.url">
+                    <a href="{% url 'login' %}?next=/omzo/{{ omzo_id }}/">Log in</a> to like or comment.
+                </div>
+                {% endif %}
+
+                <!-- Powered by -->
+                <div class="powered-badge">
+                    <img src="{% static 'img/logo.png' %}" alt="">
+                    <span>Powered by Odnix</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- More posts from user -->
+    {% if more_from_user %}
+    <div class="more-posts-section">
+        <div class="more-posts-header">
+            <span class="more-posts-title">More posts from <span class="more-posts-username">{{ omzo.username }}</span></span>
+        </div>
+        <div class="more-posts-grid">
+            {% for post in more_from_user %}
+            <a href="/omzo/{{ post.id }}/" class="more-post-item">
+                <video src="{{ post.url }}" muted preload="metadata"></video>
+                <div class="more-post-views">
+                    <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                    {{ post.views }}
+                </div>
+                <div class="more-post-overlay">
+                    <div class="more-post-stat">
+                        <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                        {{ post.likes }}
+                    </div>
+                    <div class="more-post-stat">
+                        <svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+                        {{ post.comments_count }}
+                    </div>
+                </div>
+                <div class="more-post-play">
+                    <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Explore more Omzos -->
+    {% if explore_omzos %}
+    <div class="more-posts-section">
+        <div class="more-posts-header">
+            <span class="more-posts-title">Explore more Omzos</span>
+        </div>
+        <div class="more-posts-grid">
+            {% for post in explore_omzos %}
+            <a href="/omzo/{{ post.id }}/" class="more-post-item">
+                <video src="{{ post.url }}" muted preload="metadata"></video>
+                <div class="more-post-views">
+                    <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                    {{ post.views }}
+                </div>
+                <div class="more-post-overlay">
+                    <div class="more-post-stat">
+                        <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                        {{ post.likes }}
+                    </div>
+                </div>
+                <div class="more-post-play">
+                    <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <script>
+        const video = document.getElementById('omzoVideo');
+        const playOverlay = document.getElementById('playOverlay');
+        let isMuted = true;
+
+        function toggleVideo() {
+            if (video.paused) {
+                video.play();
+                playOverlay.classList.remove('show');
+            } else {
+                video.pause();
+                playOverlay.classList.add('show');
+            }
+        }
+
+        function toggleSound(e) {
+            e.stopPropagation();
+            isMuted = !isMuted;
+            video.muted = isMuted;
+            updateSoundIcon();
+        }
+
+        function updateSoundIcon() {
+            const muteLine1 = document.getElementById('muteLine1');
+            const muteLine2 = document.getElementById('muteLine2');
+            if (isMuted) {
+                muteLine1.style.display = 'block';
+                muteLine2.style.display = 'block';
+            } else {
+                muteLine1.style.display = 'none';
+                muteLine2.style.display = 'none';
+            }
+        }
+
+        function shareOmzo() {
+            const url = window.location.href;
+            if (navigator.share) {
+                navigator.share({
+                    title: '{{ omzo.username }} on Odnix',
+                    url: url
+                }).catch(console.error);
+            } else {
+                navigator.clipboard.writeText(url).then(() => {
+                    alert('Link copied to clipboard!');
+                });
+            }
+        }
+
+        // Initialize - autoplay muted
+        video.muted = true;
+        updateSoundIcon();
+        video.play().then(() => {
+            playOverlay.classList.remove('show');
+        }).catch(() => {
+            playOverlay.classList.add('show');
+        });
+
+        // Comment Truncation Logic
+        document.addEventListener('DOMContentLoaded', function() {
+            const comments = document.querySelectorAll('.omzo-comment-text');
+            const maxLength = 120;
+
+            comments.forEach(comment => {
+                let fullText = comment.textContent.trim();
+                if (fullText.length > maxLength) {
+                    // Trim to max length and remove any trailing whitespace/newlines from the slice
+                    let truncated = fullText.substring(0, maxLength).trim();
+                    
+                    comment.innerHTML = `
+                        <span class="comment-short">${escapeHtml(truncated)}...</span>
+                        <span class="comment-full" style="display:none;">${escapeHtml(fullText)}</span>
+                        <button class="omzo-comment-more-btn" onclick="toggleOmzoComment(this)">more</button>
+                    `;
+                }
+            });
+        });
+
+        function toggleOmzoComment(btn) {
+            const container = btn.parentElement;
+            const shortText = container.querySelector('.comment-short');
+            const fullText = container.querySelector('.comment-full');
+            
+            if (shortText.style.display !== 'none') {
+                // Expand
+                shortText.style.display = 'none';
+                fullText.style.display = 'inline';
+                btn.textContent = 'less';
+            } else {
+                // Collapse
+                shortText.style.display = 'inline';
+                fullText.style.display = 'none';
+                btn.textContent = 'more';
+            }
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>

@@ -311,17 +311,7 @@
     }
 
     /* Make bottom nav visible on mobile for profile page */
-    @media (max-width: 768px) {
-        .od-bottom-nav {
-            display: flex !important;
-            align-items: center;
-            justify-content: space-around;
-        }
-
-        .od-top-nav {
-            display: none !important;
-        }
-    }
+    /* Mobile nav visibility handled by shared navbar */
 
     /* Create Post Modal Responsive */
     @media (max-width: 768px) {
@@ -6608,59 +6598,8 @@
         color: #9cdcfe; /* Light blue variable color */
     }
 </style>
-</style>
 
-<!-- Share Options Modal -->
-<div id="sharePostModal" class="od-modal-overlay" style="display: none; z-index: 10002;" onclick="closeShareModal(event)">
-    <div class="od-post-menu-modal" onclick="event.stopPropagation()">
-        <div class="od-post-menu-content" style="background: var(--od-surface); border-radius: 16px 16px 0 0; max-height: 80vh;">
-            <div style="width: 40px; height: 4px; background: var(--od-border); border-radius: 2px; margin: 12px auto;"></div>
-            <div style="padding: 16px; border-bottom: 1px solid var(--od-border); text-align: center; font-weight: 600;">Share</div>
-            
-            <div style="display: grid; grid-template-columns: repeat(5, 1fr); padding: 24px 16px; gap: 16px;">
-                <!-- Send to (New) -->
-                 <button onclick="handleShareAction('send')" style="background: none; border: none; display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; color: var(--od-text-primary);">
-                    <div style="width: 56px; height: 56px; border-radius: 50%; background: var(--od-surface-hover); display: flex; align-items: center; justify-content: center; border: 1px solid var(--od-border);">
-                        {% icon "send" %}
-                    </div>
-                    <span style="font-size: 12px; font-weight: 500;">Send to</span>
-                </button>
-
-                <!-- Repost -->
-                <button onclick="handleShareAction('repost')" style="background: none; border: none; display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; color: var(--od-text-primary);">
-                    <div style="width: 56px; height: 56px; border-radius: 50%; background: var(--od-surface-hover); display: flex; align-items: center; justify-content: center; border: 1px solid var(--od-border);">
-                        {% icon "repeat" %}
-                    </div>
-                    <span style="font-size: 12px; font-weight: 500;">Repost</span>
-                </button>
-                
-                <!-- Quote -->
-                <button onclick="handleShareAction('quote')" style="background: none; border: none; display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; color: var(--od-text-primary);">
-                    <div style="width: 56px; height: 56px; border-radius: 50%; background: var(--od-surface-hover); display: flex; align-items: center; justify-content: center; border: 1px solid var(--od-border);">
-                        {% icon "edit-3" %}
-                    </div>
-                    <span style="font-size: 12px; font-weight: 500;">Quote</span>
-                </button>
-                
-                <!-- Copy Link -->
-                <button onclick="handleShareAction('copy')" style="background: none; border: none; display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; color: var(--od-text-primary);">
-                    <div style="width: 56px; height: 56px; border-radius: 50%; background: var(--od-surface-hover); display: flex; align-items: center; justify-content: center; border: 1px solid var(--od-border);">
-                        {% icon "link" %}
-                    </div>
-                    <span style="font-size: 12px; font-weight: 500;">Copy Link</span>
-                </button>
-
-                 <!-- System Share -->
-                 <button onclick="handleShareAction('system')" style="background: none; border: none; display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; color: var(--od-text-primary);">
-                    <div style="width: 56px; height: 56px; border-radius: 50%; background: var(--od-surface-hover); display: flex; align-items: center; justify-content: center; border: 1px solid var(--od-border);">
-                        {% icon "share-2" %}
-                    </div>
-                    <span style="font-size: 12px; font-weight: 500;">More</span>
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
+{% include 'chat/partials/share_send_modal.html' %}
 
 <!-- Post Menu Modal (3-dot menu) -->
 <div id="postMenuModal" class="od-modal-overlay" style="display: none; z-index: 10002;" onclick="closePostMenu(event)">
@@ -6701,45 +6640,8 @@
 
     window.sharePost = function(id) {
         currentShareId = id;
-        currentShareType = 'scribe'; // Default to scribe for now, can extend
-        document.getElementById('sharePostModal').style.display = 'flex';
-    };
-
-    window.closeShareModal = function(e) {
-        if (e && e.target !== e.currentTarget) return;
-        document.getElementById('sharePostModal').style.display = 'none';
-    };
-
-    window.handleShareAction = function(action) {
-        if (!currentShareId) return;
-
-        if (action === 'send') {
-            openSendToModal();
-            closeShareModal();
-        } else if (action === 'repost') {
-            repostPost(currentShareType, currentShareId); // Use existing function
-            closeShareModal();
-        } else if (action === 'quote') {
-            openQuoteModal();
-            closeShareModal();
-        } else if (action === 'copy') {
-             const url = window.location.origin + '/post/' + currentShareId + '/';
-             navigator.clipboard.writeText(url).then(() => {
-                 showGlobalToast('Link copied to clipboard', 'success');
-             });
-             closeShareModal();
-        } else if (action === 'system') {
-             if (navigator.share) {
-                const url = window.location.origin + '/post/' + currentShareId + '/';
-                navigator.share({
-                    title: 'Check out this post on Odnix',
-                    url: url
-                }).catch(console.error);
-            } else {
-                showGlobalToast('System share not available', 'error');
-            }
-            closeShareModal();
-        }
+        currentShareType = 'scribe';
+        openSendToModal();
     };
 
     // Quote Modal Logic

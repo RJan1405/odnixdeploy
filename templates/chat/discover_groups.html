@@ -518,16 +518,7 @@
             transform: none;
         }
 
-        .od-bottom-nav {
-            display: flex !important;
-            align-items: center;
-            justify-content: space-around;
-        }
-
-        .od-top-nav {
-            display: none !important;
-        }
-    }
+        /* Mobile navbar handled by shared navbar */
 
     @media (max-width: 480px) {
         .od-discover-container {
@@ -1789,19 +1780,20 @@
             });
     }
 
-    // Share Post
+    // Share Post - global vars for send modal
+    let currentShareId = null;
+    let currentShareType = 'scribe';
+
     function sharePost(scribeId) {
-        const url = `${window.location.origin}/scribe/${scribeId}/`;
-        if (navigator.share) {
-            navigator.share({
-                title: 'Check out this post on Odnix',
-                url: url
-            }).catch(console.error);
-        } else {
-            navigator.clipboard.writeText(url).then(() => {
-                showIGToast('Link copied to clipboard!', 'success');
-            });
-        }
+        currentShareId = scribeId;
+        currentShareType = 'scribe';
+        openSendToModal();
+    }
+
+    function shareOmzo(omzoId) {
+        currentShareId = omzoId;
+        currentShareType = 'omzo';
+        openSendToModal();
     }
 
     // --- Omzo Interaction Functions ---
@@ -2651,4 +2643,5 @@
     }
 </style>
 
+{% include 'chat/partials/share_send_modal.html' %}
 {% endblock %}

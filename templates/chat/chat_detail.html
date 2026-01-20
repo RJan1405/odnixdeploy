@@ -4,6 +4,9 @@
 
 
 
+
+{% block body_class %}hide-navbar-mobile{% endblock %}
+
 {% block extra_head %}
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 <meta name="chat-id" content="{{ chat.id }}">
@@ -376,7 +379,7 @@
 
     .od-message.sent .od-message-menu {
         right: 10px;
-        left: 0px;
+        left: auto;
     }
 
     .od-message-menu button {
@@ -1092,7 +1095,8 @@
         }
 
         /* Hide bottom nav on chat detail page */
-        .od-bottom-nav {
+        /* Hide bottom nav if body has hide-navbar-mobile class */
+        body.hide-navbar-mobile .od-bottom-nav {
             display: none !important;
         }
 
@@ -1193,7 +1197,8 @@
         }
 
         /* Hide bottom nav on chat detail page */
-        .od-bottom-nav {
+        /* Hide bottom nav if body has hide-navbar-mobile class */
+        body.hide-navbar-mobile .od-bottom-nav {
             display: none !important;
         }
 
@@ -2068,12 +2073,11 @@
             <!-- PRIVATE CHATS -->
             {% for chat in private_chats %}
             <a href="{% url 'chat_detail' chat.id %}" onclick="loadChat('{{ chat.id }}'); return false;"
-                class="od-direct-item{% if chat.id == active_chat_id %} active{% endif %}" data-type="private"
+                class="od-direct-item{% if chat.id == active_chat_id %} active{% endif %} {% if chat.is_request %}hidden-request{% endif %}" data-type="private"
                 data-following="{% if chat.is_private %}true{% endif %}"
                 data-is-request="{% if chat.is_request %}true{% else %}false{% endif %}"
                 data-username="{% for p in chat.participants %}{% if p != request.user %}{{ p.username }}{% endif %}{% endfor %}"
-                data-name="{% for p in chat.participants %}{% if p != request.user %}{{ p.full_name|lower }}{% endif %}{% endfor %}"
-                style="{% if chat.is_request %}display:none{% endif %}">
+                data-name="{% for p in chat.participants %}{% if p != request.user %}{{ p.full_name|lower }}{% endif %}{% endfor %}">
                 {% for participant in chat.participants %}
                 {% if participant != request.user %}
                 <span style="position:relative;display:inline-block;">
@@ -2144,7 +2148,7 @@
         <!-- Chat Header -->
         <header class="od-chat-header">
 
-            <a href="{% url 'dashboard' %}" class="od-chat-back mobile-only">
+            <a href="{% url 'messages' %}" class="od-chat-back mobile-only">
                 <span class="od-icon"><svg viewBox="0 0 24 24"><path d="M19 12H5"/><polyline points="12 19 5 12 12 5"/></svg></span>
             </a>
 
@@ -2444,14 +2448,6 @@
                     {% endif %}
 
     <script>
-    // == REQUESTS AND ESC LOGIC ==
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-             // Go back to messages list
-             window.location.href = "{% url 'dashboard' %}?tab=messages";
-        }
-    });
-
     // Mirror logic from messages.html for Requests
     document.addEventListener('DOMContentLoaded', () => {
         fetchRequestCount();
@@ -4481,22 +4477,49 @@
 
             // Adjust position if menu goes off screen
             requestAnimationFrame(() => {
-                const rect = menu.getBoundingClientRect();
-                const viewportHeight = window.innerHeight;
-
-                // Reset positioning
+                // Get chat container to calculate relative positioning
+                const chatMessages = document.querySelector('.od-chat-messages');
+                const chatRect = chatMessages ? chatMessages.getBoundingClientRect() : { top: 0, bottom: window.innerHeight, left: 0, right: window.innerWidth };
+                
+                // First, reset to default (above the button)
                 menu.style.top = 'auto';
                 menu.style.bottom = '100%';
                 menu.style.marginBottom = '4px';
                 menu.style.marginTop = '0';
-
-                // If menu is above viewport, show it below instead
-                if (rect.top < 10) {
-                    menu.style.bottom = 'auto';
-                    menu.style.top = '100%';
-                    menu.style.marginTop = '4px';
-                    menu.style.marginBottom = '0';
-                }
+                menu.style.left = 'auto';
+                menu.style.right = '0';
+                
+                // Check position after reset
+                requestAnimationFrame(() => {
+                    const rect = menu.getBoundingClientRect();
+                    
+                    // If menu would be clipped at the top (above chat container or viewport)
+                    if (rect.top < chatRect.top + 10 || rect.top < 10) {
+                        // Show below the button instead
+                        menu.style.bottom = 'auto';
+                        menu.style.top = '100%';
+                        menu.style.marginTop = '4px';
+                        menu.style.marginBottom = '0';
+                    }
+                    
+                    // Check if menu goes off the left edge
+                    const updatedRect = menu.getBoundingClientRect();
+                    if (updatedRect.left < 10) {
+                        // Shift menu to the right so it's visible
+                        menu.style.right = 'auto';
+                        menu.style.left = '0';
+                    }
+                    
+                    // Also check if menu goes off the bottom
+                    const finalRect = menu.getBoundingClientRect();
+                    if (finalRect.bottom > window.innerHeight - 10) {
+                        // Revert to above
+                        menu.style.top = 'auto';
+                        menu.style.bottom = '100%';
+                        menu.style.marginBottom = '4px';
+                        menu.style.marginTop = '0';
+                    }
+                });
             });
         }
     }
@@ -5415,13 +5438,18 @@
     
     // Clear P2P signals when user goes offline or closes modal
     function clearP2PSignals() {
-        fetch('/api/p2p/clear-signals/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCSRFToken()
-            }
-        }).catch(err => console.log('Signal cleanup error:', err));
+        // Silently attempt cleanup - don't log errors as this often fails during page unload
+        try {
+            fetch('/api/p2p/clear-signals/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCSRFToken()
+                }
+            }).catch(() => {}); // Silently ignore errors
+        } catch (e) {
+            // Ignore errors during page unload
+        }
     }
 
     function resetP2PUI() {
@@ -7002,6 +7030,28 @@
             name: msg.sender.name
         }, 'od-message-avatar') : '';
         
+        const safeContent = escapeHtml(msg.content || 'Photo').replace(/'/g, "\\'");
+        const senderName = escapeHtml(msg.sender.name || msg.sender.username || 'User').replace(/'/g, "\\'");
+        
+        // Build menu HTML (same as appendMessage)
+        const menuHtml = !msg.one_time ? `
+            <button class="od-message-menu-btn" onclick="toggleMessageMenu(${msg.id}, event)" title="More options">
+                <span class="od-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg></span>
+            </button>
+            <div class="od-message-menu" id="menu-${msg.id}">
+                ${isOwn ? `
+                    <button onclick="editMessage(${msg.id})"><span class="od-icon"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></span> Edit</button>
+                    <button onclick="pinMessage(${msg.id})"><span class="od-icon"><svg viewBox="0 0 24 24"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V17z"/></svg></span> Pin</button>
+                    <button onclick="deleteMessage(${msg.id}, true)" class="danger"><span class="od-icon"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg></span> Delete</button>
+                ` : `
+                    <button onclick="reactToMessage(${msg.id}, '❤️')"><span class="od-icon"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span> Like</button>
+                    <button onclick="replyToMessage(${msg.id}, '${senderName}', '${safeContent}')"><span class="od-icon"><svg viewBox="0 0 24 24"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg></span> Reply</button>
+                    <button onclick="pinMessage(${msg.id})"><span class="od-icon"><svg viewBox="0 0 24 24"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V17z"/></svg></span> Pin</button>
+                    <button onclick="deleteMessage(${msg.id}, false)" class="danger"><span class="od-icon"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg></span> Delete</button>
+                `}
+            </div>
+        ` : '';
+        
         return `
         <div class="od-message ${isOwn ? 'sent' : 'received'}" data-message-id="${msg.id}">
             ${avatarHtml}
@@ -7010,9 +7060,10 @@
                 ${contentHtml}
                 <div class="od-message-meta">
                     <span class="od-message-time">${msg.timestamp}</span>
-                    ${isOwn ? `<span class="od-read-receipt ${msg.is_read ? 'read' : ''}" data-message-id="${msg.id}"><span class="checkmark ${msg.is_read ? 'read' : 'delivered'}">L</span></span>` : ''}
+                    ${isOwn ? `<span class="od-read-receipt ${msg.is_read ? 'read' : ''}" data-message-id="${msg.id}"><span class="checkmark ${msg.is_read ? 'read' : 'delivered'}">✓✓</span></span>` : ''}
                 </div>
             </div>
+            ${menuHtml}
         </div>
         `;
     }
@@ -7115,5 +7166,68 @@
         <span>Delete Chat</span>
     </button>
 </div>
+
+<!-- ESC Key Navigation - Goes back to messages list with slide animation -->
+<style>
+@keyframes odSlideOut {
+    from { transform: translateX(0); opacity: 1; }
+    to { transform: translateX(100%); opacity: 0; }
+}
+.od-chat-closing .od-chat-main,
+.od-chat-closing .od-direct-main {
+    animation: odSlideOut 0.2s ease-out forwards;
+}
+.od-chat-closing {
+    overflow: hidden;
+}
+</style>
+<script>
+(function() {
+    // Only add listener once
+    if (window._escListenerAdded) return;
+    window._escListenerAdded = true;
+    
+    function goBack() {
+        // Add slide-out animation class
+        const chatContainer = document.querySelector('.od-direct');
+        if (chatContainer) {
+            chatContainer.classList.add('od-chat-closing');
+        }
+        
+        // Navigate after animation starts (don't wait for it to finish)
+        setTimeout(function() {
+            // Use history.back() if we came from messages, otherwise navigate directly
+            if (document.referrer && document.referrer.includes('/chat/messages')) {
+                history.back();
+            } else {
+                window.location.href = "/chat/messages/";
+            }
+        }, 100);
+    }
+    
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            // Check if any modal is visible - don't navigate if so
+            const visibleModal = document.querySelector('.od-modal-overlay.show, .od-delete-modal-overlay.show, .od-viewonce-modal[style*="flex"], .od-modal-overlay[style*="flex"]');
+            if (visibleModal) {
+                return; // Let the modal handle ESC
+            }
+            
+            // Check if we're focused on an input/textarea
+            const activeElement = document.activeElement;
+            const isInputFocused = activeElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA' || activeElement.isContentEditable);
+            
+            // If in input, blur first; next ESC will navigate
+            if (isInputFocused) {
+                activeElement.blur();
+                return;
+            }
+            
+            // Go back with animation
+            goBack();
+        }
+    });
+})();
+</script>
 
 {% endblock %}
