@@ -30,28 +30,25 @@
     /* Omzo specific styles */
     .omzo-wrapper {
         background: #000;
-        min-height: 100vh;
+        height: 100vh; /* Use fixed height */
+        width: 100vw;
         display: flex;
         justify-content: center;
+        padding-top: 64px; /* Account for navbar */
+        box-sizing: border-box; /* Include padding in height */
+        overflow: hidden; /* Prevent body scroll */
     }
 
     .omzo-container {
-        height: 100vh;
-        /* Fallback */
-        height: 100dvh;
-        /* Dynamic viewport height */
+        height: 100%; /* Fill wrapper */
         width: 100%;
-        max-width: 450px;
-        /* Mobile width constraint on desktop */
+        max-width: 100%; /* Flexible width for desktop */
         overflow-y: scroll;
         scroll-snap-type: y mandatory;
         background: #000;
         position: relative;
-        /* Hide scrollbar */
         scrollbar-width: none;
-        /* Firefox */
         -ms-overflow-style: none;
-        /* IE and Edge */
     }
 
     .omzo-container::-webkit-scrollbar {
@@ -65,65 +62,259 @@
         scroll-snap-stop: always;
         position: relative;
         display: flex;
-        align-items: center;
         justify-content: center;
-        background: #111;
+        align-items: center;
+        background: #000;
+        overflow: hidden;
+        padding: 10px 0; /* Add slight breathing room */
+        box-sizing: border-box;
     }
 
+    /* Layout Container for Desktop Structure */
+    .omzo-layout-grid {
+        display: flex;
+        width: 100%;
+        height: 100%;
+        max-width: 1400px; /* Increased max width */
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        gap: 20px; /* Add gap between cols */
+    }
+
+    /* Video Section (Center) */
+    .omzo-video-container {
+        position: relative;
+        height: 100%;
+        width: auto; /* Allow width to scale */
+        aspect-ratio: 9/16; /* Enforce 9:16 */
+        max-height: 100%; /* Ensure it fits vertically */
+        background: #111;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    }
+    
     .omzo-video {
         width: 100%;
         height: 100%;
-        object-fit: cover;
-        /* Immersive full screen */
+        object-fit: cover; /* Back to cover, but container is now constrained */
+        cursor: pointer;
     }
 
-    .omzo-play-overlay {
+    /* On mobile/smaller screens, we might want different behavior? 
+       But the user complaint is desktop clipping. 
+       Let's ensure mobile doesn't have the padding if navbar is not sticky top there.
+       Usually mobile apps have top/bottom bars.
+    */
+    @media (max-width: 768px) {
+        .omzo-wrapper {
+            padding-top: 0; /* Mobile usually full screen overlay */
+            height: 100dvh;
+        }
+        .omzo-video-container {
+            border-radius: 0;
+            max-height: none;
+            aspect-ratio: auto;
+            width: 100%;
+        }
+        .omzo-item {
+            padding: 0;
+        }
+        .omzo-layout-grid {
+            gap: 0;
+        }
+    }
+
+    /* Mute Animation Overlay */
+    .omzo-mute-overlay {
         position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        display: none;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) scale(0);
+        background: rgba(0, 0, 0, 0.6);
+        border-radius: 50%;
+        padding: 15px;
+        pointer-events: none;
+        transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.2s;
+        opacity: 0;
+        z-index: 20;
+        display: flex;
         align-items: center;
         justify-content: center;
-        background: rgba(0, 0, 0, 0.3);
-        cursor: pointer;
-        z-index: 15;
     }
 
-    .omzo-video:paused~.omzo-play-overlay {
-        display: flex;
+    .omzo-mute-overlay.animate {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 1;
+    }
+    
+    .omzo-mute-overlay svg {
+        width: 32px;
+        height: 32px;
+        color: white;
     }
 
-    /* Overlays */
-    .omzo-overlay {
+    /* Info Section (Left on Desktop, Overlay on Mobile) */
+    .omzo-info-section {
         position: absolute;
         bottom: 0;
         left: 0;
-        right: 0;
-        padding: 20px;
+        width: 100%;
+        padding: 20px 20px 90px 20px; /* Enhanced bottom padding for mobile navbar */
         background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
         color: white;
         z-index: 10;
-        padding-bottom: 80px;
-        /* Space for navbar if visible */
         pointer-events: none;
-        /* Let clicks pass through to video */
+        /* Mobile defaults */
     }
 
-    .omzo-info {
+    .omzo-info-content {
         pointer-events: auto;
     }
 
-    .omzo-actions {
+    .omzo-user {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 12px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .omzo-caption {
+        font-size: 14px;
+        margin-bottom: 10px;
+        line-height: 1.4;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+    }
+
+    /* Omzo audio icon alignment */
+    .omzo-audio .od-icon {
+        vertical-align: baseline;
+    }
+
+    /* Caption inside comments modal */
+    .omzo-comments-caption {
+        padding: 12px 16px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        font-size: 14px;
+        line-height: 1.5;
+        color: var(--od-text-primary);
+    }
+
+    .omzo-comments-caption .caption-user {
+        font-weight: 600;
+        margin-right: 8px;
+    }
+
+    /* Actions Section (Right on Desktop, Overlay on Mobile) */
+    .omzo-actions-section {
         position: absolute;
         right: 12px;
-        bottom: 140px;
+        bottom: 120px; /* Lifted to clear mobile navbar */
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 16px;
+        gap: 20px;
         z-index: 20;
+    }
+
+    /* Desktop Responsive Styling */
+    @media (min-width: 768px) {
+        .omzo-video-container {
+            border-radius: 12px;
+            overflow: hidden;
+            height: 90vh; /* Reduced height on desktop */
+            width: auto;
+            aspect-ratio: 9/16;
+            margin: 0 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .omzo-layout-grid {
+            justify-content: center;
+            padding: 0 40px;
+        }
+
+        /* Move Info to Left Side */
+        .omzo-info-section {
+            position: relative; /* Not absolute relative to video */
+            width: 300px;
+            height: auto;
+            background: none;
+            order: 1; /* Flex order */
+            padding-right: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            align-self: flex-end;
+            padding-bottom: 40px; /* Reduced for desktop - no mobile navbar */
+        }
+
+        .omzo-video-container {
+            order: 2;
+        }
+
+        .omzo-actions-section {
+            position: relative;
+            right: auto;
+            bottom: auto;
+            order: 3;
+            width: 80px;
+            align-self: flex-end;
+            padding-bottom: 40px; /* Reduced for desktop - no mobile navbar */
+            padding-left: 20px;
+            align-items: flex-start;
+        }
+
+        /* Adjust caption styling for desktop side pane */
+        .omzo-caption {
+            font-size: 16px;
+        }
+        
+        /* Keep overlay gradients off on desktop since it's side-by-side? 
+           User said "on right actions, on left info". 
+           If they are outside the video, we don't need text shadow or gradient background. 
+        */
+        .omzo-info-section {
+            background: none;
+            text-shadow: none;
+        }
+        
+        .omzo-actions-section .action-btn span:not(.od-icon) {
+            display: none; /* Hide labels on desktop side-bar for cleaner look? Or keep them? YouTube keeps them. */
+        }
+    }
+
+    /* Large desktop - even less padding needed */
+    @media (min-width: 1024px) {
+        .omzo-info-section {
+            padding-bottom: 30px;
+        }
+        .omzo-actions-section {
+            padding-bottom: 30px;
+        }
+    }
+
+    /* Small mobile - ensure extra clearance for navbar */
+    @media (max-width: 480px) {
+        .omzo-info-section {
+            padding-bottom: 100px; /* Extra clearance for smaller phones */
+        }
+        .omzo-actions-section {
+            bottom: 130px; /* Extra clearance */
+        }
+    }
+
+    /* Hide action button text labels on mobile - keep icons only */
+    @media (max-width: 767px) {
+        .omzo-actions-section .action-btn > span:not(.od-icon):not(.like-count):not(.comment-count) {
+            display: none;
+        }
     }
 
     .action-btn {
@@ -135,25 +326,8 @@
         background: none;
         border: none;
         cursor: pointer;
-        font-size: 11px;
-        font-weight: 500;
-        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
-        padding: 4px;
+        padding: 8px;
         transition: transform 0.2s;
-        outline: none;
-        -webkit-tap-highlight-color: transparent;
-        position: relative;
-    }
-
-    .action-btn span:not(.od-icon) {
-        margin-top: 4px;
-        font-size: 12px;
-        font-weight: 600;
-        white-space: nowrap;
-        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
-    }
-
-    .action-btn:focus {
         outline: none;
     }
 
@@ -162,143 +336,40 @@
     }
 
     .action-btn .od-icon {
-        width: 28px;
-        height: 28px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        width: 32px;
+        height: 32px;
+        margin-bottom: 4px;
+        filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+    }
+    
+    .action-btn span:not(.od-icon) {
+        font-size: 12px;
+        font-weight: 600;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.8);
     }
 
-    .action-btn .od-icon svg {
-        width: 24px !important;
-        height: 24px !important;
-        filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
-        transition: transform 0.2s;
-    }
-
-    .action-btn:active {
-        transform: scale(0.9);
-    }
-
-    .action-btn:active i,
-    .action-btn:active svg {
-        transform: scale(0.9);
-    }
-
-    /* Liked thumb style - Brand color with subtle glow */
+    /* Liked thumb style */
     .liked-thumb {
         color: #667eea !important;
         stroke: #667eea !important;
-        fill: none !important;
-        filter: drop-shadow(0 0 6px rgba(102, 126, 234, 0.5));
-    }
-
-    /* Disliked thumb style - Red */
-    .disliked-thumb {
-        color: #ff6b6b !important;
-        stroke: #ff6b6b !important;
-        fill: none !important;
-        filter: drop-shadow(0 0 4px rgba(255, 107, 107, 0.4));
-    }
-
-    /* Desktop improvements for action buttons */
-    @media (min-width: 768px) {
-        .action-btn .od-icon {
-            width: 30px;
-            height: 30px;
-        }
-
-        .action-btn .od-icon svg {
-            width: 28px !important;
-            height: 28px !important;
-        }
-
-        .action-btn span:not(.od-icon) {
-            font-size: 12px;
-        }
-
-        .omzo-actions {
-            right: 16px;
-            bottom: 160px;
-            gap: 12px;
-        }
-    }
-
-    .omzo-user {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        margin-bottom: 12px;
-        font-weight: 600;
+        fill: #667eea !important; 
+        fill-opacity: 0.2;
     }
 
     .omzo-avatar {
-        width: 36px;
-        height: 36px;
-        border-radius: 22%;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
         border: 2px solid white;
     }
-
-    .omzo-caption {
-        font-size: 14px;
-        margin-bottom: 10px;
-        line-height: 1.4;
-        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+    
+    /* Hide scrollbars but allow scroll */
+    .omzo-info-section, .omzo-actions-section {
+        /* Ensure they don't capture scroll from container */
+        pointer-events: none; 
     }
-
-    .omzo-audio {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        font-size: 13px;
-        opacity: 0.9;
-    }
-
-    .upload-fab {
-        position: fixed;
-        top: 90px;
-        right: 30px;
-        z-index: 100;
-        background: var(--odnix-gradient);
-        width: 56px;
-        height: 56px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        cursor: pointer;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-        transition: transform 0.2s;
-    }
-
-    .upload-fab:hover {
-        transform: scale(1.1);
-    }
-
-    /* Hide desktop navbar elements for immersion */
-    .sidebar-enhanced {
-        display: none !important;
-    }
-
-    /* Adjust bottom nav for mobile immersion */
-    .liked-heart {
-        fill: #ff3040 !important;
-        color: #ff3040 !important;
-        stroke: #ff3040 !important;
-        animation: heartPop 0.3s ease;
-    }
-
-    @keyframes heartPop {
-        0% {
-            transform: scale(1);
-        }
-        50% {
-            transform: scale(1.3);
-        }
-        100% {
-            transform: scale(1);
-        }
+    .omzo-info-content, .omzo-actions-section button {
+        pointer-events: auto;
     }
 
     /* ===== Custom Toast Notifications for Omzo ===== */
@@ -946,6 +1017,52 @@
     }
 
     /* ===== Video Preload & Loading States ===== */
+    .omzo-play-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0, 0, 0, 0.1);
+        cursor: pointer;
+        z-index: 15;
+        transition: background 0.2s;
+    }
+
+    .omzo-video:paused~.omzo-play-overlay {
+        display: flex;
+    }
+
+    /* Target the icon span inside the overlay */
+    .omzo-play-overlay .od-icon {
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        width: 80px !important;
+        height: 80px !important;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        transform: scale(1);
+        transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    
+    .omzo-play-overlay:active .od-icon {
+        transform: scale(0.9);
+    }
+
+    .omzo-play-overlay svg {
+        width: 36px !important;
+        height: 36px !important;
+        fill: white;
+        margin-left: 4px; /* Visual centering for play triangle */
+        filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+    }
     .omzo-video-loading {
         position: absolute;
         top: 0;
@@ -1070,81 +1187,85 @@
     <div class="omzo-container" id="omzoContainer">
         {% for omzo in omzos %}
         <div class="omzo-item" data-id="{{ omzo.id }}">
-            <video class="omzo-video lazy-omzo" loop playsinline {% if omzo.is_muted %}muted{% endif %}
-                data-src="{{ omzo.url }}" onclick="toggleOmzoPlay(this)" data-is-muted="{{ omzo.is_muted|lower }}"
-                poster="{{ omzo.thumbnail_url|default:'' }}"></video>
-
-            <div class="omzo-actions">
-                <!--<button class="action-btn" style="cursor: default;" title="Views">
-                    <span class="od-icon"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></span>
-                    <span class="view-count">{{ omzo.views }}</span>
-                </button>-->
-                <button class="action-btn mute-btn" onclick="toggleOmzoMute(this, event)" data-muted="false"
-                    title="Toggle sound">
-                    <span class="od-icon volume-icon"><svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg></span>
-                </button>
-                <button class="action-btn like-btn" onclick="toggleOmzoLike('{{ omzo.id }}', this)" title="Like">
-                    <span class="od-icon {% if omzo.is_liked %}liked-thumb{% endif %}"><svg viewBox="0 0 24 24"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg></span>
-                    <span class="like-count">{{ omzo.likes }}</span>
-                </button>
-                <button class="action-btn dislike-btn" onclick="toggleOmzoDislike('{{ omzo.id }}', this)" title="Dislike">
-                    <span class="od-icon {% if omzo.is_disliked %}disliked-thumb{% endif %}"><svg viewBox="0 0 24 24"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/></svg></span>
-                </button>
-                <button class="action-btn" onclick="openOmzoComments('{{ omzo.id }}')" title="Comments">
-                    <span class="od-icon"><svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></span>
-                    <span class="comment-count" data-omzo-id="{{ omzo.id }}">{{ omzo.comments_count }}</span>
-                </button>
-                <button class="action-btn" onclick="repostPost('omzo', '{{ omzo.id }}')" title="Repost">
-                    <span class="od-icon">{% icon "repeat" %}</span>
-                    <span>Repost</span>
-                </button>
-                <button class="action-btn" onclick="shareOmzo('{{ omzo.id }}')" title="Send">
-                    <span class="od-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg></span>
-                    <span>Send</span>
-                </button>
-                <button class="action-btn" onclick="openReportModal('{{ omzo.id }}')" title="More">
-                    <span class="od-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg></span>
-                    <span>Report</span>
-                </button>
-            </div>
-
-            <div class="omzo-overlay">
-                <div class="omzo-info">
-                    <div class="omzo-user">
-                        <img src="{% if omzo.user.profile_picture %}{{ omzo.user.profile_picture.url }}{% else %}https://ui-avatars.com/api/?name={{ omzo.user.username }}{% endif %}"
-                            class="omzo-avatar">
-                        <span>{{ omzo.user.username }}</span>
-                        {% if user != omzo.user %}
-                        {% if omzo.is_following %}
-                        <button class="omzo-follow-btn" onclick="toggleOmzoFollow('{{ omzo.user.username }}', this)"
-                            style="background: transparent; border: 1px solid rgba(255,255,255,0.4); color: rgba(255,255,255,0.8); border-radius: 6px; padding: 4px 12px; font-size: 12px; font-weight: 600; margin-left: 10px; cursor: pointer;">Following</button>
-                        {% else %}
-                        <button class="omzo-follow-btn" onclick="toggleOmzoFollow('{{ omzo.user.username }}', this)"
-                            style="background: var(--odnix-gradient); border: none; color: white; border-radius: 6px; padding: 4px 12px; font-size: 12px; font-weight: 600; margin-left: 10px; cursor: pointer;">Follow</button>
+            <div class="omzo-layout-grid">
+                <!-- Left: Info Section -->
+                <div class="omzo-info-section">
+                    <div class="omzo-info-content">
+                        <div class="omzo-user" onclick="window.location.href='{% url 'user_profile' omzo.user.username %}'">
+                            <img src="{% if omzo.user.profile_picture %}{{ omzo.user.profile_picture.url }}{% else %}https://ui-avatars.com/api/?name={{ omzo.user.username }}{% endif %}"
+                                class="omzo-avatar">
+                            <span>{{ omzo.user.username }}</span>
+                            {% if user != omzo.user %}
+                            {% if omzo.is_following %}
+                            <button class="omzo-follow-btn" onclick="event.stopPropagation(); toggleOmzoFollow('{{ omzo.user.username }}', this)"
+                                style="background: transparent; border: 1px solid rgba(255,255,255,0.4); color: rgba(255,255,255,0.8); border-radius: 6px; padding: 4px 12px; font-size: 12px; font-weight: 600; margin-left: 10px; cursor: pointer;">Following</button>
+                            {% else %}
+                            <button class="omzo-follow-btn" onclick="event.stopPropagation(); toggleOmzoFollow('{{ omzo.user.username }}', this)"
+                                style="background: var(--odnix-gradient); border: none; color: white; border-radius: 6px; padding: 4px 12px; font-size: 12px; font-weight: 600; margin-left: 10px; cursor: pointer;">Follow</button>
+                            {% endif %}
+                            {% endif %}
+                        </div>
+                        {% if omzo.caption %}
+                        <p class="omzo-caption">{{ omzo.caption }}</p>
                         {% endif %}
-                        {% endif %}
+                        <div class="omzo-audio">
+                            <span class="od-icon" style="width: 14px; height: 14px;"><svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></span>
+                            <span style="font-weight: 500;">Original Audio • {{ omzo.user.username }}</span>
+                        </div>
                     </div>
-                    {% if omzo.caption %}
-                    <p class="omzo-caption">{{ omzo.caption }}</p>
-                    {% endif %}
-                    <div class="omzo-audio">
-                        <span class="od-icon" style="width: 14px; height: 14px;"><svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></span>
-                        <span style="font-weight: 500;">Original Audio • {{ omzo.user.username }}</span>
+                </div>
+
+                <!-- Center: Video Section -->
+                <div class="omzo-video-container" ondblclick="toggleOmzoLike('{{ omzo.id }}', this.closest('.omzo-layout-grid').querySelector('.like-btn'))">
+                    <video class="omzo-video lazy-omzo" loop playsinline {% if omzo.is_muted %}muted{% endif %}
+                        data-src="{{ omzo.url }}" onclick="toggleOmzoTap(this, event)" data-is-muted="{{ omzo.is_muted|lower }}"
+                        poster="{{ omzo.thumbnail_url|default:'' }}"></video>
+                    
+                    <!-- Transient Mute Overlay Icon -->
+                    <div class="omzo-mute-overlay">
+                        <span class="od-icon"><svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg></span>
                     </div>
+
+                    <div class="omzo-play-overlay" onclick="toggleOmzoTap(this.previousElementSibling.previousElementSibling, event)">
+                        <span class="od-icon" style="width: 64px; height: 64px; opacity: 0.7;"><svg viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg></span>
+                    </div>
+                </div>
+
+                <!-- Right: Actions Section -->
+                <div class="omzo-actions-section">
+                    <button class="action-btn like-btn" onclick="toggleOmzoLike('{{ omzo.id }}', this)" title="Like">
+                        <span class="od-icon {% if omzo.is_liked %}liked-thumb{% endif %}"><svg viewBox="0 0 24 24"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg></span>
+                        <span class="like-count">{{ omzo.likes }}</span>
+                    </button>
+                    <button class="action-btn dislike-btn" onclick="toggleOmzoDislike('{{ omzo.id }}', this)" title="Dislike">
+                        <span class="od-icon {% if omzo.is_disliked %}disliked-thumb{% endif %}"><svg viewBox="0 0 24 24"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/></svg></span>
+                    </button>
+                    <button class="action-btn" onclick="openOmzoComments('{{ omzo.id }}')" title="Comments">
+                        <span class="od-icon"><svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></span>
+                        <span class="comment-count" data-omzo-id="{{ omzo.id }}">{{ omzo.comments_count }}</span>
+                    </button>
+                    <button class="action-btn" onclick="repostPost('omzo', '{{ omzo.id }}')" title="Repost">
+                        <span class="od-icon">{% icon "repeat" %}</span>
+                        <span>Repost</span>
+                    </button>
+                    <button class="action-btn" onclick="shareOmzo('{{ omzo.id }}')" title="Send">
+                        <span class="od-icon"><svg viewBox="0 0 24 25"><g transform="translate(0,25) scale(0.1,-0.1)" fill="currentColor" stroke="none"><path d="M175 215 c-5 -2 -43 -13 -82 -25 -40 -11 -73 -25 -73 -29 0 -5 19 -16 41 -25 40 -16 43 -16 64 4 29 27 41 13 14 -16 -20 -21 -21 -26 -9 -56 15 -38 27 -54 35 -46 7 6 55 169 55 186 0 11 -23 15 -45 7z"/><path d="M31 106 c-8 -9 -11 -19 -7 -23 9 -9 29 13 24 27 -2 8 -8 7 -17 -4z"/><path d="M45 60 c-16 -16 -25 -33 -22 -37 8 -7 67 45 67 59 0 16 -17 8 -45 -22z"/><path d="M91 46 c-8 -9 -11 -19 -7 -23 9 -9 29 13 24 27 -2 8 -8 7 -17 -4z"/></g></svg></span>
+                        <span>Send</span>
+                    </button>
+                    <button class="action-btn" onclick="openReportModal('{{ omzo.id }}')" title="More">
+                        <span class="od-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg></span>
+                        <span>Report</span>
+                    </button>
                 </div>
             </div>
         </div>
         {% empty %}
         <div class="omzo-item" style="background: #000; color: white;">
             <div style="text-align: center; padding: 20px;">
-                <span class="od-icon" style="width: 64px; height: 64px; opacity: 0.5; margin-bottom: 20px;"><svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="2" y1="7" x2="7" y2="7"/><line x1="2" y1="17" x2="7" y2="17"/><line x1="17" y1="17" x2="22" y2="17"/><line x1="17" y1="7" x2="22" y2="7"/></svg></span>
+                <!-- Empty state remains same -->
                 <h3>No Omzo yet</h3>
-                <p style="opacity: 0.7; margin-top: 10px;">Be the first to create one!</p>
-                <button onclick="document.getElementById('uploadOmzoInput').click()" style="margin-top: 20px; background: var(--odnix-gradient); border: none; padding: 10px 20px;
-                border-radius: 20px; color: white; font-weight: 600; cursor: pointer;">Create
-                    Omzo</button>
-                <p style="color: #ff4444; font-size: 12px; margin-top: 10px; font-weight: 500;">Note: Omzo should be 2
-                    mins max</p>
+                <p>Be the first to create one!</p>
+                <button onclick="document.getElementById('uploadOmzoInput').click()" style="margin-top: 20px; background: var(--odnix-gradient); border: none; padding: 10px 20px; border-radius: 20px; color: white; font-weight: 600; cursor: pointer;">Create Omzo</button>
             </div>
         </div>
         {% endfor %}
@@ -1187,6 +1308,11 @@
                 <button class="omzo-comments-close" onclick="closeOmzoComments()">
                     <span class="od-icon" style="width: 20px; height: 20px;"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
                 </button>
+            </div>
+            <!-- Caption Section -->
+            <div class="omzo-comments-caption" id="omzoCommentsCaption" style="display: none;">
+                <span class="caption-user" id="omzoCaptionUser"></span>
+                <span id="omzoCaptionText"></span>
             </div>
             <div class="omzo-comments-list" id="omzoCommentsList">
                 <!-- Comments will be loaded here -->
@@ -1883,7 +2009,7 @@
                             <span class="comment-count" data-omzo-id="${omzo.id}">${omzo.comments_count}</span>
                         </button>
                         <button class="action-btn" onclick="shareOmzo(${omzo.id})" title="Send">
-                            <span class="od-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg></span>
+                            <span class="od-icon"><svg viewBox="0 0 24 25"><g transform="translate(0,25) scale(0.1,-0.1)" fill="currentColor" stroke="none"><path d="M175 215 c-5 -2 -43 -13 -82 -25 -40 -11 -73 -25 -73 -29 0 -5 19 -16 41 -25 40 -16 43 -16 64 4 29 27 41 13 14 -16 -20 -21 -21 -26 -9 -56 15 -38 27 -54 35 -46 7 6 55 169 55 186 0 11 -23 15 -45 7z"/><path d="M31 106 c-8 -9 -11 -19 -7 -23 9 -9 29 13 24 27 -2 8 -8 7 -17 -4z"/><path d="M45 60 c-16 -16 -25 -33 -22 -37 8 -7 67 45 67 59 0 16 -17 8 -45 -22z"/><path d="M91 46 c-8 -9 -11 -19 -7 -23 9 -9 29 13 24 27 -2 8 -8 7 -17 -4z"/></g></svg></span>
                             <span>Send</span>
                         </button>
                         <button class="action-btn" onclick="openReportModal(${omzo.id})" title="More">
@@ -2141,6 +2267,16 @@
                 preloadManager.preloadAhead();
             }
         }, 100);
+
+        // If an omzoId is present in the URL hash, scroll to it
+        const omzoId = window.location.hash.substring(1);
+        if (omzoId) {
+            // Find the omzo item
+            const omzoItem = document.querySelector(`.omzo-item[data-id="${omzoId}"]`);
+            if (omzoItem) {
+                omzoItem.scrollIntoView();
+            }
+        }
     });
     
     // Cleanup on page unload
@@ -2150,13 +2286,69 @@
         }
     });
 
-    // Play/Pause on Tap
-    function toggleOmzoPlay(video) {
-        if (video.paused) {
-            video.play();
-        } else {
-            video.pause();
+    // --- Interaction Functions ---
+
+    function toggleOmzoTap(element, event) {
+        if (event) {
+            event.preventDefault();
+            event.stopPropagation();
         }
+
+        const video = element.tagName === 'VIDEO' ? element : element.querySelector('video');
+        if (!video) return;
+
+        // If video is paused, play it
+        if (video.paused) {
+            const playPromise = video.play();
+            if (playPromise !== undefined) {
+                playPromise.catch(error => {
+                    console.log("Play prevented:", error);
+                });
+            }
+            // Update UI
+            const container = video.closest('.omzo-video-container');
+            const playOverlay = container.querySelector('.omzo-play-overlay');
+            if (playOverlay) {
+                playOverlay.style.display = 'none'; // Force hide
+            }
+            return;
+        }
+
+        // If playing, toggle mute
+        video.muted = !video.muted;
+        video.dataset.isMuted = video.muted;
+        soundUnlocked = !video.muted; // Update global sound preference
+        localStorage.setItem('omzo_sound_unlocked', soundUnlocked); // Persist preference
+
+        // Animate overlay icon
+        const container = video.closest('.omzo-video-container');
+        const muteOverlay = container.querySelector('.omzo-mute-overlay');
+        
+        if (muteOverlay) {
+            // Set icon based on state
+            if (video.muted) {
+                muteOverlay.innerHTML = '<span class="od-icon"><svg viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg></span>';
+            } else {
+                muteOverlay.innerHTML = '<span class="od-icon"><svg viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg></span>';
+            }
+
+            // Trigger animation
+            muteOverlay.classList.remove('animate');
+            void muteOverlay.offsetWidth; // Force reflow
+            muteOverlay.classList.add('animate');
+            
+            setTimeout(() => {
+                muteOverlay.classList.remove('animate');
+            }, 800);
+        }
+    }
+
+    // Play/Pause on Tap (now handled by toggleOmzoTap)
+    function toggleOmzoPlay(videoWrapper) {
+        // This function is now a wrapper for toggleOmzoTap for compatibility
+        // or if specific play/pause logic is needed without mute toggling.
+        // For now, it delegates to toggleOmzoTap which handles play if paused.
+        toggleOmzoTap(videoWrapper, null);
     }
 
     // Mute Button Logic
@@ -2233,11 +2425,11 @@
 
         const file = input.files[0];
 
-        // Validate file size (10MB max)
-        const maxSize = 10 * 1024 * 1024; // 10MB
+        // Validate file size (100MB max)
+        const maxSize = 100 * 1024 * 1024; // 100MB
         if (file.size > maxSize) {
             const fileSizeMB = (file.size / (1024 * 1024)).toFixed(1);
-            showOmzoToast('File Too Large', `Your video is ${fileSizeMB}MB. Maximum size is 10MB. Please select a smaller video.`, 'error');
+            showOmzoToast('File Too Large', `Your video is ${fileSizeMB}MB. Maximum size is 100MB. Please select a smaller video.`, 'error');
             input.value = '';
             return;
         }
@@ -2303,15 +2495,16 @@
         if (!pendingOmzoFile) return;
 
         const caption = document.getElementById('captionInput').value.trim();
+        const fileToSend = pendingOmzoFile; // Capture file before clearing
 
-        // Close caption modal
+        // Close caption modal (which clears pendingOmzoFile)
         closeCaptionModal();
 
         // Show uploading toast
         const toastId = showOmzoToast('Uploading Omzo', 'Please wait while your omzo is being processed...', 'uploading', true);
 
         const formData = new FormData();
-        formData.append('video', pendingOmzoFile);
+        formData.append('video', fileToSend);
         formData.append('caption', caption);
 
         fetch('/chat/api/omzo/upload/', {
@@ -2350,9 +2543,28 @@
         currentOmzoId = omzoId;
         const modal = document.getElementById('omzoCommentsModal');
         const list = document.getElementById('omzoCommentsList');
+        const captionSection = document.getElementById('omzoCommentsCaption');
+        const captionUser = document.getElementById('omzoCaptionUser');
+        const captionText = document.getElementById('omzoCaptionText');
 
         // Show modal
         modal.classList.add('show');
+
+        // Find the omzo item to get caption data
+        const omzoItem = document.querySelector(`.omzo-item[data-id="${omzoId}"]`);
+        if (omzoItem) {
+            const captionEl = omzoItem.querySelector('.omzo-caption');
+            const userEl = omzoItem.querySelector('.omzo-user span');
+            if (captionEl && captionEl.textContent.trim()) {
+                captionUser.textContent = userEl ? userEl.textContent.trim() : '';
+                captionText.textContent = captionEl.textContent.trim();
+                captionSection.style.display = 'block';
+            } else {
+                captionSection.style.display = 'none';
+            }
+        } else {
+            captionSection.style.display = 'none';
+        }
 
         // Show loading state
         list.innerHTML = '<div class="omzo-comments-empty"><div style="color: rgba(255,255,255,0.6);">Loading comments...</div></div>';

@@ -3703,7 +3703,7 @@
                                 </span>
                             </div>
                         </a>
-                        <button class="od-post-more" onclick="openPostMenu('{{ scribe.id }}')"">
+                        <button class="od-post-more" onclick="openPostMenu('{{ scribe.id }}')">
                             {% icon "more-horizontal" %}
                         </button>
                     </header>
@@ -3748,7 +3748,7 @@
                                 <span class="od-post-username">{{ scribe.username }}</span>
                             </div>
                         </a>
-                        <button class="od-post-more" onclick="openPostMenu('{{ scribe.id }}')"">
+                        <button class="od-post-more" onclick="openPostMenu('{{ scribe.id }}')">
                             {% icon "more-horizontal" %}
                         </button>
                     </header>
@@ -3837,21 +3837,21 @@
                                 {% icon "thumbs-up" %}
                             </button>
                             <button class="od-post-action-btn dislike-btn {% if scribe.is_disliked %}disliked{% endif %}"
-                                onclick="toggleDislike('{{ scribe.id }}')"" data-scribe-id="{{ scribe.id }}">
+                                onclick="toggleDislike('{{ scribe.id }}')" data-scribe-id="{{ scribe.id }}">
                                 {% icon "thumbs-down" %}
                             </button>
-                            <button class="od-post-action-btn" onclick="toggleComments('{{ scribe.id }}')"">
+                            <button class="od-post-action-btn" onclick="toggleComments('{{ scribe.id }}')">
                                 {% icon "message-circle" %}
                             </button>
-                            <button class="od-post-action-btn" onclick="sharePost('{{ scribe.id }}')"">
+                            <button class="od-post-action-btn" onclick="sharePost('{{ scribe.id }}')">
                                 {% icon "send" %}
                             </button>
-                            <button class="od-post-action-btn" onclick="repostPost('scribe', '{{ scribe.id }}')"" title="Repost">
+                            <button class="od-post-action-btn" onclick="repostPost('scribe', '{{ scribe.id }}')" title="Repost">
                                 {% icon "repeat" %}
                             </button>
                         </div>
                         <button class="od-post-action-btn {% if scribe.is_saved %}saved{% endif %}"
-                            onclick="savePost('{{ scribe.id }}')"" data-action="save">
+                            onclick="savePost('{{ scribe.id }}')"data-action="save">
                             {% icon "bookmark" %}
                         </button>
                     </div>
@@ -4617,7 +4617,7 @@
             </button>
             <h2 class="od-story-create-title">Create Story</h2>
             <button class="od-story-share-btn" onclick="createStory()" id="postStoryBtn">
-                <span class="od-icon"><svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></span>
+                <span class="od-icon"><svg viewBox="0 0 24 25"><g transform="translate(0,25) scale(0.1,-0.1)" fill="currentColor" stroke="none"><path d="M175 215 c-5 -2 -43 -13 -82 -25 -40 -11 -73 -25 -73 -29 0 -5 19 -16 41 -25 40 -16 43 -16 64 4 29 27 41 13 14 -16 -20 -21 -21 -26 -9 -56 15 -38 27 -54 35 -46 7 6 55 169 55 186 0 11 -23 15 -45 7z"/><path d="M31 106 c-8 -9 -11 -19 -7 -23 9 -9 29 13 24 27 -2 8 -8 7 -17 -4z"/><path d="M45 60 c-16 -16 -25 -33 -22 -37 8 -7 67 45 67 59 0 16 -17 8 -45 -22z"/><path d="M91 46 c-8 -9 -11 -19 -7 -23 9 -9 29 13 24 27 -2 8 -8 7 -17 -4z"/></g></svg></span>
                 Share
             </button>
         </header>
@@ -5676,7 +5676,7 @@
                     </button>
                     <!-- Action button: Defaults to Share, changes to Send when typing -->
                     <button class="od-story-reply-btn" onclick="shareStory()" id="storyActionBtn">
-                        <span class="od-icon"><svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></span>
+                        <span class="od-icon"><svg viewBox="0 0 24 25"><g transform="translate(0,25) scale(0.1,-0.1)" fill="currentColor" stroke="none"><path d="M175 215 c-5 -2 -43 -13 -82 -25 -40 -11 -73 -25 -73 -29 0 -5 19 -16 41 -25 40 -16 43 -16 64 4 29 27 41 13 14 -16 -20 -21 -21 -26 -9 -56 15 -38 27 -54 35 -46 7 6 55 169 55 186 0 11 -23 15 -45 7z"/><path d="M31 106 c-8 -9 -11 -19 -7 -23 9 -9 29 13 24 27 -2 8 -8 7 -17 -4z"/><path d="M45 60 c-16 -16 -25 -33 -22 -37 8 -7 67 45 67 59 0 16 -17 8 -45 -22z"/><path d="M91 46 c-8 -9 -11 -19 -7 -23 9 -9 29 13 24 27 -2 8 -8 7 -17 -4z"/></g></svg></span>
                     </button>
                 </div>
             </div>
@@ -7927,13 +7927,13 @@
         
         if (hasText) {
             // Send Reply Mode
-            newBtn.innerHTML = '<span class="od-icon" style="color: var(--color-primary);"><svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></span>';
+            newBtn.innerHTML = '<span class="od-icon" style="color: var(--color-primary);"><svg viewBox="0 0 24 25"><g transform="translate(0,25) scale(0.1,-0.1)" fill="currentColor" stroke="none"><path d="M175 215 c-5 -2 -43 -13 -82 -25 -40 -11 -73 -25 -73 -29 0 -5 19 -16 41 -25 40 -16 43 -16 64 4 29 27 41 13 14 -16 -20 -21 -21 -26 -9 -56 15 -38 27 -54 35 -46 7 6 55 169 55 186 0 11 -23 15 -45 7z"/><path d="M31 106 c-8 -9 -11 -19 -7 -23 9 -9 29 13 24 27 -2 8 -8 7 -17 -4z"/><path d="M45 60 c-16 -16 -25 -33 -22 -37 8 -7 67 45 67 59 0 16 -17 8 -45 -22z"/><path d="M91 46 c-8 -9 -11 -19 -7 -23 9 -9 29 13 24 27 -2 8 -8 7 -17 -4z"/></g></svg></span>';
             newBtn.onclick = sendStoryReply;
             newBtn.title = "Send reply";
         } else {
             // Share Story Mode
             // Use standard Paper Plane icon for sharing like IG
-            newBtn.innerHTML = '<span class="od-icon"><svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></span>';
+            newBtn.innerHTML = '<span class="od-icon"><svg viewBox="0 0 24 25"><g transform="translate(0,25) scale(0.1,-0.1)" fill="currentColor" stroke="none"><path d="M175 215 c-5 -2 -43 -13 -82 -25 -40 -11 -73 -25 -73 -29 0 -5 19 -16 41 -25 40 -16 43 -16 64 4 29 27 41 13 14 -16 -20 -21 -21 -26 -9 -56 15 -38 27 -54 35 -46 7 6 55 169 55 186 0 11 -23 15 -45 7z"/><path d="M31 106 c-8 -9 -11 -19 -7 -23 9 -9 29 13 24 27 -2 8 -8 7 -17 -4z"/><path d="M45 60 c-16 -16 -25 -33 -22 -37 8 -7 67 45 67 59 0 16 -17 8 -45 -22z"/><path d="M91 46 c-8 -9 -11 -19 -7 -23 9 -9 29 13 24 27 -2 8 -8 7 -17 -4z"/></g></svg></span>';
             newBtn.onclick = shareStory;
             newBtn.title = "Share story";
         }
@@ -9185,7 +9185,7 @@
                         <span class="od-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></span>
                     </button>
                     <button class="od-post-action-btn" onclick="sharePost(${scribe.id})">
-                        <span class="od-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></span>
+                        <span class="od-icon"><svg viewBox="0 0 24 25"><g transform="translate(0,25) scale(0.1,-0.1)" fill="currentColor" stroke="none"><path d="M175 215 c-5 -2 -43 -13 -82 -25 -40 -11 -73 -25 -73 -29 0 -5 19 -16 41 -25 40 -16 43 -16 64 4 29 27 41 13 14 -16 -20 -21 -21 -26 -9 -56 15 -38 27 -54 35 -46 7 6 55 169 55 186 0 11 -23 15 -45 7z"/><path d="M31 106 c-8 -9 -11 -19 -7 -23 9 -9 29 13 24 27 -2 8 -8 7 -17 -4z"/><path d="M45 60 c-16 -16 -25 -33 -22 -37 8 -7 67 45 67 59 0 16 -17 8 -45 -22z"/><path d="M91 46 c-8 -9 -11 -19 -7 -23 9 -9 29 13 24 27 -2 8 -8 7 -17 -4z"/></g></svg></span>
                     </button>
                 </div>
                 <button class="od-post-action-btn ${savedClass}" onclick="savePost(${scribe.id})" data-action="save">

@@ -8,7 +8,7 @@ import json
 import logging
 
 from chat.models import (
-    CustomUser, Chat, Message, Scribe, Omzo, Story, ChatRequest
+    CustomUser, Chat, Message, Scribe, Omzo, Story, ChatRequest, ChatAcceptance
 )
 
 logger = logging.getLogger(__name__)
@@ -105,8 +105,11 @@ def search_users_for_share(request):
 def share_content_to_user(request):
     """
     Share content to a list of users.
-    - Existing chat: Direct message
-    - No chat: Create ChatRequest
+    
+    Unified approach:
+    - Always find or create a chat
+    - Send message directly
+    - For NEW chats: sender gets ChatAcceptance, recipient sees in-chat banner
     """
     try:
         data = json.loads(request.body)
@@ -131,7 +134,6 @@ def share_content_to_user(request):
 
         results = {
             'sent': 0,
-            'requested': 0,
             'failed': 0,
             'details': []
         }
@@ -140,85 +142,63 @@ def share_content_to_user(request):
             try:
                 recipient = CustomUser.objects.get(id=user_id)
                 
-                # check blocking again as a safety measure
+                # Check blocking
                 if request.user.blocking.filter(id=user_id).exists() or \
                    request.user.blocked_by.filter(id=user_id).exists():
                     results['failed'] += 1
+                    results['details'].append({'id': user_id, 'status': 'blocked'})
                     continue
                 
-                # Check for existing private chat
+                # Find or create private chat
                 chat = Chat.objects.filter(
                     chat_type='private',
                     participants=request.user
                 ).filter(participants=recipient).first()
                 
-                if chat:
-                    # Send direct message
-                    shared_data = {
-                        'type': content_type,
-                        f'{content_type}_id': content_id
-                    }
+                is_new_chat = False
+                if not chat:
+                    # Create new chat
+                    chat = Chat.objects.create(chat_type='private')
+                    chat.participants.add(request.user, recipient)
+                    is_new_chat = True
                     
-                    Message.objects.create(
+                    # Sender auto-accepts the chat they initiated
+                    ChatAcceptance.objects.get_or_create(
                         chat=chat,
-                        sender=request.user,
-                        content=message_text if message_text else "Shared content",
-                        message_type='text',
-                        reactions={'shared_content': shared_data}
+                        user=request.user
                     )
-                    results['sent'] += 1
-                    results['details'].append({'id': user_id, 'status': 'sent'})
-                    
-                    # Update chat timestamp
-                    chat.updated_at = timezone.now()
-                    chat.save(update_fields=['updated_at'])
-                    
-                else:
-                    # Create Request
-                    # Check if pending request already exists to avoid duplicates
-                    existing_req = ChatRequest.objects.filter(
-                        sender=request.user,
-                        recipient=recipient,
-                        status='pending'
-                    )
-                    
-                    if content_type == 'scribe':
-                        existing_req = existing_req.filter(shared_scribe_id=content_id)
-                    elif content_type == 'omzo':
-                         existing_req = existing_req.filter(shared_omzo_id=content_id)
-                    elif content_type == 'story':
-                         existing_req = existing_req.filter(shared_story_id=content_id)
-                         
-                    if not existing_req.exists():
-                        req = ChatRequest(
-                            sender=request.user,
-                            recipient=recipient,
-                            message=message_text,
-                            content_type=content_type,
-                            status='pending'
-                        )
-                        
-                        if content_type == 'scribe':
-                            req.shared_scribe = content_obj
-                        elif content_type == 'omzo':
-                            req.shared_omzo = content_obj
-                        elif content_type == 'story':
-                            req.shared_story = content_obj
-                            
-                        req.save()
-                        results['requested'] += 1
-                        results['details'].append({'id': user_id, 'status': 'requested'})
-                    else:
-                        # Already requested, count as success/requested?
-                        # Let's say requested but note it was existing
-                         results['requested'] += 1
-                         results['details'].append({'id': user_id, 'status': 'already_requested'})
+                    # Recipient does NOT get ChatAcceptance - they will see the in-chat banner
+                
+                # Build shared content data for message
+                shared_data = {
+                    'type': content_type,
+                    f'{content_type}_id': content_id
+                }
+                
+                # Create the message
+                Message.objects.create(
+                    chat=chat,
+                    sender=request.user,
+                    content=message_text if message_text else f"Shared a {content_type}",
+                    message_type='text',
+                    reactions={'shared_content': shared_data}
+                )
+                
+                # Update chat timestamp
+                chat.updated_at = timezone.now()
+                chat.save(update_fields=['updated_at'])
+                
+                results['sent'] += 1
+                status = 'sent_new_chat' if is_new_chat else 'sent'
+                results['details'].append({'id': user_id, 'status': status, 'chat_id': chat.id})
 
             except CustomUser.DoesNotExist:
                 results['failed'] += 1
+                results['details'].append({'id': user_id, 'status': 'user_not_found'})
             except Exception as e:
                 logger.error(f"Error sharing to user {user_id}: {str(e)}")
                 results['failed'] += 1
+                results['details'].append({'id': user_id, 'status': 'error'})
                 
         return JsonResponse({'success': True, 'results': results})
         

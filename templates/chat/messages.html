@@ -264,26 +264,7 @@
         border-radius: 4px;
     }
 
-    .od-cat-btn {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        padding: 8px 12px;
-        background: var(--od-bg);
-        border: 1px solid var(--od-border);
-        border-radius: 999px;
-        font-size: 13px;
-        color: var(--od-text-secondary);
-        cursor: pointer;
-        white-space: nowrap;
-        flex-shrink: 0;
-    }
 
-    .od-cat-btn.active {
-        background: rgba(102, 126, 234, .12);
-        color: var(--od-text-primary);
-        border-color: transparent;
-    }
 
     @media (max-width: 900px) {
         .od-direct-sidebar {
@@ -372,7 +353,7 @@
     <div class="od-direct-sidebar">
         <header class="od-direct-header">
             <a href="{% url 'dashboard' %}" class="od-direct-back" title="Back">
-                <span class="od-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg></span>
+                <span class="od-icon"><svg viewBox="0 0 24 24"><path d="M19 12H5"/><polyline points="12 19 5 12 12 5"/></svg></span>
             </a>
             <img src="{{ request.user.profile_picture_url }}" alt="{{ request.user.full_name }}"
                 class="od-direct-header-avatar" onerror="this.style.display='none';">
@@ -381,82 +362,120 @@
                 <div class="od-direct-sub">@{{ request.user.username }}</div>
             </div>
             <a class="od-direct-new" href="javascript:void(0)" onclick="openCreateGroupModal()" title="New Chat">
-                <span class="od-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
+                <span class="od-icon"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
             </a>
         </header>
-        <div class="od-direct-controls">
-            <div class="od-search-bar">
-                <span class="od-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
+
+        <style>
+            .od-categories::-webkit-scrollbar {
+                height: 4px; /* Horizontal scrollbar height */
+            }
+            .od-categories::-webkit-scrollbar-track {
+                background: transparent;
+            }
+            .od-categories::-webkit-scrollbar-thumb {
+                background: var(--od-border, #363636);
+                border-radius: 10px;
+                /* border: 2px solid transparent; Remove border for thinner feel on horizontal */
+                background-clip: padding-box;
+            }
+            .od-categories::-webkit-scrollbar-thumb:hover {
+                background: var(--od-text-secondary, #737373);
+            }
+            [data-theme="light"] .od-categories::-webkit-scrollbar-thumb {
+                background: var(--od-border, #dbdbdb);
+            }
+            [data-theme="light"] .od-categories::-webkit-scrollbar-thumb:hover {
+                background: var(--od-text-secondary, #737373);
+            }
+        </style>
+        <div class="od-direct-controls" style="padding:10px 12px; border-bottom:1px solid var(--od-border);">
+            <div class="od-search-bar"
+                style="display:flex;align-items:center;gap:8px;background:var(--od-bg);border:1px solid var(--od-border);border-radius:12px;padding:10px 12px;">
+                <span class="od-icon"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
                 <input id="directSearchInput" type="text" placeholder="Search messages"
-                    onkeyup="filterDirectChats(event)">
+                    onkeyup="filterDirectChats(event)"
+                    style="flex:1;background:transparent;border:none;outline:none;color:var(--od-text-primary);">
             </div>
-            <div class="od-categories">
-                <button class="od-cat-btn active" onclick="filterDirectCategory('all', this)"><span class="od-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg></span> All</button>
-                <button class="od-cat-btn" onclick="filterDirectCategory('private', this)"><span class="od-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
-                    Private</button>
-                <button class="od-cat-btn" onclick="filterDirectCategory('group', this)"><span class="od-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
-                    Groups</button>
-                <button class="od-cat-btn" id="requestsTabBtn" onclick="filterDirectCategory('requests', this)">
-                    <span class="od-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></span>
-                     <span style="white-space:nowrap;">Requests</span> <span id="requestsBadge" style="display:none; background:#ff3b3b; color:white; border-radius:50%; padding:2px 6px; font-size:10px; margin-left:4px;">0</span>
-                </button>
+            <div class="od-categories" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;">
+                <button class="od-cat-btn active" onclick="filterDirectCategory('all', this)"><span class="od-icon"><svg viewBox="0 0 24 24"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg></span> All</button>
+                <button class="od-cat-btn" onclick="filterDirectCategory('private', this)"><span class="od-icon"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span> Private</button>
             </div>
         </div>
 
-
         <div class="od-direct-list">
+
+            <!-- PRIVATE CHATS -->
             {% for chat in private_chats %}
-            <a href="{% url 'chat_detail' chat.id %}" class="od-direct-item" data-type="{{ chat.chat_type }}"
+            <a href="{% url 'chat_detail' chat.id %}" onclick="loadChat('{{ chat.id }}'); return false;"
+                class="od-direct-item{% if chat.id == active_chat_id %} active{% endif %} {% if chat.is_request %}hidden-request{% endif %}" data-type="private"
+                data-chat-id="{{ chat.id }}"
+                data-following="{% if chat.is_private %}true{% endif %}"
+                data-is-request="{% if chat.is_request %}true{% else %}false{% endif %}"
                 data-username="{% for p in chat.participants.all %}{% if p != request.user %}{{ p.username }}{% endif %}{% endfor %}"
-                data-name="{% for p in chat.participants.all %}{% if p != request.user %}{{ p.full_name|default:p.username }}{% endif %}{% endfor %}"
-                data-following="{% if chat.is_private %}true{% endif %}">
+                data-name="{% for p in chat.participants.all %}{% if p != request.user %}{{ p.full_name|default:p.username|lower }}{% endif %}{% endfor %}">
                 {% for participant in chat.participants.all %}
                 {% if participant != request.user %}
                 <span style="position:relative;display:inline-block;">
-                    <img src="{{ participant.profile_picture_url }}" alt="" class="od-direct-item-avatar"
-                        onerror="this.outerHTML='\u003cdiv class=\'od-direct-item-avatar placeholder\'\u003e{{ participant.initials }}\u003c/div\u003e'">
+                    <img src="{{ participant.profile_picture_url }}" class="od-direct-item-avatar"
+                        onerror="this.outerHTML='<div class=\'od-direct-item-avatar placeholder\'>{{ participant.initials }}</div>'">
+                    {% if participant.is_online %}
+                    <span class="od-online-dot"
+                        style="position:absolute;bottom:0;right:0;width:12px;height:12px;background:#22c55e;border-radius:50%;border:2px solid #222;"></span>
+                    {% endif %}
                     {% if chat.unread_count > 0 %}
-                    <span
-                        style="position:absolute;top:-6px;right:-6px;background:#ff3b3b;color:#fff;border-radius:50%;min-width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:bold;box-shadow:0 0 0 2px #fff;z-index:2;">{{chat.unread_count}}</span>
+                    <span class="unread-badge"
+                        style="position:absolute;top:-4px;right:-4px;background:#ff3b3b;color:#fff;border-radius:50%;min-width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:bold;box-shadow:0 0 0 2px var(--od-surface, #1a1a2e);z-index:10;">{{chat.unread_count}}</span>
                     {% endif %}
                 </span>
-                {% endif %}
-                {% endfor %}
                 <div class="od-direct-item-info">
-                    <div class="od-direct-item-name">{% for participant in chat.participants.all %}{% if participant != request.user %}{{ participant.full_name }}{% endif %}{% endfor %}</div>
+                    <div class="od-direct-item-name">{{ participant.full_name }}</div>
                     <div class="od-direct-item-preview">
                         {{ chat.last_message|default:'No messages yet' }}
                     </div>
                 </div>
                 <div class="od-direct-options-btn" role="button" onclick="toggleDirectOptions(event)">
-                    <span class="od-icon" style="width:16px;height:16px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg></span>
+                    <span class="od-icon" style="width:16px;height:16px;"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg></span>
                 </div>
+                {% endif %}
+                {% endfor %}
             </a>
             {% endfor %}
+
+
+            <!-- GROUP CHATS -->
             {% for chat in group_chats %}
-            <a href="{% url 'chat_detail' chat.id %}" class="od-direct-item" data-type="{{ chat.chat_type }}"
-                data-name="{{ chat.name }}">
-                <span style="position:relative;display:inline-block;">
-                    <div class="od-direct-item-avatar group">
-                        <span class="od-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
-                    </div>
-                    {% if chat.unread_count > 0 %}
-                    <span
-                        style="position:absolute;top:-6px;right:-6px;background:#ff3b3b;color:#fff;border-radius:50%;min-width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:bold;box-shadow:0 0 0 2px #fff;z-index:2;">{{chat.unread_count
-                        }}</span>
-                    {% endif %}
-                </span>
+            <a href="{% url 'chat_detail' chat.id %}" onclick="loadChat('{{ chat.id }}'); return false;"
+                class="od-direct-item{% if chat.id == active_chat_id %} active{% endif %}" data-type="group"
+                data-chat-id="{{ chat.id }}"
+                data-name="{{ chat.name|lower }}">
+
+                <div class="od-direct-item-avatar group">
+                    <span class="od-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+                </div>
+
                 <div class="od-direct-item-info">
                     <div class="od-direct-item-name">{{ chat.name }}</div>
                     <div class="od-direct-item-preview">
                         {{ chat.last_message|default:'No messages yet' }}
                     </div>
                 </div>
+
+                {% if chat.unread_count > 0 %}
+                <div class="od-unread-badge">{{ chat.unread_count }}</div>
+                {% endif %}
             </a>
             {% endfor %}
+
+            {% if not private_chats and not group_chats %}
+            <div class="od-direct-empty">
+                <p>No conversations yet</p>
+            </div>
+            {% endif %}
+
         </div>
-        <!-- Requests List Container -->
-        <div id="requestsList" class="od-direct-list" style="display: none;"></div>
+        <!-- Requests List -->
+        <div id="requestsList" style="display:none;flex-direction:column;overflow-y:auto;padding:10px;"></div>
     </div>
 
     <!-- Right Pane - Empty placeholder until a chat is chosen -->
@@ -519,6 +538,24 @@
     {% block extra_js %}
     <script>
         if (typeof lucide !== 'undefined') { lucide.createIcons(); }
+
+        // Unified SPA: Navigate to chat page with smooth transition
+        function loadChat(chatId) {
+            // Mark selected chat as active
+            document.querySelectorAll('.od-direct-item').forEach(el => {
+                el.classList.remove('active');
+                if (el.getAttribute('data-chat-id') === chatId) {
+                    el.classList.add('active');
+                    // Remove unread badge
+                    const badge = el.querySelector('[style*="position:absolute"][style*="background:#ff3b3b"]');
+                    if (badge) badge.style.display = 'none';
+                }
+            });
+            
+            // Navigate to chat page
+            window.location.href = '/chat/chat/' + chatId + '/';
+        }
+
 
         // Sidebar Context Menu Logic
         let currentCtxUsername = null;
@@ -628,15 +665,14 @@
             document.querySelectorAll('.od-direct-list .od-direct-item').forEach(item => {
                 const type = item.getAttribute('data-type');
                 const followingVal = (item.getAttribute('data-following') || '').trim();
-                const isFollowing = followingVal.includes('true'); // Robust check
+                const isFollowing = followingVal.includes('true');
 
                 let show = false;
                 if (category === 'all') {
+                    // Show ALL chats (private and group, including pending requests)
                     show = true;
-                } else if (category === 'group') {
-                    show = (type === 'group');
                 } else if (category === 'private') {
-                    // Must be private AND followed
+                    // Only starred/following private chats
                     show = (type === 'private' && isFollowing);
                 }
 
@@ -906,43 +942,8 @@
              });
         }
 
-        // Sidebar chat update polling
-        function updateSidebarChats() {
-            fetch('/chat/api/chats/')
-                .then(response => response.json())
-                .then(data => {
-                    if (!data.success) return;
-                    const chats = data.chats;
-                    chats.forEach(chat => {
-                        // Find sidebar item by chat id
-                        const item = document.querySelector('.od-direct-item[href$="/' + chat.id + '/"]');
-                        if (!item) return;
-                        // Update unread badge
-                        const imgWrap = item.querySelector('span[style*="position:relative"]');
-                        let badge = item.querySelector('.unread-badge');
-                        if (chat.unread_count > 0) {
-                            if (!badge && imgWrap) {
-                                badge = document.createElement('span');
-                                badge.className = 'unread-badge';
-                                badge.style = "position:absolute;top:-6px;right:-6px;background:#ff3b3b;color:#fff;border-radius:50%;min-width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:bold;box-shadow:0 0 0 2px #fff;z-index:2;";
-                                imgWrap.appendChild(badge);
-                            }
-                            if (badge) {
-                                badge.textContent = chat.unread_count;
-                                badge.style.display = '';
-                            }
-                        } else if (badge) {
-                            badge.style.display = 'none';
-                        }
-                        // Update last message preview
-                        const preview = item.querySelector('.od-direct-item-preview');
-                        if (preview) {
-                            preview.textContent = chat.last_message || 'No messages yet';
-                        }
-                    });
-                });
-        }
-        setInterval(updateSidebarChats, 5000);
-        updateSidebarChats();
+        // NOTE: Sidebar updates now come via WebSocket push only
+        // The sidebar WebSocket in base.html handles real-time updates
+        // No polling needed
     </script>
     {% endblock %}

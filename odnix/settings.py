@@ -134,9 +134,9 @@ os.makedirs(MEDIA_ROOT, exist_ok=True)
 os.makedirs(MEDIA_ROOT / 'profile_pics', exist_ok=True)
 os.makedirs(MEDIA_ROOT / 'chat_media', exist_ok=True)
 
-# FIXED: File upload settings - PREVENTS CORRUPTION
-FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10MB
-DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10MB
+# FIXED: File upload settings - PREVENTS CORRUPTION & ALLOWS LARGER VIDEOS
+FILE_UPLOAD_MAX_MEMORY_SIZE = 100 * 1024 * 1024  # 100MB (Stream larger to disk)
+DATA_UPLOAD_MAX_MEMORY_SIZE = 100 * 1024 * 1024  # 100MB (Max request body size)
 FILE_UPLOAD_PERMISSIONS = 0o644
 
 # Allowed file types for uploads
@@ -221,7 +221,7 @@ LOGGING = {
 # Tunable knobs for server-side omzo compression. You can override via env vars
 # or directly edit here per environment.
 OMZO_MAX_WIDTH = int(os.getenv('OMZO_MAX_WIDTH', 480))           # px
-OMZO_MAX_DURATION = int(os.getenv('OMZO_MAX_DURATION', 120))      # seconds
+OMZO_MAX_DURATION = 120      # seconds (Maximum 2 minutes)
 # frames per second (cap)
 OMZO_MAX_FPS = int(os.getenv('OMZO_MAX_FPS', 30))
 # 18-32 (lower=better quality)

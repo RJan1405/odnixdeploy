@@ -63,7 +63,7 @@ ICONS = {
     'ban': '<circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line>',
     'image': '<rect x="3" y="3" width="18" height="18" rx="6" ry="6"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><path d="m21 15-5-5-10 10"></path>',
     'video': '<polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="6" ry="6"></rect>',
-    'send': '<path d="m22 2-7 20-4-9-9-4Z"></path><path d="M22 2 11 13"></path>',
+    'send': '<g transform="translate(0,25) scale(0.1,-0.1)" fill="currentColor" stroke="none"><path d="M175 215 c-5 -2 -43 -13 -82 -25 -40 -11 -73 -25 -73 -29 0 -5 19 -16 41 -25 40 -16 43 -16 64 4 29 27 41 13 14 -16 -20 -21 -21 -26 -9 -56 15 -38 27 -54 35 -46 7 6 55 169 55 186 0 11 -23 15 -45 7z"/><path d="M31 106 c-8 -9 -11 -19 -7 -23 9 -9 29 13 24 27 -2 8 -8 7 -17 -4z"/><path d="M45 60 c-16 -16 -25 -33 -22 -37 8 -7 67 45 67 59 0 16 -17 8 -45 -22z"/><path d="M91 46 c-8 -9 -11 -19 -7 -23 9 -9 29 13 24 27 -2 8 -8 7 -17 -4z"/></g>',
     'more-vertical': '<circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="19" r="1"></circle>',
     'more-horizontal': '<circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><circle cx="5" cy="12" r="1"></circle>',
     'check': '<path d="M20 6 9 17l-5-5"></path>',

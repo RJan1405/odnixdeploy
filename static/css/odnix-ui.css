@@ -6203,3 +6203,50 @@ img[class*="user-image"],
 .od-profile-avatar-placeholder {
   border-radius: 22% !important;
 }
+/* Sidebar Category Buttons - Theme Aware */
+.od-cat-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    background: var(--od-bg);
+    border: 1px solid var(--od-border);
+    border-radius: 12px;
+    font-size: 13px;
+    color: var(--od-text-secondary);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.od-cat-btn:hover {
+    background: var(--od-surface-hover);
+    color: var(--od-text-primary);
+}
+.od-cat-btn.active {
+    background: var(--od-glow);
+    color: var(--color-primary);
+    border-color: transparent;
+    font-weight: 600;
+}
+
+
+/* Custom Icon Styles */
+.od-icon {
+    width: 24px;
+    height: 24px;
+    display: inline-block;
+    vertical-align: middle;
+}
+.od-icon svg {
+    width: 100%;
+    height: 100%;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+.od-icon.filled svg {
+    fill: currentColor;
+    stroke: currentColor;
+}
+
