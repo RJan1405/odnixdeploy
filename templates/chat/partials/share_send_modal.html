@@ -239,19 +239,74 @@
         }
     }
 
-    // Copy link to clipboard
+    // Copy link to clipboard with fallback and notifications
     function copyShareLink() {
         const url = getShareUrl();
-        navigator.clipboard.writeText(url).then(() => {
-            if (typeof showIGToast === 'function') {
-                showIGToast('Link copied to clipboard', 'success');
-            } else if (typeof showOmzoToast === 'function') {
-                showOmzoToast('Copied!', 'Link copied to clipboard', 'success');
-            } else if (typeof showGlobalToast === 'function') {
-                showGlobalToast('Link copied to clipboard', 'success');
+
+        function notifySuccess(msg) {
+            if (typeof showIGToast === 'function') return showIGToast(msg, 'success');
+            if (typeof showOmzoToast === 'function') return showOmzoToast(msg, '', 'success');
+            if (typeof showGlobalToast === 'function') return showGlobalToast(msg, 'success');
+            // fallback: console
+            console.log('[share] ' + msg);
+        }
+
+        function notifyError(msg) {
+            if (typeof showIGToast === 'function') return showIGToast(msg, 'error');
+            if (typeof showOmzoToast === 'function') return showOmzoToast('Error', msg, 'error');
+            if (typeof showGlobalToast === 'function') return showGlobalToast(msg, 'error');
+            console.error('[share] ' + msg);
+        }
+
+        // Primary: Clipboard API (secure contexts only)
+        if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+            navigator.clipboard.writeText(url).then(() => {
+                notifySuccess('Link copied to clipboard');
+                closeSendToModal();
+            }).catch(err => {
+                console.warn('Clipboard API failed, falling back:', err);
+                // Fallback to textarea copy
+                try {
+                    const textarea = document.createElement('textarea');
+                    textarea.value = url;
+                    textarea.style.position = 'fixed';
+                    textarea.style.left = '-9999px';
+                    document.body.appendChild(textarea);
+                    textarea.select();
+                    const ok = document.execCommand('copy');
+                    document.body.removeChild(textarea);
+                    if (ok) {
+                        notifySuccess('Link copied to clipboard');
+                        closeSendToModal();
+                    } else {
+                        notifyError('Failed to copy link');
+                    }
+                } catch (e) {
+                    notifyError('Failed to copy link');
+                }
+            });
+            return;
+        }
+
+        // Last resort: textarea + execCommand
+        try {
+            const textarea = document.createElement('textarea');
+            textarea.value = url;
+            textarea.style.position = 'fixed';
+            textarea.style.left = '-9999px';
+            document.body.appendChild(textarea);
+            textarea.select();
+            const ok = document.execCommand('copy');
+            document.body.removeChild(textarea);
+            if (ok) {
+                notifySuccess('Link copied to clipboard');
+                closeSendToModal();
+            } else {
+                notifyError('Failed to copy link');
             }
-            closeSendToModal();
-        });
+        } catch (e) {
+            notifyError('Failed to copy link');
+        }
     }
 
     // System share (or fallback to copy)

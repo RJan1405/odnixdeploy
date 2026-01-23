@@ -26,25 +26,37 @@
     }
 
     /* Toggle Switch */
-    .od-toggle {
-        position: relative;
-        display: inline-block;
-        width: 44px;
-        height: 24px;
-        flex-shrink: 0;
-        vertical-align: middle;
-    }
-
-    .od-toggle input {
-        opacity: 0 !important;
-        width: 0 !important;
-        height: 0 !important;
-        position: absolute;
-        pointer-events: none;
-        appearance: none !important; /* Force hide default checkbox */
-        -webkit-appearance: none !important;
-        margin: 0 !important;
-    }
+                if (p) {
+                    if (p.type === 'scribe') {
+                        contentPreview = `
+                        <div style="margin-top:8px; border:1px solid var(--od-border); border-radius:8px; overflow:hidden; background:var(--od-surface-hover);">
+                            ${p.image_url ? `<div style="height:120px; background:url('${p.image_url}') center/cover;"></div>` : ''}
+                            <div style="padding:10px;">
+                                <div style="font-size:11px; color:var(--od-text-secondary); margin-bottom:4px;">
+                                    <div style="display:flex; align-items:center; gap:4px;">
+                                        <img src="${p.author_avatar}" style="width:16px; height:16px; border-radius:50%;">
+                                        <span style="font-weight:600;">${p.author_username}</span>
+                                    </div>
+                                </div>
+                                <div style="font-size:13px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">${p.content || ''}</div>
+                            </div>
+                        </div>`;
+                    } else if (p.type === 'omzo') {
+                        contentPreview = `
+                            <a href="/omzo/?id=${p.id}" style="display:block; margin:0; border-radius:0; overflow:hidden; text-decoration:none; color:inherit; background:none; box-shadow:none; border:none;">
+                                <div style="height:320px; min-width:220px; max-width:380px; width:100%; background:#000; display:flex; align-items:center; justify-content:center; position:relative; border:none; border-radius:0; margin:0 auto;">
+                                    <div style="color:white;"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>
+                                </div>
+                            </a>`;
+                    } else if (p.type === 'story') {
+                        contentPreview = `
+                            <div style="margin-top:8px; border:1px solid var(--od-border); border-radius:8px; overflow:hidden; background:var(--od-surface-hover);">
+                                    <div style="position:absolute; top:8px; left:8px; background:rgba(0,0,0,0.5); padding:2px 8px; border-radius:12px; color:white; font-size:10px;">Story</div>
+                                </div>
+                                <a href="/profile/${p.author_username}/" onclick="if(window.viewUserStories){viewUserStories('${p.author_username}');return false;}" style="display:block; padding:8px; text-align:center; background:rgba(255,255,255,0.05); color:var(--color-primary); font-size:12px; text-decoration:none;">View Story</a>
+                            </div>`;
+                    }
+                }
     
     /* Aggressive reset for any potential pseudo-elements causing ghosts */
     .od-toggle:after, .od-toggle:before,
@@ -146,6 +158,49 @@
         overflow: hidden;
     }
 
+    /* UI Improvements: message bubble spacing & look */
+    /* Chat messages area: bottom padding is set dynamically via JS to match footer height */
+    .od-chat-messages { padding: 18px 20px 24px; }
+    .od-message { margin: 10px 0; transition: transform .12s ease, box-shadow .12s ease; }
+    .od-message:hover { transform: translateY(-2px); }
+    .od-message-bubble { border-radius: 14px; padding: 10px 12px; box-shadow: 0 6px 18px rgba(13,22,26,0.04); }
+    .od-message.sent .od-message-bubble { background: linear-gradient(180deg, #dfefff, #d0e6ff); color: #03224c; }
+    .od-message.received .od-message-bubble { background: rgba(255,255,255,0.02); color: var(--od-text-primary); }
+    .od-message .od-timestamp { font-size: 11px; color: rgba(255,255,255,0.45); opacity: 0; transition: opacity .12s ease; }
+    .od-message:hover .od-timestamp { opacity: 1; }
+
+    /* Sticky header for chat details */
+    .od-chat-header { position: sticky; top: 0; z-index: 40; backdrop-filter: blur(6px); background: linear-gradient(180deg, rgba(0,0,0,0.35), rgba(0,0,0,0.15)); border-bottom: 1px solid rgba(255,255,255,0.02); }
+
+    /* Composer improvements */
+    .od-chat-footer { position: fixed; bottom: 0; left: 0; right: 0; z-index: 50; padding: 10px 12px; background: linear-gradient(180deg, rgba(0,0,0,0.02), rgba(0,0,0,0.04)); border-top: 1px solid rgba(255,255,255,0.02); }
+    .od-chat-form { display:flex; gap:8px; align-items:flex-end; }
+    .od-chat-input { flex:1; min-height:44px; max-height:140px; padding: 10px 12px; border-radius: 18px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.03); resize: none; font-size:15px; }
+    .od-chat-input:focus { outline: none; box-shadow: 0 8px 30px rgba(2,6,23,0.06); }
+    .od-chat-send { width:48px; height:48px; border-radius:50%; display:flex; align-items:center; justify-content:center; }
+
+    /* Tighter mobile adjustments */
+    @media (max-width: 480px) {
+        .od-chat-messages { padding-left: 12px; padding-right: 12px; }
+        .od-chat-input { min-height: 48px; font-size:16px; }
+        .od-message-bubble { padding: 10px; }
+    }
+
+    /* Omzo video mute overlay */
+    .od-omzo-mute-overlay {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        pointer-events: none;
+        transition: opacity .36s ease;
+        opacity: 0;
+        color: #fff;
+        font-size: 30px;
+        text-shadow: 0 2px 6px rgba(0,0,0,0.6);
+    }
+
     /* Mobile: account for bottom nav (65px) */
     @media (max-width: 768px) {
         .od-direct {
@@ -153,6 +208,52 @@
             height: 100vh !important;
             padding-bottom: 0 !important;
         }
+    }
+
+    /* Mobile improvements: stack sidebar and chat, hide sidebar by default on small screens */
+    @media (max-width: 768px) {
+        .od-direct {
+            display: flex;
+            flex-direction: column;
+            height: 100vh !important;
+            margin-top: 0 !important;
+        }
+
+        /* Hide sidebar to prioritize chat on small screens; use back button to reveal if needed */
+        .od-direct-sidebar {
+            display: none !important;
+            width: 100% !important;
+            max-width: 100% !important;
+        }
+
+        .od-chat {
+            display: flex !important;
+            flex: 1 1 auto;
+            width: 100% !important;
+        }
+
+        /* Make message bubbles take more horizontal space on phones */
+        .od-message-bubble {
+            max-width: min(72ch, 92%);
+            padding: 12px 14px;
+        }
+
+        .od-message { margin: 10px 8px; gap: 12px; }
+
+        /* Slightly larger avatars for tap targets */
+        .od-message-avatar { width:44px; height:44px; }
+
+        /* Composer full width and accessible buttons */
+        .od-chat-composer { padding: 10px; }
+        .od-chat-send { padding: 10px 14px; border-radius: 12px; }
+    }
+
+    /* Mobile: hide emoji button and give more space to the input */
+    @media (max-width: 768px) {
+        .od-chat-emoji { display: none !important; }
+        .od-chat-mic { display: none !important; }
+        .od-chat-input { padding: 10px 12px !important; font-size: 16px !important; }
+        .od-chat-input-actions { gap: 6px; }
     }
 
     /* Sidebar Styles (Matched to messages page) */
@@ -238,12 +339,19 @@
         display: flex;
         align-items: center;
         gap: 12px;
-        padding: 10px 12px;
-        border-radius: 12px;
+        padding: 12px 14px;
+        border-radius: 10px;
         text-decoration: none;
         color: inherit;
-        transition: background .15s;
+        transition: background .12s, transform .12s;
         position: relative;
+        cursor: pointer; /* ensure mobile recognizes as tappable */
+        -webkit-tap-highlight-color: transparent; /* remove tap highlight */
+        touch-action: manipulation; /* improve single-tap responsiveness on mobile */
+        -webkit-user-select: none;
+        user-select: none;
+        box-sizing: border-box;
+        width: 100%;
     }
 
     .od-direct-options-btn {
@@ -275,6 +383,30 @@
 
     .od-direct-item:hover {
         background: var(--od-surface-hover);
+    }
+
+    /* Add clear separators between conversations for readability */
+    .od-direct-list .od-direct-item {
+        border-bottom: 1px solid var(--od-border-light);
+        margin: 0;
+        border-radius: 0;
+    }
+
+    /* Slightly subtler separator between consecutive items to reduce visual weight */
+    .od-direct-list .od-direct-item + .od-direct-item {
+        border-top: 1px solid rgba(0,0,0,0.03);
+    }
+
+    /* Member list thin lining */
+    .od-members-list .od-member-item {
+        border-bottom: 1px solid var(--od-border-light);
+        padding: 10px 12px;
+    }
+
+    .od-direct-item.active {
+        background: rgba(102, 126, 234, .12);
+        border-left: 4px solid var(--color-primary);
+        padding-left: 10px; /* compensate for left accent */
     }
 
     .od-direct-item.active {
@@ -390,16 +522,61 @@
         margin-right: auto;
     }
 
+    /* Message row spacing and bubble improvements */
+    .od-message {
+        display: flex;
+        gap: 10px;
+        align-items: flex-end;
+        margin: 8px 12px;
+        transition: transform 120ms ease, opacity 120ms ease;
+        will-change: transform, opacity;
+    }
+
+    .od-message-bubble {
+        max-width: min(72ch, 70%);
+        padding: 10px 12px;
+        border-radius: 14px;
+        line-height: 1.45;
+        word-break: break-word;
+        box-shadow: 0 6px 14px rgba(16,24,40,0.04);
+        transition: box-shadow 120ms ease, transform 120ms ease;
+        will-change: transform;
+    }
+
+    /* Avatar tweaks */
+    .od-message-avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        object-fit: cover;
+        box-shadow: 0 4px 12px rgba(2,6,23,0.06);
+        flex-shrink: 0;
+    }
+
+    .od-message-avatar.placeholder { display:flex; align-items:center; justify-content:center; background:linear-gradient(180deg,var(--bg-card,#fff),#f7fbff); color:var(--text-primary); font-weight:700; }
+
+    .od-message-text { margin:0; font-size:15px; white-space: pre-wrap; }
+
+    /* Timestamps: subtle, reveal on hover */
+    .od-message-time { font-size:11px; color:var(--text-muted, #94a3b8); opacity:0.9; margin-left:8px; }
+    .od-message-bubble:hover .od-message-time { opacity:1; transform:none; }
+
+    /* Composer: stronger send button */
+    .od-chat-send { background: var(--color-primary); color: #fff; }
+    .od-chat-send:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(99,102,241,0.12); }
+
     .od-message.sent .od-message-bubble {
-        background: var(--color-primary);
+        background: linear-gradient(180deg, var(--color-primary), color-mix(in srgb, var(--color-primary) 85%, #000 15%));
         color: white;
-        border-bottom-right-radius: 4px;
+        border-bottom-right-radius: 6px;
+        border-bottom-left-radius: 14px;
     }
 
     .od-message.received .od-message-bubble {
-        background: var(--od-bg);
-        color: var(--od-text-primary);
-        border-bottom-left-radius: 4px;
+        background: var(--bg-card, var(--od-bg));
+        color: var(--text-primary, var(--od-text-primary));
+        border-bottom-left-radius: 6px;
+        border-bottom-right-radius: 14px;
     }
 
     .od-message-menu {
@@ -1124,9 +1301,14 @@
             display: flex;
         }
 
+        /* Mobile chat layout: fixed header + flexible messages + fixed footer */
         .od-chat {
+            --od-chat-header-height: 60px;
+            --od-chat-footer-height: calc(88px + env(safe-area-inset-bottom, 0));
             width: 100%;
             height: 100vh !important;
+            display: flex;
+            flex-direction: column;
         }
 
         .od-chat-footer {
@@ -1145,16 +1327,37 @@
             gap: 6px;
         }
 
+        /* Stick header to top on phones */
         .od-chat-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: var(--od-chat-header-height);
             padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            z-index: 1003;
+            background: var(--od-surface);
+            border-bottom: 1px solid var(--od-border);
         }
 
         .od-chat-info h3 {
             font-size: 15px;
         }
 
+        /* Messages area should sit below fixed header and above fixed footer */
         .od-chat-body {
             padding: 12px;
+        }
+
+        .od-chat-messages {
+            /* Ensure messages area doesn't go under the fixed header/footer */
+            padding-top: calc(var(--od-chat-header-height) + 8px);
+            padding-bottom: calc(var(--od-chat-footer-height) + env(safe-area-inset-bottom, 0));
+            flex: 1 1 auto;
+            min-height: 0; /* allow flex children to shrink correctly */
+            overflow-y: auto;
         }
 
         .od-message {
@@ -1318,6 +1521,24 @@
         }
     }
 
+    /* Desktop: ensure header remains in normal flow and visible */
+    @media (min-width: 769px) {
+        .od-chat-header {
+            position: static !important;
+            top: auto !important;
+            left: auto !important;
+            right: auto !important;
+            height: auto !important;
+            z-index: auto !important;
+            background: transparent !important;
+            border-bottom: none !important;
+        }
+
+        .od-chat-messages {
+            padding-top: 0 !important;
+        }
+    }
+
     .od-direct-empty {
         padding: 40px 20px;
         text-align: center;
@@ -1447,6 +1668,10 @@
         align-items: center;
         justify-content: space-between;
     }
+
+    /* Sender name shown above messages in group chats */
+    .od-message-sender { display:block; font-size:12px; font-weight:700; color:var(--color-primary); margin-bottom:6px; }
+    .od-message.received .od-message-sender { color: var(--text-primary); opacity:0.85; }
 
     .od-reply-info {
         display: flex;
@@ -2037,6 +2262,68 @@
     .od-context-item:hover {
         background: var(--od-surface-hover);
     }
+    /* Additional mobile fixes: safe-area, composer padding and sidebar toggle */
+    @media (max-width: 768px) {
+        /* Make chat a column layout so header/messages/footer stack correctly */
+        .od-chat {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        /* Fix footer to bottom so it's always visible and above sidebar */
+        .od-chat-footer {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            padding: 10px 12px 12px 12px;
+            z-index: 1002; /* Above sidebar */
+            background: var(--od-surface);
+            box-shadow: 0 -6px 20px rgba(0,0,0,0.06);
+        }
+
+        /* Ensure message area fills remaining space and doesn't overflow under footer */
+        .od-chat-messages {
+            flex: 1 1 auto;
+            min-height: 0; /* allow flex child to shrink properly */
+            overflow-y: auto;
+            padding-bottom: calc(64px + env(safe-area-inset-bottom, 0));
+            scroll-padding-top: var(--od-chat-header-height, 60px);
+        }
+
+        /* Make input larger and more tappable on mobile */
+        .od-chat-input {
+            min-height: 44px;
+            padding: 10px 14px;
+            font-size: 16px;
+            line-height: 1.2;
+        }
+
+        /* Sidebar hidden off-canvas by default; show with `.show` */
+        .od-direct-sidebar {
+            display: none !important;
+            transform: translateX(-100%);
+            transition: transform 0.25s ease;
+        }
+
+        .od-direct-sidebar.show {
+            display: flex !important;
+            transform: translateX(0);
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            z-index: 80;
+            background: var(--od-surface);
+        }
+
+        .od-chat-back.mobile-only {
+            display: flex !important;
+            align-items: center;
+            justify-content: center;
+        }
+    }
 </style>
 {% endblock %}
 
@@ -2105,7 +2392,7 @@
 
             <!-- PRIVATE CHATS -->
             {% for chat in private_chats %}
-            <a href="{% url 'chat_detail' chat.id %}" onclick="loadChat('{{ chat.id }}'); return false;"
+            <a href="{% url 'chat_detail' chat.id %}" data-chat-id="{{ chat.id }}" onclick="loadChat('{{ chat.id }}'); return false;"
                 class="od-direct-item{% if chat.id == active_chat_id %} active{% endif %} {% if chat.is_request %}hidden-request{% endif %}" data-type="private"
                 data-following="{% if chat.is_private %}true{% endif %}"
                 data-is-request="{% if chat.is_request %}true{% else %}false{% endif %}"
@@ -2142,7 +2429,7 @@
 
             <!-- GROUP CHATS -->
             {% for chat in group_chats %}
-            <a href="{% url 'chat_detail' chat.id %}" onclick="loadChat('{{ chat.id }}'); return false;"
+            <a href="{% url 'chat_detail' chat.id %}" data-chat-id="{{ chat.id }}" onclick="loadChat('{{ chat.id }}'); return false;"
                 class="od-direct-item{% if chat.id == active_chat_id %} active{% endif %}" data-type="group"
                 data-name="{{ chat.name|lower }}">
 
@@ -2181,14 +2468,16 @@
         <!-- Chat Header -->
         <header class="od-chat-header">
 
-            <a href="{% url 'messages' %}" class="od-chat-back mobile-only">
-                <span class="od-icon"><svg viewBox="0 0 24 24"><path d="M19 12H5"/><polyline points="12 19 5 12 12 5"/></svg></span>
-            </a>
+            <!-- Back button removed for cleaner in-chat header on mobile -->
 
             {% if chat.chat_type == 'group' %}
             <div class="od-chat-user" onclick="openGroupInfo()" style="display:flex;align-items:center;">
                 <div class="od-chat-avatar group">
-                    <span class="od-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+                    {% if chat.group_avatar %}
+                        <img src="{{ chat.group_avatar.url }}" alt="{{ chat.name }}" class="od-chat-avatar" style="width:48px; height:48px; border-radius:12px; object-fit:cover;" onerror="handleAvatarError(this, '{{ chat.name|default:''|truncatechars:1|upper }}', 'od-chat-avatar')">
+                    {% else %}
+                        <span class="od-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+                    {% endif %}
                 </div>
                 <div class="od-chat-user-info">
                     <span class="od-chat-username">{{ chat.name }}</span>
@@ -2405,17 +2694,11 @@
                                         <a href="{% url 'view_post' shared.id %}" style="display:block; padding:8px; text-align:center; background:rgba(255,255,255,0.05); color:var(--color-primary); font-size:12px; text-decoration:none;">View Post</a>
                                     
                                     {% elif content_type == 'omzo' %}
-                                        <div style="padding:10px; border-bottom:1px solid rgba(255,255,255,0.05); display:flex; align-items:center; gap:8px;">
-                                            <img src="{{ shared.user.profile_picture_url }}" style="width:20px; height:20px; border-radius:50%;">
-                                            <span style="font-size:12px; font-weight:600;">{{ shared.user.username }}</span>
-                                        </div>
-                                        <div style="height:160px; background:#000; display:flex; align-items:center; justify-content:center;">
-                                           <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-                                        </div>
-                                        <div style="padding:10px;">
-                                            <p style="font-size:13px; margin:0; display:-webkit-box; -webkit-line-clamp:3; line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;">{{ shared.caption|truncatechars:100 }}</p>
-                                        </div>
-                                        <a href="{% url 'omzo' %}?id={{ shared.id }}" style="display:block; padding:8px; text-align:center; background:rgba(255,255,255,0.05); color:var(--color-primary); font-size:12px; text-decoration:none;">Watch Reel</a>
+                                        <a href="{% url 'omzo' %}?id={{ shared.id }}" style="display:block; margin:0; border-radius:0; overflow:hidden; text-decoration:none; color:inherit; background:none; box-shadow:none; border:none;">
+                                           <div style="height:320px; min-width:220px; max-width:380px; width:100%; background:#000; display:flex; align-items:center; justify-content:center; border:none; border-radius:0; margin:0 auto;">
+                                               <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                                           </div>
+                                        </a>
                                         
                                     {% elif content_type == 'story' %}
                                         <div style="height:180px; position:relative; background-color:#333; background-position:center; background-size:cover; background-image:url('{{ shared.media_url }}');">
@@ -2486,23 +2769,64 @@
         fetchRequestCount();
     });
 
-    function fetchRequestCount() {
-        // Use our new DM requests endpoint that tracks unaccepted chats
-        fetch('/api/dm-requests/count/')
-        .then(r => r.json())
-        .then(data => {
-            const badge = document.getElementById('requestsBadge');
-            if (badge) {
-                if (data.success && data.count > 0) {
-                    badge.textContent = data.count;
-                    badge.style.display = 'inline-block';
-                } else {
-                    badge.style.display = 'none';
-                }
+    // Centralized, rate-limited DM requests count fetcher.
+    // Avoids repeated HTTP calls during websocket bursts.
+    (function () {
+        const MIN_INTERVAL_MS = 800; // minimum time between network requests
+        let lastFetchTime = 0;
+        let inFlight = null;
+        let pendingCall = false;
+
+        window.fetchDMRequestCount = function (force = false) {
+            const now = Date.now();
+            // If a fetch is already in-flight, mark that another call was requested
+            if (inFlight) {
+                pendingCall = true;
+                return inFlight;
             }
-        })
-        .catch(console.error);
-    }
+
+            if (!force && (now - lastFetchTime) < MIN_INTERVAL_MS) {
+                // Schedule a delayed fetch if calls are coming too fast
+                if (!pendingCall) {
+                    pendingCall = true;
+                    setTimeout(() => { pendingCall = false; window.fetchDMRequestCount(true); }, MIN_INTERVAL_MS - (now - lastFetchTime));
+                }
+                return Promise.resolve();
+            }
+
+            lastFetchTime = now;
+            inFlight = fetch('/api/dm-requests/count/')
+                .then(r => r.ok ? r.json() : Promise.reject())
+                .then(data => {
+                    try {
+                        const badge = document.getElementById('requestsBadge');
+                        if (badge) {
+                            if (data && data.success && data.count > 0) {
+                                badge.textContent = data.count;
+                                badge.style.display = 'inline-block';
+                            } else {
+                                badge.style.display = 'none';
+                            }
+                        }
+                    } catch (e) { }
+                    return data;
+                })
+                .catch(() => { })
+                .finally(() => {
+                    inFlight = null;
+                    if (pendingCall) {
+                        pendingCall = false;
+                        // Ensure at least MIN_INTERVAL_MS between requests
+                        setTimeout(() => { window.fetchDMRequestCount(true); }, MIN_INTERVAL_MS);
+                    }
+                });
+
+            return inFlight;
+        };
+
+        // Initial invocation on DOMContentLoaded
+        document.addEventListener('DOMContentLoaded', function () { window.fetchDMRequestCount(); });
+    })();
 
     // Reuse filter logic but adapted since filterDirectCategory might not be defined or minimal here
     // We overwrite or extend filterDirectCategory if it exists in another block, but here we define it inline for safety or ensure it merges.
@@ -2600,19 +2924,39 @@
             const p = req.preview; 
             
             if (p) {
-                if (p.type === 'scribe') {
-                    contentPreview = `
-                        <div style="margin-top:8px; border:1px solid var(--od-border); border-radius:8px; overflow:hidden; background:var(--od-surface-hover);">
-                            ${p.image_url ? `<div style="height:100px; background:url('${p.image_url}') center/cover;"></div>` : ''}
-                            <div style="padding:8px;">
-                                <div style="font-size:12px;">${p.content || 'Shared a post'}</div>
-                            </div>
-                        </div>`;
-                } else if (p.type === 'omzo') {
-                    contentPreview = `<div style="margin-top:8px; font-size:12px; color:var(--od-text-secondary);">Shared a reel</div>`;
-                } else if (p.type === 'story') {
-                    contentPreview = `<div style="margin-top:8px; font-size:12px; color:var(--od-text-secondary);">Shared a story</div>`;
-                }
+                    if (p.type === 'scribe') {
+                        contentPreview = `
+                            <div style="margin-top:8px; border:1px solid var(--od-border); border-radius:8px; overflow:hidden; background:var(--od-surface-hover);">
+                                ${p.image_url ? `<div style="height:140px; background:url('${p.image_url}') center/cover;"></div>` : ''}
+                                <div style="padding:10px;">
+                                    <div style="font-size:12px; color:var(--od-text-secondary); margin-bottom:6px;">
+                                        <div style="display:flex; align-items:center; gap:6px;">
+                                            <img src="${p.author_avatar}" style="width:18px; height:18px; border-radius:50%;">
+                                            <span style="font-weight:600;">${p.author_username}</span>
+                                        </div>
+                                    </div>
+                                    <div style="font-size:14px; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;">${p.content || ''}</div>
+                                </div>
+                            </div>`;
+                    } else if (p.type === 'omzo') {
+                        contentPreview = `
+                            <a href="/omzo/?id=${p.id}" style="display:block; margin-top:8px; border-radius:8px; overflow:hidden; text-decoration:none; color:inherit; width:100%; max-width:720px;">
+                                <div style="height:260px; background:#000; display:flex; align-items:center; justify-content:center; position:relative;">
+                                    <div style="color:white;"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>
+                                </div>
+                                <div style="padding:12px; background:var(--od-surface-hover);">
+                                    <div style="font-size:12px; color:var(--od-text-secondary); margin-bottom:6px;">From ${p.author_username}</div>
+                                    <div style="font-size:15px;">${p.caption || ''}</div>
+                                </div>
+                            </a>`;
+                    } else if (p.type === 'story') {
+                        contentPreview = `
+                            <div style="margin-top:8px; border:1px solid var(--od-border); border-radius:8px; overflow:hidden; background:var(--od-surface-hover);">
+                                    <div style="position:absolute; top:8px; left:8px; background:rgba(0,0,0,0.5); padding:2px 8px; border-radius:12px; color:white; font-size:10px;">Story</div>
+                                </div>
+                                <a href="/profile/${p.author_username}/" onclick="if(window.viewUserStories){viewUserStories('${p.author_username}');return false;}" style="display:block; padding:8px; text-align:center; background:rgba(255,255,255,0.05); color:var(--color-primary); font-size:12px; text-decoration:none;">View Story</a>
+                            </div>`;
+                    }
             }
 
             // Prepare user object for helper
@@ -2715,7 +3059,7 @@
                         c.scrollTop = c.scrollHeight + 99999;
                     }
                     if (l && l.lastElementChild) {
-                        l.lastElementChild.scrollIntoView({ behavior: 'instant', block: 'end' });
+                        l.lastElementChild.scrollIntoView({ behavior: 'auto', block: 'end' });
                     }
                 })();
             </script>
@@ -2751,8 +3095,7 @@
                         onchange="handleImageSelect(event)">
                 </label>
 
-                <input type="text" class="od-chat-input" id="messageInput" placeholder="Message..." autocomplete="off"
-                    maxlength="5000">
+                <textarea class="od-chat-input" id="messageInput" placeholder="Message..." autocomplete="off" rows="1" maxlength="5000"></textarea>
 
                 <div class="od-chat-input-actions">
                     <button type="button" class="od-chat-p2p" onclick="openP2PModal()" title="Share File (P2P)">
@@ -2768,9 +3111,7 @@
                             <path d="M1 12s4 8 11 8 11-8 11-8"></path>
                         </svg>
                     </button>
-                    <button type="button" class="od-chat-mic" id="voiceBtn" onclick="toggleVoiceRecording()">
-                        <span class="od-icon"><svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg></span>
-                    </button>
+                    <!-- Microphone button removed (desktop+mobile) -->
                     <button type="submit" class="od-chat-send" id="sendBtn" style="display: none;">
                         <span class="od-icon"><svg viewBox="0 0 24 25"><g transform="translate(0,25) scale(0.1,-0.1)" fill="currentColor" stroke="none"><path d="M175 215 c-5 -2 -43 -13 -82 -25 -40 -11 -73 -25 -73 -29 0 -5 19 -16 41 -25 40 -16 43 -16 64 4 29 27 41 13 14 -16 -20 -21 -21 -26 -9 -56 15 -38 27 -54 35 -46 7 6 55 169 55 186 0 11 -23 15 -45 7z"/><path d="M31 106 c-8 -9 -11 -19 -7 -23 9 -9 29 13 24 27 -2 8 -8 7 -17 -4z"/><path d="M45 60 c-16 -16 -25 -33 -22 -37 8 -7 67 45 67 59 0 16 -17 8 -45 -22z"/><path d="M91 46 c-8 -9 -11 -19 -7 -23 9 -9 29 13 24 27 -2 8 -8 7 -17 -4z"/></g></svg></span>
                     </button>
@@ -2870,9 +3211,21 @@
         </header>
         <div class="od-modal-body">
             <div style="padding: 16px 0; border-bottom: 1px solid var(--od-border-light);">
-                <h4 style="font-size: 14px; color: var(--od-text-secondary); margin-bottom: 8px;">Members · {{
-                    chat.participant_count }}</h4>
+                <h4 id="groupMembersCount" style="font-size: 14px; color: var(--od-text-secondary); margin-bottom: 8px;">Members · {{ chat.participant_count }}</h4>
             </div>
+
+            {% if is_admin %}
+            <div style="padding: 12px 0; border-bottom: 1px solid var(--od-border-light); display: flex; align-items: center; gap: 12px;">
+                <img id="groupAvatarPreview" src="{% if chat.group_avatar %}{{ chat.group_avatar.url }}{% else %}/static/img/group-placeholder.png{% endif %}" alt="Group avatar" style="width:64px; height:64px; border-radius:12px; object-fit:cover;">
+                <div style="flex: 1;">
+                    <input type="file" id="groupAvatarInput" accept="image/*" onchange="previewGroupAvatar(event)">
+                    <div style="margin-top:8px; display:flex; gap:8px;">
+                        <button class="od-auth-btn" onclick="uploadGroupAvatar({{ chat.id }})">Upload</button>
+                        <button class="od-settings-item" onclick="removeGroupAvatar({{ chat.id }})" style="background:transparent; border:1px solid var(--od-border-light);">Remove</button>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
 
             <div class="od-members-list">
                 {% for participant in chat.participants.all %}
@@ -3075,6 +3428,60 @@
 
         if (typeof lucide !== 'undefined') lucide.createIcons();
 
+    }
+
+    // UX helpers: smooth scroll to bottom and textarea autosize
+    function scrollToBottom(smooth = true) {
+        const list = document.querySelector('.od-chat-messages');
+        if (!list) return;
+        if (smooth) list.scrollTo({ top: list.scrollHeight, behavior: 'smooth' });
+        else list.scrollTop = list.scrollHeight;
+    }
+
+    // Auto-resize textarea and send on Enter (Shift+Enter for newline)
+    (function setupComposer() {
+        const ta = document.getElementById('messageInput');
+        const form = document.getElementById('messageForm');
+        if (!ta || !form) return;
+
+        function resize() {
+            ta.style.height = 'auto';
+            ta.style.height = Math.min(140, ta.scrollHeight) + 'px';
+                adjustChatPadding();
+                scrollToBottom(false);
+        }
+
+        ta.addEventListener('input', resize);
+        window.addEventListener('load', resize);
+
+        ta.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                form.requestSubmit();
+            }
+        });
+    })();
+
+    // Show/hide timestamps on hover is done via CSS, ensure initial scroll to bottom
+    window.addEventListener('load', function() { setTimeout(() => scrollToBottom(true), 80); });
+
+    // Adjust chat messages bottom padding to account for fixed footer/composer
+    function adjustChatPadding() {
+        try {
+            const messages = document.querySelector('.od-chat-messages');
+            const footer = document.querySelector('.od-chat-footer');
+            if (!messages) return;
+            const footerHeight = footer ? footer.getBoundingClientRect().height : 0;
+            // leave a small gap (12px)
+            messages.style.paddingBottom = (footerHeight + 12) + 'px';
+        } catch (e) {
+            // ignore
+        }
+    }
+
+    window.addEventListener('resize', function() { adjustChatPadding(); });
+    window.addEventListener('load', function() { setTimeout(adjustChatPadding, 50); setTimeout(adjustChatPadding, 400); });
+
         // Position menu
         const rect = btn.getBoundingClientRect();
         menu.style.display = 'flex';
@@ -3220,11 +3627,15 @@
     let reconnectDelay = 3000;
     let isOneTimeMode = false;
     let useWebSocket = false;
+    // Mirror to global so external scripts can check WS state (e.g., static/js/call.js)
+    window.useWebSocket = false;
     let onlineCheckInterval = null;
     let heartbeatInterval = null;
     let isUserScrolledUp = false;
     let newMessagesCount = 0;
     let currentPinnedMessageId = null;
+    let sendButtonTimeout = null;
+    let isSending = false;
 
     // Voice Recording Globals
     let mediaRecorder = null;
@@ -3248,6 +3659,41 @@
         initScrollListener();
         loadPinnedMessages();
 
+        // Improve mobile send reliability: capture pointer/touch on send button
+        // before the textarea blur/keyboard hide can steal the tap.
+        try {
+            const sendBtnMobile = document.getElementById('sendBtn');
+            const msgInputMobile = document.getElementById('messageInput');
+            if (sendBtnMobile) {
+                const earlySend = function(e) {
+                    // Only handle primary interactions
+                    if (e.pointerType && e.pointerType === 'mouse' && e.button !== 0) return;
+                    if (sendBtnMobile.disabled) {
+                        try { e.preventDefault(); } catch (ex) {}
+                        try { e.stopPropagation(); } catch (ex) {}
+                        return;
+                    }
+                    try { e.preventDefault(); } catch (ex) {}
+                    try { e.stopPropagation(); } catch (ex) {}
+                    if (isSending) return;
+                    isSending = true;
+                    try {
+                        // Call sendMessage directly (simulate form submit)
+                        sendMessage({ preventDefault: function() {} });
+                    } catch (err) { console.debug('early send failed', err); }
+                    setTimeout(() => { isSending = false; }, 800);
+                };
+
+                // Use pointerdown/touchstart to win before blur; passive:false so preventDefault works
+                sendBtnMobile.addEventListener('pointerdown', earlySend, { passive: false });
+                sendBtnMobile.addEventListener('touchstart', earlySend, { passive: false });
+                // Also handle click as a fallback
+                sendBtnMobile.addEventListener('click', function(e) {
+                    if (isSending) { e.preventDefault(); e.stopPropagation(); return; }
+                });
+            }
+        } catch (err) { console.debug('send mobile handler setup failed', err); }
+
         // Heartbeat for online status (kept as HTTP - acceptable for presence)
         startHeartbeat();
 
@@ -3261,12 +3707,58 @@
 
         // Scroll to bottom - multiple attempts to handle image loading
         forceScrollToBottom();
-        setTimeout(forceScrollToBottom, 100);
-        setTimeout(forceScrollToBottom, 300);
-        setTimeout(forceScrollToBottom, 600);
-        setTimeout(forceScrollToBottom, 1000);
-        setTimeout(forceScrollToBottom, 2000);
-        setTimeout(forceScrollToBottom, 3000);
+        scheduleScrollToBottom(100);
+        scheduleScrollToBottom(300);
+        scheduleScrollToBottom(600);
+        scheduleScrollToBottom(1000);
+        scheduleScrollToBottom(2000);
+        scheduleScrollToBottom(3000);
+
+        // Setup Omzo preview mute toggle: clicking the video toggles mute without navigating
+        function setupOmzoMuteToggle() {
+            document.querySelectorAll('.od-omzo-preview-video').forEach(function(vid) {
+                try {
+                    // ensure video can receive clicks
+                    vid.style.pointerEvents = 'auto';
+                } catch (e) {}
+
+                vid.addEventListener('click', function(e) {
+                    // Prevent navigation when video is inside a link
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    vid.muted = !vid.muted;
+
+                    // show quick overlay icon
+                    var parent = vid.parentElement;
+                    if (!parent) return;
+                    parent.style.position = parent.style.position || 'relative';
+                    var ov = parent.querySelector('.od-omzo-mute-overlay');
+                    if (!ov) {
+                        ov = document.createElement('div');
+                        ov.className = 'od-omzo-mute-overlay';
+                        parent.appendChild(ov);
+                    }
+                    ov.textContent = vid.muted ? '🔇' : '🔊';
+                    ov.style.opacity = '1';
+                    setTimeout(function() { ov.style.opacity = '0'; }, 700);
+                });
+            });
+
+            // Prevent parent anchor navigation when the click target was an omzo video
+            document.querySelectorAll('a').forEach(function(a) {
+                a.addEventListener('click', function(e) {
+                    if (e.target && e.target.closest && e.target.closest('.od-omzo-preview-video')) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }
+                });
+            });
+        }
+
+        // Run once now and again after short delay to cover dynamically inserted previews
+        setupOmzoMuteToggle();
+        setTimeout(setupOmzoMuteToggle, 500);
     });
     
     // Cleanup P2P signals when user leaves the page
@@ -3294,36 +3786,73 @@
     // Also scroll on full page load (including images)
     window.addEventListener('load', function () {
         forceScrollToBottom();
-        setTimeout(forceScrollToBottom, 100);
-        setTimeout(forceScrollToBottom, 500);
-        setTimeout(forceScrollToBottom, 1000);
+        scheduleScrollToBottom(100);
+        scheduleScrollToBottom(500);
+        scheduleScrollToBottom(1000);
 
         // Also watch for any images that might still be loading
         const images = document.querySelectorAll('.od-chat-messages img');
         images.forEach(img => {
             if (!img.complete) {
-                img.addEventListener('load', forceScrollToBottom);
+                img.addEventListener('load', function () { scheduleScrollToBottom(50); });
             }
         });
     });
 
-    // FORCE scroll to bottom - no conditions, just scroll
+    // FORCE scroll to bottom - attempt to keep the last message visible
     function forceScrollToBottom() {
         const container = document.getElementById('messagesContainer');
         const list = document.getElementById('messagesList');
-        if (container) {
-            // Method 1: Set scrollTop
-            container.scrollTop = container.scrollHeight + 99999;
+        // Respect when user intentionally scrolled up
+        if (typeof isUserScrolledUp !== 'undefined' && isUserScrolledUp) return;
 
-            // Method 2: Also scroll the last message into view
-            if (list) {
-                const lastMessage = list.lastElementChild;
-                if (lastMessage) {
-                    lastMessage.scrollIntoView({ behavior: 'instant', block: 'end' });
-                }
-            }
+        if (!container) return;
+
+        // Compute footer/header heights if present
+        const footer = document.querySelector('.od-chat-footer');
+        const header = document.querySelector('.od-chat-header');
+        const footerHeight = footer ? footer.getBoundingClientRect().height : 0;
+        const headerHeight = header ? header.getBoundingClientRect().height : 0;
+
+        // Determine visible area height. Prefer VisualViewport when available (handles on-screen keyboard).
+        let visibleHeight;
+        if (window.visualViewport) {
+            visibleHeight = window.visualViewport.height - headerHeight - footerHeight;
+        } else {
+            visibleHeight = window.innerHeight - headerHeight - footerHeight;
+        }
+
+        // Some containers include padding; ensure visibleHeight is not larger than container.clientHeight
+        visibleHeight = Math.max(0, Math.min(visibleHeight, container.clientHeight));
+
+        // Calculate target scrollTop so that last message is visible above footer/keyboard
+        const target = Math.max(0, container.scrollHeight - visibleHeight + 8); // small padding
+
+        // Apply scroll using requestAnimationFrame to avoid layout thrashing
+        try {
+            window.requestAnimationFrame(() => {
+                try { container.scrollTo({ top: target, behavior: 'auto' }); } catch (e) { container.scrollTop = target; }
+                // We've adjusted container.scrollTop to target; avoid calling scrollIntoView to prevent double-jumps
+                // (some older browsers may require scrollIntoView, but it often causes jitter when combined with container.scrollTop)
+            });
+        } catch (e) {
+            try { container.scrollTop = target; } catch (ee) { }
         }
     }
+
+    // Debounced scheduler for scrolling to bottom to avoid repeated layout thrash
+    let scheduledScrollTimeout = null;
+    function scheduleScrollToBottom(delay = 50) {
+        try {
+            if (scheduledScrollTimeout) clearTimeout(scheduledScrollTimeout);
+            scheduledScrollTimeout = setTimeout(() => {
+                scheduledScrollTimeout = null;
+                try { window.requestAnimationFrame(forceScrollToBottom); } catch (e) { forceScrollToBottom(); }
+            }, delay);
+        } catch (e) { try { forceScrollToBottom(); } catch (ee) { } }
+    }
+
+    // (restored) ensure last message behavior is handled by simple forceScrollToBottom calls
 
     // Track scroll position to show "new messages" button
     function initScrollListener() {
@@ -3486,7 +4015,15 @@
         chatSocket.onopen = function () {
             console.log('[WebSocket] Connected - All real-time features now via push');
             useWebSocket = true;
+            window.useWebSocket = true;
             reconnectAttempts = 0;
+            // Stop any existing HTTP pollers now that WS is active
+            try {
+                if (typeof stopSignalPolling === 'function') stopSignalPolling();
+            } catch (e) { /* ignore */ }
+            try {
+                if (typeof stopBackgroundSignalPolling === 'function') stopBackgroundSignalPolling();
+            } catch (e) { /* ignore */ }
             
             // All real-time features handled via WebSocket push:
             // - Messages: message.new events
@@ -3510,6 +4047,15 @@
         chatSocket.onclose = function (e) {
             console.log('[WebSocket] Closed', e.code, e.reason);
             useWebSocket = false;
+            window.useWebSocket = false;
+
+            // Resume HTTP pollers as fallback when WS disconnects
+            try {
+                if (typeof startSignalPolling === 'function' && !window.useWebSocket) startSignalPolling();
+            } catch (e) { /* ignore */ }
+            try {
+                if (typeof startBackgroundSignalPolling === 'function' && !window.useWebSocket) startBackgroundSignalPolling();
+            } catch (e) { /* ignore */ }
 
             // WebSocket only - attempt aggressive reconnection
             if (reconnectAttempts < maxReconnectAttempts) {
@@ -3907,12 +4453,39 @@
         list.insertAdjacentHTML('beforeend', msgHtml);
         if (typeof lucide !== 'undefined') lucide.createIcons();
 
+        // Animate new message and enable send button for own messages
+        const newLast = list.lastElementChild;
+        if (newLast) {
+            // Add entrance animation class
+            try {
+                newLast.classList.add('od-new');
+                // Remove class after animation completes
+                const cleanup = () => { newLast.classList.remove('od-new'); newLast.removeEventListener('animationend', cleanup); };
+                newLast.addEventListener('animationend', cleanup);
+                // Safety cleanup
+                setTimeout(() => { try { newLast.classList.remove('od-new'); } catch (e) { } }, 800);
+            } catch (e) { }
+
+            // If this is a message sent by current user, re-enable send button (ack)
+            try {
+                const isSent = newLast.classList.contains('sent');
+                if (isSent) {
+                    const sendBtn = document.getElementById('sendBtn');
+                    if (sendBtn) {
+                        sendBtn.disabled = false;
+                        if (sendButtonTimeout) { clearTimeout(sendButtonTimeout); sendButtonTimeout = null; }
+                    }
+                }
+            } catch (e) { }
+        }
+
         // ALWAYS scroll to bottom for new messages
         if (autoScroll) {
             isUserScrolledUp = false;
             forceScrollToBottom();
             // Extra scroll after a short delay to ensure DOM is updated
-            setTimeout(forceScrollToBottom, 100);
+            scheduleScrollToBottom(100);
+            scheduleScrollToBottom(300);
         }
     }
 
@@ -4070,6 +4643,10 @@
     }
 
     function startVoiceRecording() {
+        if (!(navigator && navigator.mediaDevices && typeof navigator.mediaDevices.getUserMedia === 'function')) {
+            alert("Cannot start voice recording: getUserMedia is unavailable. Use HTTPS or localhost.");
+            return;
+        }
         navigator.mediaDevices.getUserMedia({ audio: true })
             .then(stream => {
                 audioStream = stream;
@@ -4170,6 +4747,17 @@
         sendStopTyping();
         cancelReply(); // Clear reply state
 
+        // Disable send button until message appears (prevents double sends)
+        try {
+            const sendBtn = document.getElementById('sendBtn');
+            if (sendBtn) {
+                sendBtn.disabled = true;
+                // Safety: re-enable after 5s in case of issues
+                if (sendButtonTimeout) clearTimeout(sendButtonTimeout);
+                sendButtonTimeout = setTimeout(() => { try { sendBtn.disabled = false; } catch (e) { } }, 5000);
+            }
+        } catch (e) { }
+
         // Reset one-time mode after sending
         if (oneTime) {
             toggleOneTimeMode();
@@ -4232,10 +4820,10 @@
                         consumed: false
                     }, true); // Force scroll for own messages
 
-                    // Extra force scrolls to ensure it works
+                    // Extra force scrolls to ensure it works (debounced)
                     forceScrollToBottom();
-                    setTimeout(forceScrollToBottom, 100);
-                    setTimeout(forceScrollToBottom, 300);
+                    scheduleScrollToBottom(100);
+                    scheduleScrollToBottom(300);
                 } else {
                     // Try to show toast, fallback to alert
                     if (typeof showIGToast === 'function') {
@@ -4283,8 +4871,8 @@
                         consumed: false
                     }, true); // Always scroll for own messages
                     forceScrollToBottom();
-                    setTimeout(forceScrollToBottom, 100);
-                    setTimeout(forceScrollToBottom, 300);
+                    scheduleScrollToBottom(100);
+                    scheduleScrollToBottom(300);
                 } else {
                     if (typeof showIGToast === 'function') showIGToast('Failed to send image', 'error');
                 }
@@ -4340,7 +4928,18 @@
         input.addEventListener('keydown', function (e) {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
-                document.getElementById('messageForm').dispatchEvent(new Event('submit'));
+                try {
+                    if (typeof sendMessage === 'function') {
+                        // Call sendMessage directly to avoid dispatching a non-cancelable submit event
+                        sendMessage({ preventDefault: function() {} });
+                    } else {
+                        const form = document.getElementById('messageForm');
+                        if (form) form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+                    }
+                } catch (err) {
+                    const form = document.getElementById('messageForm');
+                    if (form) form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+                }
             }
         });
     }
@@ -4918,6 +5517,9 @@
     }
 
     function openGroupInfo() {
+        // Hide the members count line when opening via group title
+        const membersEl = document.getElementById('groupMembersCount');
+        if (membersEl) membersEl.style.display = 'none';
         document.getElementById('groupInfoModal').style.display = 'flex';
     }
 
@@ -4925,6 +5527,82 @@
         if (!event || event.target === event.currentTarget) {
             document.getElementById('groupInfoModal').style.display = 'none';
         }
+    }
+
+    // Group avatar helpers
+    function previewGroupAvatar(event) {
+        const file = event.target.files && event.target.files[0];
+        if (!file) return;
+        const url = URL.createObjectURL(file);
+        const img = document.getElementById('groupAvatarPreview');
+        if (img) img.src = url;
+    }
+
+    function uploadGroupAvatar(chatId) {
+        const input = document.getElementById('groupAvatarInput');
+        if (!input || !input.files || !input.files.length) {
+            alert('Please choose an image to upload');
+            return;
+        }
+        const file = input.files[0];
+        const fd = new FormData();
+        fd.append('group_avatar', file);
+
+        fetch(`/api/group/${chatId}/update-settings/`, {
+            method: 'POST',
+            body: fd,
+            credentials: 'same-origin',
+            headers: {
+                'X-CSRFToken': getCSRFToken()
+            }
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data && data.success) {
+                if (data.group && data.group.group_avatar) {
+                    const url = data.group.group_avatar;
+                    const preview = document.getElementById('groupAvatarPreview');
+                    if (preview) preview.src = url;
+
+                    // Update header avatar if present
+                    const headerAvatarEl = document.querySelector('.od-chat-header .od-chat-avatar');
+                    if (headerAvatarEl) {
+                        try {
+                            headerAvatarEl.outerHTML = `<img src="${url}" alt="" class="od-chat-avatar" onerror="handleAvatarError(this, '${data.group.name ? data.group.name[0].toUpperCase() : ''}', 'od-chat-avatar')">`;
+                        } catch (e) {
+                            // fallback: do nothing
+                        }
+                    }
+                }
+                if (typeof showIGToast === 'function') showIGToast('Group avatar updated', 'success');
+            } else {
+                alert(data && data.error ? data.error : 'Failed to upload avatar');
+            }
+        })
+        .catch(() => alert('Failed to upload avatar'));
+    }
+
+    function removeGroupAvatar(chatId) {
+        if(!confirm('Remove group avatar?')) return;
+        fetch(`/api/group/${chatId}/update-settings/`, {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: {
+                'X-CSRFToken': getCSRFToken(),
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ remove_avatar: true })
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data && data.success) {
+                document.getElementById('groupAvatarPreview').src = '/static/img/group-placeholder.png';
+                if (typeof showIGToast === 'function') showIGToast('Group avatar removed', 'info');
+            } else {
+                alert(data && data.error ? data.error : 'Failed to remove avatar');
+            }
+        })
+        .catch(() => alert('Failed to remove avatar'));
     }
 
     function toggleMuteChat() {
@@ -5015,8 +5693,8 @@
     function openP2PModal() {
         document.getElementById('p2pModal').style.display = 'flex';
         loadP2PParticipants();
-        // Start polling for incoming signals
-        startSignalPolling();
+        // Start polling for incoming signals (guarded by WebSocket state)
+        if (!window.useWebSocket) startSignalPolling();
     }
 
     function closeP2PModal(event) {
@@ -5439,9 +6117,14 @@
     }
 
     function startSignalPolling() {
+        // Prevent polling when WebSocket push is active
+        if (window.useWebSocket) {
+            console.log('[WebSocket] Push active - skipping signal polling');
+            return;
+        }
         // P2P signals are now handled via WebSocket push (p2p.signal events)
         // No polling needed - the server pushes signals in real-time
-        console.log('[WebSocket] P2P signals handled via push - no polling needed');
+        console.log('[WebSocket] P2P signals handled via push - starting polling only as fallback');
     }
 
     // P2P signals are now handled via WebSocket push - no background polling needed
@@ -5451,9 +6134,14 @@
     let p2pIncomingModalOverlay = null;  // Reference to the modal overlay for external closing
 
     function startBackgroundSignalPolling() {
+        // Prevent background polling when WebSocket push is active
+        if (window.useWebSocket) {
+            console.log('[WebSocket] Push active - skipping background signal polling');
+            return;
+        }
         // DEPRECATED: P2P signals now come via WebSocket push (p2p.signal events)
         // No polling needed - the server pushes P2P signals in real-time
-        console.log('[WebSocket] P2P signals handled via push - no polling needed');
+        console.log('[WebSocket] P2P signals handled via push - background polling fallback starting');
     }
 
     function stopBackgroundSignalPolling() {
@@ -6257,16 +6945,73 @@
     }
 
     function openInviteLink() {
-        const inviteLink = '{{ chat.invite_link }}';
-        if (inviteLink) {
-            navigator.clipboard.writeText(inviteLink).then(() => {
-                alert('Invite link copied to clipboard!');
-            }).catch(() => {
-                prompt('Copy this invite link:', inviteLink);
-            });
-        } else {
-            alert('No invite link available');
+        const templateLink = '{{ chat.invite_link }}';
+        const chatId = {{ chat.id }};
+
+        function fallbackCopy(text) {
+            try {
+                const ta = document.createElement('textarea');
+                ta.value = text;
+                // Prevent mobile zoom
+                ta.style.fontSize = '16px';
+                ta.style.position = 'fixed';
+                ta.style.top = 0;
+                ta.style.left = 0;
+                ta.style.opacity = 0;
+                document.body.appendChild(ta);
+                ta.select();
+                ta.setSelectionRange(0, ta.value.length);
+                const ok = document.execCommand('copy');
+                ta.remove();
+                return ok;
+            } catch (e) { return false; }
         }
+
+        function copyAndNotify(link) {
+            if (!link) { alert('No invite link available'); return; }
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(link).then(() => {
+                    if (typeof showIGToast === 'function') showIGToast('Invite link copied to clipboard!', 'success');
+                    else alert('Invite link copied to clipboard!');
+                }).catch(() => {
+                    const ok = fallbackCopy(link);
+                    if (ok) {
+                        if (typeof showIGToast === 'function') showIGToast('Invite link copied to clipboard!', 'success');
+                        else alert('Invite link copied to clipboard!');
+                    } else {
+                        prompt('Copy this invite link:', link);
+                    }
+                });
+            } else {
+                const ok = fallbackCopy(link);
+                if (ok) {
+                    if (typeof showIGToast === 'function') showIGToast('Invite link copied to clipboard!', 'success');
+                    else alert('Invite link copied to clipboard!');
+                } else {
+                    prompt('Copy this invite link:', link);
+                }
+            }
+        }
+
+        if (templateLink && templateLink.trim()) {
+            copyAndNotify(templateLink);
+            return;
+        }
+
+        // Template link missing - fetch latest group details
+        fetch(`/api/group/${chatId}/details/`, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(r => r.ok ? r.json() : Promise.reject())
+            .then(data => {
+                if (data && data.success && data.group && data.group.invite_link) {
+                    copyAndNotify(data.group.invite_link);
+                } else {
+                    alert('No invite link available');
+                }
+            })
+            .catch(err => {
+                console.error('Failed to fetch invite link', err);
+                alert('Failed to retrieve invite link');
+            });
     }
 
     // Video Call Function
@@ -6782,11 +7527,13 @@
                     data.last_message
                 );
             } else if (data.type === "new_chat") {
-                // New chat appeared - add to sidebar
-                handleNewChatInSidebar(data.chat, data.is_request);
+                // New chat appeared - add to sidebar. Pass full payload so we can
+                // use any provided request count and avoid extra HTTP fetches.
+                handleNewChatInSidebar(data);
             } else if (data.type === "chat_accepted") {
                 // Chat was accepted - move from Requests to All
-                handleChatAccepted(data.chat_id);
+                // If server provides the updated request count, use it; otherwise fall back to a debounced fetch
+                handleChatAccepted(data.chat_id, data.count);
             } else if (data.type === "request_count_update") {
                 // Update request badge count
                 updateRequestBadge(data.count);
@@ -6799,7 +7546,12 @@
         };
     }
 
-    function handleNewChatInSidebar(chat, isRequest) {
+    function handleNewChatInSidebar(payload) {
+        // payload: { chat, is_request, count? }
+        const chat = payload.chat;
+        const isRequest = payload.is_request;
+        const providedCount = typeof payload.count !== 'undefined' ? payload.count : null;
+
         // Check if chat already exists in sidebar
         const existingItem = document.querySelector(`.od-direct-item[href$="/${chat.id}/"]`);
         if (existingItem) {
@@ -6850,9 +7602,15 @@
         // Insert at the top of the list
         chatList.insertBefore(newItem, chatList.firstChild);
         
-        // Update request count badge if it's a request
+        // Update request count badge if it's a request. Prefer server-provided
+        // count; otherwise debounce an HTTP fetch to avoid bursts.
         if (isRequest) {
-            fetchDMRequestCount();
+            if (providedCount !== null) {
+                updateRequestBadge(providedCount);
+            } else {
+                if (window.__dmCountDebounce) clearTimeout(window.__dmCountDebounce);
+                window.__dmCountDebounce = setTimeout(fetchDMRequestCount, 500);
+            }
         }
         
         // Show in appropriate category
@@ -6862,12 +7620,19 @@
         }
     }
 
-    function handleChatAccepted(chatId) {
+    function handleChatAccepted(chatId, providedCount) {
         const chatItem = document.querySelector(`.od-direct-item[href$="/${chatId}/"]`);
         if (chatItem) {
             chatItem.setAttribute('data-is-request', 'false');
         }
-        fetchDMRequestCount();
+        if (typeof providedCount !== 'undefined' && providedCount !== null) {
+            updateRequestBadge(providedCount);
+            return;
+        }
+
+        // Debounced fallback fetch
+        if (window.__dmCountDebounce) clearTimeout(window.__dmCountDebounce);
+        window.__dmCountDebounce = setTimeout(fetchDMRequestCount, 500);
     }
 
     function updateRequestBadge(count) {
@@ -6882,15 +7647,13 @@
         }
     }
 
-    function fetchDMRequestCount() {
-        fetch('/api/dm-requests/count/')
-            .then(r => r.json())
-            .then(data => {
-                if (data.success) {
-                    updateRequestBadge(data.count);
-                }
-            })
-            .catch(console.error);
+    function fetchDMRequestCount(force = false) {
+        if (typeof window.fetchDMRequestCount === 'function') return window.fetchDMRequestCount(force);
+        // Fallback: direct fetch (shouldn't normally be hit)
+        return fetch('/api/dm-requests/count/')
+            .then(r => r.ok ? r.json() : Promise.reject())
+            .then(data => { if (data && data.success) updateRequestBadge(data.count); })
+            .catch(() => { });
     }
 
     connectSidebarSocket();
@@ -6955,13 +7718,14 @@
             }
         }
         
-        if (headerAvatar) {
-            if (data.chat.avatar) {
-                 headerAvatar.outerHTML = `<img src="${data.chat.avatar}" alt="" class="od-chat-avatar" onerror="handleAvatarError(this, '${data.chat.initials}', 'od-chat-avatar')">`;
-            } else {
-                 headerAvatar.outerHTML = `<div class="od-chat-avatar placeholder">${data.chat.initials}</div>`;
-            }
-        }
+           if (headerAvatar) {
+              const avatarUrl = data.chat.avatar || data.chat.group_avatar || null;
+              if (avatarUrl) {
+                  headerAvatar.outerHTML = `<img src="${avatarUrl}" alt="" class="od-chat-avatar" onerror="handleAvatarError(this, '${data.chat.initials}', 'od-chat-avatar')">`;
+              } else {
+                  headerAvatar.outerHTML = `<div class="od-chat-avatar placeholder">${data.chat.initials}</div>`;
+              }
+           }
         
         if (headerUserLink && !data.chat.is_group && data.messages.length > 0) {
              // Try to find the other user's username from a message or use a placeholder/API
@@ -7284,6 +8048,232 @@
         }
     }
 })();
+</script>
+
+<script>
+// Mobile: toggle off-canvas sidebar with the mobile back button
+document.addEventListener('DOMContentLoaded', function () {
+    const backBtn = document.querySelector('.od-chat-back.mobile-only');
+    const sidebar = document.querySelector('.od-direct-sidebar');
+    const messagesArea = document.querySelector('.od-chat-messages');
+    if (!backBtn || !sidebar) return;
+
+    backBtn.addEventListener('click', function (e) {
+        if (window.innerWidth <= 768) {
+            e.preventDefault();
+            sidebar.classList.toggle('show');
+            // If closing sidebar, focus the input for quick typing
+            if (!sidebar.classList.contains('show')) {
+                const input = document.getElementById('messageInput');
+                if (input) input.focus();
+            }
+        } else {
+            // Desktop/tablet: perform normal back behavior
+            goBack();
+        }
+    });
+
+    if (messagesArea) {
+        messagesArea.addEventListener('click', function () {
+            if (window.innerWidth <= 768 && sidebar.classList.contains('show')) {
+                sidebar.classList.remove('show');
+            }
+        });
+    }
+
+    // Ensure sidebar closes when resizing to larger viewports
+    window.addEventListener('resize', function () {
+        if (window.innerWidth > 768 && sidebar.classList.contains('show')) {
+            sidebar.classList.remove('show');
+        }
+    });
+});
+</script>
+
+<script>
+// Ensure mobile taps focus the input so Android keyboards open reliably
+document.addEventListener('DOMContentLoaded', function () {
+    const footer = document.querySelector('.od-chat-footer');
+    const input = document.getElementById('messageInput');
+    if (!footer || !input) return;
+
+    // On touchstart, focus the input. Prevent accidental propagation from overlays.
+    footer.addEventListener('touchstart', function (e) {
+        try {
+            if (document.activeElement !== input) {
+                input.focus();
+            }
+        } catch (err) { /* ignore */ }
+    }, { passive: true });
+
+    // Also ensure clicks focus input
+    footer.addEventListener('click', function () {
+        try { input.focus(); } catch (e) { }
+    });
+});
+</script>
+
+<script>
+// Auto-resize textarea to fit content and improve typing area on mobile
+document.addEventListener('DOMContentLoaded', function () {
+    const ta = document.getElementById('messageInput');
+    if (!ta) return;
+
+    function resize() {
+        ta.style.height = 'auto';
+        const sh = ta.scrollHeight;
+        // cap max height to avoid covering too much of viewport
+        const max = Math.min(window.innerHeight * 0.4, 300);
+        ta.style.height = Math.min(sh, max) + 'px';
+    }
+
+    ta.addEventListener('input', resize, { passive: true });
+    // Resize immediately to match placeholder/initial content
+    setTimeout(resize, 50);
+
+    // Submit on Enter (without Shift) is already handled; ensure Enter in textarea behaves same
+    ta.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            try {
+                // Call sendMessage directly to avoid accidental form submission reloads
+                if (typeof sendMessage === 'function') {
+                    sendMessage({ preventDefault: function() {} });
+                } else {
+                    const form = document.getElementById('messageForm');
+                    if (form) form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+                }
+            } catch (err) {
+                const form = document.getElementById('messageForm');
+                if (form) form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+            }
+            // clear height after send
+            setTimeout(() => { ta.style.height = 'auto'; }, 100);
+        }
+    });
+});
+</script>
+
+<script>
+// Keep header visible when keyboard opens on mobile by preventing page-level scroll
+document.addEventListener('DOMContentLoaded', function () {
+    const ta = document.getElementById('messageInput');
+    const messagesContainer = document.getElementById('messagesContainer');
+    const header = document.querySelector('.od-chat-header');
+    if (!ta || !messagesContainer || !header) return;
+
+    function keepHeaderVisible() {
+        try {
+            // Prevent the browser from scrolling the page: force body scroll to top
+            window.scrollTo(0, 0);
+            // Ensure messages container is scrolled to bottom so input remains above keyboard
+            setTimeout(() => {
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }, 250);
+        } catch (e) { }
+    }
+
+    ta.addEventListener('focus', function () {
+        document.body.classList.add('od-keyboard-open');
+        keepHeaderVisible();
+    });
+
+    ta.addEventListener('blur', function () {
+        document.body.classList.remove('od-keyboard-open');
+    });
+});
+</script>
+
+<script>
+// Use VisualViewport when available to keep header/footer aligned with visible viewport
+document.addEventListener('DOMContentLoaded', function () {
+    const ta = document.getElementById('messageInput');
+    const header = document.querySelector('.od-chat-header');
+    const footer = document.querySelector('.od-chat-footer');
+    const messagesContainer = document.getElementById('messagesContainer');
+    if (!ta || !header || !footer || !messagesContainer) return;
+
+    let vvListener = null;
+
+    function applyViewportOffsets() {
+        const vv = window.visualViewport;
+        if (!vv) return;
+        const offsetTop = vv.offsetTop || 0;
+        const keyboardHeight = Math.max(0, window.innerHeight - vv.height - offsetTop);
+
+        // Pin header to the top of the visual viewport
+        header.style.top = offsetTop + 'px';
+        header.style.position = 'fixed';
+
+        // Move footer above keyboard
+        footer.style.bottom = (keyboardHeight) + 'px';
+
+        // Ensure messages container stays scrolled to bottom
+        setTimeout(() => {
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }, 50);
+    }
+
+    function onFocus() {
+        if (window.visualViewport) {
+            // apply once and attach listener
+            applyViewportOffsets();
+            vvListener = function () { applyViewportOffsets(); };
+            window.visualViewport.addEventListener('resize', vvListener);
+            window.visualViewport.addEventListener('scroll', vvListener);
+        } else {
+            // Fallback: scroll messages to bottom
+            setTimeout(() => messagesContainer.scrollTop = messagesContainer.scrollHeight, 50);
+        }
+    }
+
+    function onBlur() {
+        // Reset adjustments
+        if (window.visualViewport && vvListener) {
+            window.visualViewport.removeEventListener('resize', vvListener);
+            window.visualViewport.removeEventListener('scroll', vvListener);
+            vvListener = null;
+        }
+        header.style.top = '';
+        footer.style.bottom = '';
+    }
+
+    ta.addEventListener('focus', onFocus);
+    ta.addEventListener('blur', onBlur);
+});
+</script>
+
+</script>
+
+<script>
+// Improve single-tap behavior on touch devices: delegate pointerdown to conversation list
+document.addEventListener('DOMContentLoaded', function () {
+    const list = document.querySelector('.od-direct-list');
+    if (!list) return;
+
+    list.addEventListener('pointerdown', function (e) {
+        // Ignore interactions intended for the options button or controls
+        if (e.target.closest && e.target.closest('.od-direct-options-btn')) return;
+        if (e.target.closest && e.target.closest('.od-direct-new')) return;
+
+        const item = e.target.closest && e.target.closest('.od-direct-item');
+        if (!item) return;
+
+        // Find the anchor representing the chat
+        const anchor = item.closest('a') || (item.tagName && item.tagName.toLowerCase() === 'a' ? item : item.querySelector('a[href]'));
+        if (!anchor) return;
+
+        const chatId = anchor.dataset && anchor.dataset.chatId ? anchor.dataset.chatId : (anchor.getAttribute('href') || '').split('/').filter(Boolean).pop();
+        if (!chatId) return;
+
+        // Prevent default navigation and handle via AJAX loader immediately
+        try { e.preventDefault(); e.stopPropagation(); } catch (ex) { }
+        // Defer slightly to allow any other handlers (like long-press) to cancel
+        setTimeout(() => {
+            try { loadChat(chatId); } catch (err) { console.debug('loadChat failed', err); }
+        }, 0);
+    }, { passive: false });
+});
 </script>
 
 {% endblock %}

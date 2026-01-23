@@ -1185,6 +1185,20 @@ def discover_groups_view(request):
     # Get first page (15 items) - pass user to exclude followed users
     mixed_content = _get_explore_content_batch(page=1, per_page=15, user=request.user)
 
+    # If the client is a mobile browser (Android/iOS) prefer showing only scribes
+    # because some mobile WebViews have trouble with autoplay/video heavy pages.
+    ua = request.META.get('HTTP_USER_AGENT', '') or ''
+    ua_l = ua.lower()
+    is_mobile_ua = False
+    try:
+        if 'android' in ua_l or 'mobile' in ua_l or 'iphone' in ua_l or 'ipad' in ua_l:
+            is_mobile_ua = True
+    except Exception:
+        is_mobile_ua = False
+
+    if is_mobile_ua:
+        mixed_content = [item for item in mixed_content if item.get('type') == 'scribe']
+
     # Get user's chats for the DM panel in navbar
     private_chats = Chat.objects.filter(
         participants=request.user,
@@ -2169,6 +2183,7 @@ def get_group_details(request, chat_id):
                 'participant_count': chat.participant_count,
                 'invite_code': chat.invite_code,
                 'invite_link': chat.invite_link,
+                'group_avatar': chat.group_avatar.url if getattr(chat, 'group_avatar', None) else None,
                 'created_at': chat.created_at.strftime('%B %d, %Y'),
                 'is_admin': is_admin,
             },
@@ -2191,7 +2206,16 @@ def update_group_settings(request, chat_id):
         if chat.admin != request.user:
             return JsonResponse({'success': False, 'error': 'Only the group admin can update settings'}, status=403)
 
-        data = json.loads(request.body)
+        # Support both JSON body and multipart/form-data (for file upload)
+        data = {}
+        if request.content_type and request.content_type.startswith('multipart/'):
+            # FormData - fields are in request.POST, files in request.FILES
+            data = request.POST.dict()
+        else:
+            try:
+                data = json.loads(request.body)
+            except Exception:
+                data = {}
 
         # Update fields if provided
         if 'name' in data:
@@ -2219,6 +2243,35 @@ def update_group_settings(request, chat_id):
                 return JsonResponse({'success': False, 'error': 'Max participants must be between 2 and 500'})
             chat.max_participants = max_participants
 
+        # Handle remove avatar request
+        if data.get('remove_avatar'):
+            try:
+                if getattr(chat, 'group_avatar', None):
+                    try:
+                        chat.group_avatar.delete(save=False)
+                    except Exception:
+                        logger.exception('Failed deleting old avatar file')
+                    chat.group_avatar = None
+                chat.save()
+            except Exception as e:
+                logger.error(f"Failed to remove group avatar: {str(e)}")
+                return JsonResponse({'success': False, 'error': 'Failed to remove group avatar'})
+
+        # Handle group avatar upload (multipart/form-data)
+        if request.FILES.get('group_avatar'):
+            try:
+                # assign uploaded file to ImageField and save
+                if getattr(chat, 'group_avatar', None):
+                    try:
+                        chat.group_avatar.delete(save=False)
+                    except Exception:
+                        logger.exception('Failed deleting old avatar file')
+                chat.group_avatar = request.FILES.get('group_avatar')
+                chat.save()
+            except Exception as e:
+                logger.error(f"Failed to save group avatar: {str(e)}")
+                return JsonResponse({'success': False, 'error': 'Failed to upload group avatar'})
+
         chat.save()
 
         # Create system message for name change
@@ -2237,6 +2290,7 @@ def update_group_settings(request, chat_id):
                 'description': chat.description,
                 'is_public': chat.is_public,
                 'max_participants': chat.max_participants,
+                'group_avatar': chat.group_avatar.url if getattr(chat, 'group_avatar', None) else None,
             }
         })
 

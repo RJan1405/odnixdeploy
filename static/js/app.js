@@ -1068,6 +1068,200 @@ window.openCreateChatModal = function() {
 
 console.log('✅ Enhanced Odnix JavaScript initialized successfully');
 
+// Fallback handler: ensure confirm dialogs created by templates work even if page-scoped functions
+// (e.g. confirmRepostStory) are not present on this route. Delegated so it works across pages.
+(function () {
+    function getCSRFFromCookie() {
+        const name = 'csrftoken=';
+        const c = document.cookie.split(';').map(s=>s.trim()).find(s=>s.startsWith(name));
+        return c ? c.substring(name.length) : '';
+    }
+
+    function removeOverlay(btn) {
+        const overlay = btn ? btn.closest('.od-confirm-overlay') : document.querySelector('.od-confirm-overlay');
+        if (overlay) overlay.remove();
+    }
+
+    document.addEventListener('click', function (e) {
+        const btn = e.target.closest('.od-confirm-btn');
+        if (!btn) return;
+
+        // Cancel button: always remove overlay
+        if (btn.classList.contains('od-confirm-cancel')) {
+            removeOverlay(btn);
+            return;
+        }
+
+        // Primary confirm button: try to call existing named function, else fallback to POST
+        if (btn.classList.contains('od-confirm-primary')) {
+            // If the inline onclick calls a named function that exists, prefer that
+            const onclick = btn.getAttribute('onclick') || '';
+            const match = onclick.match(/confirmRepostStory\((\d+)\)/);
+            if (match) {
+                const storyId = parseInt(match[1], 10);
+                if (typeof window.confirmRepostStory === 'function') {
+                    try { window.confirmRepostStory(storyId); } catch (err) { console.error(err); }
+                    return;
+                }
+
+                // Fallback: POST to the repost API directly
+                fetch('/api/story/repost/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCSRFFromCookie()
+                    },
+                    body: JSON.stringify({ story_id: storyId })
+                }).then(r => r.json()).then(data => {
+                    if (data && data.success) {
+                        if (typeof window.showIGToast === 'function') window.showIGToast('Story reposted to your story!', 'success');
+                        else alert('Story reposted to your story!');
+                    } else {
+                        const msg = data && data.error ? data.error : 'Failed to repost story';
+                        if (typeof window.showIGToast === 'function') window.showIGToast(msg, 'error');
+                        else alert(msg);
+                    }
+                }).catch(err => {
+                    console.error('repost fallback error', err);
+                    if (typeof window.showIGToast === 'function') window.showIGToast('Failed to repost story', 'error');
+                    else alert('Failed to repost story');
+                }).finally(() => removeOverlay(btn));
+            } else {
+                // Generic confirm without story id: just remove overlay
+                removeOverlay(btn);
+            }
+        }
+    }, { passive: true });
+})();
+
+// Also listen for pointerdown to ensure touch devices handle the dialog immediately
+(function () {
+    document.addEventListener('pointerdown', function (e) {
+        const btn = e.target.closest('.od-confirm-btn');
+        if (!btn) return;
+
+        console.debug('od-confirm: pointerdown on', btn.className);
+
+        if (btn.classList.contains('od-confirm-cancel')) {
+            // Remove overlay immediately
+            const overlay = btn.closest('.od-confirm-overlay');
+            if (overlay) overlay.remove();
+            return;
+        }
+
+        if (btn.classList.contains('od-confirm-primary')) {
+            // Try to extract story id from onclick attribute
+            const onclick = btn.getAttribute('onclick') || '';
+            const match = onclick.match(/confirmRepostStory\((\d+)\)/);
+            if (match) {
+                const storyId = parseInt(match[1], 10);
+                if (typeof window.confirmRepostStory === 'function') {
+                    try { window.confirmRepostStory(storyId); } catch (err) { console.error(err); }
+                    return;
+                }
+
+                // Fallback POST
+                fetch('/api/story/repost/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': (document.cookie.split(';').map(s=>s.trim()).find(s=>s.startsWith('csrftoken='))||'').split('=')[1]
+                    },
+                    body: JSON.stringify({ story_id: storyId })
+                }).then(r => r.json()).then(data => {
+                    console.debug('od-confirm: repost response', data);
+                    if (data && data.success) {
+                        if (typeof window.showIGToast === 'function') window.showIGToast('Story reposted to your story!', 'success');
+                        else alert('Story reposted to your story!');
+                    } else {
+                        const msg = data && data.error ? data.error : 'Failed to repost story';
+                        if (typeof window.showIGToast === 'function') window.showIGToast(msg, 'error');
+                        else alert(msg);
+                    }
+                }).catch(err => {
+                    console.error('od-confirm repost error', err);
+                    if (typeof window.showIGToast === 'function') window.showIGToast('Failed to repost story', 'error');
+                    else alert('Failed to repost story');
+                }).finally(() => {
+                    const overlay = btn.closest('.od-confirm-overlay'); if (overlay) overlay.remove();
+                });
+            } else {
+                const overlay = btn.closest('.od-confirm-overlay'); if (overlay) overlay.remove();
+            }
+        }
+    }, { passive: true });
+})();
+
+// Capture-phase fallback handlers for touch devices: log event flow and ensure dialog buttons act.
+(function () {
+    function debugLog() {
+        if (typeof console !== 'undefined' && typeof console.debug === 'function') {
+            console.debug.apply(console, arguments);
+        }
+    }
+
+    // If capture-phase events are blocked by some overlay, this should still see them earlier.
+    document.addEventListener('touchstart', function (e) {
+        const btn = e.target.closest && e.target.closest('.od-confirm-btn');
+        if (!btn) return;
+        debugLog('od-confirm: touchstart capture', btn.className);
+
+        if (btn.classList.contains('od-confirm-cancel')) {
+            const overlay = btn.closest('.od-confirm-overlay'); if (overlay) overlay.remove();
+            return;
+        }
+
+        if (btn.classList.contains('od-confirm-primary')) {
+            const onclick = btn.getAttribute('onclick') || '';
+            const match = onclick.match(/confirmRepostStory\((\d+)\)/);
+            if (match) {
+                const storyId = parseInt(match[1], 10);
+                if (typeof window.confirmRepostStory === 'function') {
+                    try { window.confirmRepostStory(storyId); } catch (err) { console.error(err); }
+                    return;
+                }
+
+                // fallback POST
+                fetch('/api/story/repost/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': (document.cookie.split(';').map(s=>s.trim()).find(s=>s.startsWith('csrftoken='))||'').split('=')[1]
+                    },
+                    body: JSON.stringify({ story_id: storyId })
+                }).then(r => r.json()).then(data => {
+                    debugLog('od-confirm: repost fallback result', data);
+                    if (data && data.success) {
+                        if (typeof window.showIGToast === 'function') window.showIGToast('Story reposted to your story!', 'success');
+                        else alert('Story reposted to your story!');
+                    } else {
+                        const msg = data && data.error ? data.error : 'Failed to repost story';
+                        if (typeof window.showIGToast === 'function') window.showIGToast(msg, 'error');
+                        else alert(msg);
+                    }
+                }).catch(err => {
+                    console.error('od-confirm repost error', err);
+                }).finally(() => {
+                    const overlay = btn.closest('.od-confirm-overlay'); if (overlay) overlay.remove();
+                });
+            } else {
+                const overlay = btn.closest('.od-confirm-overlay'); if (overlay) overlay.remove();
+            }
+        }
+    }, { capture: true, passive: true });
+
+    // Extra capture-phase click listener for environments where touchstart isn't fired
+    document.addEventListener('click', function (e) {
+        const btn = e.target.closest && e.target.closest('.od-confirm-btn');
+        if (!btn) return;
+        debugLog('od-confirm: click capture', btn.className);
+        // Rely on earlier click/pointer handlers, but ensure overlay removed for cancel
+        if (btn.classList.contains('od-confirm-cancel')) {
+            const overlay = btn.closest('.od-confirm-overlay'); if (overlay) overlay.remove();
+        }
+    }, { capture: true, passive: true });
+})();
+
 // ===== SHARED POST FUNCTIONS =====
 // Available globally for dashboard, profile, and discover pages
 

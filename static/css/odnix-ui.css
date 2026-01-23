@@ -1053,6 +1053,49 @@ a:hover {
   color: var(--od-text-primary);
 }
 
+/* Mobile-specific bottom nav adjustments */
+@media (max-width: 768px) {
+  .od-bottom-nav {
+    display: flex;
+    height: 72px;
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 6px);
+    padding-top: 6px;
+  }
+
+  .od-bottom-nav-item {
+    padding: 6px 4px;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  .od-bottom-nav-item svg {
+    width: 30px;
+    height: 30px;
+  }
+
+  .od-bottom-nav-item .nav-avatar,
+  .od-bottom-nav-item .od-nav-avatar-sm {
+    width: 32px;
+    height: 32px;
+  }
+
+  /* pressed state for immediate visual feedback */
+  .od-bottom-nav-item.od-pressed {
+    transform: translateY(1px) scale(0.995);
+    opacity: 0.92;
+  }
+
+  /* increase tap targets for icons */
+  .od-bottom-nav-item .od-icon,
+  .od-bottom-nav-item img {
+    pointer-events: none;
+  }
+}
+
 .od-bottom-nav-item.active svg {
   stroke-width: 3px;
 }

@@ -125,6 +125,7 @@ class Chat(models.Model):
         max_length=10, choices=CHAT_TYPE_CHOICES, default='private')
     name = models.CharField(max_length=100, blank=True, null=True)
     description = models.TextField(blank=True, null=True)
+    group_avatar = models.ImageField(upload_to='group_avatars/', blank=True, null=True)
     admin = models.ForeignKey(CustomUser, on_delete=models.CASCADE,
                               related_name='admin_chats', null=True, blank=True)
     invite_code = models.CharField(

@@ -215,7 +215,7 @@
     .omzo-actions-section {
         position: absolute;
         right: 12px;
-        bottom: 120px; /* Lifted to clear mobile navbar */
+        bottom: 64px; /* Raised slightly so send/share icons sit above the bottom */
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -306,9 +306,26 @@
             padding-bottom: 100px; /* Extra clearance for smaller phones */
         }
         .omzo-actions-section {
-            bottom: 130px; /* Extra clearance */
+            bottom: 84px; /* Extra clearance on small phones */
         }
     }
+
+    /* Floating top-right report button */
+    .omzo-top-right-btn {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        z-index: 30;
+        padding: 6px; /* keep a small touch area but no filled circle */
+        background: transparent; /* no black circle */
+        color: white;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: none;
+        cursor: pointer;
+    }
+    .omzo-top-right-btn:active { transform: scale(0.96); }
 
     /* Hide action button text labels on mobile - keep icons only */
     @media (max-width: 767px) {
@@ -1188,6 +1205,10 @@
         {% for omzo in omzos %}
         <div class="omzo-item" data-id="{{ omzo.id }}">
             <div class="omzo-layout-grid">
+                <!-- Top-right report button moved out of action stack for easier reach -->
+                <button class="omzo-top-right-btn" onclick="openReportModal('{{ omzo.id }}')" title="Report">
+                    <span class="od-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg></span>
+                </button>
                 <!-- Left: Info Section -->
                 <div class="omzo-info-section">
                     <div class="omzo-info-content">
@@ -1252,10 +1273,7 @@
                         <span class="od-icon"><svg viewBox="0 0 24 25"><g transform="translate(0,25) scale(0.1,-0.1)" fill="currentColor" stroke="none"><path d="M175 215 c-5 -2 -43 -13 -82 -25 -40 -11 -73 -25 -73 -29 0 -5 19 -16 41 -25 40 -16 43 -16 64 4 29 27 41 13 14 -16 -20 -21 -21 -26 -9 -56 15 -38 27 -54 35 -46 7 6 55 169 55 186 0 11 -23 15 -45 7z"/><path d="M31 106 c-8 -9 -11 -19 -7 -23 9 -9 29 13 24 27 -2 8 -8 7 -17 -4z"/><path d="M45 60 c-16 -16 -25 -33 -22 -37 8 -7 67 45 67 59 0 16 -17 8 -45 -22z"/><path d="M91 46 c-8 -9 -11 -19 -7 -23 9 -9 29 13 24 27 -2 8 -8 7 -17 -4z"/></g></svg></span>
                         <span>Send</span>
                     </button>
-                    <button class="action-btn" onclick="openReportModal('{{ omzo.id }}')" title="More">
-                        <span class="od-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg></span>
-                        <span>Report</span>
-                    </button>
+                    <!-- Report moved to top-right floating button for easier access on mobile -->
                 </div>
             </div>
         </div>
@@ -1988,6 +2006,9 @@
                 item.dataset.id = omzo.id;
                 
                 item.innerHTML = `
+                    <button class="omzo-top-right-btn" onclick="openReportModal(${omzo.id})" title="Report">
+                        <span class="od-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg></span>
+                    </button>
                     <video class="omzo-video lazy-omzo" loop playsinline ${omzo.is_muted ? 'muted' : ''}
                         data-src="${omzo.url}" onclick="toggleOmzoPlay(this)" data-is-muted="${omzo.is_muted}"
                         poster=""></video>
@@ -2012,10 +2033,7 @@
                             <span class="od-icon"><svg viewBox="0 0 24 25"><g transform="translate(0,25) scale(0.1,-0.1)" fill="currentColor" stroke="none"><path d="M175 215 c-5 -2 -43 -13 -82 -25 -40 -11 -73 -25 -73 -29 0 -5 19 -16 41 -25 40 -16 43 -16 64 4 29 27 41 13 14 -16 -20 -21 -21 -26 -9 -56 15 -38 27 -54 35 -46 7 6 55 169 55 186 0 11 -23 15 -45 7z"/><path d="M31 106 c-8 -9 -11 -19 -7 -23 9 -9 29 13 24 27 -2 8 -8 7 -17 -4z"/><path d="M45 60 c-16 -16 -25 -33 -22 -37 8 -7 67 45 67 59 0 16 -17 8 -45 -22z"/><path d="M91 46 c-8 -9 -11 -19 -7 -23 9 -9 29 13 24 27 -2 8 -8 7 -17 -4z"/></g></svg></span>
                             <span>Send</span>
                         </button>
-                        <button class="action-btn" onclick="openReportModal(${omzo.id})" title="More">
-                            <span class="od-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg></span>
-                            <span>Report</span>
-                        </button>
+                        <!-- Report moved to top-right floating button for easier access on mobile -->
                     </div>
 
                     <div class="omzo-overlay">
@@ -2378,6 +2396,13 @@
 
     // ===== Toast Notifications =====
     function showOmzoToast(title, message, type = 'info', persistent = false) {
+        // Hide less-useful toasts: comments and mute/unmute toasts
+        try {
+            const lower = (title + ' ' + (message || '')).toLowerCase();
+            if (lower.includes('comment') || lower.includes('mute') || lower.includes('unmut')) {
+                return null;
+            }
+        } catch (e) { /* ignore and proceed */ }
         const container = document.getElementById('omzoToastContainer');
         const toastId = 'toast-' + Date.now();
 

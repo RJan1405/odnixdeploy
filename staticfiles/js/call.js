@@ -62,6 +62,26 @@
 
     console.log('[CallJS] Initialization complete. OdnixCall.handleIncomingCall is ready.');
 
+    // Helper: check if getUserMedia is available (secure context required)
+    function supportsGetUserMedia() {
+        try {
+            return !!(navigator && navigator.mediaDevices && typeof navigator.mediaDevices.getUserMedia === 'function');
+        } catch (e) {
+            return false;
+        }
+    }
+
+    function showCallError(message) {
+        console.error('[CallJS] ' + message);
+        try {
+            if (window.showToast) {
+                window.showToast(message, { type: 'error' });
+                return;
+            }
+        } catch (e) {}
+        alert(message);
+    }
+
     if (!window.OdnixCallConfig) {
         console.error('[CallJS] Error: window.OdnixCallConfig is missing! Call functionality will not work.');
         return;
@@ -703,6 +723,10 @@
         } else {
             // Re-acquire audio track
             try {
+                if (!supportsGetUserMedia()) {
+                    showCallError("Could not start call: getUserMedia is unavailable. Make sure you're on HTTPS or using localhost.");
+                    throw new Error('getUserMedia unavailable');
+                }
                 const newAudioStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
                 const newAudioTrack = newAudioStream.getAudioTracks()[0];
                 localStream.addTrack(newAudioTrack);
@@ -778,6 +802,10 @@
         } else {
             // Re-acquire video track
             try {
+                if (!supportsGetUserMedia()) {
+                    showCallError("Could not start camera: getUserMedia is unavailable. Use HTTPS or localhost.");
+                    throw new Error('getUserMedia unavailable');
+                }
                 const newVideoStream = await navigator.mediaDevices.getUserMedia({ 
                     audio: false, 
                     video: { width: { ideal: 1280 }, height: { ideal: 720 } } 
@@ -898,6 +926,7 @@
 
             ws.onopen = (event) => {
                 updateDebugStatus('WebSocket connection established', 'green');
+                try { window.useWebSocket = true; } catch (_) { }
                 resetWsReconnectState(); // Reset backoff on successful connection
                 updateDebugStatus('WS Open. Starting handshake...', 'orange');
                 // Step 1: Request DH Params
@@ -917,6 +946,7 @@
 
             ws.onclose = (event) => {
                 updateDebugStatus(`WebSocket closed - Code: ${event.code}, Reason: ${event.reason || 'unknown'}`, 'red');
+                try { window.useWebSocket = false; } catch (_) { }
                 handshakeStep = 0;
                 resolveHandshakeWaiters(new Error('WS closed: ' + event.reason));
                 if (callActive) {
@@ -1051,7 +1081,7 @@
             updateDebugStatus('WebSocket unavailable, using server relay for ' + type, 'orange');
             useServerRelay = true;
             sendViaServerRelay(type, payload);
-            if (!signalPollInterval) startSignalPolling();
+            if (!signalPollInterval && !window.useWebSocket) startSignalPolling();
             return;
         }
         updateDebugStatus('Sending ' + type, 'blue');
@@ -1069,7 +1099,7 @@
                 updateDebugStatus('WebSocket failed, using server relay for ' + type, 'orange');
                 useServerRelay = true;
                 sendViaServerRelay(type, payload);
-                if (!signalPollInterval) startSignalPolling();
+                if (!signalPollInterval && !window.useWebSocket) startSignalPolling();
             }
         };
 
@@ -1086,7 +1116,7 @@
             updateDebugStatus('WebSocket not ready, using server relay for ' + type, 'orange');
             useServerRelay = true;
             sendViaServerRelay(type, payload);
-            if (!signalPollInterval) startSignalPolling();
+            if (!signalPollInterval && !window.useWebSocket) startSignalPolling();
         }
     }
     
@@ -1173,7 +1203,16 @@
 
     async function getMedia({ audioOnly }) {
         const constraints = audioOnly ? { audio: true, video: false } : { audio: true, video: { width: { ideal: 1280 }, height: { ideal: 720 } } };
-        localStream = await navigator.mediaDevices.getUserMedia(constraints);
+        if (!supportsGetUserMedia()) {
+            showCallError("Could not access camera/microphone: getUserMedia is unavailable. Ensure you're on HTTPS or using localhost.");
+            throw new Error('getUserMedia unavailable');
+        }
+        try {
+            localStream = await navigator.mediaDevices.getUserMedia(constraints);
+        } catch (err) {
+            showCallError('Permission denied or hardware error: ' + (err && err.message ? err.message : err));
+            throw err;
+        }
         const localVideo = document.getElementById('localVideo');
         if (localVideo) {
             localVideo.style.display = audioOnly ? 'none' : 'block';
@@ -1251,6 +1290,11 @@
     }
 
     function startSignalPolling() {
+        // Prevent polling when WebSocket is active
+        if (typeof window !== 'undefined' && window.useWebSocket) {
+            updateDebugStatus('WebSocket active - skipping signal polling', 'green');
+            return;
+        }
         // Smart Polling with rate limiting: Polls signals from DB.
         // Uses longer intervals and exponential backoff to reduce server load.
         // Fast polling only during active call establishment.
@@ -1419,7 +1463,7 @@
                         updateDebugStatus('WebSocket handshake failed, using server relay', 'orange');
                         useServerRelay = true;
                         sendViaServerRelay('webrtc.offer', offerPayload);
-                        startSignalPolling();
+                        if (!window.useWebSocket) startSignalPolling();
                     }
                 }, 3000); // 3s timeout for WebSocket handshake is sufficient
             } catch (e) {
@@ -1427,7 +1471,7 @@
                 updateDebugStatus('WebSocket send failed, using server relay', 'orange');
                 useServerRelay = true;
                 sendViaServerRelay('webrtc.offer', offerPayload);
-                startSignalPolling();
+                if (!window.useWebSocket) startSignalPolling();
             }
 
             startTone('ringback');
@@ -1554,7 +1598,7 @@
                 }
 
                 // Start polling for signals in case WebSocket fails
-                if (!signalPollInterval) startSignalPolling();
+                if (!signalPollInterval && !window.useWebSocket) startSignalPolling();
 
                 await pc.setRemoteDescription(new RTCSessionDescription(pendingOffer));
                 await flushIceQueue();
@@ -1695,7 +1739,7 @@
         // Start polling with initial delay to prevent immediate burst of requests
         console.log(`[CallJS] Starting rate-limited signal polling for chat ${chatId}`);
         setTimeout(() => {
-            startSignalPolling();
+            if (!window.useWebSocket) startSignalPolling();
         }, 1000); // Delay initial polling by 1 second
         updateDebugStatus(`Initialized for chat ${chatId} - WebSocket + Rate-limited Polling active`, 'green');
     } catch (e) {

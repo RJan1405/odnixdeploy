@@ -179,7 +179,7 @@ def share_content_to_user(request):
                 Message.objects.create(
                     chat=chat,
                     sender=request.user,
-                    content=message_text if message_text else f"Shared a {content_type}",
+                    content=message_text or '',
                     message_type='text',
                     reactions={'shared_content': shared_data}
                 )

@@ -49,15 +49,16 @@
     align-items: center;
     justify-content: center;
     min-height: 100vh;
-    background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+    background: var(--color-background);
     padding: 1rem;
 }
 
 .auth-card {
     background: var(--color-surface);
+    border: 1px solid var(--color-border);
     border-radius: 1rem;
     padding: 2rem;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
     max-width: 400px;
     width: 100%;
     animation: slideInUp 0.5s ease;
@@ -82,11 +83,9 @@
 .auth-logo {
     font-size: 2.5rem;
     font-weight: 900;
-    background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: var(--color-primary);
     margin: 0 0 1rem 0;
+    letter-spacing: 1px;
 }
 
 .auth-title {
@@ -170,15 +169,16 @@
     font-size: 1rem;
     transition: all 0.3s ease;
     font-family: inherit;
-    background: var(--color-surface);
+    background: #111827;
+    color: var(--color-text);
     box-sizing: border-box;
 }
 
 .form-control:focus {
     border-color: var(--color-primary);
     outline: none;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-    background: white;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
+    background: #0f172a;
 }
 
 /* BUTTON STYLES */
@@ -200,16 +200,22 @@
 }
 
 .btn--primary {
-    background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+    background: var(--color-primary);
     color: white;
-    box-shadow: 0 2px 10px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 6px 18px rgba(99, 102, 241, 0.35);
 }
 
 .btn--primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
+    transform: translateY(-1px);
+    background: #5b5fe6;
+    box-shadow: 0 8px 22px rgba(99, 102, 241, 0.28);
     text-decoration: none;
     color: white;
+}
+
+.btn--primary:focus-visible {
+    outline: 3px solid rgba(99, 102, 241, 0.35);
+    outline-offset: 2px;
 }
 
 .btn--full-width {
@@ -236,19 +242,19 @@
 }
 
 .auth-link:hover {
-    color: var(--color-secondary);
+    color: #5b5fe6;
     text-decoration: underline;
 }
 
 /* CSS VARIABLES */
 :root {
-    --color-primary: #667eea;
-    --color-secondary: #764ba2;
-    --color-surface: #ffffff;
-    --color-background: #f8f9fa;
-    --color-border: #e1e5e9;
-    --color-text: #2c3e50;
-    --color-text-secondary: #6c757d;
+    --color-primary: #8b8cf8;
+    --color-secondary: #a5b4fc;
+    --color-surface: #111827;
+    --color-background: #0b0f1a;
+    --color-border: #1f2937;
+    --color-text: #e5e7eb;
+    --color-text-secondary: #9ca3af;
 }
 
 /* RESPONSIVE */

@@ -258,7 +258,7 @@ JAZZMIN_SETTINGS = {
     "login_logo_dark": "img/logo.png",
     
     # CSS classes applied to the logo
-    "site_logo_classes": "",
+    "site_logo_classes": "rounded-circle shadow-sm",
     
     # Relative path to a favicon, will default to site_logo if absent
     "site_icon": "img/logo.png",
@@ -416,8 +416,8 @@ JAZZMIN_SETTINGS = {
     #############
     # UI Tweaks #
     #############
-    # Enable the UI customizer (to change themes live)
-    "show_ui_builder": True,
+    # Disable the live UI customizer to lock premium theme
+    "show_ui_builder": False,
 
     ###############
     # Change view #
@@ -459,9 +459,9 @@ JAZZMIN_UI_TWEAKS = {
     "footer_small_text": False,
     "body_small_text": False,
     "brand_small_text": False,
-    "brand_colour": "navbar-dark",
+    "brand_colour": "navbar-light",
     "accent": "accent-primary",
-    "navbar": "navbar-dark navbar-primary",
+    "navbar": "navbar-light navbar-white",
     "no_navbar_border": False,
     "navbar_fixed": True,
     "layout_boxed": False,
@@ -474,8 +474,10 @@ JAZZMIN_UI_TWEAKS = {
     "sidebar_nav_compact_style": False,
     "sidebar_nav_legacy_style": False,
     "sidebar_nav_flat_style": False,
-    "theme": "flatly",  # Light theme from bootswatch
-    "dark_mode_theme": "darkly",
+    "theme": "flatly",  # Professional light theme from Bootswatch
+    "dark_mode_theme": None,
+    "sidebar_nav_compact_style": True,
+    "sidebar_nav_flat_style": False,
     
     # ===== LIGHT THEME (Alternative) =====
     # Comment out the DARK theme above and uncomment below for LIGHT theme

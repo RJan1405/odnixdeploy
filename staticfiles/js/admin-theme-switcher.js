@@ -9,11 +9,11 @@
     'use strict';
 
     // IMMEDIATE THEME APPLICATION (runs synchronously)
-    // DEFAULT TO DARK THEME if no preference is saved
+    // DEFAULT TO LIGHT THEME if no preference is saved
     let savedTheme = localStorage.getItem('odnix-admin-theme');
     if (!savedTheme) {
-        savedTheme = 'dark';
-        localStorage.setItem('odnix-admin-theme', 'dark');
+        savedTheme = 'light';
+        localStorage.setItem('odnix-admin-theme', 'light');
     }
     const html = document.documentElement;
     
@@ -45,11 +45,11 @@
     function initThemeSwitcher() {
         // Ensure body has theme class and is visible
         const body = document.body;
-        // DEFAULT TO DARK
+        // DEFAULT TO LIGHT
         let currentTheme = localStorage.getItem('odnix-admin-theme');
         if (!currentTheme) {
-            currentTheme = 'dark';
-            localStorage.setItem('odnix-admin-theme', 'dark');
+            currentTheme = 'light';
+            localStorage.setItem('odnix-admin-theme', 'light');
         }
         
         // Make body visible

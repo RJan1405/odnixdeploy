@@ -212,6 +212,47 @@
             font-size: 12px;
         }
     }
+    /* Mobile touch-target and UX improvements for Android */
+    @media (max-width: 480px) {
+        /* Enforce larger tappable areas per accessibility guidelines */
+        .od-m-btn {
+            min-height: 44px;
+            height: 44px;
+            padding: 8px 14px;
+            font-size: 15px;
+            border-radius: 10px;
+        }
+
+        .od-m-btn-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+        }
+
+        .od-m-btn .od-icon,
+        .od-m-btn-icon .od-icon,
+        .od-m-topbar-btn,
+        .od-m-tab,
+        .od-m-post-item {
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        /* Prevent the blue flash on Android when tapping */
+        a, button, .od-m-btn, .od-m-btn-icon {
+            -webkit-tap-highlight-color: transparent;
+            tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+        }
+
+        /* Ensure the mobile wrapper respects safe-area insets by default */
+        .od-mobile-wrapper {
+            padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
+            will-change: padding-bottom;
+        }
+    }
 
     @media (max-width: 374px) {
         .od-profile-header {
@@ -4222,6 +4263,8 @@
 
         // Hydrate any Code Scribe iframes in the profile grids
         initCodeScribePreviews();
+        // Mobile UX enhancements (Android safe-area & touch improvements)
+        try { enhanceMobileProfileUX(); } catch (e) { console.warn('enhanceMobileProfileUX error', e); }
     });
 
     // Modal functions
@@ -4315,6 +4358,58 @@
             if (gifPicker) gifPicker.style.display = 'none';
             if (emojiPicker) emojiPicker.style.display = 'none';
         }
+    }
+
+    /* Mobile UX helper: adjust safe-area padding and add lightweight touch logging */
+    function enhanceMobileProfileUX() {
+        const wrapper = document.querySelector('.od-mobile-wrapper');
+
+        function updatePadding() {
+            if (!wrapper) return;
+            if (window.visualViewport) {
+                try {
+                    const inset = Math.max(0, window.innerHeight - window.visualViewport.height);
+                    if (inset > 0) {
+                        wrapper.style.paddingBottom = (inset + 16) + 'px';
+                    } else {
+                        wrapper.style.paddingBottom = 'calc(env(safe-area-inset-bottom, 0px) + 16px)';
+                    }
+                } catch (err) {
+                    wrapper.style.paddingBottom = 'calc(env(safe-area-inset-bottom, 0px) + 16px)';
+                }
+            } else {
+                wrapper.style.paddingBottom = 'calc(env(safe-area-inset-bottom, 0px) + 16px)';
+            }
+        }
+
+        updatePadding();
+
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener('resize', updatePadding, {passive:true});
+            window.visualViewport.addEventListener('scroll', updatePadding, {passive:true});
+        }
+
+        // Add passive pointer logging on mobile action buttons to help debug lost-tap issues
+        document.addEventListener('pointerdown', function (e) {
+            const btn = e.target.closest('.od-m-btn, .od-m-btn-icon, .od-m-topbar-btn, .od-m-tab');
+            if (!btn) return;
+            // mark timestamp for later inspection in console
+            try { btn.dataset.lastPointerDown = Date.now(); } catch (ignored) {}
+            // ensure quick visual feedback
+            btn.classList.add('od-tap-active');
+            setTimeout(() => btn.classList.remove('od-tap-active'), 220);
+        }, {passive:true});
+
+        // Add lightweight logging on click to pair with pointerdown timestamps
+        document.addEventListener('click', function (e) {
+            const btn = e.target.closest('.od-m-btn, .od-m-btn-icon, .od-m-topbar-btn, .od-m-tab');
+            if (!btn) return;
+            try {
+                const pd = btn.dataset.lastPointerDown || 'n/a';
+                btn.dataset.lastClick = Date.now();
+                console.debug('od-profile: interaction', { node: btn, pointerDown: pd, clickAt: btn.dataset.lastClick });
+            } catch (ignored) {}
+        }, {passive:true});
     }
 
     function handlePostImageSelect(event) {

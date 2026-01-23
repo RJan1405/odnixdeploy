@@ -1057,6 +1057,14 @@
 
     // ===== Toast Notifications =====
     function showOmzoToast(title, message, type = 'info', persistent = false) {
+        // Quiet small toasts for comments and mute/unmute events
+        try {
+            const lower = (title + ' ' + (message || '')).toLowerCase();
+            if (lower.includes('comment') || lower.includes('mute') || lower.includes('unmut')) {
+                return null;
+            }
+        } catch (e) {}
+
         const container = document.getElementById('omzoToastContainer');
         const toastId = 'toast-' + Date.now();
 
