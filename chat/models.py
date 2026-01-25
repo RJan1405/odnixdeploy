@@ -65,6 +65,8 @@ class CustomUser(AbstractUser):
     is_online = models.BooleanField(default=False)
     last_seen = models.DateTimeField(default=timezone.now)
     is_email_verified = models.BooleanField(default=False)
+    # Blue tick verification flag
+    is_verified = models.BooleanField(default=False)
     is_private = models.BooleanField(default=False)  # Private account feature
     theme = models.CharField(
         max_length=20, choices=THEME_CHOICES, default='ocean')  # Theme preference

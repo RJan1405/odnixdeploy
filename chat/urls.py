@@ -29,6 +29,7 @@ urlpatterns = [
 
     # Main application URLs
     path('dashboard/', views.dashboard, name='dashboard'),
+     path('explore/', views.explore, name='explore'),
     path('profile/', views.profile_view, name='profile'),
     path('profile/update/', views.update_profile, name='update_profile'),
     path('profile/<str:username>/', views.profile_view, name='user_profile'),

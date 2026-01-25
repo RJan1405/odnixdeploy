@@ -964,6 +964,7 @@
                             onerror="this.outerHTML='<div class=\'od-post-avatar-placeholder\'>{{ item.user_initials }}</div>'">
                         <div class="od-post-user-info">
                             <span class="od-post-username">{{ item.username }}</span>
+                            {% include 'chat/partials/verified_badge.html' with user=item.user is_verified=item.is_verified %}
                             {% if item.is_repost %}
                             <span class="od-repost-badge">🔁 Reposted</span>
                             {% endif %}
@@ -984,12 +985,14 @@
                             <img src="{{ item.original_scribe.user.profile_picture_url }}" alt="" class="od-repost-avatar" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover;"
                                 onerror="this.outerHTML='<div style=\'width:24px;height:24px;border-radius:50%;background:var(--od-surface-hover,#333);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:var(--od-text-secondary,#888);\'>{{ item.original_scribe.user.initials }}</div>'">
                             <span>{{ item.original_scribe.user.username }}</span>
+                            {% include 'chat/partials/verified_badge.html' with user=item.original_scribe.user %}
                         </a>
                         {% elif item.original_omzo %}
                         <a href="{% url 'user_profile' item.original_omzo.user.username %}" class="od-repost-user" style="display: flex; align-items: center; gap: 8px; color: var(--od-text-secondary, #888); font-size: 13px; text-decoration: none;">
                             <img src="{{ item.original_omzo.user.profile_picture_url }}" alt="" class="od-repost-avatar" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover;"
                                 onerror="this.outerHTML='<div style=\'width:24px;height:24px;border-radius:50%;background:var(--od-surface-hover,#333);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:var(--od-text-secondary,#888);\'>{{ item.original_omzo.user.initials }}</div>'">
                             <span>{{ item.original_omzo.user.username }}</span>
+                            {% include 'chat/partials/verified_badge.html' with user=item.original_omzo.user %}
                             <span class="od-repost-type-badge" style="font-size: 11px; color: var(--od-text-secondary, #888); background: var(--od-surface-hover, #333); padding: 2px 6px; border-radius: 4px; margin-left: 6px;">Omzo</span>
                         </a>
                         {% elif item.original_story %}
@@ -997,6 +1000,7 @@
                             <img src="{{ item.original_story.user.profile_picture_url }}" alt="" class="od-repost-avatar" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover;"
                                 onerror="this.outerHTML='<div style=\'width:24px;height:24px;border-radius:50%;background:var(--od-surface-hover,#333);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:var(--od-text-secondary,#888);\'>{{ item.original_story.user.initials }}</div>'">
                             <span>{{ item.original_story.user.username }}</span>
+                            {% include 'chat/partials/verified_badge.html' with user=item.original_story.user %}
                             <span class="od-repost-type-badge" style="font-size: 11px; color: var(--od-text-secondary, #888); background: var(--od-surface-hover, #333); padding: 2px 6px; border-radius: 4px; margin-left: 6px;">Story</span>
                         </a>
                         {% endif %}
@@ -1028,12 +1032,18 @@
                     {% elif item.original_scribe %}
                     <!-- Reposted Scribe -->
                     {% if item.original_scribe.content_type == 'code_scribe' and item.original_scribe.code_bundle %}
-                    <div class="od-post-media">
-                        <iframe srcdoc="{{ item.original_scribe.code_bundle|escape }}" loading="lazy"
-                            sandbox="allow-scripts"
-                            style="border:none;width:100%;height:100%;pointer-events:none;">
-                        </iframe>
-                    </div>
+                                        <div class="od-post-media code-scribe-card">
+                                                <iframe class="explore-card-media" loading="lazy" sandbox="allow-scripts" style="border:none;display:block;width:100%;height:300px;max-height:420px;border-radius:8px;" aria-hidden="false"></iframe>
+                                                <script>
+                                                    if(!window.odnixCodeIframeListener){
+                                                        window.addEventListener('message', function(e){
+                                                            try{ if(!e.data||e.data.type!=='odnix-iframe-height') return; var id=e.data.id,h=e.data.height; var ifr=document.getElementById(id); if(ifr){var max=360,min=80; iff = ifr; var final=Math.min(max, Math.max(min, h)); ifr.style.height = final + 'px';} }catch(err){}
+                                                        }, false);
+                                                        window.odnixCodeIframeListener=true;
+                                                    }
+                                                      (function(){try{const ifr=document.currentScript.previousElementSibling; if(!ifr) return; const id='code-iframe-{{ item.original_scribe.id }}'; ifr.id=id; const raw = "{{ item.original_scribe.code_bundle|escapejs }}"; const wrapper = '<script>function sendHeight(){try{var b=document.body.getBoundingClientRect();var h=Math.ceil(Math.max(document.documentElement.scrollHeight,document.body.scrollHeight,b.height));parent.postMessage({type:"odnix-iframe-height",height:h,id:"'+id+'"},"*");}catch(e){} }window.addEventListener("load",sendHeight);window.addEventListener("resize",function(){setTimeout(sendHeight,100)});</' + 'script>' + raw; ifr.srcdoc = wrapper;}catch(e){console.error(e);}})();
+                                                </script>
+                                        </div>
                     {% elif item.original_scribe.image_url %}
                     <div class="od-post-media">
                         <img src="{{ item.original_scribe.image_url }}" loading="lazy" alt="Original post image">
@@ -1049,12 +1059,18 @@
                 {% else %}
                 <!-- Post Media -->
                 {% if item.content_type == 'code_scribe' %}
-                <div class="od-post-media">
-                    <iframe srcdoc="{{ item.code_bundle|escape }}" loading="lazy"
-                        sandbox="allow-scripts"
-                        style="border:none;width:100%;height:100%;pointer-events:none;">
-                    </iframe>
-                </div>
+                                <div class="od-post-media code-scribe-card">
+                                        <iframe class="explore-card-media" loading="lazy" sandbox="allow-scripts" style="border:none;display:block;width:100%;height:300px;max-height:420px;border-radius:8px;" aria-hidden="false"></iframe>
+                                        <script>
+                                            if(!window.odnixCodeIframeListener){
+                                                window.addEventListener('message', function(e){
+                                                      try{ if(!e.data||e.data.type!=='odnix-iframe-height') return; var id=e.data.id,h=e.data.height; var ifr=document.getElementById(id); if(ifr){var max=360,min=80; var final=Math.min(max, Math.max(min, h)); ifr.style.height = final + 'px';} }catch(err){}
+                                                }, false);
+                                                window.odnixCodeIframeListener=true;
+                                            }
+                                              (function(){try{const ifr=document.currentScript.previousElementSibling; if(!ifr) return; const id='code-iframe-{{ item.id }}'; ifr.id=id; const raw = "{{ item.code_bundle|escapejs }}"; const wrapper = '<script>function sendHeight(){try{var b=document.body.getBoundingClientRect();var h=Math.ceil(Math.max(document.documentElement.scrollHeight,document.body.scrollHeight,b.height));parent.postMessage({type:"odnix-iframe-height",height:h,id:"'+id+'"},"*");}catch(e){} }window.addEventListener("load",sendHeight);window.addEventListener("resize",function(){setTimeout(sendHeight,100)});</' + 'script>' + raw; ifr.srcdoc = wrapper;}catch(e){console.error(e);}})();
+                                        </script>
+                                </div>
                 {% elif item.image_url %}
                 <div class="od-post-media" onclick="openImageModal('{{ item.image_url }}')">
                     <img src="{{ item.image_url }}" loading="lazy" alt="Post image">
@@ -1212,7 +1228,7 @@
         <div class="od-empty-state">
             <span class="od-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L9 8 3 9l5 4-1 6 5-3 5 3-1-6 5-4-6-1-3-6z"/></svg></span>
             <h3>Nothing to explore yet</h3>
-            <p>Follow some people or wait for new content!</p>
+            <p>Connect with some people or wait for new content!</p>
         </div>
         {% endif %}
     </div>

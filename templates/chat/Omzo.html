@@ -1219,10 +1219,10 @@
                             {% if user != omzo.user %}
                             {% if omzo.is_following %}
                             <button class="omzo-follow-btn" onclick="event.stopPropagation(); toggleOmzoFollow('{{ omzo.user.username }}', this)"
-                                style="background: transparent; border: 1px solid rgba(255,255,255,0.4); color: rgba(255,255,255,0.8); border-radius: 6px; padding: 4px 12px; font-size: 12px; font-weight: 600; margin-left: 10px; cursor: pointer;">Following</button>
+                                style="background: transparent; border: 1px solid rgba(255,255,255,0.4); color: rgba(255,255,255,0.8); border-radius: 6px; padding: 4px 12px; font-size: 12px; font-weight: 600; margin-left: 10px; cursor: pointer;">Connected</button>
                             {% else %}
                             <button class="omzo-follow-btn" onclick="event.stopPropagation(); toggleOmzoFollow('{{ omzo.user.username }}', this)"
-                                style="background: var(--odnix-gradient); border: none; color: white; border-radius: 6px; padding: 4px 12px; font-size: 12px; font-weight: 600; margin-left: 10px; cursor: pointer;">Follow</button>
+                                style="background: var(--odnix-gradient); border: none; color: white; border-radius: 6px; padding: 4px 12px; font-size: 12px; font-weight: 600; margin-left: 10px; cursor: pointer;">Connect</button>
                             {% endif %}
                             {% endif %}
                         </div>
@@ -2049,7 +2049,7 @@
                                                color: ${omzo.is_following ? 'rgba(255,255,255,0.8)' : 'white'}; 
                                                border-radius: 6px; padding: 4px 12px; font-size: 12px; 
                                                font-weight: 600; margin-left: 10px; cursor: pointer;">
-                                        ${omzo.is_following ? 'Following' : 'Follow'}
+                                        ${omzo.is_following ? 'Connected' : 'Connect'}
                                     </button>
                                 ` : ''}
                             </div>
@@ -2777,10 +2777,10 @@
         })
             .then(r => r.json())
             .then(data => {
-                if (data.success) {
+                    if (data.success) {
                     if (data.is_following) {
-                        // Switch to "Following" state
-                        btn.textContent = 'Following';
+                        // Switch to "Connected" state
+                        btn.textContent = 'Connected';
                         btn.style.background = 'transparent';
                         btn.style.border = '1px solid rgba(255,255,255,0.4)';
                         btn.style.color = 'rgba(255,255,255,0.8)';
@@ -2791,8 +2791,8 @@
                         btn.style.border = '1px solid rgba(255,255,255,0.4)';
                         btn.style.color = 'rgba(255,255,255,0.8)';
                     } else {
-                        // Switch to "Follow" state
-                        btn.textContent = 'Follow';
+                        // Switch to "Connect" state
+                        btn.textContent = 'Connect';
                         btn.style.background = 'var(--odnix-gradient)';
                         btn.style.border = 'none';
                         btn.style.color = 'white';

@@ -13,14 +13,14 @@ from .models import (
 @admin.register(CustomUser)
 class CustomUserAdmin(UserAdmin):
     list_display = ['username', 'full_name', 'email', 'gender',
-                    'is_online', 'last_seen', 'is_email_verified']
+                    'is_online', 'last_seen', 'is_email_verified', 'is_verified']
     list_filter = ['is_online', 'is_email_verified', 'gender',
                    'last_seen', 'date_joined']
     search_fields = ['username', 'name', 'lastname', 'email']
 
     fieldsets = UserAdmin.fieldsets + (
         ('Personal Info', {
-            'fields': ('name', 'lastname', 'gender', 'profile_picture', 'is_online', 'last_seen', 'is_email_verified')
+            'fields': ('name', 'lastname', 'gender', 'profile_picture', 'is_online', 'last_seen', 'is_email_verified', 'is_verified')
         }),
     )
 

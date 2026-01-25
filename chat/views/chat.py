@@ -1319,6 +1319,50 @@ def load_more_explore_content(request):
 
 
 @login_required
+def explore(request):
+    """Explore page showing a vertical list of random scribes and a user search bar."""
+    query = request.GET.get('q', '').strip()
+
+    # Use the existing explore batch helper to prepare feed items (includes scribe fields)
+    mixed_content = _get_explore_content_batch(page=1, per_page=30, user=request.user)
+    # Keep only scribes and map to the same variable name used by dashboard
+    scribes_data = [item for item in mixed_content if item.get('type') == 'scribe']
+
+    # Log for debugging: how many scribes were returned for this user
+    try:
+        logger.info(f"Explore: returned {len(scribes_data)} scribes for user={request.user.username}")
+        if len(scribes_data) > 0:
+            # Log keys of first item to verify structure
+            logger.debug(f"Explore sample keys: {list(scribes_data[0].keys())}")
+    except Exception:
+        pass
+
+    # Fallback: if personalized explore is empty (user follows everyone), show global scribes
+    if not scribes_data:
+        logger.info(f"Explore: personalized feed empty for {request.user.username}, loading global feed")
+        mixed_content = _get_explore_content_batch(page=1, per_page=30, user=None)
+        scribes_data = [item for item in mixed_content if item.get('type') == 'scribe']
+
+    # Navbar/chat context reused from other views
+    private_chats = Chat.objects.filter(participants=request.user, chat_type='private').order_by('-updated_at').distinct()
+    group_chats = Chat.objects.filter(participants=request.user, chat_type='group').order_by('-updated_at').distinct()
+    unread_message_count = Chat.objects.filter(participants=request.user, messages__is_read=False).exclude(messages__sender=request.user).distinct().count()
+    story_inbox_count = StoryReply.objects.filter(story__user=request.user, is_read=False).count()
+
+    context = {
+        'scribes': scribes_data,
+        'scribes_data': scribes_data,
+        'current_user': request.user,
+        'private_chats': private_chats,
+        'group_chats': group_chats,
+        'unread_message_count': unread_message_count,
+        'story_inbox_count': story_inbox_count,
+    }
+
+    return render(request, 'chat/explore.html', context)
+
+
+@login_required
 @require_POST
 def manage_join_request(request):
     try:

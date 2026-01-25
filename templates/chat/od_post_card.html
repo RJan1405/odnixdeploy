@@ -1,0 +1,227 @@
+{% load scribe_extras %}
+<article class="od-post" data-scribe-id="{{ scribe.id }}" data-is-own="{% if scribe.is_own %}true{% else %}false{% endif %}">
+    <!-- Post Header -->
+    <header class="od-post-header">
+        <a href="{% url 'user_profile' scribe.username %}" class="od-post-user">
+            <img src="{{ scribe.profile_picture_url }}" alt="{{ scribe.fullname }}" class="od-post-avatar"
+                onerror="this.outerHTML='<div class=\'od-post-avatar-placeholder\'>{{ scribe.user_initials }}</div>'">
+                <div class="od-post-user-info">
+                <span class="od-post-username">{{ scribe.username }}</span>
+                {% include 'chat/partials/verified_badge.html' with user=scribe.user %}
+                {% if scribe.is_repost %}
+                <span class="od-repost-badge">🔁 Reposted</span>
+                {% endif %}
+            </div>
+        </a>
+        <button class="od-post-more" onclick="openPostMenu({{ scribe.id }}, event)">
+            <span class="od-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></span>
+        </button>
+    </header>
+
+    {% if scribe.is_repost %}
+    <!-- Reposted Content Card -->
+    <div class="od-repost-container" style="border: 1px solid var(--od-border, rgba(255,255,255,0.1)); border-radius: 12px; margin: 8px 16px; overflow: hidden; background: var(--od-surface-light, rgba(255,255,255,0.05));">
+        <!-- Original Author Header -->
+        <div class="od-repost-header" style="padding: 10px 12px; border-bottom: 1px solid var(--od-border, rgba(255,255,255,0.1));">
+            {% if scribe.original_scribe %}
+            <a href="{% url 'user_profile' scribe.original_scribe.user.username %}" class="od-repost-user" style="display: flex; align-items: center; gap: 8px; color: var(--od-text-secondary, #888); font-size: 13px; text-decoration: none;">
+                <img src="{{ scribe.original_scribe.user.profile_picture_url }}" alt="" class="od-repost-avatar" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover;"
+                    onerror="this.outerHTML='<div style=\'width:24px;height:24px;border-radius:50%;background:var(--od-surface-hover,#333);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:var(--od-text-secondary,#888);\'>{{ scribe.original_scribe.user.initials }}</div>'">
+                <span>{{ scribe.original_scribe.user.username }}</span>
+            </a>
+            {% elif scribe.original_omzo %}
+            <a href="{% url 'user_profile' scribe.original_omzo.user.username %}" class="od-repost-user" style="display: flex; align-items: center; gap: 8px; color: var(--od-text-secondary, #888); font-size: 13px; text-decoration: none;">
+                <img src="{{ scribe.original_omzo.user.profile_picture_url }}" alt="" class="od-repost-avatar" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover;"
+                    onerror="this.outerHTML='<div style=\'width:24px;height:24px;border-radius:50%;background:var(--od-surface-hover,#333);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:var(--od-text-secondary,#888);\'>{{ scribe.original_omzo.user.initials }}</div>'">
+                <span>{{ scribe.original_omzo.user.username }}</span>
+                <span class="od-repost-type-badge" style="font-size: 11px; color: var(--od-text-secondary, #888); background: var(--od-surface-hover, #333); padding: 2px 6px; border-radius: 4px; margin-left: 6px;">Omzo</span>
+            </a>
+            {% elif scribe.original_story %}
+            <a href="{% url 'user_profile' scribe.original_story.user.username %}" class="od-repost-user" style="display: flex; align-items: center; gap: 8px; color: var(--od-text-secondary, #888); font-size: 13px; text-decoration: none;">
+                <img src="{{ scribe.original_story.user.profile_picture_url }}" alt="" class="od-repost-avatar" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover;"
+                    onerror="this.outerHTML='<div style=\'width:24px;height:24px;border-radius:50%;background:var(--od-surface-hover,#333);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:var(--od-text-secondary,#888);\'>{{ scribe.original_story.user.initials }}</div>'">
+                <span>{{ scribe.original_story.user.username }}</span>
+                <span class="od-repost-type-badge" style="font-size: 11px; color: var(--od-text-secondary, #888); background: var(--od-surface-hover, #333); padding: 2px 6px; border-radius: 4px; margin-left: 6px;">Story</span>
+            </a>
+            {% endif %}
+        </div>
+
+        <!-- Original Content -->
+        {% if scribe.original_omzo %}
+        <!-- Reposted Omzo - Show Video -->
+        <div class="od-post-media" style="position: relative; cursor: pointer;">
+            <video src="{{ scribe.original_omzo.video.url }}" style="width: 100%; max-height: 400px; object-fit: cover;" playsinline muted loop
+                onmouseenter="this.play()" onmouseleave="this.pause()"></video>
+            {% if scribe.original_omzo.caption %}
+            <div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 12px; background: linear-gradient(transparent, rgba(0,0,0,0.7)); color: white; font-size: 14px;">
+                {{ scribe.original_omzo.caption|truncatechars:100 }}
+            </div>
+            {% endif %}
+        </div>
+        {% elif scribe.original_story %}
+        <!-- Reposted Story - Show Story Content -->
+        <div class="od-post-media" style="position: relative; cursor: pointer;">
+            {% if scribe.original_story.media %}
+            <img src="{{ scribe.original_story.media.url }}" style="width: 100%; max-height: 400px; object-fit: cover;" alt="Story">
+            {% else %}
+            <div style="width: 100%; height: 250px; display: flex; align-items: center; justify-content: center; background: {{ scribe.original_story.background_color|default:'#6366f1' }};">
+                <p style="color: {{ scribe.original_story.text_color|default:'#ffffff' }}; font-size: 16px; padding: 20px; text-align: center;">{{ scribe.original_story.content|truncatechars:150 }}</p>
+            </div>
+            {% endif %}
+        </div>
+        {% elif scribe.original_scribe %}
+        <!-- Reposted Scribe -->
+        {% if scribe.original_scribe.content_type == 'code_scribe' and scribe.original_scribe.code_bundle %}
+          <div class="od-post-media code-scribe-card">
+                            <iframe class="explore-card-media" loading="lazy" sandbox="allow-scripts" style="border:none;display:block;width:100%;height:300px;max-height:420px;border-radius:8px;" aria-hidden="false">
+                            </iframe>
+                            <script>
+                                // parent listener (guarded)
+                                if(!window.odnixCodeIframeListener){
+                                    window.addEventListener('message', function(e){
+                                        try{
+                                            if(!e.data || e.data.type!=='odnix-iframe-height') return;
+                                            var id = e.data.id; var h = e.data.height;
+                                            var ifr = document.getElementById(id);
+                                            if(ifr){ var max=360, min=80; var final = Math.min(max, Math.max(min, h)); ifr.style.height = final + 'px'; }
+                                        }catch(err){}
+                                    }, false);
+                                    window.odnixCodeIframeListener = true;
+                                }
+                                /* set srcdoc via JS to avoid HTML-escaping issues; wrap bundle to post its height */
+                                (function(){
+                                    try{
+                                        const ifr = document.currentScript.previousElementSibling;
+                                        if(!ifr) return;
+                                        const id = 'code-iframe-{{ scribe.original_scribe.id }}';
+                                        ifr.id = id;
+                                        const raw = "{{ scribe.original_scribe.code_bundle|escapejs }}";
+                                        const wrapper = '<script>function sendHeight(){try{var b=document.body.getBoundingClientRect();var h=Math.ceil(Math.max(document.documentElement.scrollHeight,document.body.scrollHeight,b.height));parent.postMessage({type:"odnix-iframe-height",height:h,id:"'+id+'"},"*");}catch(e){} }window.addEventListener("load",sendHeight);window.addEventListener("resize",function(){setTimeout(sendHeight,100)});</' + 'script>' + raw;
+                                        ifr.srcdoc = wrapper;
+                                    }catch(e){console.error(e);}
+                                })();
+                            </script>
+          </div>
+        {% elif scribe.original_scribe.image_url %}
+        <div class="od-post-media">
+            <img src="{{ scribe.original_scribe.image_url }}" loading="lazy" alt="Original post image">
+        </div>
+        {% endif %}
+        {% if scribe.original_scribe.content %}
+        <div class="od-repost-content" style="padding: 12px; font-size: 14px; color: var(--od-text-primary, #fff); line-height: 1.4;">
+            {{ scribe.original_scribe.content|truncatewords:50 }}
+        </div>
+        {% endif %}
+        {% endif %}
+    </div>
+    {% else %}
+    <!-- Post Media -->
+    {% if scribe.content_type == 'code_scribe' %}
+    <div class="od-post-media">
+                    <iframe class="explore-card-media" loading="lazy" sandbox="allow-scripts" style="border:none;display:block;width:100%;height:300px;max-height:420px;border-radius:8px;" aria-hidden="false"></iframe>
+                    <script>
+                        if(!window.odnixCodeIframeListener){
+                            window.addEventListener('message', function(e){
+                                try{
+                                    if(!e.data || e.data.type!=='odnix-iframe-height') return;
+                                    var id = e.data.id; var h = e.data.height;
+                                    var ifr = document.getElementById(id);
+                                    if(ifr){ var max=360, min=80; var final = Math.min(max, Math.max(min, h)); ifr.style.height = final + 'px'; }
+                                }catch(err){}
+                            }, false);
+                            window.odnixCodeIframeListener = true;
+                        }
+                        (function(){
+                            try{
+                                const ifr=document.currentScript.previousElementSibling; if(!ifr) return;
+                                const id = 'code-iframe-{{ scribe.id }}'; ifr.id = id;
+                                const raw = "{{ scribe.code_bundle|escapejs }}";
+                                const wrapper = '<script>function sendHeight(){try{var b=document.body.getBoundingClientRect();var h=Math.ceil(Math.max(document.documentElement.scrollHeight,document.body.scrollHeight,b.height));parent.postMessage({type:"odnix-iframe-height",height:h,id:"'+id+'"},"*");}catch(e){} }window.addEventListener("load",sendHeight);window.addEventListener("resize",function(){setTimeout(sendHeight,100)});</' + 'script>' + raw;
+                                ifr.srcdoc = wrapper;
+                            }catch(e){console.error(e);}
+                        })();
+                    </script>
+    </div>
+    {% elif scribe.image_url %}
+    <div class="od-post-media" onclick="openImageModal('{{ scribe.image_url }}')">
+        <img src="{{ scribe.image_url }}" loading="lazy" alt="Post image">
+    </div>
+    {% else %}
+    <!-- Text-only scribe (no media) -->
+    {% if scribe.content %}
+    <div class="od-post-text-content" style="padding: 16px 20px; min-height: 80px;">
+        <p class="od-post-text" style="font-size: 16px; line-height: 1.6; color: var(--od-text-primary, #fff); word-wrap: break-word; white-space: pre-wrap; margin: 0;">{{ scribe.content|linebreaksbr|linkify_hashtags_mentions }}</p>
+    </div>
+    {% endif %}
+    {% endif %}
+    {% endif %}
+
+    <!-- Post Actions -->
+    <div class="od-post-actions">
+        <div class="od-post-actions-left">
+            <button class="od-post-action-btn like-btn {% if scribe.is_liked %}liked{% endif %}"
+                onclick="toggleLike({{ scribe.id }})" data-scribe-id="{{ scribe.id }}">
+                <span class="od-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg></span>
+            </button>
+            <button class="od-post-action-btn dislike-btn {% if scribe.is_disliked %}disliked{% endif %}"
+                onclick="toggleDislike({{ scribe.id }})" data-scribe-id="{{ scribe.id }}">
+                <span class="od-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/></svg></span>
+            </button>
+            <button class="od-post-action-btn" onclick="toggleComments({{ scribe.id }})">
+                <span class="od-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></span>
+            </button>
+            <button class="od-post-action-btn" onclick="sharePost({{ scribe.id }})">
+                <span class="od-icon"><svg viewBox="0 0 24 25"><g transform="translate(0,25) scale(0.1,-0.1)" fill="currentColor" stroke="none"><path d="M175 215 c-5 -2 -43 -13 -82 -25 -40 -11 -73 -25 -73 -29 0 -5 19 -16 41 -25 40 -16 43 -16 64 4 29 27 41 13 14 -16 -20 -21 -21 -26 -9 -56 15 -38 27 -54 35 -46 7 6 55 169 55 186 0 11 -23 15 -45 7z"/><path d="M31 106 c-8 -9 -11 -19 -7 -23 9 -9 29 13 24 27 -2 8 -8 7 -17 -4z"/><path d="M45 60 c-16 -16 -25 -33 -22 -37 8 -7 67 45 67 59 0 16 -17 8 -45 -22z"/><path d="M91 46 c-8 -9 -11 -19 -7 -23 9 -9 29 13 24 27 -2 8 -8 7 -17 -4z"/></g></svg></span>
+            </button>
+        </div>
+        <button class="od-post-action-btn {% if scribe.is_saved %}saved{% endif %}"
+            onclick="savePost({{ scribe.id }})" data-action="save" data-scribe-id="{{ scribe.id }}">
+            <span class="od-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></span>
+        </button>
+    </div>
+
+    <!-- Post Details -->
+    <div class="od-post-details">
+        <div class="od-post-likes">
+            <span class="like-count" data-scribe-id="{{ scribe.id }}">{{ scribe.like_count }}</span> likes
+        </div>
+
+        {% if scribe.content %}
+        <div class="od-post-caption">
+            <span class="username">{{ scribe.username }}</span>
+            <span>{{ scribe.content|linkify_hashtags_mentions|truncatewords:30 }}</span>
+        </div>
+        {% endif %}
+
+        {% if scribe.comment_count > 0 %}
+        <div class="od-post-view-comments" onclick="toggleComments({{ scribe.id }})">
+            View all {{ scribe.comment_count }} comments
+        </div>
+        {% endif %}
+
+        <time class="od-post-time">{{ scribe.time_ago }} ago</time>
+    </div>
+
+    <!-- Comment Input -->
+    <div class="od-post-comment-input">
+        <input type="text" placeholder="Add a comment..." id="comment-input-{{ scribe.id }}"
+            maxlength="500" onkeypress="handleCommentKeypress(event, {{ scribe.id }})">
+        <button onclick="addComment({{ scribe.id }})" disabled>Post</button>
+    </div>
+
+    <!-- Comments Section (Hidden by default) -->
+    <div id="comments-{{ scribe.id }}" class="od-comments-section" style="display: none;">
+        <div class="od-comments-list" id="comments-list-{{ scribe.id }}">
+            {% for comment in scribe.recent_comments %}
+            <div class="od-comment">
+                <img src="{{ comment.user.profile_picture_url }}" alt="" class="od-comment-avatar">
+                <div class="od-comment-content">
+                    <span class="od-comment-username">{{ comment.user.username }}</span>
+                    <span class="od-comment-text">{{ comment.content }}</span>
+                    <span class="od-comment-time">{{ comment.timestamp|timesince }}</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</article>

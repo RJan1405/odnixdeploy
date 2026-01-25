@@ -359,25 +359,22 @@
 
     /* Code Scribe Card */
     .code-scribe-card {
-        background: #1e1e1e;
+        background: var(--od-surface, #ffffff);
         border-radius: 8px;
         overflow: hidden;
-        border: 1px solid rgba(128, 128, 128, 0.2); /* Subtle border for all themes */
+        border: none;
         font-family: 'Fira Code', 'SFMono-Regular', Consolas, monospace;
         margin: 0;
         width: 100%;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15); /* Shadow to lift from background */
+        box-shadow: none;
         position: relative;
     }
 
-    .code-card-header {
-        background: #252526;
-        padding: 8px 12px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        border-bottom: 1px solid #111;
-    }
+    /* Hide the browser-like header chrome entirely */
+    .code-card-header { display: none !important; }
+
+    /* Ensure no extra padding around code scribe card */
+    .od-post-media.code-scribe-card { padding: 0 !important; }
 
     .code-window-controls {
         display: flex;
@@ -391,23 +388,23 @@
 
     .code-lang-badge {
         font-size: 11px;
-        color: #9aa0a6;
-        background: rgba(255,255,255,0.05);
+        color: var(--od-text-secondary);
+        background: transparent;
         padding: 2px 6px;
         border-radius: 4px;
         letter-spacing: 0.5px;
     }
 
     .code-scroller {
-        padding: 16px;
+        padding: 0;
         overflow-x: auto;
-        background: #1e1e1e;
+        background: transparent;
         scrollbar-width: thin;
-        scrollbar-color: #444 #1e1e1e;
+        scrollbar-color: #444 transparent;
     }
     
     .code-scroller::-webkit-scrollbar { height: 8px; }
-    .code-scroller::-webkit-scrollbar-track { background: #1e1e1e; }
+    .code-scroller::-webkit-scrollbar-track { background: transparent; }
     .code-scroller::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
 
     .code-block {
@@ -3676,7 +3673,7 @@
                             <span class="od-mobile-suggestion-name">{{ other_user.full_name|truncatechars:16 }}</span>
                         </a>
                         <button class="od-mobile-follow-btn" onclick="toggleFollow('{{ other_user.username }}')"
-                            data-username="{{ other_user.username }}">Follow</button>
+                            data-username="{{ other_user.username }}">Connect</button>
                     </div>
                     {% endfor %}
                 </div>
@@ -3697,6 +3694,7 @@
                                 onerror="this.outerHTML='<div class=\'od-post-avatar-placeholder\'>{{ scribe.user_initials }}</div>'">
                             <div class="od-post-user-info">
                                 <span class="od-post-username">{{ scribe.username }}</span>
+                                {% include 'chat/partials/verified_badge.html' with user=scribe.user is_verified=scribe.is_verified %}
                                 <span style="font-size: 11px; color: var(--od-text-secondary); display: flex; align-items: center; gap: 4px;">
                                     <span class="od-icon" style="width: 12px; height: 12px;">{% icon "repeat" %}</span>
                                     Reposted
@@ -3746,6 +3744,7 @@
                                 onerror="this.outerHTML='<div class=\'od-post-avatar-placeholder\'>{{ scribe.user_initials }}</div>'">
                             <div class="od-post-user-info">
                                 <span class="od-post-username">{{ scribe.username }}</span>
+                                {% include 'chat/partials/verified_badge.html' with user=scribe.user is_verified=scribe.is_verified %}
                             </div>
                         </a>
                         <button class="od-post-more" onclick="openPostMenu('{{ scribe.id }}')">
@@ -3792,7 +3791,7 @@
                     <!-- Regular Scribe or Reposted Scribe -->
                     {% with displayed_scribe=scribe.original_scribe|default:scribe %}
                     {% if displayed_scribe.content_type == 'code_scribe' %}
-                    <div class="od-post-media" style="padding: 12px; background: var(--od-surface-hover);">
+                    <div class="od-post-media" style="padding: 0; background: transparent;">
                         <div class="code-scribe-card">
                             <div class="code-card-header">
                                 <div class="code-window-controls">
@@ -3803,7 +3802,18 @@
                                 <span class="code-lang-badge">CODE</span>
                             </div>
                             <div class="code-scroller">
-                                <pre class="code-block"><code>{{ displayed_scribe.code_html|default:displayed_scribe.code_bundle|default:displayed_scribe.content|escape }}</code></pre>
+                                <div style="width:100%;">
+                                                                        <iframe class="explore-card-media" loading="lazy" sandbox="allow-scripts" style="border:none;display:block;width:100%;height:300px;max-height:420px;border-radius:8px;" aria-hidden="false"></iframe>
+                                                                        <script>
+                                                                            if(!window.odnixCodeIframeListener){
+                                                                                window.addEventListener('message', function(e){
+                                                                                    try{ if(!e.data||e.data.type!=='odnix-iframe-height') return; var id=e.data.id,h=e.data.height; var ifr=document.getElementById(id); if(ifr){var max=360,min=80; var final=Math.min(max, Math.max(min, h)); ifr.style.height = final + 'px';} }catch(err){}
+                                                                                }, false);
+                                                                                window.odnixCodeIframeListener=true;
+                                                                            }
+                                                                            (function(){try{const ifr=document.currentScript.previousElementSibling; if(!ifr) return; const id='code-iframe-{{ displayed_scribe.id }}'; ifr.id=id; const raw = "{{ displayed_scribe.code_bundle|default:displayed_scribe.code_html|default:displayed_scribe.content|escapejs }}"; const wrapper = '<script>function sendHeight(){try{var b=document.body.getBoundingClientRect();var h=Math.ceil(Math.max(document.documentElement.scrollHeight,document.body.scrollHeight,b.height));parent.postMessage({type:"odnix-iframe-height",height:h,id:"'+id+'"},"*");}catch(e){} }window.addEventListener("load",sendHeight);window.addEventListener("resize",function(){setTimeout(sendHeight,100)});</' + 'script>' + raw; ifr.srcdoc = wrapper;}catch(e){console.error(e);}})();
+                                                                        </script>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -3908,7 +3918,7 @@
                 <div class="od-empty">
                     {% icon "camera" "" 48 %}
                     <h3>Welcome to Odnix!</h3>
-                    <p>Follow people to see their scribes in your feed, or create your first scribe!</p>
+                    <p>Connect with people to see their scribes in your feed, or create your first scribe!</p>
                     <button class="od-auth-btn od-mt-lg" onclick="openCreatePostModal()"
                         style="width: auto; padding: 12px 24px;">
                         Create Your First Scribe!
@@ -3961,7 +3971,7 @@
                     </a>
                     <div class="od-suggestion-actions">
                         <button class="od-follow-btn" onclick="toggleFollow('{{ other_user.username }}')"
-                            data-username="{{ other_user.username }}">Follow</button>
+                            data-username="{{ other_user.username }}">Connect</button>
                         <button class="od-suggestion-dismiss" onclick="hideSuggestionCard(this)" title="Remove">
                             <span class="od-icon"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
                         </button>
@@ -3970,7 +3980,7 @@
                 {% empty %}
                 <div style="padding: 20px; text-align: center; color: var(--od-text-secondary);">
                     <span class="od-icon" style="width: 32px; height: 32px; opacity: 0.5; margin-bottom: 8px;"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
-                    <p style="margin: 0; font-size: 14px;">You're following everyone!</p>
+                    <p style="margin: 0; font-size: 14px;">You're connected to everyone!</p>
                     <p style="margin: 4px 0 0; font-size: 12px; opacity: 0.7;">Invite friends to join Odnix</p>
                 </div>
                 {% endfor %}
@@ -4007,7 +4017,7 @@
             </div>
             <div class="fab-option-text">
                 <span class="fab-option-title">Create Post</span>
-                <span class="fab-option-desc">Share photos with your followers</span>
+                <span class="fab-option-desc">Share photos with your connections</span>
             </div>
         </button>
     </div>
@@ -7974,7 +7984,7 @@
                     </svg>
                 </div>
                 <h3>Repost to Your Story?</h3>
-                <p>This will share <strong>@${storyUsername}</strong>'s story to your story for 24 hours. Your followers will see it with a "Reposted from @${storyUsername}" label.</p>
+                <p>This will share <strong>@${storyUsername}</strong>'s story to your story for 24 hours. Your connections will see it with a "Reposted from @${storyUsername}" label.</p>
                 <div class="od-confirm-actions">
                     <button class="od-confirm-btn od-confirm-cancel" onclick="closeRepostConfirmDialog()">Cancel</button>
                     <button class="od-confirm-btn od-confirm-primary" onclick="confirmRepostStory(${story.id})">Repost</button>
@@ -8851,7 +8861,7 @@
                             iconClass = 'follow';
                             iconName = 'user-plus';
                             dataType = 'follows';
-                            activityText = `<strong>${username}</strong> started following you`;
+                            activityText = `<strong>${username}</strong> connected with you`;
                             break;
                         case 'story_like':
                             iconClass = 'like';
@@ -8956,13 +8966,13 @@
                     if (btn) {
                         btn.disabled = false;
                         if (data.is_following) {
-                            btn.textContent = 'Following';
+                            btn.textContent = 'Connected';
                             btn.classList.add('following');
                         } else if (data.follow_request_status === 'pending') {
                             btn.textContent = 'Requested';
                             btn.classList.add('requested');
                         } else {
-                            btn.textContent = 'Follow';
+                            btn.textContent = 'Connect';
                             btn.classList.remove('following');
                             btn.classList.remove('requested');
                         }
@@ -8971,7 +8981,7 @@
                     console.error('Follow error:', data.error);
                     if (btn) {
                         btn.disabled = false;
-                        btn.textContent = 'Follow';
+                        btn.textContent = 'Connect';
                     }
                 }
             })
@@ -8979,7 +8989,7 @@
                 console.error('Follow request failed:', err);
                 if (btn) {
                     btn.disabled = false;
-                    btn.textContent = 'Follow';
+                    btn.textContent = 'Connect';
                 }
             });
     }

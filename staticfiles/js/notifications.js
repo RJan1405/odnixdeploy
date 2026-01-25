@@ -363,12 +363,12 @@
     }
 
     /**
-     * Notify about new follower
+     * Notify about new connection
      */
     function notifyFollow(followerName, followerUsername, followerAvatar) {
         return showNotification({
-            title: 'New Follower',
-            body: `${followerName} started following you`,
+            title: 'New Connection',
+            body: `${followerName} connected with you`,
             icon: followerAvatar || '/static/img/logo.png',
             tag: `follow-${followerUsername}`,
             type: 'notification',

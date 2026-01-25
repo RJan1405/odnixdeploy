@@ -4,6 +4,7 @@ from .auth import (
 from .chat import (
     dashboard, chat_view, get_chat_messages, send_message, create_chat,
     create_group, join_group_view, join_group_api, discover_groups_view, manage_join_request,
+    explore,
     delete_message_for_me, delete_message_for_everyone, consume_one_time_message,
     mark_message_read, react_to_message, update_typing_status, get_typing_status,
     edit_message, pin_message, unpin_message, get_pinned_messages,

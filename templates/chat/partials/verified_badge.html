@@ -1,0 +1,17 @@
+{% comment %}Small reusable verified badge include. Accepts either `user` or `is_verified` in context.{% endcomment %}
+{% load odnix_icons %}
+<style>
+/* Compact verified badge used inline so include works everywhere */
+.od-verified-badge{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;background:#0095f6;border-radius:50%;margin-left:6px;vertical-align:middle}
+.od-verified-badge .od-icon{width:10px;height:10px;color:#fff}
+</style>
+
+{% if user %}
+    {% if user.is_verified %}
+        <span class="od-verified-badge" title="Verified" aria-hidden="false">{% icon "verified" "od-icon" 10 %}</span>
+    {% endif %}
+{% else %}
+    {% if is_verified %}
+        <span class="od-verified-badge" title="Verified" aria-hidden="false">{% icon "verified" "od-icon" 10 %}</span>
+    {% endif %}
+{% endif %}

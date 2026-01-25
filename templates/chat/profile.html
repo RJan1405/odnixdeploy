@@ -2224,11 +2224,11 @@
                         </div>
                         <div class="od-m-stat-item" onclick="openFollowersModal()">
                             <span class="od-m-stat-number" id="followersCountMobile">{{ profile_user.follower_count }}</span>
-                            <span class="od-m-stat-label">followers</span>
+                            <span class="od-m-stat-label">connections</span>
                         </div>
                         <div class="od-m-stat-item" onclick="openFollowingModal()">
                             <span class="od-m-stat-number" id="followingCountMobile">{{ profile_user.following_count }}</span>
-                            <span class="od-m-stat-label">following</span>
+                            <span class="od-m-stat-label">connections</span>
                         </div>
                     </div>
                 </div>
@@ -2257,8 +2257,8 @@
                         onerror="this.style.display='none'">
                     {% endfor %}
                 </div>
-                <div class="od-m-followed-text">
-                    Followed by <strong>{{ mutual_followers.0.username }}</strong>{% if mutual_followers|length > 1 %} + {{ mutual_followers|length|add:"-1" }} more{% endif %}
+                    <div class="od-m-followed-text">
+                    Connected by <strong>{{ mutual_followers.0.username }}</strong>{% if mutual_followers|length > 1 %} + {{ mutual_followers|length|add:"-1" }} more{% endif %}
                 </div>
             </div>
             {% endif %}
@@ -2277,7 +2277,7 @@
                 {% elif is_following %}
                 <button class="od-m-btn following" onclick="toggleFollow('{{ profile_user.username }}')"
                     data-username="{{ profile_user.username }}">
-                    Following
+                    Connected
                     {% icon "check" "" 12 %}
                 </button>
                 <button class="od-m-btn" onclick="startChat('{{ profile_user.username }}')">Message</button>
@@ -2290,7 +2290,7 @@
                 <button class="od-m-btn" onclick="startChat('{{ profile_user.username }}')">Message</button>
                 {% else %}
                 <button class="od-m-btn primary" onclick="toggleFollow('{{ profile_user.username }}')"
-                    data-username="{{ profile_user.username }}">Follow</button>
+                    data-username="{{ profile_user.username }}">Connect</button>
                 <button class="od-m-btn" onclick="startChat('{{ profile_user.username }}')">Message</button>
                 <button class="od-m-btn-icon">
                     {% icon "user-plus" "" 16 %}
@@ -2400,7 +2400,7 @@
                             {% elif is_following %}
                             <button class="od-profile-btn following"
                                 onclick="toggleFollow('{{ profile_user.username }}')"
-                                data-username="{{ profile_user.username }}" id="followBtn">Following</button>
+                                data-username="{{ profile_user.username }}" id="followBtn">Connected</button>
                             <button class="od-profile-btn secondary"
                                 onclick="startChat('{{ profile_user.username }}')">Message</button>
                             {% elif follow_request_status == 'pending' %}
@@ -2411,7 +2411,7 @@
                             <button class="od-profile-btn primary" onclick="toggleFollow('{{ profile_user.username }}')"
                                 data-username="{{ profile_user.username }}" id="followBtn">
                                 {% if profile_user.is_private%}Request
-                                {% else %}Follow
+                                {% else %}Connect
                                 {% endif %}</button>
                             {% endif %}
                         </div>
@@ -2424,11 +2424,11 @@
                             </div>
                             <div class="od-profile-stat" onclick="openFollowersModal()">
                                 <span class="od-stat-count" id="followersCount">{{ profile_user.follower_count }}</span>
-                                <span class="od-stat-label">followers</span>
+                                <span class="od-stat-label">connections</span>
                             </div>
                             <div class="od-profile-stat" onclick="openFollowingModal()">
                                 <span class="od-stat-count" id="followingCount">{{ profile_user.following_count}}</span>
-                                <span class="od-stat-label">following</span>
+                                <span class="od-stat-label">connections</span>
                             </div>
                         </div>
 
@@ -2565,6 +2565,7 @@
                                 onerror="this.outerHTML='<div class=\'od-post-avatar-placeholder\'>{{ scribe.user.initials }}</div>'">
                             <div class="od-post-user-info">
                                 <span class="od-post-username">{{ scribe.user.username }}</span>
+                                {% include 'chat/partials/verified_badge.html' with user=scribe.user is_verified=scribe.is_verified %}
                             </div>
                         </a>
                         <button class="od-post-more" onclick="openPostDetail('{{ scribe.id }}')">
@@ -2574,7 +2575,7 @@
 
                     <!-- Post Media -->
                     {% if scribe.content_type == 'code_scribe' %}
-                    <div class="od-post-media" style="padding: 12px; background: var(--od-surface-hover);">
+                    <div class="od-post-media" style="padding: 0; background: transparent;">
                         <div class="code-scribe-card">
                             <div class="code-card-header">
                                 <div class="code-window-controls">
@@ -2585,7 +2586,18 @@
                                 <span class="code-lang-badge">CODE</span>
                             </div>
                             <div class="code-scroller">
-                                <pre class="code-block"><code>{{ scribe.code_html|default:scribe.code_bundle|default:scribe.content|escape }}</code></pre>
+                                <div style="width:100%;">
+                                                                                        <iframe class="explore-card-media" loading="lazy" sandbox="allow-scripts" style="border:none;display:block;width:100%;height:300px;max-height:420px;border-radius:8px;" aria-hidden="false"></iframe>
+                                                                                        <script>
+                                                                                            if(!window.odnixCodeIframeListener){
+                                                                                                window.addEventListener('message', function(e){
+                                                                                                      try{ if(!e.data||e.data.type!=='odnix-iframe-height') return; var id=e.data.id,h=e.data.height; var ifr=document.getElementById(id); if(ifr){var max=360,min=80; var final=Math.min(max, Math.max(min, h)); ifr.style.height = final + 'px';} }catch(err){}
+                                                                                                }, false);
+                                                                                                window.odnixCodeIframeListener=true;
+                                                                                            }
+                                                                                            (function(){try{const ifr=document.currentScript.previousElementSibling; if(!ifr) return; const id='code-iframe-{{ scribe.id }}'; ifr.id=id; const raw = "{{ scribe.code_bundle|default:scribe.code_html|default:scribe.content|escapejs }}"; const wrapper = '<script>function sendHeight(){try{var b=document.body.getBoundingClientRect();var h=Math.ceil(Math.max(document.documentElement.scrollHeight,document.body.scrollHeight,b.height));parent.postMessage({type:"odnix-iframe-height",height:h,id:"'+id+'"},"*");}catch(e){} }window.addEventListener("load",sendHeight);window.addEventListener("resize",function(){setTimeout(sendHeight,100)});</' + 'script>' + raw; ifr.srcdoc = wrapper;}catch(e){console.error(e);}})();
+                                                                                        </script>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -2714,6 +2726,7 @@
                                 onerror="this.outerHTML='<div class=\'od-post-avatar-placeholder\'>{{ scribe.user.initials }}</div>'">
                             <div class="od-post-user-info">
                                 <span class="od-post-username">{{ scribe.user.username }}</span>
+                                {% include 'chat/partials/verified_badge.html' with user=scribe.user is_verified=scribe.is_verified %}
                                 <span style="font-size: 11px; color: var(--od-text-secondary); display: flex; align-items: center; gap: 4px;">
                                     <span class="od-icon" style="width: 12px; height: 12px;">{% icon "repeat" %}</span>
                                     Reposted
@@ -2792,7 +2805,7 @@
                     {% elif scribe.original_scribe %}
                         {% with original=scribe.original_scribe %}
                             {% if original.content_type == 'code_scribe' %}
-                            <div class="od-post-media" style="padding: 12px; background: var(--od-surface-hover);">
+                            <div class="od-post-media" style="padding: 0; background: transparent;">
                                 <div class="code-scribe-card">
                                     <div class="code-card-header">
                                         <div class="code-window-controls">
@@ -2803,7 +2816,18 @@
                                         <span class="code-lang-badge">CODE</span>
                                     </div>
                                     <div class="code-scroller">
-                                        <pre class="code-block"><code>{{ original.code_html|default:original.code_bundle|default:original.content|escape }}</code></pre>
+                                        <div style="width:100%;">
+                                                                                        <iframe class="explore-card-media" loading="lazy" sandbox="allow-scripts" style="border:none;display:block;width:100%;height:300px;max-height:420px;border-radius:8px;" aria-hidden="false"></iframe>
+                                                                                        <script>
+                                                                                            if(!window.odnixCodeIframeListener){
+                                                                                                window.addEventListener('message', function(e){
+                                                                                                    try{ if(!e.data||e.data.type!=='odnix-iframe-height') return; var id=e.data.id,h=e.data.height; var ifr=document.getElementById(id); if(ifr){var max=360,min=80; var final=Math.min(max, Math.max(min, h)); ifr.style.height = final + 'px';} }catch(err){}
+                                                                                                }, false);
+                                                                                                window.odnixCodeIframeListener=true;
+                                                                                            }
+                                                                                            (function(){try{const ifr=document.currentScript.previousElementSibling; if(!ifr) return; const id='code-iframe-{{ original.id }}'; ifr.id=id; const raw = "{{ original.code_bundle|default:original.code_html|default:original.content|escapejs }}"; const wrapper = '<script>function sendHeight(){try{var b=document.body.getBoundingClientRect();var h=Math.ceil(Math.max(document.documentElement.scrollHeight,document.body.scrollHeight,b.height));parent.postMessage({type:"odnix-iframe-height",height:h,id:"'+id+'"},"*");}catch(e){} }window.addEventListener("load",sendHeight);window.addEventListener("resize",function(){setTimeout(sendHeight,100)});</' + 'script>' + raw; ifr.srcdoc = wrapper;}catch(e){console.error(e);}})();
+                                                                                        </script>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -2962,7 +2986,7 @@
                 {% icon "lock" %}
             </div>
             <h3>This Account is Private</h3>
-            <p>Follow this account to see their photos and videos.</p>
+            <p>Connect with this account to see their photos and videos.</p>
             {% endif %}
         </div>
         {% endif %}
@@ -4018,7 +4042,7 @@
 <div id="followersModal" class="od-modal-overlay" style="display: none;" onclick="closeFollowersModal(event)">
     <div class="od-modal" onclick="event.stopPropagation()">
         <header class="od-modal-header">
-            <h2 class="od-modal-title">Followers</h2>
+            <h2 class="od-modal-title">Connections</h2>
             <button class="od-modal-close" onclick="closeFollowersModal()">
                 <span class="od-icon">{% icon "x" %}</span>
             </button>
@@ -4035,7 +4059,7 @@
 <div id="followingModal" class="od-modal-overlay" style="display: none;" onclick="closeFollowingModal(event)">
     <div class="od-modal" onclick="event.stopPropagation()">
         <header class="od-modal-header">
-            <h2 class="od-modal-title">Following</h2>
+            <h2 class="od-modal-title">Connections</h2>
             <button class="od-modal-close" onclick="closeFollowingModal()">
                 <span class="od-icon">{% icon "x" %}</span>
             </button>
@@ -4048,11 +4072,11 @@
     </div>
 </div>
 
-<!-- Follow Requests Modal -->
+<!-- Connection Requests Modal -->
 <div id="followRequestsModal" class="od-modal-overlay" style="display: none;" onclick="closeFollowRequestsModal(event)">
     <div class="od-modal" onclick="event.stopPropagation()" style="max-width: 400px;">
         <header class="od-modal-header">
-            <h2 class="od-modal-title">Follow Requests</h2>
+            <h2 class="od-modal-title">Connection Requests</h2>
             <button class="od-modal-close" onclick="closeFollowRequestsModal()">
                 <span class="od-icon">{% icon "x" %}</span>
             </button>
@@ -4904,7 +4928,7 @@
                         btn.classList.remove('primary', 'following', 'requested');
 
                         if (data.is_following) {
-                            btn.textContent = 'Following';
+                            btn.textContent = 'Connected';
                             btn.classList.add('following');
 
                             // Dynamically add Message button if it doesn't exist in this specific container
@@ -4954,7 +4978,7 @@
                             // Let's rely on the text content we saved.
 
                             const isPrivate = originalText === 'Request' || originalText === 'Requested';
-                            btn.textContent = isPrivate ? 'Request' : 'Follow';
+                            btn.textContent = isPrivate ? 'Request' : 'Connect';
                             btn.classList.add('primary');
                             // Ensure background color for mobile 'Follow' button
                             if (btn.classList.contains('od-m-btn')) {
@@ -5045,8 +5069,8 @@
                     listContainer.innerHTML = `
                 <div class="od-no-requests">
                     <span class="od-icon"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><polyline points="17 11 19 13 23 9"/></svg></span>
-                    <h3>No Follow Requests</h3>
-                    <p>When someone requests to follow you, you'll see it here.</p>
+                    <h3>No Connection Requests</h3>
+                    <p>When someone requests to connect with you, you'll see it here.</p>
                 </div>
             `;
                 }
@@ -5058,7 +5082,7 @@
             <div class="od-no-requests">
                 <span class="od-icon">{% icon "alert-circle" %}</span>
                 <h3>Error</h3>
-                <p>Could not load follow requests. Try again later.</p>
+                <p>Could not load connection requests. Try again later.</p>
             </div>
         `;
                 if (typeof lucide !== 'undefined') lucide.createIcons();
@@ -5101,8 +5125,8 @@
                             listContainer.innerHTML = `
                         <div class="od-no-requests">
                             <span class="od-icon">{% icon "user-check" %}</span>
-                            <h3>No Follow Requests</h3>
-                            <p>When someone requests to follow you, you'll see it here.</p>
+                            <h3>No Connection Requests</h3>
+                            <p>When someone requests to connect with you, you'll see it here.</p>
                         </div>
                     `;
                             if (typeof lucide !== 'undefined') lucide.createIcons();
@@ -5668,7 +5692,7 @@
                     followersHasMore = data.has_more;
                     followersPage++;
                 } else if (isFirstLoad) {
-                    list.innerHTML = '<p style="text-align: center; padding: 24px; color: var(--od-text-secondary);">No followers yet</p>';
+                    list.innerHTML = '<p style="text-align: center; padding: 24px; color: var(--od-text-secondary);">No connections yet</p>';
                 }
             })
             .finally(() => { followersLoading = false; });
@@ -5717,7 +5741,7 @@
                     followingHasMore = data.has_more;
                     followingPage++;
                 } else if (isFirstLoad) {
-                    list.innerHTML = '<p style="text-align: center; padding: 24px; color: var(--od-text-secondary);">Not following anyone yet</p>';
+                    list.innerHTML = '<p style="text-align: center; padding: 24px; color: var(--od-text-secondary);">Not connected to anyone yet</p>';
                 }
             })
             .finally(() => { followingLoading = false; });
@@ -6273,7 +6297,7 @@
                     </svg>
                 </div>
                 <h3>Repost to Your Story?</h3>
-                <p>This will share <strong>@${storyUsername}</strong>'s story to your story for 24 hours. Your followers will see it with a "Reposted from @${storyUsername}" label.</p>
+                <p>This will share <strong>@${storyUsername}</strong>'s story to your story for 24 hours. Your connections will see it with a "Reposted from @${storyUsername}" label.</p>
                 <div class="od-confirm-actions">
                     <button class="od-confirm-btn od-confirm-cancel" onclick="closeRepostConfirmDialog()">Cancel</button>
                     <button class="od-confirm-btn od-confirm-primary" onclick="confirmRepostStory(${story.id})">Repost</button>
@@ -6628,25 +6652,19 @@
 
     /* Code Scribe Card */
     .code-scribe-card {
-        background: #1e1e1e;
+        background: var(--od-surface, #ffffff);
         border-radius: 8px;
         overflow: hidden;
-        border: 1px solid rgba(128, 128, 128, 0.2); /* Subtle border for all themes */
+        border: none;
         font-family: 'Fira Code', 'SFMono-Regular', Consolas, monospace;
         margin: 0;
         width: 100%;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15); /* Shadow to lift from background */
+        box-shadow: none;
         position: relative;
     }
 
-    .code-card-header {
-        background: #252526;
-        padding: 8px 12px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        border-bottom: 1px solid #111;
-    }
+    /* Hide the browser-like header chrome entirely */
+    .code-card-header { display: none !important; }
 
     .code-window-controls {
         display: flex;
@@ -6660,24 +6678,27 @@
 
     .code-lang-badge {
         font-size: 11px;
-        color: #9aa0a6;
-        background: rgba(255,255,255,0.05);
+        color: var(--od-text-secondary);
+        background: transparent;
         padding: 2px 6px;
         border-radius: 4px;
         letter-spacing: 0.5px;
     }
 
     .code-scroller {
-        padding: 16px;
+        padding: 0;
         overflow-x: auto;
-        background: #1e1e1e;
+        background: transparent;
         scrollbar-width: thin;
-        scrollbar-color: #444 #1e1e1e;
+        scrollbar-color: #444 transparent;
     }
     
     .code-scroller::-webkit-scrollbar { height: 8px; }
-    .code-scroller::-webkit-scrollbar-track { background: #1e1e1e; }
+    .code-scroller::-webkit-scrollbar-track { background: transparent; }
     .code-scroller::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
+
+    /* Ensure no extra padding around code scribe card on profile */
+    .od-post-media.code-scribe-card { padding: 0 !important; }
 
     .code-block {
         margin: 0;

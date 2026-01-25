@@ -3,295 +3,17 @@
 {% block title %}Register - Odnix{% endblock %}
 
 {% block content %}
-<style>
-    :root {
-        --color-primary: #8b8cf8;
-        --color-surface: #111827;
-        --color-background: #0b0f1a;
-        --color-border: #1f2937;
-        --color-text: #e5e7eb;
-        --color-text-secondary: #9ca3af;
-    }
-
-    .auth-container {
-        min-height: 100vh;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: var(--color-background);
-        padding: 1rem;
-    }
-
-    .auth-card {
-        background: var(--color-surface);
-        border: 1px solid var(--color-border);
-        border-radius: 1rem;
-        padding: 2rem;
-        box-shadow: 0 16px 42px rgba(0, 0, 0, 0.35);
-        width: 100%;
-        max-width: 520px;
-        animation: slideIn 0.3s ease-out;
-    }
-
-    .auth-header {
-        text-align: center;
-        margin-bottom: 2rem;
-    }
-
-    .auth-header h1 {
-        color: var(--color-text);
-        font-size: 2rem;
-        margin-bottom: 0.5rem;
-        letter-spacing: 0.5px;
-    }
-
-    .auth-header p {
-        color: var(--color-text-secondary);
-        margin: 0;
-    }
-
-    .form-group {
-        margin-bottom: 1.5rem;
-    }
-
-    .form-row {
-        display: flex;
-        gap: 1rem;
-    }
-
-    .form-row .form-group {
-        flex: 1;
-    }
-
-    .form-label {
-        display: block;
-        margin-bottom: 0.5rem;
-        font-weight: 600;
-        color: var(--color-text);
-    }
-
-    .gender-options {
-        display: flex;
-        gap: 1.5rem;
-    }
-
-    .radio-label {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        cursor: pointer;
-        user-select: none;
-    }
-
-    .radio-label input[type="radio"] {
-        cursor: pointer;
-        width: 18px;
-        height: 18px;
-    }
-
-    .radio-label span {
-        font-size: 1rem;
-        color: var(--color-text);
-    }
-
-    .form-control {
-        width: 100%;
-        padding: 0.75rem 1rem;
-        border: 2px solid var(--color-border);
-        border-radius: 0.75rem;
-        font-size: 1rem;
-        transition: all 0.2s;
-        box-sizing: border-box;
-        background: #111827;
-        color: var(--color-text);
-    }
-
-    .form-control:focus {
-        border-color: var(--color-primary);
-        outline: none;
-        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
-        background: #0f172a;
-    }
-
-    .file-input-group {
-        position: relative;
-    }
-
-    .file-input-label {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.5rem;
-        padding: 0.75rem 1rem;
-        border: 2px dashed var(--color-border);
-        border-radius: 0.75rem;
-        cursor: pointer;
-        transition: all 0.2s;
-        background: #111827;
-        color: var(--color-text-secondary);
-    }
-
-    .file-input-label:hover {
-        border-color: var(--color-primary);
-        background: #0f172a;
-        color: var(--color-text);
-    }
-
-    .file-input {
-        position: absolute;
-        opacity: 0;
-        width: 100%;
-        height: 100%;
-        cursor: pointer;
-    }
-
-    .file-preview {
-        margin-top: 0.5rem;
-        text-align: center;
-    }
-
-    .preview-image {
-        max-width: 100px;
-        max-height: 100px;
-        border-radius: 22%;
-        border: 3px solid var(--color-primary);
-    }
-
-    .btn-primary {
-        width: 100%;
-        background: var(--color-primary);
-        color: white;
-        border: none;
-        padding: 0.8rem 1rem;
-        border-radius: 0.75rem;
-        font-size: 1rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.2s;
-        box-shadow: 0 6px 18px rgba(99, 102, 241, 0.35);
-    }
-
-    .btn-primary:hover {
-        background: #5b5fe6;
-        transform: translateY(-1px);
-        box-shadow: 0 8px 22px rgba(99, 102, 241, 0.28);
-    }
-
-    .btn-primary:focus-visible {
-        outline: 3px solid rgba(99, 102, 241, 0.35);
-        outline-offset: 2px;
-    }
-
-    .auth-footer {
-        text-align: center;
-        margin-top: 2rem;
-        padding-top: 2rem;
-        border-top: 1px solid var(--color-border);
-    }
-
-    .auth-footer a {
-        color: var(--color-primary);
-        text-decoration: none;
-        font-weight: 600;
-    }
-
-    .auth-footer a:hover {
-        text-decoration: underline;
-    }
-
-    @keyframes slideIn {
-        from {
-            opacity: 0;
-            transform: translateY(20px);
-        }
-
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    .messages {
-        margin-bottom: 1rem;
-    }
-
-    .alert {
-        padding: 0.75rem 1rem;
-        border-radius: 0.5rem;
-        margin-bottom: 1rem;
-        border: 1px solid transparent;
-    }
-
-    .alert-error {
-        background: #3b1115;
-        color: #fca5a5;
-        border-color: #7f1d1d;
-    }
-
-    .alert-success {
-        background: #0f2f1f;
-        color: #6ee7b7;
-        border-color: #065f46;
-    }
-
-    .alert-info {
-        background: #0f1e3a;
-        color: #93c5fd;
-        border-color: #1e3a8a;
-    }
-
-    @media (max-width: 768px) {
-        .form-row {
-            flex-direction: column;
-            gap: 0;
-        }
-
-        .auth-card {
-            padding: 1.5rem;
-            margin: 0.5rem;
-        }
-    }
-
-    /* Password Strength Meter */
-    .password-strength-container {
-        margin-top: 0.5rem;
-        width: 100%;
-    }
-
-    .password-strength-bar-bg {
-        height: 4px;
-        background-color: #1f2937;
-        border-radius: 2px;
-        margin-bottom: 4px;
-        overflow: hidden;
-    }
-
-    .password-strength-bar {
-        height: 100%;
-        width: 0%;
-        transition: width 0.3s ease, background-color 0.3s ease;
-    }
-
-    .password-strength-text {
-        font-size: 0.85rem;
-        color: var(--color-text-secondary);
-        display: block;
-        text-align: right;
-        font-weight: 600;
-    }
-</style>
-
 <div class="auth-container">
     <div class="auth-card">
         <div class="auth-header">
-            <h1>Join Odnix</h1>
-            <p>Create your account to get started</p>
+            <h1 class="auth-logo">Odnix</h1>
+            <p class="auth-subtitle">Create your account</p>
         </div>
 
         {% if messages %}
-        <div class="messages">
+        <div class="auth-messages">
             {% for message in messages %}
-            <div class="alert alert-{{ message.tags }}">
+            <div class="auth-message auth-message--{{ message.tags }}">
                 {{ message }}
             </div>
             {% endfor %}
@@ -351,8 +73,7 @@
 
                 <div class="form-group">
                     <label for="confirm_password" class="form-label">Confirm Password</label>
-                    <input type="password" id="confirm_password" name="confirm_password" class="form-control" required
-                        minlength="6">
+                    <input type="password" id="confirm_password" name="confirm_password" class="form-control" required minlength="6">
                 </div>
             </div>
 
@@ -360,7 +81,7 @@
                 <label class="form-label">Profile Picture</label>
                 <div class="file-input-group">
                     <label for="profile_picture" class="file-input-label">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
                         <span id="file-label">Choose Profile Picture</span>
                     </label>
                     <input type="file" id="profile_picture" name="profile_picture" class="file-input" accept="image/*">
@@ -368,125 +89,426 @@
                 <div class="file-preview" id="file-preview"></div>
             </div>
 
-            <button type="submit" class="btn-primary">Create Account</button>
+            <button type="submit" class="btn btn--primary btn--full-width">Create Account</button>
         </form>
 
-        <div class="auth-footer">
-            <p>Already have an account? <a href="{% url 'login' %}">Sign in here</a></p>
+        <div class="auth-links">
+            <p class="auth-link-text">Already have an account? <a href="{% url 'login' %}" class="auth-link">Sign in here</a></p>
         </div>
     </div>
 </div>
 
+<style>
+:root {
+    --color-primary: #6366f1;
+    --color-primary-hover: #4f46e5;
+    --color-secondary: #a855f7;
+    --color-surface: #ffffff;
+    --color-background: #f8fafc;
+    --color-border: #e2e8f0;
+    --color-text: #0f172a;
+    --color-text-secondary: #475569;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+.auth-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    padding: 1rem;
+}
+
+.auth-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    padding: 2.5rem;
+    max-width: 500px;
+    width: 100%;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+}
+
+.auth-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.auth-logo {
+    font-size: 2rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin: 0 0 0.5rem 0;
+}
+
+.auth-subtitle {
+    color: var(--color-text-secondary);
+    font-size: 0.95rem;
+    margin: 0;
+}
+
+.auth-messages {
+    margin-bottom: 1.5rem;
+}
+
+.auth-message {
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    margin-bottom: 0.75rem;
+}
+
+.auth-message--error {
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+}
+
+.auth-message--success {
+    background: #f0fdf4;
+    color: #15803d;
+    border: 1px solid #bbf7d0;
+}
+
+.auth-message--info {
+    background: #eff6ff;
+    color: #0b3d91;
+    border: 1px solid #bfdbfe;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-row {
+    display: flex;
+    gap: 1rem;
+}
+
+.form-row .form-group {
+    flex: 1;
+    margin-bottom: 1.5rem;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: var(--color-text);
+    font-size: 0.9rem;
+}
+
+.form-control {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1.5px solid var(--color-border);
+    border-radius: 8px;
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+}
+
+.form-control:hover {
+    border-color: var(--color-primary);
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.gender-options {
+    display: flex;
+    gap: 2rem;
+}
+
+.radio-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    user-select: none;
+}
+
+.radio-label input[type="radio"] {
+    cursor: pointer;
+    width: 18px;
+    height: 18px;
+    accent-color: var(--color-primary);
+}
+
+.radio-label span {
+    font-size: 0.95rem;
+    color: var(--color-text);
+    font-weight: 500;
+}
+
+.file-input-group {
+    position: relative;
+}
+
+.file-input-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.625rem;
+    padding: 1rem;
+    border: 1.5px dashed var(--color-border);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: var(--color-background);
+    color: var(--color-text-secondary);
+    font-weight: 500;
+}
+
+.file-input-label:hover {
+    border-color: var(--color-primary);
+    background: rgba(99, 102, 241, 0.02);
+    color: var(--color-text);
+}
+
+.file-input {
+    position: absolute;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+}
+
+.file-preview {
+    margin-top: 0.75rem;
+    text-align: center;
+}
+
+.preview-image {
+    max-width: 100px;
+    max-height: 100px;
+    border-radius: 12px;
+    border: 2px solid var(--color-primary);
+    object-fit: cover;
+}
+
+.password-strength-container {
+    margin-top: 0.5rem;
+}
+
+.password-strength-bar-bg {
+    height: 4px;
+    background-color: var(--color-border);
+    border-radius: 2px;
+    margin-bottom: 0.375rem;
+    overflow: hidden;
+}
+
+.password-strength-bar {
+    height: 100%;
+    width: 0%;
+    transition: width 0.3s ease, background-color 0.3s ease;
+}
+
+.password-strength-text {
+    font-size: 0.8rem;
+    color: var(--color-text-secondary);
+    display: block;
+    text-align: right;
+    font-weight: 600;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.85rem 1.2rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+}
+
+.btn--primary {
+    background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+    color: white;
+    box-shadow: 0 8px 16px rgba(99, 102, 241, 0.25);
+}
+
+.btn--primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 24px rgba(99, 102, 241, 0.35);
+}
+
+.btn--primary:active {
+    transform: translateY(0);
+}
+
+.btn--full-width {
+    width: 100%;
+}
+
+.auth-links {
+    text-align: center;
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--color-border);
+}
+
+.auth-link-text {
+    color: var(--color-text-secondary);
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+.auth-link {
+    color: var(--color-primary);
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.2s ease;
+}
+
+.auth-link:hover {
+    color: var(--color-primary-hover);
+}
+
+@media (max-width: 480px) {
+    .auth-card {
+        padding: 1.5rem;
+    }
+
+    .auth-logo {
+        font-size: 1.5rem;
+    }
+
+    .form-row {
+        flex-direction: column;
+        gap: 0;
+    }
+
+    .form-row .form-group {
+        flex: 1;
+    }
+
+    .gender-options {
+        gap: 1.5rem;
+    }
+}
+</style>
+
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const fileInput = document.getElementById('profile_picture');
-        const fileLabel = document.getElementById('file-label');
-        const filePreview = document.getElementById('file-preview');
-        const form = document.getElementById('registerForm');
+document.addEventListener('DOMContentLoaded', function () {
+    const fileInput = document.getElementById('profile_picture');
+    const fileLabel = document.getElementById('file-label');
+    const filePreview = document.getElementById('file-preview');
+    const form = document.getElementById('registerForm');
 
-        // Password Strength Logic
-        const passwordInput = document.getElementById('password');
-        const strengthContainer = document.getElementById('password_strength_container');
-        const strengthBar = document.getElementById('password_strength_bar');
-        const strengthText = document.getElementById('password_strength_text');
+    const passwordInput = document.getElementById('password');
+    const strengthContainer = document.getElementById('password_strength_container');
+    const strengthBar = document.getElementById('password_strength_bar');
+    const strengthText = document.getElementById('password_strength_text');
 
-        if (passwordInput && strengthContainer && strengthBar && strengthText) {
-            passwordInput.addEventListener('input', function () {
-                const val = passwordInput.value;
-                if (val.length === 0) {
-                    strengthContainer.style.display = 'none';
-                    return;
-                }
-                strengthContainer.style.display = 'block';
+    // Password Strength Logic
+    if (passwordInput) {
+        passwordInput.addEventListener('input', function () {
+            const val = passwordInput.value;
+            if (val.length === 0) {
+                strengthContainer.style.display = 'none';
+                return;
+            }
+            strengthContainer.style.display = 'block';
 
-                let score = 0;
-                if (val.length >= 6) score++;
-                if (val.length >= 10) score++;
-                // Contains uppercase
-                if (/[A-Z]/.test(val)) score++;
-                // Contains numbers
-                if (/[0-9]/.test(val)) score++;
-                // Contains special chars
-                if (/[^A-Za-z0-9]/.test(val)) score++;
+            let score = 0;
+            if (val.length >= 6) score++;
+            if (val.length >= 10) score++;
+            if (/[A-Z]/.test(val)) score++;
+            if (/[0-9]/.test(val)) score++;
+            if (/[^A-Za-z0-9]/.test(val)) score++;
 
-                let percent = 0;
-                let color = '#dc3545'; // red
-                let label = 'Too weak';
+            let percent = 0, color = '#ef4444', label = 'Too weak';
 
-                if (score <= 1) {
-                    percent = 20;
-                    color = '#dc3545';
-                    label = 'Too weak';
-                } else if (score === 2) {
-                    percent = 40;
-                    color = '#dc3545';
-                    label = 'Weak';
-                } else if (score === 3) {
-                    percent = 60;
-                    color = '#ffc107'; // yellow
-                    label = 'Fair';
-                } else if (score === 4) {
-                    percent = 80;
-                    color = '#0d6efd'; // blue
-                    label = 'Good';
-                } else if (score >= 5) {
-                    percent = 100;
-                    color = '#198754'; // green
-                    label = 'Strong';
-                }
+            if (score <= 1) {
+                percent = 20;
+                color = '#ef4444';
+                label = 'Too weak';
+            } else if (score === 2) {
+                percent = 40;
+                color = '#ef4444';
+                label = 'Weak';
+            } else if (score === 3) {
+                percent = 60;
+                color = '#f59e0b';
+                label = 'Fair';
+            } else if (score === 4) {
+                percent = 80;
+                color = '#3b82f6';
+                label = 'Good';
+            } else if (score >= 5) {
+                percent = 100;
+                color = '#10b981';
+                label = 'Strong';
+            }
 
-                strengthBar.style.width = percent + '%';
-                strengthBar.style.backgroundColor = color;
-                strengthText.textContent = label;
-                strengthText.style.color = color;
-            });
+            strengthBar.style.width = percent + '%';
+            strengthBar.style.backgroundColor = color;
+            strengthText.textContent = label;
+            strengthText.style.color = color;
+        });
+    }
+
+    // File Input Handler
+    fileInput.addEventListener('change', function (e) {
+        const file = e.target.files[0];
+        if (file) {
+            fileLabel.textContent = file.name;
+
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    filePreview.innerHTML = `<img src="${e.target.result}" class="preview-image" alt="Preview">`;
+                };
+                reader.readAsDataURL(file);
+            }
+        } else {
+            fileLabel.textContent = 'Choose Profile Picture';
+            filePreview.innerHTML = '';
+        }
+    });
+
+    // Form Validation
+    form.addEventListener('submit', function (e) {
+        const password = document.getElementById('password').value;
+        const confirmPassword = document.getElementById('confirm_password').value;
+        const profilePicture = document.getElementById('profile_picture').files[0];
+
+        if (profilePicture && !profilePicture.type.startsWith('image/')) {
+            e.preventDefault();
+            alert('Please select a valid image file!');
+            return false;
         }
 
-        // Handle file input change
-        fileInput.addEventListener('change', function (e) {
-            const file = e.target.files[0];
-            if (file) {
-                fileLabel.textContent = file.name;
+        if (password !== confirmPassword) {
+            e.preventDefault();
+            alert('Passwords do not match!');
+            return false;
+        }
 
-                // Show preview if it's an image
-                if (file.type.startsWith('image/')) {
-                    const reader = new FileReader();
-                    reader.onload = function (e) {
-                        filePreview.innerHTML = `<img src="${e.target.result}" class="preview-image" alt="Preview">`;
-                    };
-                    reader.readAsDataURL(file);
-                }
-            } else {
-                fileLabel.textContent = 'Choose Profile Picture';
-                filePreview.innerHTML = '';
-            }
-        });
-
-        // Form validation
-        form.addEventListener('submit', function (e) {
-            const password = document.getElementById('password').value;
-            const confirmPassword = document.getElementById('confirm_password').value;
-            const profilePicture = document.getElementById('profile_picture').files[0];
-
-            // Check if selected file is an image (only if a file is selected)
-            if (profilePicture && !profilePicture.type.startsWith('image/')) {
-                e.preventDefault();
-                alert('Please select a valid image file!');
-                return false;
-            }
-
-            if (password !== confirmPassword) {
-                e.preventDefault();
-                alert('Passwords do not match!');
-                return false;
-            }
-
-            if (password.length < 6) {
-                e.preventDefault();
-                alert('Password must be at least 6 characters long!');
-                return false;
-            }
-        });
+        if (password.length < 6) {
+            e.preventDefault();
+            alert('Password must be at least 6 characters long!');
+            return false;
+        }
     });
+});
 </script>
+
 {% endblock %}

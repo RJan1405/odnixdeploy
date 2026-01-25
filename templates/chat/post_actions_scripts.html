@@ -1,0 +1,148 @@
+<script>
+// Minimal set of feed interaction functions reused by explore/dashboard/profile
+
+function getCSRFToken() {
+    const meta = document.querySelector('meta[name="csrf-token"]');
+    return meta ? meta.content : '';
+}
+
+function showIGToast(message, type = 'info') {
+    const existing = document.querySelector('.ig-toast');
+    if (existing) existing.remove();
+    const toast = document.createElement('div');
+    toast.className = 'ig-toast';
+    toast.style.cssText = `position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); background: var(--od-surface); color: var(--od-text-primary); padding: 12px 24px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 10000; font-size: 14px; border: 1px solid var(--od-border);`;
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+}
+
+function openPostMenu(scribeId, event) {
+    if (event) { event.stopPropagation(); event.preventDefault(); }
+    const modal = document.getElementById('postMenuModal');
+    const content = document.getElementById('postMenuContent');
+    const postEl = document.querySelector(`.od-post[data-scribe-id="${scribeId}"]`);
+    const isOwnPost = postEl ? postEl.getAttribute('data-is-own') === 'true' : false;
+    const btnStyle = 'display: flex; align-items: center; gap: 14px; padding: 16px 20px; background: transparent; border: none; cursor: pointer; color: var(--od-text-primary, #fff); font-size: 14px; font-weight: 500; width: 100%; text-align: left; border-bottom: 1px solid var(--od-border, rgba(255,255,255,0.1));';
+    const btnStyleLast = btnStyle.replace('border-bottom: 1px solid var(--od-border, rgba(255,255,255,0.1));','');
+    const btnStyleDanger = btnStyle.replace('color: var(--od-text-primary, #fff);','color: #ef4444;');
+    const iconStyle = 'width: 22px; height: 22px; flex-shrink: 0;';
+    let menuHTML = '';
+    if (isOwnPost) {
+        menuHTML = `
+            <button class="od-post-menu-item danger" style="${btnStyleDanger}" onclick="deletePost(${scribeId})">
+                <span class="od-icon" style="${iconStyle}">Delete</span>
+                <span>Delete Scribe</span>
+            </button>
+            <button class="od-post-menu-item" style="${btnStyle}" onclick="copyPostLink(${scribeId})">
+                <span class="od-icon" style="${iconStyle}">Link</span>
+                <span>Copy Link</span>
+            </button>
+            <button class="od-post-menu-item" style="${btnStyleLast}" onclick="closePostMenu()">
+                <span class="od-icon" style="${iconStyle}">X</span>
+                <span>Cancel</span>
+            </button>
+        `;
+    } else {
+        menuHTML = `
+            <button class="od-post-menu-item danger" style="${btnStyleDanger}" onclick="openReportModal(${scribeId})">
+                <span class="od-icon" style="${iconStyle}">!</span>
+                <span>Report</span>
+            </button>
+            <button class="od-post-menu-item" style="${btnStyle}" onclick="copyPostLink(${scribeId})">
+                <span class="od-icon" style="${iconStyle}">Link</span>
+                <span>Copy Link</span>
+            </button>
+            <button class="od-post-menu-item" style="${btnStyle}" onclick="goToScribe(${scribeId})">
+                <span class="od-icon" style="${iconStyle}">→</span>
+                <span>Go to Scribe</span>
+            </button>
+            <button class="od-post-menu-item" style="${btnStyleLast}" onclick="closePostMenu()">
+                <span class="od-icon" style="${iconStyle}">X</span>
+                <span>Cancel</span>
+            </button>
+        `;
+    }
+    content.innerHTML = menuHTML;
+    modal.style.display = 'flex';
+}
+function closePostMenu(event) {
+    if (!event || event.target === event.currentTarget) {
+        const m = document.getElementById('postMenuModal'); if (m) m.style.display = 'none';
+    }
+}
+
+function copyPostLink(postId) {
+    closePostMenu();
+    const url = `${window.location.origin}/post/${postId}/`;
+    navigator.clipboard.writeText(url).then(() => showIGToast('Link copied to clipboard')).catch(()=>showIGToast('Failed to copy link'));
+}
+
+function toggleLike(scribeId) {
+    const btn = document.querySelector(`.od-post-action-btn.like-btn[data-scribe-id="${scribeId}"]`);
+    const countEl = document.querySelector(`.like-count[data-scribe-id="${scribeId}"]`);
+    const dislikeBtn = document.querySelector(`.od-post-action-btn.dislike-btn[data-scribe-id="${scribeId}"]`);
+    if (!btn) return;
+    const wasLiked = btn.classList.contains('liked');
+    btn.classList.toggle('liked');
+    if (dislikeBtn) dislikeBtn.classList.remove('disliked');
+    if (countEl) { const current = parseInt(countEl.textContent)||0; countEl.textContent = wasLiked ? current-1 : current+1; }
+    fetch('/api/toggle-like/', {method:'POST', headers:{'Content-Type':'application/json','X-CSRFToken':getCSRFToken()}, body: JSON.stringify({ scribe_id: scribeId })})
+        .then(r=>r.json()).then(data=>{
+            if (data.success) { if (data.is_liked) btn.classList.add('liked'); else btn.classList.remove('liked'); if (countEl) countEl.textContent = data.like_count; }
+            else { btn.classList.toggle('liked'); showIGToast(data.error||'Failed to like','error'); }
+        }).catch(err=>{ console.error(err); btn.classList.toggle('liked'); showIGToast('Failed to like post','error'); });
+}
+
+function toggleDislike(scribeId) {
+    const btn = document.querySelector(`.od-post-action-btn.dislike-btn[data-scribe-id="${scribeId}"]`);
+    const likeBtn = document.querySelector(`.od-post-action-btn.like-btn[data-scribe-id="${scribeId}"]`);
+    const countEl = document.querySelector(`.like-count[data-scribe-id="${scribeId}"]`);
+    if (!btn) return;
+    const wasDisliked = btn.classList.contains('disliked');
+    btn.classList.toggle('disliked');
+    if (likeBtn && likeBtn.classList.contains('liked')) { likeBtn.classList.remove('liked'); if (countEl) { const c=parseInt(countEl.textContent)||0; countEl.textContent = Math.max(0,c-1); } }
+    fetch('/api/toggle-dislike/', {method:'POST', headers:{'Content-Type':'application/json','X-CSRFToken':getCSRFToken()}, body: JSON.stringify({ scribe_id: scribeId })})
+        .then(r=>r.json()).then(data=>{ if (!data.success) { btn.classList.toggle('disliked'); showIGToast(data.error||'Failed to dislike','error'); } }).catch(err=>{ console.error(err); btn.classList.toggle('disliked'); showIGToast('Failed to dislike post','error'); });
+}
+
+function toggleComments(scribeId) {
+    const section = document.getElementById(`comments-${scribeId}`);
+    if (!section) return;
+    if (section.style.display === 'none' || section.style.display === '') { section.style.display='block'; loadComments(scribeId); } else { section.style.display='none'; }
+}
+
+function loadComments(scribeId) {
+    fetch(`/api/scribe/${scribeId}/comments/`).then(r=>r.json()).then(data=>{
+        const list = document.getElementById(`comments-list-${scribeId}`);
+        if (!list) return;
+        if (data.comments && data.comments.length>0) {
+            list.innerHTML = data.comments.map(c=>`<div class="od-comment" style="display:flex;gap:12px;padding:12px 16px;"><img src="${c.user_profile_picture||''}" style="width:32px;height:32px;border-radius:22%;object-fit:cover;"><div style="flex:1;"><span style="font-weight:600">${c.user_username||'User'}</span> <div>${c.content}</div><div style="font-size:12px;color:var(--od-text-secondary);">${c.timestamp||''}</div></div></div>`).join('');
+        } else { list.innerHTML='<p style="text-align:center;color:var(--od-text-secondary);padding:16px;">No comments yet</p>'; }
+    }).catch(err=>{ console.error('Error loading comments',err); });
+}
+
+function addComment(scribeId) {
+    const input = document.getElementById(`comment-input-${scribeId}`);
+    if (!input) return;
+    const content = input.value.trim(); if (!content) return;
+    fetch('/api/add-comment/', {method:'POST', headers:{'Content-Type':'application/json','X-CSRFToken':getCSRFToken()}, body: JSON.stringify({ scribe_id: scribeId, content: content })})
+    .then(r=>r.json()).then(data=>{ if (data.success) { input.value=''; loadComments(scribeId); showIGToast('Comment added!','success'); } else { showIGToast(data.error||'Failed to add comment','error'); } }).catch(err=>{ console.error(err); showIGToast('Failed to add comment','error'); });
+}
+
+function handleCommentKeypress(event, scribeId) { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); addComment(scribeId); } }
+
+function toggleSavePost(scribeId, btn) {
+    const wasSaved = btn ? btn.classList.contains('saved') : false;
+    if (btn) btn.classList.toggle('saved');
+    fetch('/api/toggle-save-post/', {method:'POST', headers:{'Content-Type':'application/json','X-CSRFToken':getCSRFToken()}, body: JSON.stringify({ scribe_id: scribeId })})
+    .then(r=>r.json()).then(data=>{ if (data.success) { if (btn) { if (data.is_saved) btn.classList.add('saved'); else btn.classList.remove('saved'); } showIGToast(data.message||'Saved','success'); } else { if (btn) btn.classList.toggle('saved'); showIGToast(data.error||'Failed to save post','error'); } }).catch(err=>{ console.error(err); if (btn) btn.classList.toggle('saved'); showIGToast('Failed to save post','error'); });
+}
+
+function savePost(scribeId) { const btn = document.querySelector(`.od-post-action-btn[data-action="save"][data-scribe-id="${scribeId}"]`) || document.querySelector(`.od-post-action-btn[data-action="save"]`); toggleSavePost(scribeId, btn); }
+
+function sharePost(scribeId) { window.open(`/post/${scribeId}/share/`, '_blank'); }
+
+function repostPost(type, id) { /* simple wrapper, existing endpoints handle reposting */ fetch('/api/repost/', {method:'POST', headers:{'Content-Type':'application/json','X-CSRFToken':getCSRFToken()}, body: JSON.stringify({ type: type, id: id })}).then(r=>r.json()).then(data=>{ if (data.success) showIGToast('Reposted','success'); else showIGToast(data.error||'Failed to repost','error'); }).catch(()=>showIGToast('Failed to repost','error')); }
+
+</script>

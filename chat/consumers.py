@@ -47,10 +47,15 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
 
     # ---------------- DISCONNECT ----------------
     async def disconnect(self, close_code):
-        await self.channel_layer.group_discard(
-            self.group_name,
-            self.channel_name
-        )
+        # Only attempt to discard if group_name was set during connect
+        if hasattr(self, 'group_name') and self.group_name:
+            try:
+                await self.channel_layer.group_discard(
+                    self.group_name,
+                    self.channel_name
+                )
+            except Exception:
+                logger.exception("Error during group_discard in ChatConsumer.disconnect")
 
         # Remove user from typing set on disconnect
         if self.chat_id in ChatConsumer._typing_users:
@@ -867,7 +872,12 @@ class NotifyConsumer(AsyncWebsocketConsumer):
         await self.accept()
 
     async def disconnect(self, close_code):
-        await self.channel_layer.group_discard(self.group_name, self.channel_name)
+        # Guard against disconnect being called before connect finished
+        if hasattr(self, 'group_name') and self.group_name:
+            try:
+                await self.channel_layer.group_discard(self.group_name, self.channel_name)
+            except Exception:
+                logger.exception("Error during group_discard in NotifyConsumer.disconnect")
 
     async def receive(self, text_data):
         return

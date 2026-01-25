@@ -1,0 +1,72 @@
+{% extends 'chat/base.html' %}
+{% load scribe_extras %}
+{% load odnix_icons %}
+
+{% block title %}Explore{% endblock %}
+
+{% block extra_head %}
+<meta name="csrf-token" content="{{ csrf_token }}">
+<style>
+/* small layout tweaks for explore feed */
+.scribe-feed { display:flex; flex-direction:column; gap:12px; max-width:720px; margin: 12px auto; }
+.user-results { position: absolute; background: var(--od-surface); border: 1px solid var(--od-border); width: 320px; max-height: 320px; overflow: auto; z-index: 50; }
+.user-item { padding:8px 12px; display:flex; gap:8px; align-items:center; cursor:pointer; }
+.user-item:hover { background: rgba(255,255,255,0.02); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <header style="display:flex; align-items:center; gap:12px; margin: 18px 0; justify-content: center;">
+        <div style="position:relative;">
+            <input id="explore-search" placeholder="Search users..." style="width:320px;padding:10px 12px;border-radius:10px;border:1px solid var(--od-border);background:var(--od-surface);color:var(--od-text-primary);">
+            <div id="user-results" class="user-results" style="display:none;"></div>
+        </div>
+    </header>
+
+    <div class="scribe-feed" id="scribe-feed">
+        {% for scribe in scribes_data %}
+            {% include 'chat/od_post_card.html' with scribe=scribe %}
+        {% empty %}
+            <div class="od-no-content">No scribes to show.</div>
+        {% endfor %}
+    </div>
+
+    {% include 'chat/post_actions_scripts.html' %}
+
+    <script>
+    // Simple AJAX search for users using existing API
+    const searchInput = document.getElementById('explore-search');
+    const resultsBox = document.getElementById('user-results');
+    let timeout = null;
+
+    function renderUsers(users) {
+        resultsBox.innerHTML = '';
+        if (!users || users.length === 0) { resultsBox.style.display = 'none'; return; }
+        users.forEach(u => {
+            const el = document.createElement('div');
+            el.className = 'user-item';
+            el.innerHTML = `<img src="${u.profile_picture_url||''}" style="width:36px;height:36px;border-radius:8px;object-fit:cover;"> <div style=\"line-height:1\"><strong>${u.full_name||u.full_name}</strong><div style=\"color:var(--od-text-secondary);font-size:13px\">@${u.username}</div></div>`;
+            el.onclick = () => { window.location.href = '/chat/profile/' + u.username + '/'; };
+            resultsBox.appendChild(el);
+        });
+        resultsBox.style.display = 'block';
+    }
+
+    searchInput.addEventListener('input', (e) => {
+        const q = e.target.value.trim();
+        if (timeout) clearTimeout(timeout);
+        if (!q) { resultsBox.style.display = 'none'; return; }
+        timeout = setTimeout(() => {
+            fetch('/api/search-users/?q=' + encodeURIComponent(q))
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success && data.users) renderUsers(data.users);
+                    else if (data.results) renderUsers(data.results);
+                }).catch(()=>{});
+        }, 250);
+    });
+    </script>
+
+</div>
+{% endblock %}
