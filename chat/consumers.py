@@ -338,6 +338,7 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
             "timestamp_iso": message.timestamp.isoformat(),
             "one_time": message.one_time,
             "consumed": bool(message.consumed_at),
+            "is_read": message.is_read,
             "sender_id": message.sender_id,
             "reply_to": {
                 "id": message.reply_to.id,
@@ -506,9 +507,12 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
         try:
             from .models import Message
             return Message.objects.filter(
-                chat_id=self.chat_id,
-                is_read=False
-            ).exclude(sender_id=user_id).count()
+                chat_id=self.chat_id
+            ).exclude(
+                sender_id=user_id
+            ).exclude(
+                read_receipts__user_id=user_id
+            ).count()
         except:
             return 0
 
@@ -670,7 +674,7 @@ class CallConsumer(AsyncWebsocketConsumer):
                         }))
                         return
 
-                # --- Encrypted Messages ---
+                # --- Encrypted Messages or Plaintext Fallback ---
                 if self.handshake_complete and self.proto.auth_key:
                     # If we have a key, try to decrypt
                     try:
@@ -687,9 +691,18 @@ class CallConsumer(AsyncWebsocketConsumer):
                         logger.error(
                             f"[CallConsumer] Error decrypting message: {e}", exc_info=True)
                 else:
+                    # FALLBACK: Allow unencrypted WebRTC signaling for standard clients
                     if is_json:
-                        logger.warning(
-                            f"[CallConsumer] Received JSON '{data.get('type')}' but handshake not complete (auth_key={bool(self.proto.auth_key)})")
+                        msg_type = data.get('type')
+                        if msg_type and (msg_type.startswith('webrtc.') or msg_type == 'call.end'):
+                            if msg_type == 'webrtc.ice':
+                                logger.info(f"[CallConsumer] Received ICE Candidate from {self.scope['user'].id}")
+                            else:
+                                logger.info(f"[CallConsumer] Allowing unencrypted {msg_type} (handshake skipped)")
+                            await self.handle_decrypted_signal(data)
+                        else:
+                            logger.warning(
+                                f"[CallConsumer] Received JSON '{msg_type}' but handshake not complete")
                     else:
                         logger.warning(
                             f"[CallConsumer] Received non-JSON data and handshake not complete")
@@ -819,10 +832,10 @@ class CallConsumer(AsyncWebsocketConsumer):
                 logger.error(
                     f"[CallConsumer] Error encrypting/sending signal {message_type}: {e}", exc_info=True)
         else:
-            # If handshake not complete, signal is already in DB (stored before forwarding)
-            # User can poll for it, so we don't need to send unencrypted
-            logger.debug(
-                f"[CallConsumer] Handshake not complete for user {self.user.id if self.user else 'unknown'}, signal {message_type} available via polling")
+            # SEND UNENCRYPTED
+            await self.send(text_data=json.dumps(message))
+            logger.info(
+                f"[CallConsumer] ✓ Sent PLAIN {message_type} to user (no handshake)")
 
     async def signal_forward(self, event):
         if event.get('from_user_id') == self.user.id:
@@ -907,11 +920,35 @@ class NotifyConsumer(AsyncWebsocketConsumer):
     async def notify_follow(self, event):
         """Handle new follower notification"""
         await self.send(text_data=json.dumps({
-            'type': 'new.follow',
+            'type': 'follow',
             'follower_id': event.get('follower_id'),
             'follower_name': event.get('follower_name'),
             'follower_username': event.get('follower_username'),
             'follower_avatar': event.get('follower_avatar'),
+            'content': 'started following you',
+            'timestamp': timezone.now().isoformat()
+        }))
+
+    async def notify_report(self, event):
+        """Handle post report notification"""
+        await self.send(text_data=json.dumps({
+            'type': 'post_report',
+            'scribe_id': event.get('scribe_id'),
+            'reporter_id': event.get('reporter_id'),
+            'reason': event.get('reason'),
+            'content': f"Your post was reported for {event.get('reason')}",
+            'timestamp': event.get('timestamp')
+        }))
+
+    async def notify_report_omzo(self, event):
+        """Handle omzo report notification"""
+        await self.send(text_data=json.dumps({
+            'type': 'omzo_report',
+            'omzo_id': event.get('omzo_id'),
+            'reporter_id': event.get('reporter_id'),
+            'reason': event.get('reason'),
+            'content': f"Your omzo was reported for {event.get('reason')}",
+            'timestamp': event.get('timestamp')
         }))
 
     async def notify_missed_call(self, event):
@@ -923,6 +960,30 @@ class NotifyConsumer(AsyncWebsocketConsumer):
             'caller_name': event.get('caller_name'),
             'caller_avatar': event.get('caller_avatar'),
             'audio_only': event.get('audio_only', True),
+        }))
+
+    async def notify_like(self, event):
+        """Handle scribe like notification"""
+        await self.send(text_data=json.dumps({
+            'type': 'like',
+            'scribe_id': event.get('scribe_id'),
+            'user_id': event.get('user_id'),
+            'user_name': event.get('user_name'),
+            'user_avatar': event.get('user_avatar'),
+            'content': 'liked your scribe',
+            'timestamp': event.get('timestamp')
+        }))
+
+    async def notify_omzo_like(self, event):
+        """Handle omzo like notification"""
+        await self.send(text_data=json.dumps({
+            'type': 'omzo_like',
+            'omzo_id': event.get('omzo_id'),
+            'user_id': event.get('user_id'),
+            'user_name': event.get('user_name'),
+            'user_avatar': event.get('user_avatar'),
+            'content': 'liked your omzo',
+            'timestamp': event.get('timestamp')
         }))
 
 

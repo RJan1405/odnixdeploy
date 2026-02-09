@@ -4,6 +4,9 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_GET
 from chat.models import Chat, Message, MessageRead, CustomUser
 from django.db.models import Prefetch
+import logging
+
+logger = logging.getLogger(__name__)
 
 @login_required
 @require_GET
@@ -24,6 +27,8 @@ def get_chat_details_api(request, chat_id):
         participants=user
     )
 
+    logger.info(f"GET_CHAT_DETAILS: User {user.username} (ID {user.id}) accessing chat {chat_id}")
+
     # Mark unread messages as read
     unread_messages = chat.messages.exclude(sender=user).exclude(read_receipts__user=user)
     if unread_messages.exists():
@@ -32,6 +37,8 @@ def get_chat_details_api(request, chat_id):
         for msg in unread_messages:
             read_receipts.append(MessageRead(message=msg, user=user))
         MessageRead.objects.bulk_create(read_receipts, ignore_conflicts=True)
+        # Sync the is_read flag on all messages
+        unread_messages.update(is_read=True)
 
     # Determine chat metadata (name, avatar, etc.)
     chat_name = chat.name
@@ -129,7 +136,16 @@ def get_chat_details_api(request, chat_id):
             'is_group': chat.chat_type == 'group',
             'admin_id': chat.admin_id if chat.chat_type == 'group' else None,
             'description': chat.description if chat.chat_type == 'group' else None,
-            'participant_count': chat.participants.count()
+            'participant_count': chat.participants.count(),
+            'other_user': {
+                'id': other_user.id,
+                'username': other_user.username,
+                'full_name': other_user.full_name,
+                'first_name': other_user.first_name,
+                'profile_picture': other_user.profile_picture_url,
+                'is_online': other_user.is_online,
+                'is_verified': getattr(other_user, 'is_verified', False)
+            } if other_user else None
         },
         'messages': messages_data,
         'current_user_id': user.id

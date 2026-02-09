@@ -10,17 +10,43 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-change-this-key-in-production-123456789'
 
 DEBUG = True
-
-
-# Allow Cloudflare tunnel for CSRF
-CSRF_TRUSTED_ORIGINS = [
-    "https://occur-million-reporters-occasionally.trycloudflare.com",
-]
-
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', '*']
 
 # FIXED: Site domain for clean invite links
 SITE_DOMAIN = 'http://127.0.0.1:8000'
+
+# CORS settings for React frontend
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",  # Vite dev server (default)
+    "http://localhost:8080",  # Vite dev server (configured)
+    "http://localhost:3000",  # Alternative React dev server
+    "http://127.0.0.1:5173",
+    "http://127.0.0.1:8080",
+    "http://127.0.0.1:3000",
+]
+CORS_ALLOW_CREDENTIALS = True  # Required for session-based auth
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
+
+# CSRF trusted origins for POST requests (includes localhost + Cloudflare tunnel)
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:5173",
+    "http://localhost:8080",
+    "http://localhost:3000",
+    "http://127.0.0.1:5173",
+    "http://127.0.0.1:8080",
+    "http://127.0.0.1:3000",
+    "https://*.trycloudflare.com",  # Allow all Cloudflare tunnels
+]
 
 INSTALLED_APPS = [
     'jazzmin',  # Must be before django.contrib.admin
@@ -32,10 +58,12 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'channels',
+    'corsheaders',  # Enable CORS for React frontend
     'chat',
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',  # Must be at the top
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
@@ -135,8 +163,10 @@ os.makedirs(MEDIA_ROOT / 'profile_pics', exist_ok=True)
 os.makedirs(MEDIA_ROOT / 'chat_media', exist_ok=True)
 
 # FIXED: File upload settings - PREVENTS CORRUPTION & ALLOWS LARGER VIDEOS
-FILE_UPLOAD_MAX_MEMORY_SIZE = 100 * 1024 * 1024  # 100MB (Stream larger to disk)
-DATA_UPLOAD_MAX_MEMORY_SIZE = 100 * 1024 * 1024  # 100MB (Max request body size)
+FILE_UPLOAD_MAX_MEMORY_SIZE = 100 * 1024 * \
+    1024  # 100MB (Stream larger to disk)
+DATA_UPLOAD_MAX_MEMORY_SIZE = 100 * 1024 * \
+    1024  # 100MB (Max request body size)
 FILE_UPLOAD_PERMISSIONS = 0o644
 
 # Allowed file types for uploads
@@ -241,37 +271,37 @@ OMZO_FORCE_MP4 = os.getenv('OMZO_FORCE_MP4', '1') in ('1', 'true', 'True')
 JAZZMIN_SETTINGS = {
     # Title on the login screen (19 chars max)
     "site_title": "Odnix Admin",
-    
+
     # Title on the brand (19 chars max)
     "site_header": "Odnix",
-    
+
     # Title on the brand in sidebar
     "site_brand": "Odnix",
-    
+
     # Logo to use for your site, must be present in static files
     "site_logo": "img/logo.png",
-    
+
     # Logo to use for your site on login page
     "login_logo": "img/logo.png",
-    
+
     # Logo to use for login form in dark themes
     "login_logo_dark": "img/logo.png",
-    
+
     # CSS classes applied to the logo
     "site_logo_classes": "rounded-circle shadow-sm",
-    
+
     # Relative path to a favicon, will default to site_logo if absent
     "site_icon": "img/logo.png",
-    
+
     # Welcome text on the login screen
     "welcome_sign": "Welcome to Odnix Admin Panel",
-    
+
     # Copyright on the footer
     "copyright": "Odnix Social Platform",
-    
+
     # List of model admins to search from the search bar
     "search_model": ["chat.CustomUser", "chat.Chat", "chat.Scribe", "chat.Omzo"],
-    
+
     # Field name on user model that contains avatar ImageField/URLField/Charfield
     "user_avatar": "profile_picture",
 
@@ -280,14 +310,15 @@ JAZZMIN_SETTINGS = {
     ############
     "topmenu_links": [
         # Url that gets reversed (Alarm those those those names are valid)
-        {"name": "Home", "url": "admin:index", "permissions": ["auth.view_user"]},
-        
+        {"name": "Home", "url": "admin:index",
+            "permissions": ["auth.view_user"]},
+
         # External url that opens in a new window
         {"name": "View Site", "url": "/dashboard/", "new_window": True},
-        
+
         # Model admin to link to (Alarm those names to valid ones)
         {"model": "chat.CustomUser"},
-        
+
         # App with dropdown menu to all its models pages
         {"app": "chat"},
     ],
@@ -296,7 +327,8 @@ JAZZMIN_SETTINGS = {
     # User Menu #
     #############
     "usermenu_links": [
-        {"name": "View Site", "url": "/dashboard/", "new_window": True, "icon": "fas fa-globe"},
+        {"name": "View Site", "url": "/dashboard/",
+            "new_window": True, "icon": "fas fa-globe"},
         {"model": "chat.customuser"},
     ],
 
@@ -305,16 +337,16 @@ JAZZMIN_SETTINGS = {
     #############
     # Whether to display the side menu
     "show_sidebar": True,
-    
+
     # Whether to auto expand the menu
     "navigation_expanded": True,
-    
+
     # Hide these apps when generating side menu
     "hide_apps": [],
-    
+
     # Hide these models when generating side menu
     "hide_models": [],
-    
+
     # List of apps (and/or models) to base side menu ordering off of
     "order_with_respect_to": [
         "chat",
@@ -339,7 +371,7 @@ JAZZMIN_SETTINGS = {
         "auth",
         "auth.Group",
     ],
-    
+
     # Custom links to append to app groups
     # Note: Commented out - "Analytics Dashboard" pointed to /admin/ (same as main Dashboard)
     # "custom_links": {
@@ -358,47 +390,47 @@ JAZZMIN_SETTINGS = {
     # Icons that are used when one is not manually specified
     "default_icon_parents": "fas fa-chevron-circle-right",
     "default_icon_children": "fas fa-circle",
-    
+
     # Custom icons for apps/models
     "icons": {
         # Auth app
         "auth": "fas fa-users-cog",
         "auth.user": "fas fa-user",
         "auth.Group": "fas fa-users",
-        
+
         # Chat app - Users & Auth
         "chat.CustomUser": "fas fa-user-circle",
         "chat.EmailVerificationToken": "fas fa-envelope-open-text",
         "chat.Follow": "fas fa-user-friends",
-        
+
         # Chat app - Messaging
         "chat.Chat": "fas fa-comments",
         "chat.Message": "fas fa-envelope",
         "chat.GroupJoinRequest": "fas fa-user-plus",
-        
+
         # Chat app - Posts/Scribes
         "chat.Scribe": "fas fa-feather-alt",
         "chat.Like": "fas fa-heart",
         "chat.Dislike": "fas fa-thumbs-down",
         "chat.Comment": "fas fa-comment-dots",
         "chat.SavedPost": "fas fa-bookmark",
-        
+
         # Chat app - Stories
         "chat.Story": "fas fa-book-open",
         "chat.StoryView": "fas fa-eye",
         "chat.StoryLike": "fas fa-star",
         "chat.StoryReply": "fas fa-reply",
-        
+
         # Chat app - Omzos (Reels/Videos)
         "chat.Omzo": "fas fa-video",
         "chat.OmzoLike": "fas fa-heart",
         "chat.OmzoDislike": "fas fa-thumbs-down",
         "chat.OmzoComment": "fas fa-comment",
-        
+
         # Chat app - Reports & Moderation
         "chat.PostReport": "fas fa-flag",
         "chat.OmzoReport": "fas fa-exclamation-triangle",
-        
+
         # Other models
         "chat.Hashtag": "fas fa-hashtag",
         "chat.P2PSignal": "fas fa-phone",
@@ -424,7 +456,7 @@ JAZZMIN_SETTINGS = {
     ###############
     # Render out the change view as a single form, or in tabs (horizontal/vertical/collapsible/carousel)
     "changeform_format": "horizontal_tabs",
-    
+
     # Override change forms on a per model basis
     "changeform_format_overrides": {
         "chat.customuser": "collapsible",
@@ -437,7 +469,7 @@ JAZZMIN_SETTINGS = {
 
     # Language chooser (if i18n is enabled)
     "language_chooser": False,
-    
+
     #################
     # Custom CSS/JS #
     #################
@@ -454,7 +486,7 @@ JAZZMIN_SETTINGS = {
 JAZZMIN_UI_TWEAKS = {
     # ===== DARK THEME (Default) =====
     # Uncomment below for DARK theme
-    
+
     "navbar_small_text": False,
     "footer_small_text": False,
     "body_small_text": False,
@@ -478,10 +510,10 @@ JAZZMIN_UI_TWEAKS = {
     "dark_mode_theme": None,
     "sidebar_nav_compact_style": True,
     "sidebar_nav_flat_style": False,
-    
+
     # ===== LIGHT THEME (Alternative) =====
     # Comment out the DARK theme above and uncomment below for LIGHT theme
-    
+
     # "navbar_small_text": False,
     # "footer_small_text": False,
     # "body_small_text": False,

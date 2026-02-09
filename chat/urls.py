@@ -9,33 +9,52 @@ from django.urls import path
 from . import views
 # Import chat_ajax directly to avoid circular import
 from .views.chat_ajax import chat_partial, unread_counts
+# Import API auth views
+from .views import api_auth
+# Import chat API views
+from .views import chat_api
+from .views.react_serve import serve_react
+
 # AJAX unread counts endpoint
 path('api/unread_counts/', unread_counts, name='unread_counts'),
 
 
 urlpatterns = [
+    # API Authentication endpoints for React frontend
+    path('api/login/', api_auth.api_login, name='api_login'),
+    path('api/logout/', api_auth.api_logout, name='api_logout'),
+    path('api/profile/', api_auth.api_profile, name='api_profile'),
+    path('api/profile/<str:username>/', api_auth.api_user_profile, name='api_user_profile'),
+    path('api/csrf/', api_auth.get_csrf_token, name='api_csrf'),
+    
+    # API endpoints for React Chat
+    path('api/chat/<int:chat_id>/details/', chat_api.get_chat_details_api, name='api_chat_details'),
+
     # AJAX chat content endpoint
     # path('ajax/chat/<int:chat_id>/',
     # chat_ajax.chat_partial, name='ajax_chat_partial'),
-    # Authentication URLs
-    path('', views.home, name='home'),
-    path('login/', views.login_view, name='login'),
-    path('register/', views.register_view, name='register'),
-    path('logout/', views.logout_view, name='logout'),
+
+    # React App (Home)
+    path('', serve_react, name='home'),
+
+    # Authentication URLs (Django templates - commented out for React)
+    # path('login/', views.login_view, name='login'),
+    # path('register/', views.register_view, name='register'),
+    # path('logout/', views.logout_view, name='logout'),
 
     # Email verification URL
     path('verify-email/<str:token>/', views.verify_email, name='verify_email'),
     path('verify-email-otp/', views.verify_otp_view, name='verify_email_otp'),
 
-    # Main application URLs
-    path('dashboard/', views.dashboard, name='dashboard'),
+    # Main application URLs (Commented out for React)
+    # path('dashboard/', views.dashboard, name='dashboard'),
      path('explore/', views.explore, name='explore'),
-    path('profile/', views.profile_view, name='profile'),
-    path('profile/update/', views.update_profile, name='update_profile'),
-    path('profile/<str:username>/', views.profile_view, name='user_profile'),
+    # path('profile/', views.profile_view, name='profile'),
+    # path('profile/update/', views.update_profile, name='update_profile'),
+    # path('profile/<str:username>/', views.profile_view, name='user_profile'),
     path('chat/<int:chat_id>/', views.chat_view, name='chat_detail'),
     # Dedicated messages page (chat list)
-    path('messages/', views.messages_page, name='messages'),
+    # path('messages/', views.messages_page, name='messages'),
     path('delete-message-for-me/<int:message_id>/',
          views.delete_message_for_me, name='delete_message_for_me'),
     path('delete-message-for-everyone/<int:message_id>/',
@@ -49,6 +68,7 @@ urlpatterns = [
     path('discover-groups/', views.discover_groups_view, name='discover_groups'),
     path('api/explore/load-more/', views.load_more_explore_content,
          name='load_more_explore'),
+    path('api/explore-feed/', views.api_explore_feed, name='api_explore_feed'),
 
     # FIXED: Media serving URL with correct parameter name
     re_path(r'^media/(?P<file_path>.*)$',
@@ -60,6 +80,9 @@ urlpatterns = [
     # NEW: User stories API endpoint
     path('api/user-stories/<str:username>/',
          views.get_user_stories, name='get_user_stories'),
+    # NEW: Following stories feed (Instagram-style)
+    path('api/following-stories/',
+         views.get_following_stories, name='get_following_stories'),
 
     # Scribe URLs - Enhanced
     path('api/post-scribe/', views.post_scribe, name='post_scribe'),
@@ -155,6 +178,12 @@ urlpatterns = [
     path('api/toggle-private-chat/', views.toggle_private_chat,
          name='toggle_private_chat'),
 
+    # Save/Unsave functionality
+    path('api/save-scribe/', views.toggle_save_scribe, name='toggle_save_scribe'),
+    path('api/save-omzo/', views.toggle_save_omzo, name='toggle_save_omzo'),
+    path('api/saved-items/', views.get_saved_items, name='get_saved_items'),
+
+
     # Hashtag & Mention features
     path('api/hashtag/<str:hashtag>/',
          views.get_hashtag_scribes, name='get_hashtag_scribes'),
@@ -240,6 +269,9 @@ urlpatterns = [
     path('api/dm-requests/<int:chat_id>/check/', views.check_dm_request, name='check_dm_request'),
     path('api/dm-requests/<int:chat_id>/accept/', views.accept_dm_request, name='accept_dm_request'),
     path('api/dm-requests/<int:chat_id>/decline/', views.decline_dm_request, name='decline_dm_request'),
+
+    # Catch-all for React SPA (MUST BE LAST)
+    re_path(r'^(?P<path>.*)$', serve_react, name='react_catch_all'),
 ]
 
 # Serve media files in development

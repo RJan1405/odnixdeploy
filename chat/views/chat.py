@@ -20,7 +20,8 @@ from chat.models import (
     CustomUser, Chat, Message, GroupJoinRequest, Follow, Story, StoryView,
     StoryLike, StoryReply, Scribe, Like, Comment, MessageDeletion, MessageRead,
     MessageReaction, StarredMessage, PinnedChat, SavedPost, Omzo, Dislike,
-    DismissedSuggestion, ChatAcceptance
+    DismissedSuggestion, ChatAcceptance, SavedScribeItem, SavedOmzoItem,
+    OmzoLike, OmzoDislike, OmzoComment
 )
 from chat.forms import ScribeForm
 from .media import handle_media_upload
@@ -584,7 +585,13 @@ def get_chat_messages(request, chat_id):
 
     last_message_time = request.GET.get('last_message_time')
     after_id = request.GET.get('after_id')
-    messages_query = chat.messages.all().order_by('timestamp')
+    
+    # Optimize query with select_related to avoid N+1 problems
+    messages_query = chat.messages.select_related(
+        'sender', 
+        'reply_to', 
+        'reply_to__sender'
+    ).order_by('timestamp')
 
     # Filter by message ID (preferred method to avoid duplicates)
     if after_id:
@@ -604,9 +611,8 @@ def get_chat_messages(request, chat_id):
 
     messages_data = []
     for msg in messages_query:
-        # Check if this message has been read by anyone other than the sender
-        is_read = msg.read_receipts.exclude(
-            user=msg.sender).exists() if msg.sender else False
+        # Use the boolean field directly - improved performance and reliability
+        is_read = msg.is_read
 
         message_data = {
             'id': msg.id,
@@ -673,10 +679,10 @@ def send_message(request):
         media_size = None
 
         if media_file:
-            media_url, media_type, media_filename, media_size = handle_media_upload(
+            media_url, media_type, media_filename, media_size, upload_error = handle_media_upload(
                 media_file)
             if not media_url:
-                return JsonResponse({'success': False, 'error': 'Failed to upload media file'})
+                return JsonResponse({'success': False, 'error': upload_error or 'Failed to upload media file'})
 
         message_type = 'media' if media_file else 'text'
 
@@ -727,6 +733,7 @@ def send_message(request):
                 'media_filename': message.media_filename,
                 'one_time': message.one_time,
                 'consumed': False,
+                'is_read': False,
                 'is_own': message.sender == request.user,
                 'has_media': message.has_media,
                 'reply_to': {
@@ -775,7 +782,8 @@ def get_chats_api(request):
 
             chat_info = {
                 'id': chat.id,
-                'name': chat.name if chat.chat_type == 'group' else (other_user.full_name if other_user else 'Unknown'),
+                'name': chat.name if chat.chat_type == 'group' else ((other_user.full_name or other_user.username) if other_user else 'Unknown'),
+                'username': other_user.username if other_user else None,
                 'is_group': chat.chat_type == 'group',
                 'last_message': last_msg_content,
                 'unread_count': unread_count,
@@ -1093,7 +1101,7 @@ def _get_explore_content_batch(page=1, per_page=15, user=None):
                 like_count = Like.objects.filter(scribe=obj).count()
                 is_liked = Like.objects.filter(scribe=obj, user=user).exists() if user else False
                 is_disliked = Dislike.objects.filter(scribe=obj, user=user).exists() if user else False
-                is_saved = SavedPost.objects.filter(scribe=obj, user=user).exists() if user else False
+                is_saved = SavedScribeItem.objects.filter(scribe=obj, user=user).exists() if user else False
                 comment_count = Comment.objects.filter(scribe=obj).count()
                 
                 # Get recent comments
@@ -1147,10 +1155,10 @@ def _get_explore_content_batch(page=1, per_page=15, user=None):
                     time_ago = f"{time_diff.seconds // 60}m"
                 
                 # Get interaction data for omzo
-                from chat.models import OmzoLike, OmzoDislike, OmzoComment
                 like_count = OmzoLike.objects.filter(omzo=obj).count()
                 is_liked = OmzoLike.objects.filter(omzo=obj, user=user).exists() if user else False
                 is_disliked = OmzoDislike.objects.filter(omzo=obj, user=user).exists() if user else False
+                is_saved = SavedOmzoItem.objects.filter(omzo=obj, user=user).exists() if user else False
                 comment_count = OmzoComment.objects.filter(omzo=obj).count()
                 
                 paginated.append({
@@ -1169,7 +1177,7 @@ def _get_explore_content_batch(page=1, per_page=15, user=None):
                     'comment_count': comment_count,
                     'is_liked': is_liked,
                     'is_disliked': is_disliked,
-                    'is_saved': False,  # Omzos typically don't have save feature
+                    'is_saved': is_saved,
                     'is_own': user and obj.user.id == user.id,
                 })
         except (Scribe.DoesNotExist, Omzo.DoesNotExist):
@@ -1516,6 +1524,28 @@ def mark_message_read(request, message_id):
         if message.sender != request.user and not message.is_read:
             message.is_read = True
             message.save(update_fields=['is_read'])
+
+            # Broadcast read status via WebSocket
+            try:
+                from channels.layers import get_channel_layer
+                from asgiref.sync import async_to_sync
+                channel_layer = get_channel_layer()
+                
+                async_to_sync(channel_layer.group_send)(
+                    f'chat_{message.chat.id}',
+                    {
+                        'type': 'message_read',
+                        'message_id': message.id,
+                        'read_by': request.user.id,
+                        'read_at': timezone.now().isoformat()
+                    }
+                )
+                
+                # Also notify current user's sidebar to clear the badge
+                from chat.utils import clear_sidebar_unread
+                clear_sidebar_unread(message.chat, request.user)
+            except Exception as e:
+                logger.error(f"Error broadcasting read status: {e}")
 
         return JsonResponse({'success': True})
 
@@ -1950,6 +1980,8 @@ def mark_messages_read(request, chat_id):
     try:
         chat = get_object_or_404(Chat, id=chat_id, participants=request.user)
 
+        logger.info(f"MARK_READ: User {request.user.username} (ID {request.user.id}) calling mark_reak for chat {chat_id}")
+
         # Get all unread messages from other users
         unread_messages = Message.objects.filter(
             chat=chat
@@ -1969,6 +2001,31 @@ def mark_messages_read(request, chat_id):
                 read_receipts, ignore_conflicts=True)
             # Sync the is_read flag on all messages
             unread_messages.update(is_read=True)
+
+        # Always broadcast the latest read message status to sync clients
+        # even if no new receipts were created (e.g., they were already marked as read)
+        try:
+            last_msg = chat.messages.exclude(sender=request.user).order_by('-id').first()
+            if last_msg:
+                from channels.layers import get_channel_layer
+                from asgiref.sync import async_to_sync
+                channel_layer = get_channel_layer()
+                
+                async_to_sync(channel_layer.group_send)(
+                    f'chat_{chat_id}',
+                    {
+                        'type': 'message_read',
+                        'message_id': last_msg.id,
+                        'read_by': request.user.id,
+                        'read_at': timezone.now().isoformat()
+                    }
+                )
+                
+                # Also notify current user's sidebar to clear the badge
+                from chat.utils import clear_sidebar_unread
+                clear_sidebar_unread(chat, request.user)
+        except Exception as e:
+            logger.error(f"Error broadcasting read status: {e}")
 
         return JsonResponse({
             'success': True,
@@ -2616,8 +2673,8 @@ def p2p_get_signals(request, chat_id):
         from chat.models import P2PSignal
 
         # Get unconsumed signals for this user in this chat
-        # For call signals (webrtc.*), only get recent ones (last 30 seconds) to avoid stale signals
-        recent_cutoff = timezone.now() - timedelta(seconds=30)
+        # For call signals (webrtc.*), get recent ones (last 5 minutes) to allow time for pickup
+        recent_cutoff = timezone.now() - timedelta(seconds=300)
 
         signals = P2PSignal.objects.filter(
             chat=chat,
@@ -2990,4 +3047,93 @@ def auto_accept_chat_for_sender(chat, sender):
     """
     if chat.chat_type == 'private':
         ChatAcceptance.objects.get_or_create(chat=chat, user=sender)
+
+
+@login_required
+def api_explore_feed(request):
+    """API endpoint to get paginated explore content (scribes & omzos)"""
+    try:
+        page = int(request.GET.get('page', 1))
+        per_page = int(request.GET.get('per_page', 10))
+        
+        # Use existing helper
+        content_items = _get_explore_content_batch(page=page, per_page=per_page, user=request.user)
+        
+        # Fallback: if personalized explore is empty (or ended), show global content from the same page offset
+        if not content_items:
+            content_items = _get_explore_content_batch(page=page, per_page=per_page, user=None)
+            
+            # Re-check likes/dislikes for authenticated user since we fetched generic content
+            if request.user.is_authenticated and content_items:
+                for item in content_items:
+                    obj = item['object']
+                    if item['type'] == 'scribe':
+                        item['is_liked'] = Like.objects.filter(scribe=obj, user=request.user).exists()
+                        item['is_disliked'] = Dislike.objects.filter(scribe=obj, user=request.user).exists()
+                        item['is_saved'] = SavedScribeItem.objects.filter(scribe=obj, user=request.user).exists()
+                    elif item['type'] == 'omzo':
+                        item['is_liked'] = OmzoLike.objects.filter(omzo=obj, user=request.user).exists()
+                        item['is_disliked'] = OmzoDislike.objects.filter(omzo=obj, user=request.user).exists()
+                        item['is_saved'] = SavedOmzoItem.objects.filter(omzo=obj, user=request.user).exists()
+            
+        serialized_results = []
+        for item in content_items:
+            obj = item['object']
+            result_type = item['type']
+            
+            result = {
+                'id': str(obj.id),
+                'type': result_type, # scribe or omzo
+                'isLiked': item['is_liked'],
+                'isDisliked': item['is_disliked'],
+                'isSaved': item.get('is_saved', False),
+                'likes': item['like_count'],
+                'comments': item['comment_count'],
+                'user': {
+                    'id': str(obj.user.id),
+                    'username': obj.user.username,
+                    'displayName': obj.user.full_name or obj.user.username,
+                    'avatar': obj.user.profile_picture_url,
+                    'isVerified': obj.user.is_verified,
+                }
+            }
+            
+            if result_type == 'scribe':
+                result['createdAt'] = obj.timestamp.isoformat() if obj.timestamp else None
+                result['content'] = obj.content
+                result['mediaUrl'] = obj.image_url
+                # Reuse simplified type logic
+                ctype = getattr(obj, 'content_type', 'text')
+                
+                # Let's put Scribe-specific type inside
+                result['scribeType'] = 'image' if (obj.image and (not ctype or ctype == 'text')) else (ctype or 'text')
+                
+                # Add counters
+                result['dislikes'] = obj.scribe_dislikes.count()
+                result['reposts'] = obj.reposts.count()
+                
+                # Code content
+                result['code_html'] = getattr(obj, 'code_html', '')
+                result['code_css'] = getattr(obj, 'code_css', '')
+                result['code_js'] = getattr(obj, 'code_js', '')
+                
+            elif result_type == 'omzo':
+                result['createdAt'] = obj.created_at.isoformat() if obj.created_at else None
+                result['videoUrl'] = obj.video_file.url if obj.video_file else None
+                result['caption'] = obj.caption
+                result['dislikes'] = obj.dislikes.count()
+                result['shares'] = 0
+                
+            serialized_results.append(result)
+            
+        return JsonResponse({
+            'success': True,
+            'results': serialized_results,
+            'page': page,
+            'has_more': len(content_items) == per_page
+        })
+
+    except Exception as e:
+        logger.error(f"Error in api_explore_feed: {str(e)}")
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
 

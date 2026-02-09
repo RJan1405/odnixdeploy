@@ -14,6 +14,8 @@ import hashlib
 import logging
 import re
 from django.db import models as db_models
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
 
 from chat.models import (
     CustomUser, Chat, Scribe, Comment, CommentLike, Like, Dislike, Follow, Block, FollowRequest,
@@ -732,6 +734,21 @@ def toggle_like(request):
             Like.objects.create(user=request.user, scribe=scribe)
             is_liked = True
 
+            # Send Notification if not self-like
+            if request.user.id != scribe.user.id:
+                 channel_layer = get_channel_layer()
+                 async_to_sync(channel_layer.group_send)(
+                    f'user_notify_{scribe.user.id}',
+                    {
+                        'type': 'notify.like',
+                        'scribe_id': scribe.id,
+                        'user_id': request.user.id,
+                        'user_name': request.user.full_name or request.user.username,
+                        'user_avatar': request.user.profile_picture.url if request.user.profile_picture else None,
+                        'timestamp': timezone.now().isoformat()
+                    }
+                 )
+
         like_count = Like.objects.filter(scribe=scribe).count()
 
         return JsonResponse({
@@ -916,6 +933,19 @@ def report_post(request):
             copyright_type=copyright_type if reason == 'copyright' else None
         )
 
+        # Send Notification to the reported user
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            f'user_notify_{scribe.user.id}',
+            {
+                'type': 'notify.report', # New type
+                'scribe_id': scribe.id,
+                'reporter_id': request.user.id, # Often hidden, but backend sends it
+                'reason': reason,
+                'timestamp': timezone.now().isoformat()
+            }
+        )
+
         return JsonResponse({
             'success': True,
             'message': 'Thank you for your report. We will review it shortly.'
@@ -1031,6 +1061,7 @@ def add_comment(request):
             'comment': {
                 'id': comment.id,
                 'content': comment.content,
+                'user_id': comment.user.id,
                 'user_full_name': comment.user.full_name,
                 'user_username': comment.user.username,
                 'user_initials': comment.user.initials,
@@ -1158,6 +1189,7 @@ def get_scribe_comments(request, scribe_id):
             comment_data = {
                 'id': comment.id,
                 'content': comment.content,
+                'user_id': comment.user.id,
                 'user_full_name': comment.user.full_name,
                 'user_username': comment.user.username,
                 'user_initials': comment.user.initials,
@@ -1268,6 +1300,19 @@ def toggle_follow(request):
                 )
                 is_following = True
                 follow_request_status = None
+
+                # Send Notification
+                channel_layer = get_channel_layer()
+                async_to_sync(channel_layer.group_send)(
+                    f'user_notify_{target_user.id}',
+                    {
+                        'type': 'notify.follow',
+                        'follower_id': request.user.id,
+                        'follower_name': request.user.full_name,
+                        'follower_username': request.user.username,
+                        'follower_avatar': request.user.profile_picture.url if request.user.profile_picture else None,
+                    }
+                )
 
         # Clear explore cache when follow status changes
         from django.core.cache import cache
@@ -1791,11 +1836,17 @@ def search_users_for_mention(request):
 
         users_data = []
         for user in users:
+            is_following = Follow.objects.filter(
+                follower=request.user, 
+                following=user
+            ).exists()
+            
             users_data.append({
                 'id': user.id,
                 'username': user.username,
                 'full_name': user.full_name,
-                'profile_picture_url': user.profile_picture_url
+                'profile_picture_url': user.profile_picture_url,
+                'is_following': is_following
             })
 
         return JsonResponse({
@@ -2853,6 +2904,21 @@ def toggle_omzo_like(request):
             OmzoLike.objects.create(omzo=omzo, user=request.user)
             is_liked = True
 
+            # Send Notification if not self-like
+            if request.user.id != omzo.user.id:
+                 channel_layer = get_channel_layer()
+                 async_to_sync(channel_layer.group_send)(
+                    f'user_notify_{omzo.user.id}',
+                    {
+                        'type': 'notify.omzo_like',
+                        'omzo_id': omzo.id,
+                        'user_id': request.user.id,
+                        'user_name': request.user.full_name or request.user.username,
+                        'user_avatar': request.user.profile_picture.url if request.user.profile_picture else None,
+                        'timestamp': timezone.now().isoformat()
+                    }
+                 )
+
         return JsonResponse({
             'success': True,
             'is_liked': is_liked,
@@ -3025,6 +3091,19 @@ def report_omzo(request):
             disable_audio=disable_audio
         )
 
+        # Send Notification to the reported user
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            f'user_notify_{omzo.user.id}',
+            {
+                'type': 'notify.report_omzo', # New type
+                'omzo_id': omzo.id,
+                'reporter_id': request.user.id,
+                'reason': reason,
+                'timestamp': timezone.now().isoformat()
+            }
+        )
+
         # If disable_audio is checked, mute the omzo
         if disable_audio:
             omzo.is_muted = True
@@ -3038,3 +3117,156 @@ def report_omzo(request):
     except Exception as e:
         logger.error(f"Error in report_omzo: {str(e)}")
         return JsonResponse({'success': False, 'error': 'Failed to report omzo'})
+
+
+@login_required
+@require_POST
+def toggle_save_scribe(request):
+    """Toggle save status for a scribe"""
+    try:
+        data = json.loads(request.body)
+        scribe_id = data.get('scribe_id')
+
+        if not scribe_id:
+            return JsonResponse({'success': False, 'error': 'Scribe ID is required'})
+
+        try:
+            scribe = Scribe.objects.get(id=scribe_id)
+        except Scribe.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Scribe not found'})
+
+        from chat.models import SavedScribeItem
+        saved_obj = SavedScribeItem.objects.filter(user=request.user, scribe=scribe).first()
+
+        if saved_obj:
+            saved_obj.delete()
+            is_saved = False
+        else:
+            SavedScribeItem.objects.create(user=request.user, scribe=scribe)
+            is_saved = True
+
+        return JsonResponse({
+            'success': True,
+            'is_saved': is_saved
+        })
+
+    except Exception as e:
+        logger.error(f"Error in toggle_save_scribe: {str(e)}")
+        return JsonResponse({'success': False, 'error': 'Failed to toggle save'})
+
+
+@login_required
+@require_POST
+def toggle_save_omzo(request):
+    """Toggle save status for an omzo"""
+    try:
+        data = json.loads(request.body)
+        omzo_id = data.get('omzo_id')
+
+        if not omzo_id:
+            return JsonResponse({'success': False, 'error': 'Omzo ID is required'})
+
+        try:
+            omzo = Omzo.objects.get(id=omzo_id)
+        except Omzo.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Omzo not found'})
+
+        from chat.models import SavedOmzoItem
+        saved_obj = SavedOmzoItem.objects.filter(user=request.user, omzo=omzo).first()
+
+        if saved_obj:
+            saved_obj.delete()
+            is_saved = False
+        else:
+            SavedOmzoItem.objects.create(user=request.user, omzo=omzo)
+            is_saved = True
+
+        return JsonResponse({
+            'success': True,
+            'is_saved': is_saved
+        })
+
+    except Exception as e:
+        logger.error(f"Error in toggle_save_omzo: {str(e)}")
+        return JsonResponse({'success': False, 'error': 'Failed to toggle save'})
+
+
+@login_required
+def get_saved_items(request):
+    """Get all saved items (scribes and omzos) for the current user"""
+    try:
+        from chat.models import SavedScribeItem, SavedOmzoItem
+        
+        # Get saved scribes
+        saved_scribes = SavedScribeItem.objects.filter(user=request.user).select_related('scribe__user')
+        scribes_data = []
+        
+        for saved in saved_scribes:
+            scribe = saved.scribe
+            # Detect type correctly
+            ctype = scribe.content_type
+            detected_type = 'image' if (scribe.image and (not ctype or ctype == 'text')) else (ctype or 'text')
+            
+            scribes_data.append({
+                'id': scribe.id,
+                'type': 'scribe',
+                'content': scribe.content,
+                'media_type': detected_type,
+                'image_url': scribe.image_url,
+                'user': {
+                    'id': scribe.user.id,
+                    'username': scribe.user.username,
+                    'full_name': scribe.user.full_name,
+                    'profile_picture_url': scribe.user.profile_picture_url,
+                    'is_verified': scribe.user.is_verified,
+                },
+                'likes': scribe.scribe_likes.count(),
+                'dislikes': scribe.scribe_dislikes.count(),
+                'comments': scribe.comments.count(),
+                'reposts': scribe.reposts.count(),
+                'saved_at': saved.saved_at.isoformat(),
+                'created_at': scribe.timestamp.isoformat(),
+            })
+        
+        # Get saved omzos
+        saved_omzos = SavedOmzoItem.objects.filter(user=request.user).select_related('omzo__user')
+        omzos_data = []
+        
+        for saved in saved_omzos:
+            omzo = saved.omzo
+            omzos_data.append({
+                'id': omzo.id,
+                'type': 'omzo',
+                'caption': omzo.caption,
+                'video_url': omzo.video_file.url if omzo.video_file else None,
+                'user': {
+                    'id': omzo.user.id,
+                    'username': omzo.user.username,
+                    'full_name': omzo.user.full_name,
+                    'profile_picture_url': omzo.user.profile_picture_url,
+                    'is_verified': omzo.user.is_verified,
+                },
+                'likes': omzo.likes.count(),
+                'dislikes': omzo.dislikes.count(),
+                'views': omzo.views_count,
+                'comments': omzo.comments.count(),
+                'shares': 0, # Omzo model doesn't seem to have shares?
+                'saved_at': saved.saved_at.isoformat(),
+                'created_at': omzo.created_at.isoformat(),
+            })
+        
+        # Combine and sort by saved_at
+        all_saved = scribes_data + omzos_data
+        all_saved.sort(key=lambda x: x['saved_at'], reverse=True)
+        
+        return JsonResponse({
+            'success': True,
+            'saved_items': all_saved,
+            'count': len(all_saved)
+        })
+
+    except Exception as e:
+        logger.error(f"Error in get_saved_items: {str(e)}")
+        return JsonResponse({'success': False, 'error': f'Failed to fetch saved items: {str(e)}'})
+
+

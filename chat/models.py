@@ -1383,3 +1383,55 @@ class Notification(models.Model):
     def mark_read(self):
         self.is_read = True
         self.save(update_fields=['is_read'])
+
+
+class SavedScribeItem(models.Model):
+    """Model for saved scribes (posts)"""
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.CASCADE, 
+        related_name='saved_scribe_items'
+    )
+    scribe = models.ForeignKey(
+        'Scribe', 
+        on_delete=models.CASCADE, 
+        related_name='saved_by_users'
+    )
+    saved_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'scribe')
+        ordering = ['-saved_at']
+        indexes = [
+            models.Index(fields=['user', '-saved_at']),
+        ]
+
+    def __str__(self):
+        return f"{self.user.username} saved scribe {self.scribe.id}"
+
+
+class SavedOmzoItem(models.Model):
+    """Model for saved omzos (videos)"""
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.CASCADE, 
+        related_name='saved_omzo_items'
+    )
+    omzo = models.ForeignKey(
+        'Omzo', 
+        on_delete=models.CASCADE, 
+        related_name='saved_by_users'
+    )
+    saved_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'omzo')
+        ordering = ['-saved_at']
+        indexes = [
+            models.Index(fields=['user', '-saved_at']),
+        ]
+
+    def __str__(self):
+        return f"{self.user.username} saved omzo {self.omzo.id}"
+
+

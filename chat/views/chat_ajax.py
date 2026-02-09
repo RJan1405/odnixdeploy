@@ -10,8 +10,11 @@ def unread_counts(request):
     chats = Chat.objects.filter(participants=user)
     data = {}
     for chat in chats:
-        unread = chat.messages.filter(
-            is_read=False).exclude(sender=user).count()
+        unread = chat.messages.exclude(
+            sender=user
+        ).exclude(
+            read_receipts__user=user
+        ).count()
         data[chat.id] = unread
     return JsonResponse({'counts': data})
 

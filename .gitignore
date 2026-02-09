@@ -3,6 +3,8 @@ media/
 !media/.gitkeep
 
 # Python
+zdocs/
+node_modules
 __pycache__/
 *.py[cod]
 *$py.class

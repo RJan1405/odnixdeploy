@@ -4,6 +4,7 @@ from django.core.exceptions import ValidationError
 from .models import CustomUser, Scribe
 from chat.security import validate_media_file
 import os
+from django.conf import settings
 from django.core.files.uploadedfile import UploadedFile
 
 
@@ -78,9 +79,11 @@ class CustomUserCreationForm(forms.ModelForm):
         profile_picture = self.cleaned_data.get('profile_picture')
         if profile_picture:
             # Check file size (max 5MB)
-            if profile_picture.size > 5 * 1024 * 1024:
+            # Check file size (max defined in settings, default 50MB)
+            max_size = getattr(settings, 'MAX_FILE_SIZE', 50 * 1024 * 1024)
+            if profile_picture.size > max_size:
                 raise ValidationError(
-                    "Profile picture file too large. Maximum size is 5MB.")
+                    f"Profile picture file too large. Maximum size is {max_size // (1024 * 1024)}MB.")
 
             # Security: Validate Magic Bytes
             if isinstance(profile_picture, UploadedFile):
@@ -158,9 +161,11 @@ class ScribeForm(forms.ModelForm):
         image = self.cleaned_data.get('image')
         if image:
             # Check file size (max 5MB)
-            if image.size > 5 * 1024 * 1024:
+            # Check file size (max defined in settings, default 50MB)
+            max_size = getattr(settings, 'MAX_FILE_SIZE', 50 * 1024 * 1024)
+            if image.size > max_size:
                 raise ValidationError(
-                    "Image file too large. Maximum size is 5MB.")
+                    f"Image file too large. Maximum size is {max_size // (1024 * 1024)}MB.")
 
             # Security: Validate Magic Bytes
             if isinstance(image, UploadedFile):
@@ -239,9 +244,11 @@ class ProfileUpdateForm(forms.ModelForm):
         if profile_picture:
             # Check file size (max 5MB)
             try:
-                if profile_picture.size > 5 * 1024 * 1024:
+                # Check file size (max defined in settings, default 50MB)
+                max_size = getattr(settings, 'MAX_FILE_SIZE', 50 * 1024 * 1024)
+                if profile_picture.size > max_size:
                     raise ValidationError(
-                        "Profile picture file too large. Maximum size is 5MB.")
+                        f"Profile picture file too large. Maximum size is {max_size // (1024 * 1024)}MB.")
 
                 # Security: Validate Magic Bytes
                 if isinstance(profile_picture, UploadedFile):

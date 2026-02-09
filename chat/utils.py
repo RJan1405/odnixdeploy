@@ -10,9 +10,12 @@ def notify_sidebar_for_chat(chat, sender, last_message_text):
 
     for user in recipients:
         unread_count = Message.objects.filter(
-            chat=chat,
-            is_read=False
-        ).exclude(sender=user).count()
+            chat=chat
+        ).exclude(
+            sender=user
+        ).exclude(
+            read_receipts__user=user
+        ).count()
 
         async_to_sync(channel_layer.group_send)(
             f"sidebar_{user.id}",
@@ -41,6 +44,7 @@ def broadcast_message_to_chat(chat, message, exclude_sender=True):
         "sender_initials": message.sender.initials if hasattr(message.sender, 'initials') else message.sender.username[0].upper(),
         "timestamp": message.timestamp.strftime("%H:%M"),
         "timestamp_iso": message.timestamp.isoformat(),
+        "is_read": False,
         "one_time": message.one_time,
         "consumed": bool(message.consumed_at) if hasattr(message, 'consumed_at') else False,
         "sender_id": message.sender_id,

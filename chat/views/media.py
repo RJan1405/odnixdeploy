@@ -14,7 +14,7 @@ from django.core.files.base import ContentFile
 
 def handle_media_upload(media_file):
     if not media_file:
-        return None, None, None, None
+        return None, None, None, None, "No file provided"
     
     try:
         # SECURITY CHECK
@@ -78,11 +78,11 @@ def handle_media_upload(media_file):
         else:
             media_type = 'document'
         
-        return file_url, media_type, media_file.name, media_file.size
+        return file_url, media_type, media_file.name, media_file.size, None
         
     except Exception as e:
         logger.error(f"Error uploading media: {e}")
-        return None, None, None, None
+        return None, None, None, None, str(e)
 
 # FIXED: Media serving function with path traversal protection
 def serve_media_file(request, file_path):

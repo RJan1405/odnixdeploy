@@ -240,7 +240,10 @@ def view_story(request, story_id):
 def get_user_stories(request, username):
     """Get all active stories for a specific user"""
     try:
-        user = get_object_or_404(CustomUser, username=username)
+        if username == 'me':
+            user = request.user
+        else:
+            user = get_object_or_404(CustomUser, username=username)
         
         # Get all active stories for this user
         stories = Story.objects.filter(
@@ -286,7 +289,7 @@ def get_user_stories(request, username):
                     'full_name': story.user.full_name,
                     'profile_picture_url': story.user.profile_picture_url,
                 },
-                'created_at': story.created_at.strftime('%H:%M'),
+                'created_at': story.created_at.isoformat(),
                 'view_count': story.view_count,
                 'like_count': story.like_count,
                 'reply_count': story.reply_count,
@@ -303,6 +306,106 @@ def get_user_stories(request, username):
         
     except Exception as e:
         logger.error(f"Error getting user stories: {e}")
+        return JsonResponse({'success': False, 'error': str(e)})
+
+@login_required
+def get_following_stories(request):
+    """Get stories from all users that the current user follows (Instagram-style feed)"""
+    try:
+        from chat.models import Follow
+        
+        # Get all users the current user is following
+        following_users = Follow.objects.filter(
+            follower=request.user
+        ).values_list('following', flat=True)
+        
+        # Get all active stories from followed users AND the current user's own stories
+        user_ids = list(following_users)
+        user_ids.append(request.user.id)  # Include current user's own stories
+        
+        stories = Story.objects.filter(
+            user_id__in=user_ids,
+            is_active=True,
+            expires_at__gt=timezone.now()
+        ).select_related('user').order_by('user', '-created_at')
+        
+        # Group stories by user
+        users_with_stories = {}
+        for story in stories:
+            user_id = story.user.id
+            if user_id not in users_with_stories:
+                # Check if user has any unviewed stories
+                has_unviewed = not story.story_views.filter(viewer=request.user).exists()
+                
+                users_with_stories[user_id] = {
+                    'user': {
+                        'id': story.user.id,
+                        'username': story.user.username,
+                        'full_name': story.user.full_name,
+                        'profile_picture_url': story.user.profile_picture_url,
+                        'is_verified': story.user.is_verified,
+                    },
+                    'stories': [],
+                    'has_unviewed': has_unviewed,
+                    'story_count': 0
+                }
+            
+            # Build shared_from info if this is a repost
+            shared_from = None
+            if story.shared_from_story:
+                original = story.shared_from_story
+                shared_from = {
+                    'id': original.id,
+                    'user': {
+                        'id': original.user.id,
+                        'username': original.user.username,
+                        'full_name': original.user.full_name,
+                        'profile_picture_url': original.user.profile_picture_url,
+                    },
+                    'is_expired': original.is_expired,
+                }
+            
+            users_with_stories[user_id]['stories'].append({
+                'id': story.id,
+                'content': story.content,
+                'media_url': story.media_url,
+                'story_type': story.story_type,
+                'background_color': story.background_color,
+                'text_color': story.text_color,
+                'text_position': story.text_position,
+                'text_size': story.text_size,
+                'image_transform': story.image_transform,
+                'created_at': story.created_at.isoformat(),
+                'view_count': story.view_count,
+                'like_count': story.like_count,
+                'reply_count': story.reply_count,
+                'is_liked': story.story_likes.filter(user=request.user).exists(),
+                'is_viewed': story.story_views.filter(viewer=request.user).exists(),
+                'shared_from': shared_from,
+                'is_repost': story.shared_from_story is not None,
+            })
+            users_with_stories[user_id]['story_count'] += 1
+        
+        # Convert to list and sort (own stories first, then by has_unviewed)
+        stories_feed = []
+        for user_id, data in users_with_stories.items():
+            is_own = user_id == request.user.id
+            stories_feed.append({
+                **data,
+                'is_own': is_own
+            })
+        
+        # Sort: own stories first, then unviewed, then viewed
+        stories_feed.sort(key=lambda x: (not x['is_own'], not x['has_unviewed']))
+        
+        return JsonResponse({
+            'success': True,
+            'users_with_stories': stories_feed,
+            'total_users': len(stories_feed)
+        })
+        
+    except Exception as e:
+        logger.error(f"Error getting following stories: {e}")
         return JsonResponse({'success': False, 'error': str(e)})
 
 @login_required
