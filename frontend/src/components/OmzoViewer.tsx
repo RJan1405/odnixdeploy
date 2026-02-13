@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Heart, ThumbsDown, Share2, Flag, Music } from 'lucide-react';
 import { Avatar } from './Avatar';
+import { ReportModal } from './ReportModal';
 import type { Omzo } from '@/services/api';
 import { useState, useRef, useEffect } from 'react';
 import { cn } from '@/lib/utils';
@@ -15,6 +16,7 @@ export function OmzoViewer({ omzos, initialIndex, onClose }: OmzoViewerProps) {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [liked, setLiked] = useState<Record<string, boolean>>({});
   const [disliked, setDisliked] = useState<Record<string, boolean>>({});
+  const [reportModalOpen, setReportModalOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
 
@@ -25,7 +27,7 @@ export function OmzoViewer({ omzos, initialIndex, onClose }: OmzoViewerProps) {
     videoRefs.current.forEach((video, index) => {
       if (video) {
         if (index === currentIndex) {
-          video.play().catch(() => {});
+          video.play().catch(() => { });
         } else {
           video.pause();
         }
@@ -150,7 +152,10 @@ export function OmzoViewer({ omzos, initialIndex, onClose }: OmzoViewerProps) {
                   <span className="text-white text-xs">{omzo.shares}</span>
                 </button>
 
-                <button className="flex flex-col items-center gap-1">
+                <button
+                  onClick={() => setReportModalOpen(true)}
+                  className="flex flex-col items-center gap-1"
+                >
                   <div className="p-3 rounded-full bg-black/50">
                     <Flag className="w-7 h-7 text-white" />
                   </div>
@@ -160,6 +165,17 @@ export function OmzoViewer({ omzos, initialIndex, onClose }: OmzoViewerProps) {
             </div>
           ))}
         </div>
+
+        {/* Report Modal */}
+        <ReportModal
+          isOpen={reportModalOpen}
+          onClose={() => setReportModalOpen(false)}
+          contentType="omzo"
+          contentId={currentOmzo?.id || ''}
+          onReportSuccess={() => {
+            console.log('Omzo reported successfully from viewer');
+          }}
+        />
       </motion.div>
     </AnimatePresence>
   );

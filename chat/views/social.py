@@ -1056,6 +1056,23 @@ def add_comment(request):
             parent=parent_comment
         )
 
+        # Send Notification if not self-comment
+        if request.user.id != scribe.user.id:
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)(
+                f'user_notify_{scribe.user.id}',
+                {
+                    'type': 'notify.comment',
+                    'scribe_id': scribe.id,
+                    'comment_id': comment.id,
+                    'user_id': request.user.id,
+                    'user_name': request.user.full_name or request.user.username,
+                    'user_avatar': request.user.profile_picture.url if request.user.profile_picture else None,
+                    'comment_content': content[:100],
+                    'timestamp': timezone.now().isoformat()
+                }
+            )
+
         return JsonResponse({
             'success': True,
             'comment': {
@@ -1484,6 +1501,19 @@ def manage_follow_request(request):
             follow_request.status = 'accepted'
             follow_request.save()
             message = 'Follow request accepted'
+
+            # Send Notification to the requester
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)(
+                f'user_notify_{sender_user.id}',
+                {
+                    'type': 'notify.follow',
+                    'follower_id': request.user.id,
+                    'follower_name': request.user.full_name,
+                    'follower_username': request.user.username,
+                    'follower_avatar': request.user.profile_picture.url if request.user.profile_picture else None,
+                }
+            )
         else:  # decline
             follow_request.status = 'declined'
             follow_request.save()
@@ -2037,7 +2067,7 @@ def get_all_activity(request):
 
         for like in post_likes:
             activity_items.append({
-                'type': 'post_like',
+                'type': 'like',
                 'timestamp': like.timestamp,
                 'user': {
                     'id': like.user.id,
@@ -2059,7 +2089,7 @@ def get_all_activity(request):
 
         for comment in post_comments:
             activity_items.append({
-                'type': 'post_comment',
+                'type': 'comment',
                 'timestamp': comment.timestamp,
                 'user': {
                     'id': comment.user.id,
@@ -2306,7 +2336,7 @@ def get_all_activity(request):
 
         return JsonResponse({
             'success': True,
-            'activity': activity_items
+            'activity_items': activity_items
         })
 
     except Exception as e:
@@ -2669,8 +2699,6 @@ def track_omzo_view(request):
 @require_POST
 def upload_omzo(request):
     """API to upload a new omzo with compression"""
-    import os
-    import tempfile
     # CHECK DAILY LIMIT (5 Omzo per day)
     today_start = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
     today_count = Omzo.objects.filter(
@@ -2683,13 +2711,6 @@ def upload_omzo(request):
             'success': False,
             'error': 'Daily omzo limit reached. You can upload up to 5 Omzo per day. Try again tomorrow!'
         })
-
-    # Try to import MoviePy lazily so missing dependency won't 500
-    moviepy_available = True
-    try:
-        from moviepy.editor import VideoFileClip
-    except Exception:
-        moviepy_available = False
 
     try:
         video_file = request.FILES.get('video')
@@ -2706,179 +2727,25 @@ def upload_omzo(request):
         except ValidationError as e:
             return JsonResponse({'success': False, 'error': str(e)})
 
-        # Create temp file for original video
-        # Create temp file for original video
-        # On Windows, we must close the file before MoviePy can open it
-        temp_in = tempfile.NamedTemporaryFile(
-            suffix=os.path.splitext(video_file.name)[1], delete=False)
-        try:
-            for chunk in video_file.chunks():
-                temp_in.write(chunk)
-            temp_in_path = temp_in.name
-        finally:
-            temp_in.close()
-
-        # If MoviePy isn't available, save original without compression
-        if not moviepy_available:
-            omzo = Omzo.objects.create(
-                user=request.user,
-                video_file=video_file,
-                caption=caption
-            )
-            if os.path.exists(temp_in_path):
-                os.remove(temp_in_path)
-            return JsonResponse({'success': True, 'message': 'Omzo uploaded (no compression available)'})
-
-        try:
-            # Load video
-            clip = VideoFileClip(temp_in_path)
-
-            # Track original size for smart fallback
-            original_size = os.path.getsize(temp_in_path)
-
-            # --- COMPRESSION LOGIC ---
-            # 1) Resize if too wide (keep aspect ratio)
-            try:
-                max_width = max(
-                    int(getattr(settings, 'OMZO_MAX_WIDTH', 720)), 1)
-                if getattr(clip, 'w', 0) and clip.w > max_width:
-                    # MoviePy API variants: prefer resize; keep existing method name if available
-                    if hasattr(clip, 'resize'):
-                        clip = clip.resize(width=max_width)
-                    else:
-                        clip = clip.resized(width=max_width)
-            except Exception:
-                pass
-
-            # 2) Limit duration
-            # 2) Limit duration
-            try:
-                max_duration = max(
-                    int(getattr(settings, 'OMZO_MAX_DURATION', 120)), 1)
-                if getattr(clip, 'duration', 0) and clip.duration > max_duration:
-                    try:
-                        clip.close()
-                    except:
-                        pass
-                    return JsonResponse({
-                        'success': False,
-                        'error': f'Omzo is too long. Maximum allowed duration is {max_duration // 60} minutes.'
-                    })
-            except Exception:
-                pass
-
-            # 3) Choose sensible FPS: cap if higher, otherwise keep
-            try:
-                current_fps = int(getattr(clip, 'fps', 30) or 30)
-            except Exception:
-                current_fps = 30
-            fps_cap = max(int(getattr(settings, 'OMZO_MAX_FPS', 30)), 1)
-            target_fps = min(current_fps, fps_cap)
-
-            # Create temp file for compressed output (.mp4 enforced)
-            temp_out_path = os.path.join(tempfile.gettempdir(
-            ), f"compressed_{os.path.basename(temp_in_path)}")
-            temp_out_path = os.path.splitext(temp_out_path)[0] + ".mp4"
-
-            # 4) Calculate target bitrate for 8MB limit
-            # Target Size: 8MB = 8 * 1024 * 1024 bytes = 8388608 bytes = 67108864 bits
-            # Audio Bitrate: 96k = 96000 bps
-            # Duration: clip.duration (seconds)
-
-            target_size_bytes = 8 * 1024 * 1024
-            duration = clip.duration if clip.duration else 1
-            audio_bitrate_kbps = 96
-
-            # Calculate video bitrate
-            total_bits = target_size_bytes * 8
-            audio_bits = audio_bitrate_kbps * 1000 * duration
-            video_bits_available = total_bits - audio_bits
-
-            # Safety margin (5%) for container overhead
-            video_bits_available = video_bits_available * 0.95
-
-            target_video_bitrate_bps = video_bits_available / duration
-
-            # Convert to string with 'k' suffix for moviepy/ffmpeg
-            # Ensure at least 100k bitrate so it doesn't break completely
-            video_bitrate = f"{max(int(target_video_bitrate_bps / 1000), 100)}k"
-
-            preset = str(getattr(settings, 'OMZO_PRESET', 'veryfast'))
-            audio_bitrate = f"{audio_bitrate_kbps}k"
-
-            clip.write_videofile(
-                temp_out_path,
-                codec='libx264',
-                audio_codec='aac',
-                audio_bitrate=audio_bitrate,
-                bitrate=video_bitrate,
-                temp_audiofile='temp-audio.m4a',
-                remove_temp=True,
-                fps=target_fps,
-                logger=None,
-                ffmpeg_params=[
-                    '-preset', preset,
-                    '-pix_fmt', 'yuv420p',
-                    '-movflags', '+faststart'
-                ]
-            )
-
-            # Close to flush handles on Windows before re-opening
-            try:
-                clip.close()
-            except Exception:
-                pass
-
-            # Decide which file to save: use compressed only if smaller (smart fallback)
-            use_path = temp_out_path
-            try:
-                compressed_size = os.path.getsize(temp_out_path)
-                smart_fallback = bool(
-                    getattr(settings, 'OMZO_SMART_FALLBACK', True))
-                # If compression didn't help and smart fallback enabled, keep original
-                if smart_fallback and compressed_size >= max(original_size - 1024, 0):
-                    use_path = temp_in_path
-            except Exception:
-                use_path = temp_out_path if os.path.exists(
-                    temp_out_path) else temp_in_path
-
-            # Save to model
-            force_mp4 = bool(getattr(settings, 'OMZO_FORCE_MP4', True))
-            save_name = f"omzo_{request.user.id}_{os.path.splitext(video_file.name)[0]}.mp4"
-            if use_path == temp_in_path:
-                # Preserve original extension when keeping the original
-                orig_ext = os.path.splitext(video_file.name)[1] or '.mp4'
-                save_name = f"omzo_{request.user.id}_{os.path.splitext(video_file.name)[0]}{(orig_ext if not force_mp4 else '.mp4')}"
-
-            with open(use_path, 'rb') as f:
-                django_file = File(f, name=save_name)
-                omzo = Omzo.objects.create(
-                    user=request.user,
-                    video_file=django_file,
-                    caption=caption
-                )
-
-            # Cleanup temp files
-            if os.path.exists(temp_out_path):
-                try:
-                    os.remove(temp_out_path)
-                except Exception:
-                    pass
-
-        except Exception as e:
-            logger.error(f"Compression failed, falling back to original: {e}")
-            # Fallback: Save original if anything goes wrong
-            omzo = Omzo.objects.create(
-                user=request.user,
-                video_file=video_file,
-                caption=caption
-            )
-        finally:
-            # Always cleanup input temp file
-            if os.path.exists(temp_in_path):
-                os.remove(temp_in_path)
+        # Use new FFmpeg compression utility
+        from chat.utils import compress_video
+        
+        # Compress the video (returns original if fails or is small enough)
+        # We target CRF 32 for good balance of size/quality
+        compressed_video = compress_video(video_file)
+        
+        # Create Omzo
+        omzo = Omzo.objects.create(
+            user=request.user,
+            video_file=compressed_video,
+            caption=caption
+        )
 
         return JsonResponse({'success': True, 'message': 'Omzo uploaded successfully'})
+
+    except Exception as e:
+        logger.error(f"Error uploading omzo: {str(e)}")
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
     except Exception as e:
         logger.error(f"Error uploading omzo: {str(e)}")
         return JsonResponse({'success': False, 'error': f'Failed to upload omzo: {str(e)}'})
@@ -3014,6 +2881,23 @@ def add_omzo_comment(request):
         omzo = get_object_or_404(Omzo, id=omzo_id)
         rc = OmzoComment.objects.create(
             omzo=omzo, user=request.user, content=content)
+
+        # Send Notification if not self-comment
+        if request.user.id != omzo.user.id:
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)(
+                f'user_notify_{omzo.user.id}',
+                {
+                    'type': 'notify.omzo_comment',
+                    'omzo_id': omzo.id,
+                    'comment_id': rc.id,
+                    'user_id': request.user.id,
+                    'user_name': request.user.full_name or request.user.username,
+                    'user_avatar': request.user.profile_picture.url if request.user.profile_picture else None,
+                    'comment_content': content[:100],
+                    'timestamp': timezone.now().isoformat()
+                }
+            )
 
         return JsonResponse({
             'success': True,

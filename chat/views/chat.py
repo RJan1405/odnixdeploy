@@ -590,7 +590,9 @@ def get_chat_messages(request, chat_id):
     messages_query = chat.messages.select_related(
         'sender', 
         'reply_to', 
-        'reply_to__sender'
+        'reply_to__sender',
+        'story_reply',
+        'story_reply__user'
     ).order_by('timestamp')
 
     # Filter by message ID (preferred method to avoid duplicates)
@@ -637,7 +639,14 @@ def get_chat_messages(request, chat_id):
                 'id': msg.reply_to.id if msg.reply_to else None,
                 'content': msg.reply_to.content if msg.reply_to else None,
                 'sender_name': msg.reply_to.sender.full_name if msg.reply_to else None,
-            } if msg.reply_to else None
+            } if msg.reply_to else None,
+            'story_reply': {
+                'story_id': msg.story_reply.id,
+                'story_type': msg.story_reply.story_type,
+                'story_content': msg.story_reply.content if msg.story_reply.story_type == 'text' else None,
+                'story_media_url': msg.story_reply.media_url if msg.story_reply.story_type in ['image', 'video'] else None,
+                'story_owner': msg.story_reply.user.full_name,
+            } if msg.story_reply else None
         }
 
         messages_data.append(message_data)
@@ -779,17 +788,48 @@ def get_chats_api(request):
             if chat.chat_type == 'private':
                 other_user = chat.participants.exclude(
                     id=request.user.id).first()
+                
+                # Calculate actual online status based on last_seen
+                # User is only online if is_online=True AND last_seen is within 2 minutes
+                if other_user:
+                    is_actually_online = False
+                    if other_user.is_online and other_user.last_seen:
+                        time_since_last_seen = timezone.now() - other_user.last_seen
+                        # Consider online if last seen within 2 minutes (120 seconds)
+                        is_actually_online = time_since_last_seen.total_seconds() < 120
+                    
+                    # Update the user's is_online status if it's stale
+                    if other_user.is_online and not is_actually_online:
+                        other_user.is_online = False
+                        other_user.save(update_fields=['is_online'])
 
             chat_info = {
                 'id': chat.id,
                 'name': chat.name if chat.chat_type == 'group' else ((other_user.full_name or other_user.username) if other_user else 'Unknown'),
                 'username': other_user.username if other_user else None,
                 'is_group': chat.chat_type == 'group',
-                'last_message': last_msg_content,
+                'last_message': {
+                    'content': last_msg_content
+                },
+                'last_message_time': last_message.timestamp.isoformat() if last_message else None,
                 'unread_count': unread_count,
                 'avatar': other_user.profile_picture_url if other_user else None,
-                'initials': other_user.initials if other_user else (chat.name[:1].upper() if chat.name else 'G')
+                'initials': other_user.initials if other_user else (chat.name[:1].upper() if chat.name else 'G'),
+                # Include full other_user object for frontend
+                'other_user': {
+                    'id': other_user.id,
+                    'username': other_user.username,
+                    'full_name': other_user.full_name,
+                    'profile_picture': other_user.profile_picture_url,
+                    'is_online': is_actually_online if other_user else False,
+                    'is_verified': other_user.is_verified,
+                } if other_user else None,
             }
+            
+            # Debug logging
+            if other_user:
+                logger.info(f"Chat {chat.id}: other_user.username={other_user.username}, other_user.full_name='{other_user.full_name}', other_user.name='{other_user.name}', other_user.lastname='{other_user.lastname}'")
+            
             chats_data.append(chat_info)
 
         return JsonResponse({'success': True, 'chats': chats_data})

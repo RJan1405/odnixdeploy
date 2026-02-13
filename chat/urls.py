@@ -126,6 +126,13 @@ urlpatterns = [
          views.update_typing_status, name='update_typing'),
     path('api/chat/<int:chat_id>/typing-status/',
          views.get_typing_status, name='get_typing_status'),
+    
+    # Message Context Menu
+    path('api/message/<int:message_id>/context-menu/',
+         views.get_message_context_menu, name='get_message_context_menu'),
+    path('api/message/context-action/',
+         views.message_context_action, name='message_context_action'),
+    
     # Follow system
     path('api/toggle-follow/', views.toggle_follow, name='toggle_follow'),
     path('api/follow-states/', views.follow_states, name='follow_states'),

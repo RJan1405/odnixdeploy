@@ -1,7 +1,13 @@
+import os
+import subprocess
+import tempfile
+import logging
+from django.core.files.base import ContentFile
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 from .models import Message
 
+logger = logging.getLogger(__name__)
 
 def notify_sidebar_for_chat(chat, sender, last_message_text):
     channel_layer = get_channel_layer()
@@ -35,13 +41,22 @@ def broadcast_message_to_chat(chat, message, exclude_sender=True):
     """
     channel_layer = get_channel_layer()
     
+    # Safely get sender details
+    sender_avatar = None
+    if hasattr(message.sender, 'profile_picture_url'):
+        sender_avatar = message.sender.profile_picture_url
+    elif hasattr(message.sender, 'avatar'):
+        sender_avatar = message.sender.avatar.url if message.sender.avatar else None
+
+    sender_initials = message.sender.initials if hasattr(message.sender, 'initials') else message.sender.username[0].upper()
+
     message_data = {
         "id": message.id,
         "content": message.content,
         "sender": message.sender.username,
         "sender_name": message.sender.full_name,
-        "sender_avatar": message.sender.profile_picture_url if hasattr(message.sender, 'profile_picture_url') else None,
-        "sender_initials": message.sender.initials if hasattr(message.sender, 'initials') else message.sender.username[0].upper(),
+        "sender_avatar": sender_avatar,
+        "sender_initials": sender_initials,
         "timestamp": message.timestamp.strftime("%H:%M"),
         "timestamp_iso": message.timestamp.isoformat(),
         "is_read": False,
@@ -89,8 +104,6 @@ def broadcast_message_consumed(chat, message, consumed_by_user):
     )
 
 
-# chat/utils.py
-
 def clear_sidebar_unread(chat, user):
     channel_layer = get_channel_layer()
 
@@ -104,3 +117,131 @@ def clear_sidebar_unread(chat, user):
         }
     )
 
+def compress_video(video_file, max_size_mb=8, crf=32):
+    """
+    Compress video using ffmpeg.
+    
+    Args:
+        video_file: InMemoryUploadedFile or TemporaryUploadedFile
+        max_size_mb: Target size mostly handled by CRF, but included for API consistency
+        crf: Constant Rate Factor (18-28 is good range, 32 = smaller size, decent quality)
+    
+    Returns:
+        ContentFile (compressed) or original video_file if compression fails
+    """
+    if not video_file:
+        return None
+
+    # Skip very small files (< 512KB)
+    if video_file.size < 512 * 1024:
+        logger.info(f"Skipping compression for small file: {video_file.size} bytes")
+        return video_file
+
+    try:
+        # Create temp input file
+        temp_in = tempfile.NamedTemporaryFile(suffix=os.path.splitext(video_file.name)[1], delete=False)
+        try:
+            for chunk in video_file.chunks():
+                temp_in.write(chunk)
+            temp_in.flush()
+            temp_in.close()  # Close file handle so ffmpeg can read it (impt on Windows)
+            
+            temp_in_path = temp_in.name
+            
+            # Create temp output file path
+            temp_out_path = os.path.join(tempfile.gettempdir(), f"compressed_{os.path.basename(temp_in_path)}")
+            # Enforce .mp4 for compatibility
+            temp_out_path = os.path.splitext(temp_out_path)[0] + ".mp4"
+            
+            # Remove previous if exists
+            if os.path.exists(temp_out_path):
+                os.remove(temp_out_path)
+
+            # Get FFmpeg executable path from imageio-ffmpeg
+            import imageio_ffmpeg
+            ffmpeg_exe = imageio_ffmpeg.get_ffmpeg_exe()
+            
+            # Build ffmpeg command
+            # -i input
+            # -vcodec libx264 (H.264)
+            # -crf 32 (Quality/Size balance)
+            # -preset fast (Encoding speed)
+            # -vf scale=-2:720 (Resize to 720p height, width auto-scaled)
+            # -acodec aac (Audio)
+            # -b:a 128k (Audio bitrate)
+            # -movflags +faststart (Web optimization)
+            command = [
+                ffmpeg_exe,
+                '-y', # Overwrite output
+                '-i', temp_in_path,
+                '-vcodec', 'libx264',
+                '-crf', str(crf),
+                '-preset', 'fast',
+                '-vf', 'scale=-2:720',
+                '-acodec', 'aac',
+                '-b:a', '128k',
+                '-movflags', '+faststart',
+                temp_out_path
+            ]
+            
+            # Run ffmpeg
+            # Use shell=True for Windows might be needed if ffmpeg is in PATH but not directly executable
+            # But normally subprocess finds it if in PATH
+            # subprocess.run check=True ensures we catch errors
+            # Capture output to avoid spamming console, but log error
+            
+            result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            
+            if result.returncode != 0:
+                logger.error(f"FFmpeg compression failed: {result.stderr.decode('utf-8')}")
+                # Return original on failure
+                if os.path.exists(temp_in_path):
+                    os.remove(temp_in_path)
+                return video_file
+            
+            # Check if output exists and is smaller (or reasonable)
+            if os.path.exists(temp_out_path):
+                new_size = os.path.getsize(temp_out_path)
+                logger.info(f"Video compressed: {video_file.size} -> {new_size}")
+                
+                # If compression actually made it bigger (rare with CRF 28), keep original
+                # Unless original was huge uncompressed avi or something
+                if new_size > video_file.size and video_file.size > 50 * 1024 * 1024:
+                     # Only accept bigger file if original was massive (likely raw) and we want mp4 compatibility
+                     pass
+                elif new_size > video_file.size:
+                     logger.info("Compressed file larger than original, keeping original.")
+                     os.remove(temp_out_path)
+                     os.remove(temp_in_path)
+                     return video_file
+
+                # Read compressed data
+                with open(temp_out_path, 'rb') as f:
+                    compressed_data = f.read()
+                
+                # Cleanup
+                os.remove(temp_out_path)
+                os.remove(temp_in_path)
+                
+                # Create ContentFile
+                new_name = os.path.splitext(video_file.name)[0] + ".mp4"
+                return ContentFile(compressed_data, name=new_name)
+                
+            else:
+                logger.error("FFmpeg did not produce output file")
+                if os.path.exists(temp_in_path):
+                    os.remove(temp_in_path)
+                return video_file
+
+        except Exception as e:
+            logger.error(f"Error during video compression: {e}")
+            if os.path.exists(temp_in.name):
+                try:
+                    os.remove(temp_in.name)
+                except:
+                    pass
+            return video_file
+            
+    except Exception as e:
+        logger.error(f"General error in video compression wrapper: {e}")
+        return video_file

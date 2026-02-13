@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { Home, Compass, Play, Plus, FileText, Video, Flag, MoreVertical } from 'lucide-react';
 import { OmzoPlayer } from '@/components/OmzoPlayer';
 import { ShareModal } from '@/components/ShareModal';
+import { ReportModal } from '@/components/ReportModal';
 import { api, Omzo } from '@/services/api';
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/stores/appStore';
@@ -21,6 +22,8 @@ export default function OmzoPage() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [showReportMenu, setShowReportMenu] = useState(false);
+  const [reportModalOpen, setReportModalOpen] = useState(false);
+  const [reportType, setReportType] = useState<'general' | 'copyright'>('general');
   const [showUploadChoice, setShowUploadChoice] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const { openUploadModal } = useAppStore();
@@ -116,7 +119,8 @@ export default function OmzoPage() {
                 <button
                   onClick={() => {
                     setShowReportMenu(false);
-                    // Handle copyright report
+                    setReportType('copyright');
+                    setReportModalOpen(true);
                   }}
                   className="flex items-center gap-3 w-full px-4 py-3 hover:bg-secondary rounded-lg transition-colors"
                 >
@@ -126,7 +130,8 @@ export default function OmzoPage() {
                 <button
                   onClick={() => {
                     setShowReportMenu(false);
-                    // Handle report
+                    setReportType('general');
+                    setReportModalOpen(true);
                   }}
                   className="flex items-center gap-3 w-full px-4 py-3 hover:bg-secondary rounded-lg transition-colors"
                 >
@@ -266,6 +271,19 @@ export default function OmzoPage() {
         onClose={() => setShareModalOpen(false)}
         type="omzo"
       />
+
+      {/* Report Modal */}
+      {omzos.length > 0 && (
+        <ReportModal
+          isOpen={reportModalOpen}
+          onClose={() => setReportModalOpen(false)}
+          contentType="omzo"
+          contentId={omzos[activeIndex]?.id || ''}
+          onReportSuccess={() => {
+            console.log('Omzo reported successfully');
+          }}
+        />
+      )}
     </div>
   );
 }

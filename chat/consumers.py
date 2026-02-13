@@ -986,6 +986,36 @@ class NotifyConsumer(AsyncWebsocketConsumer):
             'timestamp': event.get('timestamp')
         }))
 
+    async def notify_comment(self, event):
+        """Handle comment notification"""
+        await self.send(text_data=json.dumps({
+            'type': 'comment',
+            'scribe_id': event.get('scribe_id'),
+            'comment_id': event.get('comment_id'),
+            'user_id': event.get('user_id'),
+            'user_name': event.get('user_name'),
+            'user_avatar': event.get('user_avatar'),
+            'comment_content': event.get('comment_content'),
+            'content': 'commented on your scribe',
+            'timestamp': event.get('timestamp')
+        }))
+
+    async def notify_omzo_comment(self, event):
+        """Handle Omzo comment notification"""
+        await self.send(text_data=json.dumps({
+            'type': 'omzo_comment',
+            'omzo_id': event.get('omzo_id'),
+            'comment_id': event.get('comment_id'),
+            'user_id': event.get('user_id'),
+            'user_name': event.get('user_name'),
+            'user_avatar': event.get('user_avatar'),
+            'comment_content': event.get('comment_content'),
+            'content': 'commented on your omzo',
+            'timestamp': event.get('timestamp')
+        }))
+
+
+
 
 class OdnixGatewayConsumer(AsyncWebsocketConsumer):
     """

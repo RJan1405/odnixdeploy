@@ -197,41 +197,29 @@ export default function HomePage() {
         <div className="flex gap-4 overflow-x-auto hide-scrollbar pb-2">
           {/* User's own story card - always show first */}
           {user && (
-            <div className="flex-shrink-0">
-              <div className="flex flex-col items-center gap-2 group">
-                <div className={cn(
-                  "relative rounded-full p-[2px]",
-                  hasStory ? "bg-gradient-to-tr from-yellow-400 to-fuchsia-600" : "bg-transparent"
-                )}>
-                  {/* Avatar - click to view stories */}
-                  <button
-                    onClick={() => hasStory && myUserStories ? openStory(myUserStories) : openUploadModal('story')}
-                    className="bg-background rounded-full p-[2px]"
-                  >
-                    <Avatar
-                      src={user.avatar}
-                      alt={user.displayName}
-                      size="lg"
-                      className="ring-0"
-                    />
-                  </button>
-
-                  {/* Always show + button (Instagram-style) */}
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      openUploadModal('story');
-                    }}
-                    className="absolute bottom-0 right-0 w-6 h-6 bg-primary rounded-full flex items-center justify-center ring-2 ring-background group-hover:scale-110 transition-transform hover:bg-primary/90"
-                  >
-                    <Plus className="w-4 h-4 text-primary-foreground" />
-                  </button>
-                </div>
-                <span className="text-xs text-center max-w-[70px] truncate">
-                  Your Story
-                </span>
-              </div>
-            </div>
+            <motion.div
+              className="flex-shrink-0 flex flex-col items-center gap-1 min-w-[72px] cursor-pointer"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => hasStory && myUserStories ? openStory(myUserStories) : openUploadModal('story')}
+            >
+              <Avatar
+                src={user.avatar}
+                alt={user.displayName}
+                size="lg"
+                hasStory={hasStory}
+                className="ring-0"
+              />
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  openUploadModal('story');
+                }}
+                className="self-end mr-1 w-6 h-6 bg-primary rounded-full flex items-center justify-center hover:bg-primary/90 transition-colors shadow-sm"
+              >
+                <Plus className="w-4 h-4 text-primary-foreground" />
+              </button>
+            </motion.div>
           )}
 
           {/* Other users' stories - grouped by user */}

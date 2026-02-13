@@ -42,6 +42,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const checkAuth = async () => {
         try {
             setIsLoading(true);
+
+            // First, ensure we have a CSRF token
+            try {
+                await apiClient.get('/api/csrf/');
+            } catch (e) {
+                console.error('Failed to fetch CSRF token', e);
+                // Continue anyway, as it might be a session restore where cookie exists
+            }
+
             // Try to get current user profile
             const response = await apiClient.get<any>('/api/profile/');
             if (response.user) {

@@ -23,6 +23,8 @@ export interface Story {
   createdAt: Date;
   viewed: boolean;
   backgroundColor?: string;
+  isLiked?: boolean;
+  likeCount?: number;
 }
 
 // Grouped stories by user (Instagram-style)
@@ -45,6 +47,16 @@ export interface Message {
   mediaUrl?: string;
   mediaFilename?: string;
   isOwn?: boolean;
+  replyTo?: string; // ID of the message being replied to
+  replyToContent?: string; // Content of the message being replied to
+  replyToSender?: string; // Sender name of the message being replied to
+  storyReply?: {
+    story_id: number;
+    story_type: 'text' | 'image' | 'video';
+    story_content?: string;
+    story_media_url?: string;
+    story_owner: string;
+  };
 }
 
 export interface Chat {
@@ -99,7 +111,7 @@ export interface Omzo {
 
 export interface Notification {
   id: string;
-  type: 'like' | 'comment' | 'repost' | 'mention' | 'connection_request' | 'follow' | 'reply' | 'omzo_like' | 'omzo_comment';
+  type: 'like' | 'comment' | 'repost' | 'mention' | 'connection_request' | 'follow' | 'reply' | 'omzo_like' | 'omzo_comment' | 'post_report' | 'omzo_report';
   user: User;
   content: string;
   timestamp: Date;
@@ -320,6 +332,8 @@ export const api = {
             createdAt: new Date(s.created_at || Date.now()),
             viewed: s.is_viewed || false,
             backgroundColor: s.background_color || '#000000',
+            isLiked: s.is_liked || false,
+            likeCount: s.like_count || 0,
           });
         }
       }
@@ -365,6 +379,8 @@ export const api = {
             createdAt: new Date(s.created_at || Date.now()),
             viewed: s.is_viewed || false,
             backgroundColor: s.background_color || '#000000',
+            isLiked: s.is_liked || false,
+            likeCount: s.like_count || 0,
           })),
           hasUnviewed: userGroup.has_unviewed || false,
           storyCount: userGroup.story_count || stories.length,
@@ -377,28 +393,79 @@ export const api = {
     }
   },
 
+  // Story interactions
+  toggleStoryLike: async (storyId: string): Promise<{ success: boolean; is_liked: boolean; like_count: number; error?: string }> => {
+    try {
+      const response = await apiClient.post<any>('/api/story/toggle-like/', {
+        story_id: storyId
+      });
+      return {
+        success: response.success || false,
+        is_liked: response.is_liked || false,
+        like_count: response.like_count || 0,
+        error: response.error
+      };
+    } catch (error) {
+      console.error('Error toggling story like:', error);
+      return { success: false, is_liked: false, like_count: 0, error: String(error) };
+    }
+  },
+
+  replyToStory: async (storyId: string, content: string): Promise<{ success: boolean; error?: string; message_error?: string }> => {
+    try {
+      const response = await apiClient.post<any>('/api/story/add-reply/', {
+        story_id: storyId,
+        content: content
+      });
+      return { success: response.success || false, error: response.error, message_error: response.message_error };
+    } catch (error) {
+      console.error('Error replying to story:', error);
+      return { success: false, error: String(error) };
+    }
+  },
+
+  repostStory: async (storyId: string): Promise<{ success: boolean; error?: string }> => {
+    try {
+      const response = await apiClient.post<any>('/api/story/repost/', {
+        story_id: storyId
+      });
+      return { success: response.success || false, error: response.error };
+    } catch (error) {
+      console.error('Error reposting story:', error);
+      return { success: false, error: String(error) };
+    }
+  },
+
   // Chats
   getChats: async (): Promise<Chat[]> => {
     try {
       const response = await apiClient.get<any>('/api/chats/');
       const chats = response.chats || response || [];
-      console.log('DEBUG: Chats from API:', chats);
-      return chats.map((c: any) => ({
-        id: c.id?.toString() || c.chat_id?.toString(),
-        user: {
-          id: c.other_user?.id?.toString() || c.user_id?.toString(),
-          username: c.other_user?.username || c.username || c.name || 'Unknown',
-          displayName: c.other_user?.full_name || c.other_user?.username || c.display_name || c.name || 'Unknown User',
-          avatar: getMediaUrl(c.other_user?.profile_picture || c.avatar || ''),
-          isOnline: c.other_user?.is_online || false,
-          isVerified: c.other_user?.is_verified || false,
-        },
-        lastMessage: c.last_message?.content || c.last_message || '',
-        timestamp: new Date(c.last_message_time || c.timestamp || Date.now()),
-        unreadCount: c.unread_count || 0,
-        isPrivate: c.is_private || false,
-        isNewRequest: c.is_new_request || false,
-      }));
+      console.log('DEBUG: Raw chats from API:', JSON.stringify(chats, null, 2));
+
+      const transformedChats = chats.map((c: any) => {
+        const chat = {
+          id: c.id?.toString() || c.chat_id?.toString(),
+          user: {
+            id: c.other_user?.id?.toString() || c.user_id?.toString(),
+            username: c.other_user?.username || c.username || c.name || 'Unknown',
+            displayName: c.other_user?.full_name || c.other_user?.username || c.display_name || c.name || 'Unknown User',
+            avatar: getMediaUrl(c.other_user?.profile_picture || c.avatar || ''),
+            isOnline: c.other_user?.is_online || false,
+            isVerified: c.other_user?.is_verified || false,
+          },
+          lastMessage: c.last_message?.content || c.last_message || '',
+          timestamp: new Date(c.last_message_time || c.timestamp || Date.now()),
+          unreadCount: c.unread_count || 0,
+          isPrivate: c.is_private || false,
+          isNewRequest: c.is_new_request || false,
+        };
+        console.log(`DEBUG: Chat ${chat.id} - displayName: "${chat.user.displayName}", username: "${chat.user.username}"`);
+        return chat;
+      });
+
+      console.log('DEBUG: Transformed chats:', transformedChats);
+      return transformedChats;
     } catch (error) {
       console.error('Error fetching chats:', error);
       return [];
@@ -434,6 +501,10 @@ export const api = {
         mediaFilename: m.media_filename || m.filename,
         isOwn: m.is_own || false,
         viewed: m.is_read || false,
+        replyTo: m.reply_to?.id?.toString(),
+        replyToContent: m.reply_to?.content,
+        replyToSender: m.reply_to?.sender_name,
+        storyReply: m.story_reply,
       }));
     } catch (error) {
       console.error('Error fetching messages:', error);
@@ -442,12 +513,13 @@ export const api = {
   },
 
   // Send Message
-  sendMessage: async (chatId: string, content: string, file?: File): Promise<Message | null> => {
+  sendMessage: async (chatId: string, content: string, file?: File, replyToId?: string): Promise<Message | null> => {
     try {
       const formData = new FormData();
       formData.append('chat_id', chatId);
       if (content) formData.append('content', content);
       if (file) formData.append('media', file);
+      if (replyToId) formData.append('reply_to', replyToId);
 
       const response = await apiClient.post<any>('/api/send-message/', formData);
 
@@ -467,6 +539,9 @@ export const api = {
         mediaFilename: m.media_filename || m.filename,
         isOwn: m.is_own || false,
         viewed: m.is_read || false,
+        replyTo: m.reply_to?.id?.toString(),
+        replyToContent: m.reply_to?.content,
+        replyToSender: m.reply_to?.sender_name,
       };
     } catch (error) {
       console.error('Error sending message:', error);
@@ -701,6 +776,14 @@ export const api = {
           type = 'omzo_comment';
           content = `commented on your omzo: "${item.comment_content || ''}"`;
           omzoId = item.omzo?.id?.toString();
+        } else if (item.type === 'post_report') {
+          type = 'post_report';
+          content = `reported your post for ${item.reason || 'violation'}`;
+          scribeId = item.scribe?.id?.toString();
+        } else if (item.type === 'omzo_report') {
+          type = 'omzo_report';
+          content = `reported your omzo for ${item.reason || 'violation'}`;
+          omzoId = item.omzo?.id?.toString();
         }
 
         return {
@@ -716,7 +799,7 @@ export const api = {
           },
           content,
           timestamp: new Date(item.timestamp),
-          read: false,
+          read: item.is_read || false, // Use backend's is_read field if available
           scribeId,
           omzoId
         };
@@ -1122,9 +1205,9 @@ export const api = {
   },
 
   // Upload Omzo
-  uploadOmzo: async (formData: FormData): Promise<boolean> => {
+  uploadOmzo: async (formData: FormData, onProgress?: (progress: number) => void): Promise<boolean> => {
     try {
-      const response = await apiClient.post<any>('/api/omzo/upload/', formData);
+      const response = await apiClient.upload<any>('/api/omzo/upload/', formData, onProgress);
       return !!response?.success; // Adjust dependent on actual backend response structure
     } catch (error) {
       console.error('Error uploading omzo:', error);
@@ -1189,6 +1272,67 @@ export const api = {
     }
   },
 
+  // Report Functions
+  reportPost: async (
+    scribeId: string,
+    reason: string,
+    description?: string,
+    copyrightDescription?: string,
+    copyrightType?: 'audio' | 'content' | 'both'
+  ): Promise<{ success: boolean; message?: string; error?: string }> => {
+    try {
+      const response = await apiClient.post<any>('/api/report-post/', {
+        scribe_id: scribeId,
+        reason,
+        description: description || '',
+        copyright_description: copyrightDescription || '',
+        copyright_type: copyrightType || ''
+      });
+      return {
+        success: response.success,
+        message: response.message,
+        error: response.error
+      };
+    } catch (error: any) {
+      console.error('Error reporting post:', error);
+      return {
+        success: false,
+        error: error.response?.data?.error || 'Failed to report post'
+      };
+    }
+  },
+
+  reportOmzo: async (
+    omzoId: string,
+    reason: string,
+    description?: string,
+    copyrightDescription?: string,
+    copyrightType?: 'audio' | 'content' | 'both',
+    disableAudio?: boolean
+  ): Promise<{ success: boolean; message?: string; error?: string }> => {
+    try {
+      const response = await apiClient.post<any>('/api/omzo/report/', {
+        omzo_id: omzoId,
+        reason,
+        description: description || '',
+        copyright_description: copyrightDescription || '',
+        copyright_type: copyrightType || '',
+        disable_audio: disableAudio || false
+      });
+      return {
+        success: response.success,
+        message: response.message,
+        error: response.error
+      };
+    } catch (error: any) {
+      console.error('Error reporting omzo:', error);
+      return {
+        success: false,
+        error: error.response?.data?.error || 'Failed to report omzo'
+      };
+    }
+  },
+
   // Logout
   logout: async (): Promise<boolean> => {
     try {
@@ -1197,6 +1341,31 @@ export const api = {
     } catch (error) {
       console.error('Error logging out:', error);
       return false;
+    }
+  },
+
+  // Message Context Menu
+  getMessageContextMenu: async (messageId: string, chatId: string, isOwn: boolean): Promise<any> => {
+    try {
+      const response = await apiClient.get<any>(`/api/message/${messageId}/context-menu/`);
+      return response;
+    } catch (error) {
+      console.error('Error fetching context menu:', error);
+      throw error;
+    }
+  },
+
+  executeMessageAction: async (messageId: string, action: string, data?: any): Promise<any> => {
+    try {
+      const response = await apiClient.post<any>('/api/message/context-action/', {
+        message_id: messageId,
+        action,
+        ...data
+      });
+      return response;
+    } catch (error) {
+      console.error('Error executing message action:', error);
+      throw error;
     }
   },
 };

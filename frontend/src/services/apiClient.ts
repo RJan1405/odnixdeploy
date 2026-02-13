@@ -100,6 +100,63 @@ export class ApiClient {
             body,
         });
     }
+
+    upload<T>(
+        endpoint: string,
+        formData: FormData,
+        onProgress?: (progress: number) => void
+    ): Promise<T> {
+        return new Promise((resolve, reject) => {
+            const xhr = new XMLHttpRequest();
+            const url = `${this.baseURL}${endpoint}`;
+            const csrfToken = getCookie('csrftoken');
+
+            xhr.open('POST', url, true);
+
+            // Set credentials for session-based auth
+            xhr.withCredentials = true;
+
+            if (csrfToken) {
+                xhr.setRequestHeader('X-CSRFToken', csrfToken);
+            }
+
+            // XHR automatically sets Content-Type for FormData
+
+            if (xhr.upload && onProgress) {
+                xhr.upload.onprogress = (event) => {
+                    if (event.lengthComputable) {
+                        const percentComplete = Math.round((event.loaded / event.total) * 100);
+                        onProgress(percentComplete);
+                    }
+                };
+            }
+
+            xhr.onload = () => {
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    try {
+                        const response = JSON.parse(xhr.responseText);
+                        resolve(response);
+                    } catch (e) {
+                        // If response is not JSON
+                        resolve({} as T);
+                    }
+                } else {
+                    try {
+                        const errorData = JSON.parse(xhr.responseText);
+                        reject(new Error(errorData.error || errorData.message || `HTTP ${xhr.status}`));
+                    } catch (e) {
+                        reject(new Error(`HTTP ${xhr.status}: ${xhr.statusText}`));
+                    }
+                }
+            };
+
+            xhr.onerror = () => {
+                reject(new Error('Network Error'));
+            };
+
+            xhr.send(formData);
+        });
+    }
 }
 
 export const apiClient = new ApiClient();

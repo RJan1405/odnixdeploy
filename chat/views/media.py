@@ -70,6 +70,11 @@ def handle_media_upload(media_file):
             media_type = 'image'
         elif file_extension in ['.mp4', '.mov', '.avi', '.mkv']: # Removed .webm from video
             media_type = 'video'
+            try:
+                from chat.utils import compress_video
+                media_file = compress_video(media_file)
+            except Exception as e:
+                 logger.error(f"Chat video compression failed: {e}")
         elif file_extension in ['.mp3', '.wav', '.ogg', '.m4a', '.webm']:  # Added .webm for audio
             # Check MIME type if possible or assume audio if it's small/from recorder
             # For now, if it's webm and not caught by video above (it is caught...), 

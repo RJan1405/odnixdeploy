@@ -19,6 +19,8 @@ export function UploadModal() {
   // File handling state
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [compressionProgress, setCompressionProgress] = useState(0);
+  const [statusText, setStatusText] = useState('');
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -80,15 +82,46 @@ export function UploadModal() {
     }
 
     setIsUploading(true);
+    setCompressionProgress(0);
+    setStatusText('Preparing upload...');
     setError(null);
 
     try {
+      // Client-side processing
+      let fileToUpload = selectedFile;
+
+      if (fileToUpload) {
+        if (fileToUpload.type.startsWith('image/')) {
+          try {
+            setStatusText('Optimizing image...');
+            // Compress Image
+            const { compressImage } = await import('@/utils/compression');
+            fileToUpload = await compressImage(fileToUpload, {
+              maxSizeMB: 1,
+              maxWidthOrHeight: 1280,
+              quality: 0.8
+            });
+          } catch (e) {
+            console.error('Image compression failed', e);
+            // Fallback to original
+          }
+        }
+      }
+
+      setStatusText('Uploading to server...');
       const formData = new FormData();
 
       if (uploadType === 'omzo') {
-        if (selectedFile) formData.append('video', selectedFile);
+        if (fileToUpload) formData.append('video', fileToUpload);
         formData.append('caption', content);
-        const success = await api.uploadOmzo(formData);
+        const success = await api.uploadOmzo(formData, (progress) => {
+          setCompressionProgress(progress);
+          if (progress < 100) {
+            setStatusText('Uploading...');
+          } else {
+            setStatusText('Processing on server...');
+          }
+        });
         if (success) {
           closeUploadModal();
           triggerRefresh();
@@ -97,9 +130,9 @@ export function UploadModal() {
         }
       } else if (uploadType === 'story') {
         // Backend keys: media, content, story_type
-        if (selectedFile) {
-          formData.append('media', selectedFile);
-          formData.append('story_type', selectedFile.type.startsWith('video/') ? 'video' : 'image');
+        if (fileToUpload) {
+          formData.append('media', fileToUpload);
+          formData.append('story_type', fileToUpload.type.startsWith('video/') ? 'video' : 'image');
         } else {
           formData.append('story_type', 'text');
         }
@@ -121,7 +154,7 @@ export function UploadModal() {
           formData.append('code_js', jsCode);
         } else {
           formData.append('content_type', scribeType);
-          if (selectedFile) formData.append('image', selectedFile);
+          if (fileToUpload) formData.append('image', fileToUpload);
         }
 
         formData.append('content', content);
@@ -366,6 +399,27 @@ export function UploadModal() {
               </div>
             )}
           </div>
+
+          {/* Processing Status */}
+          {isUploading && (
+            <div className="px-6 pb-4">
+              <div className="w-full flex justify-between text-xs mb-2 text-muted-foreground font-medium">
+                <span className="flex items-center gap-2">
+                  {compressionProgress > 0 && compressionProgress < 100 ? (
+                    <div className="w-3 h-3 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                  ) : null}
+                  {statusText || 'Processing...'}
+                </span>
+                <span>{compressionProgress > 0 && compressionProgress < 100 ? `${compressionProgress}%` : ''}</span>
+              </div>
+              <div className="h-2 w-full bg-secondary/50 rounded-full overflow-hidden relative">
+                <div
+                  className={`h-full bg-gradient-to-r from-primary to-blue-500 transition-all duration-300 ease-out rounded-full ${compressionProgress === 0 || compressionProgress === 100 ? 'animate-pulse' : ''}`}
+                  style={{ width: compressionProgress > 0 && compressionProgress < 100 ? `${compressionProgress}%` : '100%' }}
+                />
+              </div>
+            </div>
+          )}
 
           {/* Footer */}
           <div className="p-4 border-t border-border flex justify-end gap-3">

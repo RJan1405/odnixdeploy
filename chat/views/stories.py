@@ -7,7 +7,7 @@ from django.utils.timesince import timesince
 import json
 import os
 import logging
-from chat.models import CustomUser, Story, StoryView, StoryLike, StoryReply
+from chat.models import CustomUser, Story, StoryView, StoryLike, StoryReply, Chat, Message
 
 logger = logging.getLogger(__name__)
 
@@ -66,6 +66,37 @@ def repost_story(request):
         )
         
         logger.info(f"Story {original_story.id} reposted by {request.user.username} as story {repost_story.id}")
+        
+        # Send chat notification to original story owner
+        if original_story.user != request.user:
+            # Get or create DM chat between reposter and original story owner
+            chat = Chat.objects.filter(
+                chat_type='private',
+                participants=original_story.user
+            ).filter(
+                participants=request.user
+            ).first()
+            
+            if not chat:
+                chat = Chat.objects.create(chat_type='private')
+                chat.participants.add(request.user, original_story.user)
+            
+            # Create notification message
+            message_content = f"🔄 {request.user.full_name} reposted your story"
+            message = Message.objects.create(
+                chat=chat,
+                sender=request.user,
+                content=message_content,
+                message_type='text'
+            )
+            
+            # Update chat timestamp
+            chat.updated_at = timezone.now()
+            chat.save()
+            
+            # Broadcast to story owner via WebSocket
+            from chat.views.chat import broadcast_message_to_chat
+            broadcast_message_to_chat(chat, message, exclude_sender=True)
         
         return JsonResponse({
             'success': True,
@@ -132,6 +163,16 @@ def create_story(request):
         # Validation - need either content or media
         if not content and not media_file:
             return JsonResponse({'success': False, 'error': 'Please add text or an image'})
+        
+        # Compress video if applicable
+        if media_file and story_type == 'video':
+            try:
+                from chat.utils import compress_video
+                # Compress video (crf=32 for better size)
+                media_file = compress_video(media_file)
+            except Exception as e:
+                logger.error(f"Story video compression failed: {e}")
+                # Continue with original file
         
         # FIXED: DON'T deactivate previous stories - allow multiple stories
         # REMOVED: Story.objects.filter(user=request.user, is_active=True).update(is_active=False)
@@ -467,6 +508,42 @@ def toggle_story_like(request):
             is_liked = False
         else:
             is_liked = True
+            
+            # Send chat notification to story owner (only when liking, not unliking)
+            if story.user != request.user:
+                try:
+                    # Get or create DM chat between liker and story owner
+                    chat = Chat.objects.filter(
+                        chat_type='private',
+                        participants=story.user
+                    ).filter(
+                        participants=request.user
+                    ).first()
+                    
+                    if not chat:
+                        chat = Chat.objects.create(chat_type='private')
+                        chat.participants.add(request.user, story.user)
+                    
+                    # Create notification message
+                    message_content = f"❤️ {request.user.full_name} liked your story"
+                    message = Message.objects.create(
+                        chat=chat,
+                        sender=request.user,
+                        content=message_content,
+                        message_type='text'
+                    )
+                    
+                    # Update chat timestamp
+                    chat.updated_at = timezone.now()
+                    chat.save()
+                    
+                    # Broadcast to story owner via WebSocket
+                    from chat.views.chat import broadcast_message_to_chat
+                    broadcast_message_to_chat(chat, message, exclude_sender=True)
+                except Exception as e:
+                    # Log error but DON'T fail the like action
+                    print(f"ERROR sending like notification: {e}")
+                    logger.error(f"Failed to send like notification: {e}")
         
         like_count = story.like_count
         
@@ -478,7 +555,8 @@ def toggle_story_like(request):
         
     except Exception as e:
         logger.error(f"Error in toggle_story_like: {str(e)}")
-        return JsonResponse({'success': False, 'error': 'Failed to toggle story like'})
+        print(f"DEBUG ERROR in toggle_story_like: {str(e)}") # Force print to console
+        return JsonResponse({'success': False, 'error': f'Failed to toggle story like: {str(e)}'})
 
 @login_required
 @require_POST
@@ -507,6 +585,77 @@ def add_story_reply(request):
             content=content
         )
         
+        # Send reply as chat message to story owner (best effort)
+        if story.user != request.user:
+            try:
+                # Get or create DM chat between replier and story owner
+                chat = Chat.objects.filter(
+                    chat_type='private',
+                    participants=story.user
+                ).filter(
+                    participants=request.user
+                ).first()
+                
+                if not chat:
+                    chat = Chat.objects.create(chat_type='private')
+                    chat.participants.add(request.user, story.user)
+                
+                # Create message with story context
+                message = Message.objects.create(
+                    chat=chat,
+                    sender=request.user,
+                    content=content,
+                    message_type='text',
+                    story_reply=story  # Link to the story
+                )
+                
+                # Update chat timestamp
+                chat.updated_at = timezone.now()
+                chat.save()
+                
+                # Broadcast to story owner via WebSocket with story metadata
+                from chat.views.chat import broadcast_message_to_chat
+                from channels.layers import get_channel_layer
+                from asgiref.sync import async_to_sync
+                
+                channel_layer = get_channel_layer()
+                async_to_sync(channel_layer.group_send)(
+                    f'chat_{chat.id}',
+                    {
+                        'type': 'message.new',
+                        'message': {
+                            'id': message.id,
+                            'content': message.content,
+                            'sender_id': message.sender_id,
+                            'sender_name': message.sender.full_name,
+                            'sender_avatar': message.sender.profile_picture_url,
+                            'timestamp': message.timestamp.strftime('%H:%M'),
+                            'timestamp_iso': message.timestamp.isoformat(),
+                            'message_type': message.message_type,
+                            'is_read': message.is_read,
+                            'is_own': False,  # For the receiver
+                            # Story metadata for reply context
+                            'story_reply': {
+                                'story_id': story.id,
+                                'story_type': story.story_type,
+                                'story_content': story.content if story.story_type == 'text' else None,
+                                'story_media_url': story.media_url if story.story_type in ['image', 'video'] else None,
+                                'story_owner': story.user.full_name,
+                            }
+                        }
+                    }
+                )
+            except Exception as e:
+                # Log error but don't fail the reply creation
+                logger.error(f"Failed to send chat message for reply: {e}")
+                # Return the error to the frontend so we know what happened
+                return JsonResponse({
+                    'success': True,
+                    'reply_id': reply.id,
+                    'reply_count': story.reply_count,
+                    'message_error': str(e)  # Pass the error back
+                })
+        
         return JsonResponse({
             'success': True,
             'reply_id': reply.id,
@@ -515,7 +664,8 @@ def add_story_reply(request):
         
     except Exception as e:
         logger.error(f"Error in add_story_reply: {str(e)}")
-        return JsonResponse({'success': False, 'error': 'Failed to add story reply'})
+        print(f"DEBUG ERROR in add_story_reply: {str(e)}")
+        return JsonResponse({'success': False, 'error': f'Failed to add story reply: {str(e)}'})
 
 @login_required
 def get_story_replies(request, story_id):

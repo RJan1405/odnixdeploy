@@ -78,7 +78,8 @@ class CustomUser(AbstractUser):
 
     @property
     def full_name(self):
-        return f"{self.name} {self.lastname}"
+        full = f"{self.name} {self.lastname}".strip()
+        return full if full else self.username
 
     @property
     def initials(self):
@@ -279,6 +280,12 @@ class Message(models.Model):
     pinned_at = models.DateTimeField(null=True, blank=True)
     pinned_by = models.ForeignKey(
         CustomUser, on_delete=models.SET_NULL, null=True, blank=True, related_name='pinned_messages')
+    
+    # Story Reply - Reference to story if this message is a reply to a story
+    story_reply = models.ForeignKey(
+        'Story', on_delete=models.SET_NULL, null=True, blank=True, related_name='chat_replies',
+        help_text="Story that this message is replying to"
+    )
 
     class Meta:
         ordering = ['timestamp']

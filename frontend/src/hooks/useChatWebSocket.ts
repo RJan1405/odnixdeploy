@@ -113,6 +113,10 @@ export function useChatWebSocket({
                                     isOneTimeView: data.message.one_time || false,
                                     viewed: data.message.is_read || data.message.consumed || false,
                                     isOwn: String(data.message.sender_id || data.message.sender) === String(user?.id),
+                                    replyTo: data.message.reply_to?.id?.toString(),
+                                    replyToContent: data.message.reply_to?.content,
+                                    replyToSender: data.message.reply_to?.sender_name,
+                                    storyReply: data.message.story_reply,
                                 };
 
                                 onMessageRef.current(normalizedMessage);

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
@@ -12,7 +12,9 @@ import {
   Lock,
   Eye,
   BadgeCheck,
-  PlusCircle
+  PlusCircle,
+  X,
+  Reply as ReplyIcon
 } from 'lucide-react';
 import { Avatar } from '@/components/Avatar';
 import { useAppStore } from '@/stores/appStore';
@@ -42,6 +44,7 @@ export default function ChatPage() {
   const [error, setError] = useState<string | null>(null);
   const [typingUsers, setTypingUsers] = useState<Array<{ id: number; name: string }>>([]);
   const [uploading, setUploading] = useState(false);
+  const [replyingTo, setReplyingTo] = useState<Message | null>(null);
 
   const containerRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -132,6 +135,17 @@ export default function ChatPage() {
     fetchData();
   }, [chatId]);
 
+  // Refresh messages function
+  const refreshMessages = async () => {
+    if (!chatId) return;
+    try {
+      const msgs = await api.getMessages(chatId);
+      setMessages(Array.isArray(msgs) ? msgs : []);
+    } catch (err) {
+      console.error('Failed to refresh messages:', err);
+    }
+  };
+
   // Mark as read when window/tab becomes visible again
   useEffect(() => {
     const handleVisibilityChange = () => {
@@ -201,16 +215,38 @@ export default function ChatPage() {
     e.currentTarget.value = '';
   };
 
-  const scrollToBottom = () => {
+  const scrollToBottom = (smooth = false) => {
     if (containerRef.current) {
-      // ensure we go to the bottom of the scrollable messages area
-      containerRef.current.scrollTop = containerRef.current.scrollHeight;
+      if (smooth) {
+        containerRef.current.scrollTo({
+          top: containerRef.current.scrollHeight,
+          behavior: 'smooth'
+        });
+      } else {
+        containerRef.current.scrollTop = containerRef.current.scrollHeight;
+      }
     }
   };
 
+  const isNearBottom = () => {
+    if (!containerRef.current) return true;
+    const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
+    return scrollHeight - scrollTop - clientHeight < 100; // Within 100px of bottom
+  };
+
+  // Scroll to bottom when loading finishes (Initial load)
+  // useLayoutEffect ensures this happens BEFORE paint, so it looks instant
+  useLayoutEffect(() => {
+    if (!loading && containerRef.current) {
+      scrollToBottom(false); // Instant scroll
+    }
+  }, [loading, messages]); // Add messages to ensure it stays at bottom on initial render sequence
+
   useEffect(() => {
-    // Scroll to bottom on mount or when messages change
-    setTimeout(scrollToBottom, 50);
+    // Only auto-scroll if user is already near the bottom
+    if (isNearBottom()) {
+      scrollToBottom(true); // Smooth scroll for new messages
+    }
   }, [messages]);
 
   useEffect(() => {
@@ -220,7 +256,7 @@ export default function ChatPage() {
       const heightDiff = window.innerHeight - (vv ? vv.height : window.innerHeight);
       setKeyboardOffset(heightDiff > 0 ? heightDiff : 0);
       // when keyboard appears, scroll messages into view
-      setTimeout(scrollToBottom, 50);
+      setTimeout(() => scrollToBottom(true), 50);
     };
 
     onResize();
@@ -307,13 +343,15 @@ export default function ChatPage() {
     if (!message.trim() || !chatId) return;
 
     const messageText = message.trim();
+    const replyToId = replyingTo?.id;
     setMessage(''); // Clear input immediately for better UX
+    setReplyingTo(null); // Clear reply state
 
     // Try WebSocket first (instant), fallback to HTTP
     if (isConnected) {
-      const sent = sendWsMessage(messageText, isOneTimeView);
+      const sent = sendWsMessage(messageText, isOneTimeView, replyToId);
       if (sent) {
-        console.log('[ChatPage] Message sent via WebSocket');
+        console.log('[ChatPage] Message sent via WebSocket', { replyToId });
         setIsOneTimeView(false);
         // Stop typing indicator
         sendTyping(false);
@@ -324,7 +362,7 @@ export default function ChatPage() {
     // Fallback to HTTP if WebSocket fails
     try {
       console.log('[ChatPage] Sending message via HTTP fallback');
-      const sentMsg = await api.sendMessage(chatId, messageText);
+      const sentMsg = await api.sendMessage(chatId, messageText, undefined, replyToId);
       if (sentMsg) {
         setMessages((prev) => {
           // Avoid duplicates
@@ -344,6 +382,9 @@ export default function ChatPage() {
       });
       // Restore message on error
       setMessage(messageText);
+      if (replyToId) {
+        setReplyingTo(messages.find(m => m.id === replyToId) || null);
+      }
     }
   };
 
@@ -451,10 +492,10 @@ export default function ChatPage() {
         </div>
       </div>
 
-      {/* Messages Area */}
+      {/* Messages Area - Added scroll-auto to override global scroll-smooth */}
       <div
         ref={containerRef}
-        className="flex-1 overflow-y-auto p-4 pt-[calc(4rem+env(safe-area-inset-top))]"
+        className="flex-1 overflow-y-auto scroll-auto p-4 pt-[calc(4rem+env(safe-area-inset-top))]"
         style={{ paddingBottom: `calc(4rem + env(safe-area-inset-bottom) + ${keyboardOffset}px)` }}
       >
         {chat?.isNewRequest && (
@@ -470,6 +511,8 @@ export default function ChatPage() {
             key={msg.id || Math.random()}
             message={msg}
             isOwn={msg.isOwn !== undefined ? msg.isOwn : (String(msg.senderId) === 'me' || String(msg.senderId) === String(user?.id || ''))}
+            onMessageUpdate={refreshMessages}
+            onReply={setReplyingTo}
           />
         ))}
 
@@ -489,13 +532,32 @@ export default function ChatPage() {
       {/* Message Input */}
       <div
         ref={inputBarRef}
-        className="fixed left-0 right-0 z-30 bg-background border-t border-border/50 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]"
+        className="fixed left-0 right-0 z-30 bg-background border-t border-border/50"
         style={{
-          bottom: `calc(${keyboardOffset}px + env(safe-area-inset-bottom))`,
-          touchAction: 'none'
+          bottom: `calc(${keyboardOffset}px + env(safe-area-inset-bottom))`
         }}
       >
-        <div className="flex items-end gap-2">
+        {/* Reply Preview */}
+        {replyingTo && (
+          <div className="flex items-center gap-2 px-3 py-2 bg-secondary/50 border-b border-border/50">
+            <ReplyIcon className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+            <div className="flex-1 min-w-0">
+              <p className="text-xs text-muted-foreground">Replying to {replyingTo.isOwn ? 'yourself' : chat?.user?.displayName}</p>
+              <p className="text-sm text-foreground truncate">
+                {replyingTo.type === 'text' ? replyingTo.content : `[${replyingTo.type}]`}
+              </p>
+            </div>
+            <button
+              onClick={() => setReplyingTo(null)}
+              className="p-1 hover:bg-background rounded-lg transition-colors"
+            >
+              <X className="w-4 h-4 text-muted-foreground" />
+            </button>
+          </div>
+        )}
+
+        {/* Input Area */}
+        <div className="flex items-end gap-2 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
           <input
             ref={mediaInputRef}
             type="file"
@@ -514,7 +576,7 @@ export default function ChatPage() {
           <input
             ref={inputRef}
             type="text"
-            placeholder="Type a message..."
+            placeholder={replyingTo ? "Type your reply..." : "Type a message..."}
             value={message}
             onChange={(e) => handleTyping(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSend()}

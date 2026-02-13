@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, MessageCircle, Repeat2, AtSign, UserPlus } from 'lucide-react';
+import { Heart, MessageCircle, Repeat2, AtSign, UserPlus, Flag, AlertTriangle } from 'lucide-react';
 import { Avatar } from './Avatar';
 import { api, Notification } from '@/services/api';
 import { useAppStore } from '@/stores/appStore';
@@ -18,7 +18,10 @@ const notificationIcons: Record<string, any> = {
   follow: UserPlus,
   omzo_like: Heart,
   omzo_comment: MessageCircle,
-  reply: MessageCircle
+  reply: MessageCircle,
+  post_report: Flag,
+  omzo_report: Flag,
+  report: AlertTriangle
 };
 
 const notificationColors: Record<string, string> = {
@@ -30,7 +33,10 @@ const notificationColors: Record<string, string> = {
   follow: 'text-warning bg-warning/20',
   omzo_like: 'text-destructive bg-destructive/20',
   omzo_comment: 'text-primary bg-primary/20',
-  reply: 'text-primary bg-primary/20'
+  reply: 'text-primary bg-primary/20',
+  post_report: 'text-destructive bg-destructive/20',
+  omzo_report: 'text-destructive bg-destructive/20',
+  report: 'text-destructive bg-destructive/20'
 };
 
 export function NotificationDropdown() {
@@ -55,6 +61,10 @@ export function NotificationDropdown() {
   useEffect(() => {
     if (notificationsOpen && user) {
       fetchNotifications();
+      // Mark all notifications as read after a short delay
+      setTimeout(() => {
+        setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+      }, 1000);
     }
   }, [notificationsOpen, user]);
 
@@ -70,7 +80,7 @@ export function NotificationDropdown() {
       console.log('🔔 Real-time notification received in Dropdown:', data);
 
       // If it's a notification type event, refresh the list
-      if (['like', 'comment', 'follow', 'repost', 'mention', 'omzo_like', 'omzo_comment'].includes(data.type)) {
+      if (['like', 'comment', 'follow', 'repost', 'mention', 'omzo_like', 'omzo_comment', 'post_report', 'omzo_report', 'report'].includes(data.type)) {
         fetchNotifications();
       }
     };

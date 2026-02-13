@@ -15,11 +15,13 @@ import {
 } from 'lucide-react';
 import { OmzoComments } from './OmzoComments';
 import { ScribeSharePanel } from './ScribeSharePanel';
+import { ReportModal } from './ReportModal';
 import { createPortal } from 'react-dom';
 import type { Scribe } from '@/services/api';
 import { api } from '@/services/api';
 import { formatDistanceToNow } from 'date-fns';
 import { useState, useRef, useEffect } from 'react';
+
 
 interface ScribeCardProps {
   scribe: Scribe;
@@ -36,6 +38,7 @@ export function ScribeCard({ scribe, onUserClick }: ScribeCardProps) {
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   const isOmzo = scribe.type === 'video';
@@ -160,10 +163,7 @@ export function ScribeCard({ scribe, onUserClick }: ScribeCardProps) {
       label: 'Report',
       icon: Flag,
       action: () => {
-        // TODO: Open Report Dialog or API
-        // api.reportPost(scribe.id) or api.reportOmzo(scribe.id)
-        // For now just console log
-        console.log('Reporting', scribe.id);
+        setReportOpen(true);
         setMenuOpen(false);
       },
       danger: true
@@ -357,6 +357,17 @@ export function ScribeCard({ scribe, onUserClick }: ScribeCardProps) {
           </div>
         </div>, document.body
       ) : null}
+
+      {/* Report Modal */}
+      <ReportModal
+        isOpen={reportOpen}
+        onClose={() => setReportOpen(false)}
+        contentType={isOmzo ? 'omzo' : 'scribe'}
+        contentId={scribe.id}
+        onReportSuccess={() => {
+          console.log('Report submitted successfully');
+        }}
+      />
     </motion.div>
   );
 }

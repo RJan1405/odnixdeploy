@@ -2,6 +2,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, ChevronLeft, ChevronRight, Heart, Send, Repeat2 } from 'lucide-react';
 import { Avatar } from './Avatar';
 import type { Story } from '@/services/api';
+import { api } from '@/services/api';
 import { useState, useEffect } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -16,7 +17,15 @@ export function StoryViewer({ stories, initialIndex, onClose }: StoryViewerProps
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [progress, setProgress] = useState(0);
   const [reply, setReply] = useState('');
-  const [liked, setLiked] = useState<Record<string, boolean>>({});
+  const [liked, setLiked] = useState<Record<string, boolean>>(() => {
+    const initialLiked: Record<string, boolean> = {};
+    stories.forEach(s => {
+      if (s.isLiked) {
+        initialLiked[s.id] = true;
+      }
+    });
+    return initialLiked;
+  });
   const [isPaused, setIsPaused] = useState(false);
 
   const currentStory = stories[currentIndex];
@@ -59,19 +68,85 @@ export function StoryViewer({ stories, initialIndex, onClose }: StoryViewerProps
     }
   };
 
-  const handleReply = () => {
+  /* DEBUG: Log when story changes */
+  useEffect(() => {
+    console.log('Current Story ID:', currentStory?.id, 'Is Liked:', liked[currentStory?.id]);
+  }, [currentStory, liked]);
+
+  const handleReply = async (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    console.log('Reply button clicked');
+
     if (reply.trim()) {
-      console.log('Reply to story:', reply);
-      setReply('');
+      try {
+        const result = await api.replyToStory(currentStory.id, reply.trim());
+        if (result.success) {
+          console.log('Reply sent successfully');
+          setReply('');
+          if (result.message_error) {
+            alert(`Reply saved, but chat message failed: ${result.message_error}`);
+          } else {
+            // Success! No alert needed, maybe a toast later.
+            console.log('Reply sent and chat updated!');
+          }
+        } else {
+          console.error('Failed to send reply:', result.error);
+          alert(`Failed to send reply: ${result.error || 'Unknown error'}`);
+        }
+      } catch (err) {
+        console.error('Error replying:', err);
+        alert(`Error sending reply: ${err}`);
+      }
     }
   };
 
-  const toggleLike = () => {
-    setLiked(prev => ({ ...prev, [currentStory.id]: !prev[currentStory.id] }));
+  const toggleLike = async (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    console.log('Toggle like clicked for story:', currentStory.id);
+
+    // Optimistic update
+    const previousState = liked[currentStory.id];
+    setLiked(prev => ({ ...prev, [currentStory.id]: !previousState }));
+
+    try {
+      const result = await api.toggleStoryLike(currentStory.id);
+      console.log('API Result:', result);
+
+      if (result.success) {
+        // Confirm state matches backend
+        setLiked(prev => ({ ...prev, [currentStory.id]: result.is_liked }));
+      } else {
+        console.error('API reported failure:', result.error);
+        // Revert on failure
+        setLiked(prev => ({ ...prev, [currentStory.id]: previousState }));
+        alert(`Failed to like story: ${result.error || 'Unknown error'}`);
+      }
+    } catch (err) {
+      console.error('API Error:', err);
+      // Revert on error
+      setLiked(prev => ({ ...prev, [currentStory.id]: previousState }));
+      alert(`Error liking story: ${err}`);
+    }
   };
 
-  const handleRepost = () => {
-    console.log('Repost story:', currentStory.id);
+  const handleRepost = async (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    const result = await api.repostStory(currentStory.id);
+    if (result.success) {
+      console.log('Story reposted successfully');
+      alert('Reposted!');
+    } else {
+      console.error('Failed to repost story');
+    }
   };
 
   return (
@@ -205,36 +280,45 @@ export function StoryViewer({ stories, initialIndex, onClose }: StoryViewerProps
           </div>
 
           {/* Bottom actions */}
-          <div className="absolute bottom-0 left-0 right-0 p-4 pt-12 bg-gradient-to-t from-black/90 via-black/50 to-transparent z-20">
+          <div className="absolute bottom-0 left-0 right-0 p-4 pt-12 bg-gradient-to-t from-black/90 via-black/50 to-transparent z-[60]">
             {/* Input area */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 relative z-[70]">
               <input
+                id="story-reply-input"
                 type="text"
                 placeholder={`Reply to ${currentStory.user.username}...`}
                 value={reply}
                 onChange={(e) => setReply(e.target.value)}
-                onFocus={() => setIsPaused(true)}
+                onFocus={() => setTimeout(() => setIsPaused(true), 100)}
                 onBlur={() => setIsPaused(false)}
-                onKeyDown={(e) => e.key === 'Enter' && handleReply()}
-                className="flex-1 py-2.5 px-4 bg-transparent border border-white/30 rounded-full text-white placeholder:text-white/70 text-sm focus:outline-none focus:border-white focus:bg-black/20 transition-all"
+                autoFocus
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.currentTarget.focus();
+                }}
+                onKeyDown={(e) => e.key === 'Enter' && handleReply(e as any)}
+                className="flex-1 py-2.5 px-4 bg-transparent border border-white/30 rounded-full text-white placeholder:text-white/70 text-sm focus:outline-none focus:border-white focus:bg-black/20 transition-all pointer-events-auto"
               />
 
               {reply.trim() ? (
                 <button
                   onClick={handleReply}
-                  className="p-2 text-primary font-semibold text-sm hover:text-white transition-colors"
+                  className="p-2 text-primary font-semibold text-sm hover:text-white transition-colors cursor-pointer pointer-events-auto"
                 >
                   Send
                 </button>
               ) : (
-                <div className="flex items-center gap-1">
-                  <button onClick={toggleLike} className="p-2 hover:bg-white/10 rounded-full transition-colors">
+                <div className="flex items-center gap-1 pointer-events-auto">
+                  <button onClick={toggleLike} className="p-2 hover:bg-white/10 rounded-full transition-colors cursor-pointer">
                     <Heart className={cn("w-6 h-6", liked[currentStory.id] ? "text-red-500 fill-red-500" : "text-white")} />
                   </button>
-                  <button onClick={handleRepost} className="p-2 hover:bg-white/10 rounded-full transition-colors">
+                  <button onClick={handleRepost} className="p-2 hover:bg-white/10 rounded-full transition-colors cursor-pointer">
                     <Repeat2 className="w-6 h-6 text-white" />
                   </button>
-                  <button onClick={() => {/* Message placeholder */ }} className="p-2 hover:bg-white/10 rounded-full transition-colors">
+                  <button
+                    onClick={() => document.getElementById('story-reply-input')?.focus()}
+                    className="p-2 hover:bg-white/10 rounded-full transition-colors cursor-pointer"
+                  >
                     <Send className="w-6 h-6 text-white -rotate-45 mb-1" />
                   </button>
                 </div>
