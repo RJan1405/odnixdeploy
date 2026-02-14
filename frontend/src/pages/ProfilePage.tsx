@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Settings, Grid3X3, Play, Bookmark, Repeat2, BadgeCheck, Loader2, Heart, MessageCircle } from 'lucide-react';
+import { ArrowLeft, Settings, Grid3X3, Play, Bookmark, Repeat2, BadgeCheck, Loader2, Heart, MessageCircle, MoreHorizontal } from 'lucide-react';
 import { Avatar } from '@/components/Avatar';
 import { ScribeCard } from '@/components/ScribeCard';
 import { OmzoPlayer } from '@/components/OmzoPlayer';
@@ -310,21 +310,26 @@ export default function ProfilePage() {
       />
 
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-lg border-b border-border/50">
-        <div className="max-w-2xl mx-auto px-4 py-3 flex items-center gap-4">
+      <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-lg border-b border-white/5">
+        <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between" style={{ background: 'rgb(25 29 36 / 70%)' }}>
           <button
             onClick={() => navigate(-1)}
-            className="p-2 hover:bg-secondary rounded-full transition-colors"
+            className="p-2 hover:bg-white/5 rounded-full transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
-          <div className="flex-1">
-            <h1 className="font-semibold">@{profileUser.username}</h1>
-          </div>
-          {isOwnProfile && (
+          <span className="font-bold text-lg tracking-tight">@{profileUser.username}</span>
+          {isOwnProfile ? (
             <button
               onClick={() => setIsSettingsOpen(true)}
-              className="p-2 hover:bg-secondary rounded-full transition-colors"
+              className="p-2 hover:bg-white/5 rounded-full transition-colors"
+            >
+              <Settings className="w-5 h-5" />
+            </button>
+          ) : (
+            <button
+              onClick={() => setIsSettingsOpen(true)}
+              className="p-2 hover:bg-white/5 rounded-full transition-colors"
             >
               <Settings className="w-5 h-5" />
             </button>
@@ -334,97 +339,109 @@ export default function ProfilePage() {
 
       <div className="max-w-2xl mx-auto">
         {/* Profile Info */}
-        <div className="p-6 border-b border-border/50">
-          <div className="flex items-start gap-4 mb-6">
+        {/* Profile Info */}
+        <div className="pt-4 pb-4 text-center px-4 relative">
+          {/* Online Indicator - Floating Right */}
+          {profileUser.isOnline && (
+            <div className="absolute right-6 top-12 sm:right-12">
+              <div className="w-3 h-3 bg-green-500 rounded-full shadow-[0_0_8px_rgba(34,197,94,0.6)] animate-pulse" />
+            </div>
+          )}
+
+          <div className="relative inline-block mx-auto mb-2">
             <Avatar
               src={profileUser.avatar}
               alt={profileUser.displayName}
               size="xl"
-              isOnline={profileUser.isOnline}
+              // Remove internal online indicator prop since we placed it externally
+              isOnline={false}
+              className="w-16 h-16 sm:w-20 sm:h-20 rounded-3xl"
             />
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-1">
-                <h2 className="text-xl font-bold">{profileUser.displayName}</h2>
-                {profileUser.isVerified && (
-                  <BadgeCheck className="w-5 h-5 text-primary fill-primary" />
-                )}
-              </div>
-              <p className="text-muted-foreground mb-4">@{profileUser.username}</p>
+          </div>
 
-              {/* Stats */}
-              <div className="flex gap-6 mb-4">
-                <div className="text-center">
-                  <div className="font-bold">{stats.scribesCount}</div>
-                  <div className="text-sm text-muted-foreground">Scribes</div>
-                </div>
-                <div className="text-center">
-                  <div className="font-bold">{stats.followersCount}</div>
-                  <div className="text-sm text-muted-foreground">Followers</div>
-                </div>
-                <div className="text-center">
-                  <div className="font-bold">{stats.followingCount}</div>
-                  <div className="text-sm text-muted-foreground">Following</div>
-                </div>
-              </div>
+          <h1 className="text-2xl font-bold text-foreground mb-1 flex items-center justify-center gap-2">
+            {profileUser.displayName}
+            {profileUser.isVerified && (
+              <BadgeCheck className="w-6 h-6 text-background fill-primary" />
+            )}
+          </h1>
+          <p className="text-muted-foreground font-medium mb-4">@{profileUser.username}</p>
 
-              {/* Action Buttons */}
-              {!isOwnProfile && (
-                <div className="flex gap-2">
-                  <button
-                    onClick={handleFollow}
-                    disabled={followLoading}
-                    className={cn(
-                      "flex-1 px-4 py-2 rounded-lg font-medium transition-all flex items-center justify-center gap-2",
-                      isFollowing
-                        ? "bg-secondary text-secondary-foreground hover:bg-secondary/80"
-                        : "bg-primary text-primary-foreground hover:bg-primary/90"
-                    )}
-                  >
-                    {followLoading && <Loader2 className="w-4 h-4 animate-spin" />}
-                    {isFollowing ? 'Following' : 'Follow'}
-                  </button>
-                  <button
-                    onClick={handleMessage}
-                    disabled={messageLoading}
-                    className="flex-1 px-4 py-2 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/80 font-medium flex items-center justify-center gap-2"
-                  >
-                    {messageLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Message'}
-                  </button>
-                </div>
-              )}
+          <div className="flex justify-center items-center gap-8 sm:gap-8 mb-4">
+            <div className="flex flex-col items-center cursor-pointer hover:opacity-80 transition-opacity">
+              <span className="text-2xl font-bold text-foreground">{stats.scribesCount}</span>
+              <span className="text-sm text-muted-foreground font-medium">Scribes</span>
+            </div>
+
+            <div className="flex flex-col items-center cursor-pointer hover:opacity-80 transition-opacity">
+              <span className="text-2xl font-bold text-foreground">{stats.followersCount}</span>
+              <span className="text-sm text-muted-foreground font-medium">Followers</span>
+            </div>
+
+            <div className="flex flex-col items-center cursor-pointer hover:opacity-80 transition-opacity">
+              <span className="text-2xl font-bold text-foreground">{stats.followingCount}</span>
+              <span className="text-sm text-muted-foreground font-medium">Following</span>
             </div>
           </div>
+
+          {!isOwnProfile && (
+            <div className="flex justify-center gap-3">
+              <button
+                onClick={handleFollow}
+                disabled={followLoading}
+                className={cn(
+                  "min-w-[140px] px-6 py-2 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2",
+                  isFollowing
+                    ? "bg-secondary text-secondary-foreground border border-border"
+                    : "bg-primary text-primary-foreground hover:opacity-90"
+                )}
+              >
+                {followLoading && <Loader2 className="w-4 h-4 animate-spin" />}
+                {isFollowing ? 'Following' : 'Follow'}
+              </button>
+              <button
+                onClick={handleMessage}
+                disabled={messageLoading}
+                className="px-6 py-2 rounded-xl font-bold text-sm bg-secondary text-secondary-foreground border border-border hover:bg-secondary/80 transition-colors flex items-center gap-2"
+              >
+                {messageLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Message'}
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Tabs */}
-        <div className="sticky top-[57px] z-10 bg-background/80 backdrop-blur-lg border-b border-border/50">
+        <div className="sticky top-[57px] z-10 bg-background/95 backdrop-blur-xl border-b border-white/5">
           <div className="flex">
             {[
               { id: 'scribes' as const, icon: Grid3X3, label: 'Scribes' },
               { id: 'omzos' as const, icon: Play, label: 'Omzos' },
               { id: 'saved' as const, icon: Bookmark, label: 'Saved' },
               { id: 'reposts' as const, icon: Repeat2, label: 'Reposts' },
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={cn(
-                  'flex-1 py-3 flex items-center justify-center gap-2 transition-colors relative',
-                  activeTab === tab.id
-                    ? 'text-primary'
-                    : 'text-muted-foreground hover:text-foreground'
-                )}
-              >
-                <tab.icon className="w-5 h-5" />
-                <span className="text-sm font-medium">{tab.label}</span>
-                {activeTab === tab.id && (
-                  <motion.div
-                    layoutId="activeTab"
-                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary"
-                  />
-                )}
-              </button>
-            ))}
+            ].map((tab) => {
+              const isActive = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={cn(
+                    'flex-1 py-4 flex items-center justify-center gap-2 transition-all relative',
+                    isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
+                  )}
+                >
+                  <tab.icon className={cn("w-5 h-5", isActive && "drop-shadow-[0_0_8px_rgba(var(--primary),0.5)]")} />
+                  <span className={cn("text-sm font-bold", isActive && "drop-shadow-[0_0_8px_rgba(var(--primary),0.5)]")}>{tab.label}</span>
+                  {isActive && (
+                    <motion.div
+                      layoutId="activeTab"
+                      className="absolute bottom-0 left-4 right-4 h-1 bg-primary rounded-t-full"
+                      style={{ boxShadow: '0 0 15px hsl(var(--primary))' }}
+                      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                    />
+                  )}
+                </button>
+              );
+            })}
           </div>
         </div>
 
@@ -432,7 +449,7 @@ export default function ProfilePage() {
         <div className="p-4">
           {renderContent()}
         </div>
-      </div>
-    </div>
+      </div >
+    </div >
   );
 }

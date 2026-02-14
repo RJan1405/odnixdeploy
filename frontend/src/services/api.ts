@@ -57,6 +57,24 @@ export interface Message {
     story_media_url?: string;
     story_owner: string;
   };
+  sharedScribe?: {
+    id: string;
+    content: string;
+    image?: string;
+    user: {
+      username: string;
+      avatar: string;
+    };
+  };
+  sharedOmzo?: {
+    id: string;
+    caption: string;
+    videoUrl: string;
+    user: {
+      username: string;
+      avatar: string;
+    };
+  };
 }
 
 export interface Chat {
@@ -67,6 +85,10 @@ export interface Chat {
   unreadCount: number;
   isPrivate: boolean;
   isNewRequest?: boolean;
+  chat_type?: 'private' | 'group';
+  name?: string;
+  participants?: User[];
+  groupAvatar?: string;
 }
 
 export interface Scribe {
@@ -107,6 +129,7 @@ export interface Omzo {
   createdAt: Date;
   isLiked?: boolean;
   isDisliked?: boolean;
+  isSaved?: boolean;
 }
 
 export interface Notification {
@@ -444,12 +467,13 @@ export const api = {
       console.log('DEBUG: Raw chats from API:', JSON.stringify(chats, null, 2));
 
       const transformedChats = chats.map((c: any) => {
+        const isGroup = c.chat_type === 'group' || c.is_group;
         const chat = {
           id: c.id?.toString() || c.chat_id?.toString(),
           user: {
-            id: c.other_user?.id?.toString() || c.user_id?.toString(),
-            username: c.other_user?.username || c.username || c.name || 'Unknown',
-            displayName: c.other_user?.full_name || c.other_user?.username || c.display_name || c.name || 'Unknown User',
+            id: c.other_user?.id?.toString() || c.user_id?.toString() || (isGroup ? 'group' : ''),
+            username: c.other_user?.username || c.username || (isGroup ? 'Group' : 'Unknown'),
+            displayName: c.other_user?.full_name || c.other_user?.username || c.display_name || c.name || (isGroup ? c.name : 'Unknown User'),
             avatar: getMediaUrl(c.other_user?.profile_picture || c.avatar || ''),
             isOnline: c.other_user?.is_online || false,
             isVerified: c.other_user?.is_verified || false,
@@ -457,10 +481,13 @@ export const api = {
           lastMessage: c.last_message?.content || c.last_message || '',
           timestamp: new Date(c.last_message_time || c.timestamp || Date.now()),
           unreadCount: c.unread_count || 0,
-          isPrivate: c.is_private || false,
+          isPrivate: c.is_private !== undefined ? c.is_private : !isGroup,
           isNewRequest: c.is_new_request || false,
+          chat_type: c.chat_type || (isGroup ? 'group' : 'private'),
+          name: c.name,
+          groupAvatar: getMediaUrl(c.group_avatar || c.avatar || '')
         };
-        console.log(`DEBUG: Chat ${chat.id} - displayName: "${chat.user.displayName}", username: "${chat.user.username}"`);
+        // console.log(`DEBUG: Chat ${chat.id} - displayName: "${chat.user.displayName}"`);
         return chat;
       });
 
@@ -505,6 +532,8 @@ export const api = {
         replyToContent: m.reply_to?.content,
         replyToSender: m.reply_to?.sender_name,
         storyReply: m.story_reply,
+        sharedScribe: m.shared_scribe,
+        sharedOmzo: m.shared_omzo,
       }));
     } catch (error) {
       console.error('Error fetching messages:', error);
@@ -513,13 +542,15 @@ export const api = {
   },
 
   // Send Message
-  sendMessage: async (chatId: string, content: string, file?: File, replyToId?: string): Promise<Message | null> => {
+  sendMessage: async (chatId: string, content: string, file?: File, replyToId?: string, sharedScribeId?: string, sharedOmzoId?: string): Promise<Message | null> => {
     try {
       const formData = new FormData();
       formData.append('chat_id', chatId);
       if (content) formData.append('content', content);
       if (file) formData.append('media', file);
       if (replyToId) formData.append('reply_to', replyToId);
+      if (sharedScribeId) formData.append('shared_scribe_id', sharedScribeId);
+      if (sharedOmzoId) formData.append('shared_omzo_id', sharedOmzoId);
 
       const response = await apiClient.post<any>('/api/send-message/', formData);
 
@@ -542,6 +573,8 @@ export const api = {
         replyTo: m.reply_to?.id?.toString(),
         replyToContent: m.reply_to?.content,
         replyToSender: m.reply_to?.sender_name,
+        sharedScribe: m.shared_scribe,
+        sharedOmzo: m.shared_omzo,
       };
     } catch (error) {
       console.error('Error sending message:', error);
@@ -556,24 +589,37 @@ export const api = {
       const c = response.chat;
       if (!c) return null;
 
-      // Determine other user details
+      const isGroup = c.is_group || c.type === 'group';
+
+      // For group chat, we might not have 'other_user'. using a placeholder or first participant.
       const otherUser = c.other_user || (c.participants && c.participants.length > 0 ? c.participants[0] : null);
 
       return {
         id: c.id?.toString(),
         user: {
-          id: otherUser?.id?.toString(),
-          username: otherUser?.username || 'Unknown',
-          displayName: otherUser?.full_name || otherUser?.first_name || otherUser?.username || 'Unknown',
-          avatar: getMediaUrl(otherUser?.profile_picture || otherUser?.avatar || ''),
+          id: otherUser?.id?.toString() || 'group',
+          username: otherUser?.username || 'Group',
+          displayName: otherUser?.full_name || otherUser?.first_name || otherUser?.username || c.name || 'Group Chat',
+          avatar: getMediaUrl(otherUser?.profile_picture || otherUser?.avatar || c.avatar || ''),
           isOnline: otherUser?.is_online || false,
           isVerified: otherUser?.is_verified || false,
         },
         lastMessage: '',
         timestamp: new Date(),
         unreadCount: 0,
-        isPrivate: c.type === 'private' || c.chat_type === 'private',
-        isNewRequest: false
+        isPrivate: !isGroup,
+        isNewRequest: false,
+        chat_type: isGroup ? 'group' : 'private',
+        name: c.name,
+        participants: c.participants ? c.participants.map((p: any) => ({
+          id: p.id.toString(),
+          username: p.username,
+          displayName: p.full_name || p.username,
+          avatar: getMediaUrl(p.profile_picture || ''),
+          isOnline: p.is_online,
+          isVerified: p.is_verified || false
+        })) : [],
+        groupAvatar: getMediaUrl(c.avatar || '')
       };
     } catch (error) {
       console.error('Error fetching chat details:', error);
@@ -1333,6 +1379,83 @@ export const api = {
     }
   },
 
+  // Get single Scribe by ID
+  getScribe: async (scribeId: string): Promise<any | null> => {
+    try {
+      const response = await apiClient.get<any>(`/api/scribe/${scribeId}/`);
+      const s = response.scribe;
+      if (!s) return null;
+
+      // Map backend scribe to frontend Scribe interface safely
+      return {
+        id: s.id?.toString(),
+        user: {
+          id: s.id?.toString(), // simplistic fallback as user_id might be missing in detail view sometimes
+          username: s.username,
+          displayName: s.full_name || s.username,
+          avatar: getMediaUrl(s.avatar || ''),
+          isOnline: false,
+          isVerified: false
+        },
+        content: s.content || '',
+        type: s.image_url ? 'image' : 'text',
+        mediaUrl: getMediaUrl(s.image_url || ''),
+        likes: s.like_count || 0,
+        dislikes: 0,
+        comments: s.comment_count || 0,
+        reposts: 0,
+        createdAt: new Date(s.timestamp),
+        isLiked: s.is_liked || false,
+        isDisliked: s.is_disliked || false,
+        isSaved: s.is_saved || false,
+      };
+    } catch (error) {
+      console.error('Error fetching scribe:', error);
+      return null;
+    }
+  },
+
+  // Get single Omzo by ID
+  getOmzo: async (omzoId: string): Promise<Omzo | null> => {
+    try {
+      const response = await apiClient.get<any>(`/api/omzo/${omzoId}/details/`);
+
+      if (!response.success && response.error) {
+        throw new Error(response.error);
+      }
+
+      const o = response.omzo;
+      if (!o) throw new Error('Omzo data missing');
+
+      return {
+        id: o.id?.toString(),
+        user: {
+          id: o.user.id?.toString(),
+          username: o.user.username,
+          displayName: o.user.displayName,
+          avatar: getMediaUrl(o.user.avatar || ''),
+          isOnline: o.user.isOnline || false,
+          isVerified: o.user.isVerified || false,
+        },
+        videoUrl: getMediaUrl(o.videoUrl || ''),
+        caption: o.caption || '',
+        audioName: o.audioName || 'Original Sound',
+        likes: o.likes || 0,
+        dislikes: o.dislikes || 0,
+        views: o.views || 0,
+        comments: o.comments || 0,
+        shares: o.shares || 0,
+        createdAt: new Date(o.createdAt),
+        isLiked: o.isLiked || false,
+        isDisliked: o.isDisliked || false,
+        isSaved: o.isSaved || false,
+      };
+    } catch (error: any) {
+      console.error('Error fetching omzo:', error);
+      throw new Error(error.response?.data?.error || error.message || 'Failed to fetch omzo');
+    }
+  },
+
   // Logout
   logout: async (): Promise<boolean> => {
     try {
@@ -1366,6 +1489,66 @@ export const api = {
     } catch (error) {
       console.error('Error executing message action:', error);
       throw error;
+    }
+  },
+
+  // Group Chat
+  createGroup: async (name: string, participantIds: string[], description?: string, isPublic: boolean = false, avatar?: File | null): Promise<Chat | null> => {
+    try {
+      const formData = new FormData();
+      formData.append('name', name);
+      formData.append('participants', JSON.stringify(participantIds));
+      if (description) formData.append('description', description);
+      formData.append('is_public', String(isPublic));
+
+      if (avatar) {
+        formData.append('avatar', avatar);
+      }
+
+      const response = await apiClient.post<any>('/api/create-group/', formData);
+
+      if (response.success && response.group) {
+        // Map response to Chat interface
+        // Note: The backend response structure for 'group' needs to be mapped correctly.
+        // Assuming backend returns basic group info; we might need to fetch full details or mock initial state.
+        const g = response.group;
+        return {
+          id: g.id?.toString(),
+          user: { id: 'group', username: 'Group', displayName: name, avatar: g.groupAvatar || '', isOnline: false }, // Placeholder user
+          lastMessage: 'Group created',
+          timestamp: new Date(),
+          unreadCount: 0,
+          isPrivate: false,
+          chat_type: 'group',
+          name: g.name,
+          participants: [], // Details might need separate fetch or be included
+          groupAvatar: g.groupAvatar
+        };
+      }
+      return null;
+    } catch (error) {
+      console.error('Error creating group:', error);
+      return null;
+    }
+  },
+
+  searchUsersPublic: async (query?: string): Promise<User[]> => {
+    try {
+      const q = query || '';
+      const response = await apiClient.get<any>(`/api/share/search-users/?q=${encodeURIComponent(q)}`);
+      const users = response.results || response.users || [];
+
+      return users.map((u: any) => ({
+        id: u.id?.toString(),
+        username: u.username,
+        displayName: u.full_name || u.username,
+        avatar: getMediaUrl(u.avatar_url || u.profile_picture || ''),
+        isOnline: u.is_online !== undefined ? u.is_online : false,
+        isVerified: u.is_verified || false
+      }));
+    } catch (error) {
+      console.error('Error searching users:', error);
+      return [];
     }
   },
 };

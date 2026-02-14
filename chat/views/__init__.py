@@ -41,6 +41,7 @@ from .stories import (
     get_story_viewers, delete_reply, get_story_inbox,
     get_story_inbox_count, repost_story
 )
+from .social_extensions import get_omzo_detail
 from .share_api import (
     search_users_for_share, share_content_to_user, get_chat_requests,
     get_chat_requests_count, accept_chat_request, decline_chat_request

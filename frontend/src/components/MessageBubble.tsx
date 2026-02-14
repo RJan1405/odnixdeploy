@@ -1,11 +1,12 @@
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
-import { Check, CheckCheck, Lock, Share2, Reply as ReplyIcon } from 'lucide-react';
+import { Check, CheckCheck, Lock, Share2, Reply as ReplyIcon, Play } from 'lucide-react';
+import { Avatar } from './Avatar';
 import type { Message } from '@/services/api';
 import { useState } from 'react';
 import { MessageContextMenu } from './MessageContextMenu';
 import { api } from '@/services/api';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 
 interface MessageBubbleProps {
   message: Message;
@@ -16,8 +17,10 @@ interface MessageBubbleProps {
 
 export function MessageBubble({ message, isOwn, onMessageUpdate, onReply }: MessageBubbleProps) {
   const isMedia = (message.type as string) !== 'text';
+  const isShared = !!(message.sharedScribe || message.sharedOmzo);
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
   const { chatId } = useParams<{ chatId: string }>();
+  const navigate = useNavigate();
 
   const handleContextMenu = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -109,7 +112,9 @@ export function MessageBubble({ message, isOwn, onMessageUpdate, onReply }: Mess
           className={cn(
             'max-w-[75%] relative cursor-context-menu',
             isOwn ? 'message-sent' : 'message-received',
-            isMedia ? 'p-1' : 'px-4 py-2'
+            (isMedia || isShared) ? 'p-1' : 'px-4 py-2',
+            // Constrain width for shared content to avoid bubble being wider than the card (due to long text)
+            message.sharedOmzo ? 'max-w-[220px]' : (message.sharedScribe ? 'max-w-[250px]' : '')
           )}
         >
           {/* Story Reply Indicator */}
@@ -148,6 +153,82 @@ export function MessageBubble({ message, isOwn, onMessageUpdate, onReply }: Mess
                 )}
               </div>
             </div>
+          )}
+
+          {/* Shared Scribe Card */}
+          {message.sharedScribe && (
+            <div
+              className="bg-black/20 rounded-lg overflow-hidden mb-2 cursor-pointer border border-white/10 hover:bg-black/30 transition-colors w-full"
+              onClick={() => navigate(`/scribe/${message.sharedScribe!.id}`)}
+            >
+              <div
+                className="flex items-center gap-2 p-2 border-b border-white/5 bg-black/10 hover:bg-white/5 transition-colors"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate(`/profile/${message.sharedScribe!.user.username}`);
+                }}
+              >
+                <Avatar src={message.sharedScribe.user.avatar} alt={message.sharedScribe.user.username} size="xs" />
+                <span className="text-xs font-semibold truncate text-white/90">@{message.sharedScribe.user.username}</span>
+              </div>
+              {message.sharedScribe.image && (
+                <div className="w-full h-32 bg-black/50 relative">
+                  <img
+                    src={message.sharedScribe.image}
+                    alt="Scribe"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              )}
+              {message.sharedScribe.content && (
+                <div className="p-2">
+                  <p className="text-xs text-white/80 line-clamp-2">{message.sharedScribe.content}</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Shared Omzo Card */}
+          {message.sharedOmzo && (
+            <div
+              className="bg-black/20 rounded-lg overflow-hidden mb-2 cursor-pointer border border-white/10 hover:bg-black/30 transition-colors w-full"
+              onClick={() => navigate(`/omzo/${message.sharedOmzo!.id}`)}
+            >
+              <div
+                className="flex items-center gap-2 p-2 border-b border-white/5 bg-black/10 hover:bg-white/5 transition-colors"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate(`/profile/${message.sharedOmzo!.user.username}`);
+                }}
+              >
+                <Avatar src={message.sharedOmzo!.user.avatar} alt={message.sharedOmzo!.user.username} size="xs" />
+                <span className="text-xs font-semibold truncate text-white/90">@{message.sharedOmzo!.user.username}</span>
+              </div>
+              <div className="relative aspect-[9/16] bg-gradient-to-br from-gray-900 to-black w-full max-h-[300px]">
+                {/* Fallback pattern or color */}
+                <div className="absolute inset-0 bg-neutral-800 flex items-center justify-center">
+                  <Play className="w-8 h-8 text-white/20" />
+                </div>
+                <video
+                  src={`${message.sharedOmzo!.videoUrl}#t=0.001`}
+                  className="w-full h-full object-cover relative z-10"
+                  muted
+                  preload="metadata"
+                  playsInline
+                />
+                <div className="absolute inset-0 flex items-center justify-center bg-black/20 z-20 pointer-events-none">
+                  <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30">
+                    <Play className="w-5 h-5 text-white fill-white" />
+                  </div>
+                </div>
+              </div>
+              {message.sharedOmzo!.caption && (
+                <div className="p-2 text-xs text-white/80 line-clamp-2">
+                  {message.sharedOmzo!.caption}
+                </div>
+              )}
+            </div>
+
           )}
 
           {/* Reply Indicator */}
@@ -233,9 +314,10 @@ export function MessageBubble({ message, isOwn, onMessageUpdate, onReply }: Mess
 
           {((message.type as string) === 'text' || (message.content && !message.content.startsWith('Sent '))) && (
             <p className={cn(
-              'text-sm',
+              'text-sm whitespace-pre-wrap break-words',
               isOwn ? 'text-primary-foreground' : 'text-foreground',
-              (message.type as string) !== 'text' && 'mt-2 opacity-90'
+              (message.type as string) !== 'text' && 'mt-2 opacity-90',
+              isShared && 'px-2 mt-2 mb-1'
             )}>
               {message.content}
             </p>
@@ -244,7 +326,7 @@ export function MessageBubble({ message, isOwn, onMessageUpdate, onReply }: Mess
           <div className={cn(
             'flex items-center gap-1 mt-1',
             isOwn ? 'justify-end' : 'justify-start',
-            isMedia && 'px-2 pb-1'
+            (isMedia || isShared) && 'px-2 pb-1'
           )}>
             {message.isOneTimeView && (
               <Lock className="w-3 h-3 text-muted-foreground" />

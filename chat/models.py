@@ -287,6 +287,16 @@ class Message(models.Model):
         help_text="Story that this message is replying to"
     )
 
+    # NEW: Shared Content Support
+    shared_scribe = models.ForeignKey(
+        'Scribe', on_delete=models.SET_NULL, null=True, blank=True, related_name='shared_messages',
+        help_text="Scribe shared in this message"
+    )
+    shared_omzo = models.ForeignKey(
+        'Omzo', on_delete=models.SET_NULL, null=True, blank=True, related_name='shared_messages',
+        help_text="Omzo shared in this message"
+    )
+
     class Meta:
         ordering = ['timestamp']
 

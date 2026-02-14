@@ -18,6 +18,9 @@ const ExplorePage = lazy(() => import("./pages/ExplorePage"));
 const ProfilePage = lazy(() => import("./pages/ProfilePage"));
 const CallPage = lazy(() => import("./pages/CallPage"));
 const LoginPage = lazy(() => import("./pages/LoginPage"));
+const OmzoDetailPage = lazy(() => import("./pages/OmzoDetailPage"));
+const ScribePage = lazy(() => import("./pages/ScribePage"));
+
 
 const queryClient = new QueryClient();
 
@@ -63,6 +66,22 @@ const App = () => (
                 element={
                   <ProtectedRoute>
                     <OmzoPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/omzo/:omzoId"
+                element={
+                  <ProtectedRoute>
+                    <OmzoDetailPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/scribe/:scribeId"
+                element={
+                  <ProtectedRoute>
+                    <ScribePage />
                   </ProtectedRoute>
                 }
               />

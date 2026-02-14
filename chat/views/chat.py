@@ -592,7 +592,11 @@ def get_chat_messages(request, chat_id):
         'reply_to', 
         'reply_to__sender',
         'story_reply',
-        'story_reply__user'
+        'story_reply__user',
+        'shared_scribe',
+        'shared_scribe__user',
+        'shared_omzo',
+        'shared_omzo__user'
     ).order_by('timestamp')
 
     # Filter by message ID (preferred method to avoid duplicates)
@@ -646,7 +650,25 @@ def get_chat_messages(request, chat_id):
                 'story_content': msg.story_reply.content if msg.story_reply.story_type == 'text' else None,
                 'story_media_url': msg.story_reply.media_url if msg.story_reply.story_type in ['image', 'video'] else None,
                 'story_owner': msg.story_reply.user.full_name,
-            } if msg.story_reply else None
+            } if msg.story_reply else None,
+            'shared_scribe': {
+                'id': msg.shared_scribe.id,
+                'content': msg.shared_scribe.content,
+                'image': msg.shared_scribe.image_url,
+                'user': {
+                    'username': msg.shared_scribe.user.username,
+                    'avatar': msg.shared_scribe.user.profile_picture_url
+                }
+            } if msg.shared_scribe else None,
+            'shared_omzo': {
+                'id': msg.shared_omzo.id,
+                'caption': msg.shared_omzo.caption,
+                'video_url': msg.shared_omzo.video_file.url,
+                'user': {
+                    'username': msg.shared_omzo.user.username,
+                    'avatar': msg.shared_omzo.user.profile_picture_url
+                }
+            } if msg.shared_omzo else None
         }
 
         messages_data.append(message_data)
@@ -665,8 +687,11 @@ def send_message(request):
         content = request.POST.get('content', '').strip()
         media_file = request.FILES.get('media')
         one_time = request.POST.get('one_time', 'false').lower() == 'true'
+        shared_scribe_id = request.POST.get('shared_scribe_id')
+        shared_omzo_id = request.POST.get('shared_omzo_id')
 
-        if not content and not media_file:
+        # Allow empty content if sharing something
+        if not content and not media_file and not shared_scribe_id and not shared_omzo_id:
             return JsonResponse({'success': False, 'error': 'Message cannot be empty'})
 
         chat = get_object_or_404(Chat, id=chat_id, participants=request.user)
@@ -699,14 +724,16 @@ def send_message(request):
         message = Message.objects.create(
             chat=chat,
             sender=request.user,
-            content=content or f'Sent {media_type}' if media_file else content,
+            content=content or f'Sent {media_type}' if media_file else content or 'Shared content',
             message_type=message_type,
             media_url=media_url,
             media_type=media_type,
             media_filename=media_filename,
             media_size=media_size,
             reply_to=reply_to_message,
-            one_time=one_time
+            one_time=one_time,
+            shared_scribe_id=shared_scribe_id,
+            shared_omzo_id=shared_omzo_id
         )
 
         # Update chat timestamp
@@ -721,7 +748,6 @@ def send_message(request):
         )
         
         # 🔥 Broadcast the message to all participants via WebSocket
-        # This ensures receivers see the message in real-time without refresh
         broadcast_message_to_chat(chat, message, exclude_sender=True)
 
         return JsonResponse({
@@ -749,7 +775,25 @@ def send_message(request):
                     'id': message.reply_to.id if message.reply_to else None,
                     'content': message.reply_to.content if message.reply_to else None,
                     'sender_name': message.reply_to.sender.full_name if message.reply_to else None,
-                } if message.reply_to else None
+                } if message.reply_to else None,
+                'shared_scribe': {
+                    'id': message.shared_scribe.id,
+                    'content': message.shared_scribe.content,
+                    'image': message.shared_scribe.image_url,
+                    'user': {
+                        'username': message.shared_scribe.user.username,
+                        'avatar': message.shared_scribe.user.profile_picture_url
+                    }
+                } if message.shared_scribe else None,
+                'shared_omzo': {
+                    'id': message.shared_omzo.id,
+                    'caption': message.shared_omzo.caption,
+                    'video_url': message.shared_omzo.video_file.url,
+                    'user': {
+                        'username': message.shared_omzo.user.username,
+                        'avatar': message.shared_omzo.user.profile_picture_url
+                    }
+                } if message.shared_omzo else None
             }
         })
 
@@ -813,7 +857,7 @@ def get_chats_api(request):
                 },
                 'last_message_time': last_message.timestamp.isoformat() if last_message else None,
                 'unread_count': unread_count,
-                'avatar': other_user.profile_picture_url if other_user else None,
+                'avatar': other_user.profile_picture_url if other_user else (chat.group_avatar.url if chat.group_avatar else None),
                 'initials': other_user.initials if other_user else (chat.name[:1].upper() if chat.name else 'G'),
                 # Include full other_user object for frontend
                 'other_user': {
@@ -887,11 +931,39 @@ def create_chat(request):
 @require_POST
 def create_group(request):
     try:
-        data = json.loads(request.body)
+        # Handle both JSON and Multipart (FormData)
+        data = {}
+        if request.content_type == 'application/json':
+            try:
+                data = json.loads(request.body)
+            except json.JSONDecodeError:
+                pass
+        else:
+            data = request.POST.dict()
+            # Handle stringified participants list from FormData
+            if 'participants' in data:
+                try:
+                    participants_raw = data['participants']
+                    if isinstance(participants_raw, str):
+                        data['participants'] = json.loads(participants_raw)
+                except:
+                    data['participants'] = []
+
         name = data.get('name', '').strip()
         description = data.get('description', '').strip()
-        max_participants = int(data.get('max_participants', 50))
-        is_public = data.get('is_public', False)
+        
+        # Handle max_participants from data (string or int)
+        try:
+            max_participants = int(data.get('max_participants', 50))
+        except (ValueError, TypeError):
+            max_participants = 50
+
+        # Handle is_public (string "true"/"false" or boolean)
+        is_public_val = data.get('is_public', False)
+        if isinstance(is_public_val, str):
+            is_public = is_public_val.lower() == 'true'
+        else:
+            is_public = bool(is_public_val)
 
         if not name:
             return JsonResponse({'success': False, 'error': 'Group name is required'})
@@ -902,6 +974,8 @@ def create_group(request):
         if max_participants < 2 or max_participants > 500:
             return JsonResponse({'success': False, 'error': 'Max participants must be between 2 and 500'})
 
+        group_avatar = request.FILES.get('avatar')
+
         # Create group
         chat = Chat.objects.create(
             chat_type='group',
@@ -909,11 +983,22 @@ def create_group(request):
             description=description,
             admin=request.user,
             max_participants=max_participants,
-            is_public=is_public
+            is_public=is_public,
+            group_avatar=group_avatar
         )
 
         # Add creator as participant
         chat.participants.add(request.user)
+        
+        # Add selected participants
+        participant_ids = data.get('participants', [])
+        if participant_ids and isinstance(participant_ids, list):
+            # Ensure identifiers are consistent (strings vs ints)
+            try:
+                users_to_add = CustomUser.objects.filter(id__in=participant_ids)
+                chat.participants.add(*users_to_add)
+            except Exception as e:
+                logger.error(f"Error adding participants: {e}")
 
         # Create system message
         Message.objects.create(
@@ -929,6 +1014,7 @@ def create_group(request):
                 'name': chat.name,
                 'invite_link': chat.invite_link,
                 'invite_code': chat.invite_code,
+                'groupAvatar': chat.group_avatar.url if chat.group_avatar else None
             }
         })
 

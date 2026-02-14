@@ -7,12 +7,13 @@ import { ChatItem } from '@/components/ChatItem';
 import { api } from '@/services/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
-import { Plus } from 'lucide-react';
+import { Plus, Users } from 'lucide-react';
 import { Avatar } from '@/components/Avatar';
 import { useAppStore } from '@/stores/appStore';
 import TopNavbar from '@/components/TopNavbar';
 import type { UserStories, Chat } from '@/services/api';
 import { SidebarWebSocket } from '@/services/websocket';
+import { NewGroupModal } from '@/components/NewGroupModal';
 
 type ChatTab = 'all' | 'private';
 
@@ -22,6 +23,7 @@ export default function HomePage() {
   const [chatTab, setChatTab] = useState<ChatTab>('all');
   const [storyViewerOpen, setStoryViewerOpen] = useState(false);
   const [selectedUserStories, setSelectedUserStories] = useState<UserStories | null>(null);
+  const [newGroupModalOpen, setNewGroupModalOpen] = useState(false);
   const { openUploadModal, refreshTrigger } = useAppStore();
 
   // Real data from Django - now using grouped stories
@@ -265,6 +267,13 @@ export default function HomePage() {
               {tab === 'all' ? 'All Chats' : 'Private'}
             </button>
           ))}
+          <button
+            onClick={() => setNewGroupModalOpen(true)}
+            className="aspect-square w-10 flex items-center justify-center rounded-xl bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors"
+            title="Create Group"
+          >
+            <Users className="w-5 h-5" />
+          </button>
         </div>
       </div>
 
@@ -300,6 +309,11 @@ export default function HomePage() {
           onClose={() => setStoryViewerOpen(false)}
         />
       )}
+
+      <NewGroupModal
+        isOpen={newGroupModalOpen}
+        onClose={() => setNewGroupModalOpen(false)}
+      />
     </div>
   );
 }

@@ -261,6 +261,7 @@ urlpatterns = [
          views.get_omzo_comments, name='get_omzo_comments'),
     path('api/omzo/comment/', views.add_omzo_comment, name='add_omzo_comment'),
     path('api/omzo/report/', views.report_omzo, name='report_omzo'),
+    path('api/omzo/<int:omzo_id>/details/', views.get_omzo_detail, name='get_omzo_detail'),
 
     # Share API & Chat Requests
     path('api/share/send/', views.share_content_to_user, name='share_content_to_user'),

@@ -58,6 +58,8 @@ def get_chat_details_api(request, chat_id):
             chat_initials = other_user.initials
     else:
         chat_initials = chat.name[:1].upper() if chat.name else "G"
+        if chat.group_avatar:
+            chat_avatar = chat.group_avatar.url
 
     # Serialize messages
     messages_data = []
@@ -137,6 +139,13 @@ def get_chat_details_api(request, chat_id):
             'admin_id': chat.admin_id if chat.chat_type == 'group' else None,
             'description': chat.description if chat.chat_type == 'group' else None,
             'participant_count': chat.participants.count(),
+            'participants': [{
+                'id': p.id,
+                'username': p.username,
+                'full_name': p.full_name,
+                'profile_picture': p.profile_picture_url,
+                'is_online': p.is_online
+            } for p in chat.participants.all()] if chat.chat_type == 'group' else [],
             'other_user': {
                 'id': other_user.id,
                 'username': other_user.username,

@@ -12,7 +12,7 @@ import {
   Lock,
   Eye,
   BadgeCheck,
-  PlusCircle,
+
   X,
   Reply as ReplyIcon
 } from 'lucide-react';
@@ -47,7 +47,7 @@ export default function ChatPage() {
   const [replyingTo, setReplyingTo] = useState<Message | null>(null);
 
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const inputRef = useRef<HTMLInputElement | null>(null);
+  const inputRef = useRef<HTMLTextAreaElement | null>(null);
   const inputBarRef = useRef<HTMLDivElement | null>(null);
   const isTouchingRef = useRef(false);
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
@@ -179,9 +179,8 @@ export default function ChatPage() {
     }
   }, [messages, chatId]);
 
-  const handleMediaSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !chatId) return;
+  const handleFileUpload = async (file: File) => {
+    if (!chatId) return;
 
     setUploading(true);
     try {
@@ -201,7 +200,28 @@ export default function ChatPage() {
       });
     } finally {
       setUploading(false);
+    }
+  };
+
+  const handleMediaSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      await handleFileUpload(file);
       if (mediaInputRef.current) mediaInputRef.current.value = '';
+    }
+  };
+
+  const handlePaste = async (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    const items = e.clipboardData.items;
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.startsWith('image/')) {
+        const file = items[i].getAsFile();
+        if (file) {
+          e.preventDefault();
+          await handleFileUpload(file);
+          return; // Handle one image at a time for now
+        }
+      }
     }
   };
 
@@ -240,12 +260,12 @@ export default function ChatPage() {
     if (!loading && containerRef.current) {
       scrollToBottom(false); // Instant scroll
     }
-  }, [loading, messages]); // Add messages to ensure it stays at bottom on initial render sequence
+  }, [loading]);
 
   useEffect(() => {
     // Only auto-scroll if user is already near the bottom
     if (isNearBottom()) {
-      scrollToBottom(true); // Smooth scroll for new messages
+      scrollToBottom(false); // Instant scroll to prevent fighting
     }
   }, [messages]);
 
@@ -304,6 +324,14 @@ export default function ChatPage() {
       document.removeEventListener('touchmove', onTouchMove as EventListener);
     };
   }, []);
+
+  useEffect(() => {
+    // Auto-resize textarea when message changes
+    if (inputRef.current) {
+      inputRef.current.style.height = 'auto';
+      inputRef.current.style.height = `${Math.min(inputRef.current.scrollHeight, 150)}px`;
+    }
+  }, [message]);
 
   if (loading) {
     return (
@@ -431,23 +459,29 @@ export default function ChatPage() {
 
             <div
               className="flex items-center gap-3 cursor-pointer"
-              onClick={() => chat?.user?.id && navigate(`/profile/${chat.user.id}`)}
+              onClick={() => chat?.chat_type !== 'group' && chat?.user?.username && navigate(`/profile/${chat.user.username}`)}
             >
               <Avatar
-                src={chat?.user?.avatar || ''}
-                alt={chat?.user?.username || 'User'}
+                src={chat?.chat_type === 'group' ? (chat.groupAvatar || '') : (chat?.user?.avatar || '')}
+                alt={chat?.chat_type === 'group' ? (chat.name || 'Group') : (chat?.user?.username || 'User')}
                 size="md"
-                isOnline={chat?.user?.isOnline}
+                isOnline={chat?.chat_type === 'group' ? undefined : chat?.user?.isOnline}
               />
               <div>
                 <div className="flex items-center gap-1">
-                  <p className="font-semibold text-foreground">{chat?.user?.displayName || 'Unknown'}</p>
-                  {chat?.user?.isVerified && (
+                  <p className="font-semibold text-foreground">
+                    {chat?.chat_type === 'group' ? (chat.name || 'Group Chat') : (chat?.user?.displayName || 'Unknown')}
+                  </p>
+                  {chat?.chat_type !== 'group' && chat?.user?.isVerified && (
                     <BadgeCheck className="w-4 h-4 text-primary fill-primary/20" />
                   )}
                 </div>
                 <p className="text-xs text-muted-foreground flex items-center gap-1">
-                  {chat?.user?.isOnline ? 'Online' : 'Offline'}
+                  {chat?.chat_type === 'group' ? (
+                    <span>{chat.participants?.length || 0} participants</span>
+                  ) : (
+                    <span>{chat?.user?.isOnline ? 'Online' : 'Offline'}</span>
+                  )}
                   {isConnected && (
                     <>
                       <span className="mx-1">•</span>
@@ -465,7 +499,13 @@ export default function ChatPage() {
           <div className="flex items-center gap-1">
             {/* Audio Call Button */}
             <button
-              onClick={() => navigate(`/call/${chatId}?audio=true&initiator=true`)}
+              onClick={() => {
+                if (chat?.chat_type === 'group') {
+                  toast({ description: "Group calls are coming soon!" });
+                  return;
+                }
+                navigate(`/call/${chatId}?audio=true&initiator=true`);
+              }}
               className="p-2 hover:bg-secondary rounded-xl transition-colors"
               title="Audio Call"
             >
@@ -474,7 +514,13 @@ export default function ChatPage() {
 
             {/* Video Call Button */}
             <button
-              onClick={() => navigate(`/call/${chatId}?initiator=true`)}
+              onClick={() => {
+                if (chat?.chat_type === 'group') {
+                  toast({ description: "Group calls are coming soon!" });
+                  return;
+                }
+                navigate(`/call/${chatId}?initiator=true`);
+              }}
               className="p-2 hover:bg-secondary rounded-xl transition-colors"
               title="Video Call"
             >
@@ -495,7 +541,7 @@ export default function ChatPage() {
       {/* Messages Area - Added scroll-auto to override global scroll-smooth */}
       <div
         ref={containerRef}
-        className="flex-1 overflow-y-auto scroll-auto p-4 pt-[calc(4rem+env(safe-area-inset-top))]"
+        className="flex-1 overflow-y-auto overscroll-y-contain p-4 pt-[calc(4rem+env(safe-area-inset-top))]"
         style={{ paddingBottom: `calc(4rem + env(safe-area-inset-bottom) + ${keyboardOffset}px)` }}
       >
         {chat?.isNewRequest && (
@@ -506,9 +552,9 @@ export default function ChatPage() {
           </div>
         )}
 
-        {messages.map((msg) => (
+        {messages.map((msg, index) => (
           <MessageBubble
-            key={msg.id || Math.random()}
+            key={msg.id || `msg-${index}`}
             message={msg}
             isOwn={msg.isOwn !== undefined ? msg.isOwn : (String(msg.senderId) === 'me' || String(msg.senderId) === String(user?.id || ''))}
             onMessageUpdate={refreshMessages}
@@ -570,18 +616,33 @@ export default function ChatPage() {
             disabled={uploading}
             className="p-3.5 bg-secondary text-foreground rounded-2xl hover:bg-secondary/80 transition-colors"
           >
-            <PlusCircle className="w-5 h-5" />
+            <Image className="w-5 h-5" />
           </button>
 
-          <input
+          <button
+            type="button"
+            className="p-3.5 bg-secondary text-foreground rounded-2xl hover:bg-secondary/80 transition-colors relative group"
+            title="View (Coming Soon)"
+            onClick={(e) => e.preventDefault()}
+          >
+            <Eye className="w-5 h-5" />
+          </button>
+
+          <textarea
             ref={inputRef}
-            type="text"
             placeholder={replyingTo ? "Type your reply..." : "Type a message..."}
             value={message}
             onChange={(e) => handleTyping(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+            onPaste={handlePaste}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleSend();
+              }
+            }}
             disabled={uploading}
-            className="w-full py-3.5 px-4 bg-secondary rounded-2xl text-foreground outline-none border border-transparent focus:border-primary/30 transition-all font-medium"
+            rows={1}
+            className="w-full py-3.5 px-4 bg-secondary rounded-2xl text-foreground outline-none border border-transparent focus:border-primary/30 transition-all font-medium resize-none min-h-[50px] max-h-[150px]"
           />
 
           <button
