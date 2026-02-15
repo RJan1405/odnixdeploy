@@ -30,6 +30,9 @@ import { MessageBubble } from '@/components/MessageBubble';
 import { api, Chat, Message } from '@/services/api';
 import { cn } from '@/lib/utils';
 import { useChatWebSocket } from '@/hooks/useChatWebSocket';
+import { useP2PFileTransfer } from '@/hooks/useP2PFileTransfer';
+
+const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 export default function ChatPage() {
   const { chatId } = useParams();
@@ -57,9 +60,13 @@ export default function ChatPage() {
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const mediaInputRef = useRef<HTMLInputElement | null>(null);
+  const p2pInputRef = useRef<HTMLInputElement | null>(null);
+
+  // Ref to bridge circular dependency
+  const handleP2PSignalRef = useRef<((signal: any) => void) | null>(null);
 
   // WebSocket integration for real-time messaging
-  const { sendMessage: sendWsMessage, sendTyping, isConnected } = useChatWebSocket({
+  const { sendMessage: sendWsMessage, sendTyping, isConnected, sendP2PSignal } = useChatWebSocket({
     chatId: chatId || '',
     onMessage: (newMessage) => {
       console.log('[ChatPage] Received real-time message:', newMessage);
@@ -99,8 +106,50 @@ export default function ChatPage() {
 
         return m;
       }));
+    },
+    onMessageConsumed: (messageId, consumedBy, consumedAt) => {
+      setMessages(prev => prev.map(m => {
+        if (String(m.id) === String(messageId)) {
+          return { ...m, consumed: true, viewed: true };
+        }
+        return m;
+      }));
+    },
+    onP2PSignal: (signal, senderId) => {
+      if (handleP2PSignalRef.current) {
+        handleP2PSignalRef.current(signal);
+      }
     }
   });
+
+  const {
+    status: p2pStatus,
+    progress: p2pProgress,
+    currentFile: p2pCurrentFile,
+    sendFile: sendP2PFile,
+    handleSignal: handleP2PSignal,
+    reset: resetP2P
+  } = useP2PFileTransfer(
+    sendP2PSignal,
+    chatId || '',
+    user?.id ? String(user.id) : '',
+    (file, type) => {
+      if (type === 'sent') {
+        const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+        const text = `📂 Shared P2P File: ${file.name} (${sizeMB} MB)`;
+        // Send as a regular message so it shows up in history
+        if (isConnected) {
+          sendWsMessage(text);
+        } else {
+          api.sendMessage(chatId || '', text);
+        }
+      }
+    }
+  );
+
+  useEffect(() => {
+    handleP2PSignalRef.current = handleP2PSignal;
+  }, [handleP2PSignal]);
 
   useEffect(() => {
     if (!chatId) return;
@@ -184,7 +233,7 @@ export default function ChatPage() {
 
     setUploading(true);
     try {
-      const sentMsg = await api.sendMessage(chatId, '', file);
+      const sentMsg = await api.sendMessage(chatId, '', file, undefined, isOneTimeView);
       if (sentMsg) {
         setMessages((prev) => {
           if (prev.some((m) => m.id === sentMsg.id)) return prev;
@@ -225,14 +274,21 @@ export default function ChatPage() {
     }
   };
 
-  const handleP2PFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
-    // TODO: implement real P2P transfer. For now, just log selected files.
-    console.log('Starting P2P transfer to', chat?.user.username, files);
-    toast({ title: 'P2P transfer started', description: `${files.length} file(s) selected for P2P send.` });
-    // clear input
-    e.currentTarget.value = '';
+  const handleP2PFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Proceed with transfer regardless of status check to avoid false negatives
+      sendP2PFile(file);
+      if (p2pInputRef.current) p2pInputRef.current.value = '';
+    }
+  };
+
+  const handleP2PClick = () => {
+    if (chat?.chat_type === 'group') {
+      toast({ title: 'Not supported', description: 'P2P file transfer is currently only available for usage in private chats.', variant: 'destructive' });
+      return;
+    }
+    p2pInputRef.current?.click();
   };
 
   const scrollToBottom = (smooth = false) => {
@@ -390,7 +446,7 @@ export default function ChatPage() {
     // Fallback to HTTP if WebSocket fails
     try {
       console.log('[ChatPage] Sending message via HTTP fallback');
-      const sentMsg = await api.sendMessage(chatId, messageText, undefined, replyToId);
+      const sentMsg = await api.sendMessage(chatId, messageText, undefined, replyToId, isOneTimeView);
       if (sentMsg) {
         setMessages((prev) => {
           // Avoid duplicates
@@ -436,13 +492,7 @@ export default function ChatPage() {
     }
   };
 
-  const handleP2PClick = () => {
-    if (!chat?.user.isOnline) {
-      toast({ title: 'User is offline', description: 'P2P file transfer requires the recipient to be online.' });
-      return;
-    }
-    fileInputRef.current?.click();
-  };
+
 
   return (
     <div className="flex flex-col h-screen bg-background">
@@ -544,14 +594,6 @@ export default function ChatPage() {
         className="flex-1 overflow-y-auto overscroll-y-contain p-4 pt-[calc(4rem+env(safe-area-inset-top))]"
         style={{ paddingBottom: `calc(4rem + env(safe-area-inset-bottom) + ${keyboardOffset}px)` }}
       >
-        {chat?.isNewRequest && (
-          <div className="glass-card rounded-xl p-4 mb-4">
-            <p className="text-sm text-muted-foreground mb-3 text-center">
-              This user wants to send you a message
-            </p>
-          </div>
-        )}
-
         {messages.map((msg, index) => (
           <MessageBubble
             key={msg.id || `msg-${index}`}
@@ -561,6 +603,51 @@ export default function ChatPage() {
             onReply={setReplyingTo}
           />
         ))}
+
+        {/* P2P Active Transfer Bubble */}
+        {p2pStatus !== 'idle' && p2pCurrentFile && (
+          <div className={cn(
+            "flex w-full mb-4 px-2",
+            p2pCurrentFile.isIncoming ? "justify-start" : "justify-end"
+          )}>
+            <div className={cn(
+              "max-w-[80%] rounded-2xl p-3 glass-card border flex items-center gap-3",
+              p2pCurrentFile.isIncoming ? "bg-secondary/50 border-border/50 rounded-tl-sm" : "bg-primary/10 border-primary/20 rounded-tr-sm"
+            )}>
+              <div className="p-2.5 bg-background/50 rounded-xl">
+                {p2pCurrentFile.isIncoming ? <Share2 className="w-5 h-5 text-primary" /> : <Send className="w-5 h-5 text-primary" />}
+              </div>
+              <div className="flex-1 min-w-[200px]">
+                <div className="flex justify-between items-center mb-1">
+                  <span className="text-sm font-medium truncate max-w-[150px]">{p2pCurrentFile.name}</span>
+                  <span className="text-xs text-muted-foreground ml-2">
+                    {p2pStatus === 'transferring' ? `${p2pProgress}%` : capitalize(p2pStatus)}
+                  </span>
+                </div>
+
+                {/* Progress Bar */}
+                <div className="h-1.5 w-full bg-background/50 rounded-full overflow-hidden mb-1">
+                  <div
+                    className="h-full bg-primary transition-all duration-300 ease-out"
+                    style={{ width: `${p2pProgress}%` }}
+                  />
+                </div>
+
+                {/* Status Text */}
+                <div className="flex justify-between items-center">
+                  <span className="text-[10px] text-muted-foreground">
+                    {(p2pCurrentFile.size / (1024 * 1024)).toFixed(1)} MB • P2P Direct
+                  </span>
+                  {(p2pStatus === 'completed' || p2pStatus === 'failed') && (
+                    <button onClick={resetP2P} className="p-1 hover:bg-background/80 rounded-full transition-colors ml-2">
+                      <X className="w-3 h-3" />
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Typing Indicator */}
         {typingUsers.length > 0 && (
@@ -611,21 +698,65 @@ export default function ChatPage() {
             accept="*/*"
             onChange={handleMediaSelect}
           />
-          <button
-            onClick={() => mediaInputRef.current?.click()}
-            disabled={uploading}
-            className="p-3.5 bg-secondary text-foreground rounded-2xl hover:bg-secondary/80 transition-colors"
-          >
-            <Image className="w-5 h-5" />
-          </button>
+          <input
+            ref={p2pInputRef}
+            type="file"
+            className="hidden"
+            accept="*/*"
+            onChange={handleP2PFileSelect}
+          />
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                disabled={uploading || p2pStatus === 'transferring'}
+                className="p-3.5 bg-secondary text-foreground rounded-2xl hover:bg-secondary/80 transition-colors"
+                title="Share file"
+              >
+                <div className="relative">
+                  <Image className="w-5 h-5" />
+                  {p2pStatus === 'transferring' && (
+                    <span className="absolute -top-1 -right-1 w-2 h-2 bg-primary rounded-full animate-pulse" />
+                  )}
+                </div>
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent side="top" align="start" className="w-56 glass-card border-border/50 backdrop-blur-xl">
+              <DropdownMenuItem
+                onClick={handleP2PClick}
+                className="cursor-pointer gap-2 py-2.5 focus:bg-primary/10 transition-colors"
+              >
+                <Share2 className="w-4 h-4" />
+                <div className="flex flex-col">
+                  <span className="font-medium">Send P2P file (no limit)</span>
+                  <span className="text-[10px] text-muted-foreground">Direct transfer, unlimited size</span>
+                </div>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => mediaInputRef.current?.click()}
+                className="cursor-pointer gap-2 py-2.5 focus:bg-primary/10 transition-colors"
+              >
+                <Image className="w-4 h-4" />
+                <div className="flex flex-col">
+                  <span className="font-medium">Normal file share</span>
+                  <span className="text-[10px] text-muted-foreground">Upload to server</span>
+                </div>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
 
           <button
             type="button"
-            className="p-3.5 bg-secondary text-foreground rounded-2xl hover:bg-secondary/80 transition-colors relative group"
-            title="View (Coming Soon)"
-            onClick={(e) => e.preventDefault()}
+            onClick={() => setIsOneTimeView(!isOneTimeView)}
+            className={cn(
+              "p-3.5 rounded-2xl transition-all relative group",
+              isOneTimeView
+                ? "bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 shadow-[0_0_15px_-3px_rgba(245,158,11,0.3)] border border-amber-500/20"
+                : "bg-secondary text-foreground hover:bg-secondary/80 border border-transparent"
+            )}
+            title={isOneTimeView ? "One-time view active" : "Enable one-time view"}
           >
-            <Eye className="w-5 h-5" />
+            {isOneTimeView ? <Lock className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
           </button>
 
           <textarea

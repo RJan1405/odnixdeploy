@@ -299,6 +299,10 @@ class Message(models.Model):
 
     class Meta:
         ordering = ['timestamp']
+        indexes = [
+            models.Index(fields=['one_time', 'consumed_at'], name='msg_onetime_idx'),
+            models.Index(fields=['chat', 'one_time'], name='msg_chat_onetime_idx'),
+        ]
 
     def __str__(self):
         sender_name = self.sender.username if self.sender else "System"

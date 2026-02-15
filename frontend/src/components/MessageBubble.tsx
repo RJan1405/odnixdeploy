@@ -1,9 +1,9 @@
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
-import { Check, CheckCheck, Lock, Share2, Reply as ReplyIcon, Play } from 'lucide-react';
+import { Check, CheckCheck, Lock, Share2, Reply as ReplyIcon, Play, Flame, X, Eye, Loader2 } from 'lucide-react';
 import { Avatar } from './Avatar';
 import type { Message } from '@/services/api';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { MessageContextMenu } from './MessageContextMenu';
 import { api } from '@/services/api';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -21,6 +21,81 @@ export function MessageBubble({ message, isOwn, onMessageUpdate, onReply }: Mess
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
   const { chatId } = useParams<{ chatId: string }>();
   const navigate = useNavigate();
+
+  const [viewOnceOpen, setViewOnceOpen] = useState(false);
+  const [isConsumedLocal, setIsConsumedLocal] = useState(message.consumed || false);
+  const [viewContent, setViewContent] = useState<{ url: string, type: string } | null>(null);
+  const [isOpeningViewOnce, setIsOpeningViewOnce] = useState(false);
+
+  useEffect(() => {
+    if (message.consumed) {
+      setIsConsumedLocal(true);
+    }
+  }, [message.consumed]);
+
+  const handleConsumeOneTime = async () => {
+    if (isConsumedLocal || isOpeningViewOnce) return;
+
+    // 🚀 OPTIMISTIC UI: Open overlay immediately for instant feedback
+    setViewOnceOpen(true);
+    setIsOpeningViewOnce(true);
+
+    try {
+      console.log('[OTV] Consuming message:', message.id);
+      console.log('[OTV] Current message:', message);
+
+      // Call API to consume (runs in background while overlay is already visible)
+      const res = await api.consumeOneTimeMessage(message.id);
+      console.log('[OTV] API Response:', res);
+
+      if (res && res.success) {
+        // Set the content to view
+        const url = res.media_url || message.mediaUrl || message.content;
+        // Improved type detection from URL if missing or generic
+        let type = res.media_type || message.type;
+        const urlLower = (url || '').toLowerCase();
+
+        if (!type || type === 'file' || type === 'media') {
+          if (urlLower.includes('.pdf') || urlLower.endsWith('.pdf')) type = 'document';
+          else if (urlLower.match(/\.(mp4|mov|avi|mkv|webm)$/)) type = 'video';
+          else if (urlLower.match(/\.(jpg|jpeg|png|gif|webp)$/)) type = 'image';
+          else type = 'image';
+        }
+        if (!type) type = 'image';
+
+        console.log('[OTV] Content URL:', url);
+        console.log('[OTV] Content Type:', type);
+        console.log('[OTV] Response content:', res.content);
+
+        if (url) {
+          setViewContent({ url, type });
+          setIsConsumedLocal(true);
+          onMessageUpdate?.();
+        } else if (res.content) {
+          // Text only case
+          setViewContent({ url: res.content, type: 'text' });
+          setIsConsumedLocal(true);
+          onMessageUpdate?.();
+        } else {
+          console.error('[OTV] No content returned for view once message');
+          alert('Failed to load message content.');
+          setViewOnceOpen(false); // Close overlay on error
+        }
+
+      } else {
+        console.error('[OTV] Failed to consume message', res);
+        alert('This message has already been viewed or is unavailable.');
+        setIsConsumedLocal(true);
+        setViewOnceOpen(false); // Close overlay on error
+      }
+    } catch (error) {
+      console.error('[OTV] Error opening view once:', error);
+      alert('Error opening message. Please try again.');
+      setViewOnceOpen(false); // Close overlay on error
+    } finally {
+      setIsOpeningViewOnce(false);
+    }
+  };
 
   const handleContextMenu = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -258,37 +333,191 @@ export function MessageBubble({ message, isOwn, onMessageUpdate, onReply }: Mess
             </div>
           )}
 
-          {/* Media Rendering */}
-          {message.type === 'image' && (message.mediaUrl || message.content) && (
-            <div className="relative w-full max-w-[280px] h-fit overflow-hidden rounded-xl">
-              <img
-                src={message.mediaUrl || message.content}
-                alt="Shared image"
-                className="w-full h-auto max-h-[320px] object-cover transition-transform hover:scale-105 duration-300 pointer-events-auto"
-                onError={(e) => (e.currentTarget.style.display = 'none')}
-              />
+          {/* One-Time View Logic */}
+          {message.isOneTimeView ? (
+            <div className="flex flex-col gap-2 my-1">
+              <button
+                disabled={isOwn || isConsumedLocal || isOpeningViewOnce}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (!isOwn && !isConsumedLocal) handleConsumeOneTime();
+                }}
+                className={cn(
+                  "flex items-center gap-3 p-3 rounded-xl border transition-all w-full max-w-[260px]",
+                  isOwn
+                    ? "bg-primary/5 border-primary/20 cursor-default"
+                    : isConsumedLocal
+                      ? "bg-secondary/50 border-white/5 cursor-default opacity-70"
+                      : "bg-gradient-to-r from-amber-500/10 to-orange-500/10 hover:from-amber-500/20 hover:to-orange-500/20 border-amber-500/30 cursor-pointer shadow-[0_0_15px_-5px_rgba(245,158,11,0.2)] group"
+                )}
+              >
+                <div className={cn(
+                  "w-10 h-10 rounded-full flex items-center justify-center transition-all shrink-0",
+                  isOwn
+                    ? "bg-primary/10 text-primary border border-primary/20"
+                    : isConsumedLocal
+                      ? "bg-white/5 text-muted-foreground border border-white/10"
+                      : "bg-amber-500/20 text-amber-500 border border-amber-500/30 group-hover:scale-110 shadow-[0_0_10px_rgba(245,158,11,0.4)]"
+                )}>
+                  {isOpeningViewOnce ? (
+                    <Loader2 className="w-5 h-5 animate-spin text-amber-500" />
+                  ) : (
+                    isOwn ? <Lock className="w-5 h-5" /> : (isConsumedLocal ? <Lock className="w-5 h-5" /> : <Flame className="w-5 h-5 animate-pulse" />)
+                  )}
+                </div>
+                <div className="flex flex-col items-start min-w-0">
+                  <span className={cn(
+                    "text-sm font-semibold truncate w-full text-left",
+                    isOwn || isConsumedLocal ? "text-muted-foreground" : "text-foreground group-hover:text-amber-500 transition-colors"
+                  )}>
+                    {isOpeningViewOnce ? "Opening..." : (isOwn ? "Sent as one-time view" : (isConsumedLocal ? "Opened" : "Tap to view"))}
+                  </span>
+                  <span className="text-[10px] text-muted-foreground/70 text-left leading-tight">
+                    {isOwn ? "Recipient can view once" : (isConsumedLocal ? "This message has been viewed" : "Expires after opening")}
+                  </span>
+                </div>
+              </button>
+
+              {/* Full Screen View Once Overlay */}
+              {viewOnceOpen && (
+                <div className="fixed inset-0 z-[100] bg-black flex flex-col items-center justify-center animate-in fade-in duration-300">
+                  {/* Header */}
+                  <div className="absolute top-0 left-0 right-0 p-4 pt-8 flex justify-between items-center z-50 bg-gradient-to-b from-black/80 to-transparent">
+                    <div className="flex items-center gap-3">
+                      {/* Only show sender info if not own, or if own (which shouldn't happen here usually) */}
+                      <div className="flex items-center gap-2 px-3 py-1.5 bg-white/10 backdrop-blur-md rounded-full border border-white/10">
+                        <Lock className="w-3 h-3 text-white/70" />
+                        <span className="text-white/90 text-xs font-medium">One-time view</span>
+                      </div>
+                    </div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setViewOnceOpen(false);
+                      }}
+                      className="p-2 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors backdrop-blur-md group"
+                    >
+                      <X className="w-6 h-6 group-hover:scale-110 transition-transform" />
+                    </button>
+                  </div>
+
+                  {/* Content */}
+                  <div className="w-full h-full flex flex-col items-center justify-center p-4 gap-4" onClick={(e) => e.stopPropagation()}>
+                    {/* Loading Spinner while fetching content */}
+                    {isOpeningViewOnce && !viewContent && (
+                      <div className="flex flex-col items-center gap-4">
+                        <Loader2 className="w-12 h-12 text-amber-500 animate-spin" />
+                        <p className="text-white/70 text-sm">Loading content...</p>
+                      </div>
+                    )}
+
+                    {/* Image View */}
+                    {!isOpeningViewOnce && (viewContent ? viewContent.type === 'image' : message.type === 'image') && (
+                      <img
+                        src={viewContent?.url || message.mediaUrl || message.content}
+                        className="max-w-full max-h-[80vh] object-contain drop-shadow-2xl"
+                        alt="One-time view"
+                        onError={(e) => {
+                          console.error('[OTV] Image failed to load:', e.currentTarget.src);
+                          e.currentTarget.style.display = 'none';
+                        }}
+                        onLoad={(e) => {
+                          console.log('[OTV] Image loaded successfully:', e.currentTarget.src);
+                        }}
+                      />
+                    )}
+
+                    {/* Video View */}
+                    {!isOpeningViewOnce && (viewContent ? viewContent.type === 'video' : message.type === 'video') && (
+                      <video
+                        src={viewContent?.url || message.mediaUrl || message.content}
+                        className="max-w-full max-h-[80vh] object-contain drop-shadow-2xl"
+                        controls
+                        autoPlay
+                        onError={(e) => {
+                          console.error('[OTV] Video failed to load:', e.currentTarget.src);
+                        }}
+                        onLoadedData={(e) => {
+                          console.log('[OTV] Video loaded successfully:', e.currentTarget.src);
+                        }}
+                      />
+                    )}
+
+                    {/* PDF/Document View */}
+                    {!isOpeningViewOnce && (
+                      (viewContent ? (viewContent.type === 'document' || viewContent.type === 'pdf') : (message.type === 'document' || message.type === 'file')) ||
+                      (viewContent?.url || message.mediaUrl || '').toLowerCase().endsWith('.pdf')
+                    ) && (
+                        <div className="w-full h-full flex flex-col items-center justify-center">
+                          <div className="bg-white/10 px-4 py-2 rounded-full backdrop-blur-md mb-4 text-white/90 text-sm font-medium border border-white/10 shadow-lg">
+                            {message.mediaFilename || (viewContent as any)?.media_filename || (viewContent?.url || message.mediaUrl || '').split('/').pop()}
+                          </div>
+                          <iframe
+                            src={`${viewContent?.url || message.mediaUrl || message.content}#toolbar=0&navpanes=0&scrollbar=0`}
+                            className="w-full h-full max-w-4xl max-h-[80vh] rounded-xl shadow-2xl bg-white border border-white/20"
+                            title="PDF Viewer"
+                          />
+                        </div>
+                      )}
+
+                    {/* Text View (Caption or Text Message) */}
+                    {!isOpeningViewOnce && (message.content && !message.content.startsWith('Sent ') && !message.content.startsWith('http')) && (
+                      <div className="bg-black/50 backdrop-blur-md p-4 rounded-xl max-w-md text-center border border-white/10">
+                        <p className="text-white/90 font-medium text-lg leading-relaxed">{message.content}</p>
+                      </div>
+                    )}
+
+                    {/* Debug info - remove after testing */}
+                    {!isOpeningViewOnce && (!viewContent?.url && !message.mediaUrl && !message.content) && (
+                      <div className="bg-red-500/20 p-4 rounded-xl border border-red-500/50">
+                        <p className="text-white text-sm">No content available</p>
+                        <p className="text-white/70 text-xs mt-2">Type: {viewContent?.type || message.type}</p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Footer Warning */}
+                  <div className="absolute bottom-10 px-6 py-3 bg-black/60 backdrop-blur-md rounded-full border border-amber-500/30 flex items-center gap-2 animate-pulse">
+                    <Flame className="w-4 h-4 text-amber-500" />
+                    <span className="text-white/90 text-sm font-medium">This message will disappear when you close it</span>
+                  </div>
+                </div>
+              )}
             </div>
+          ) : (
+            <>
+              {message.type === 'image' && (message.mediaUrl || message.content) && (
+                <div className="relative w-full max-w-[280px] h-fit overflow-hidden rounded-xl">
+                  <img
+                    src={message.mediaUrl || message.content}
+                    alt="Shared image"
+                    className="w-full h-auto max-h-[320px] object-cover transition-transform hover:scale-105 duration-300 pointer-events-auto"
+                    onError={(e) => (e.currentTarget.style.display = 'none')}
+                  />
+                </div>
+              )}
+
+              {message.type === 'video' && (message.mediaUrl || message.content) && (
+                <div className="relative w-full max-w-[280px] h-fit overflow-hidden rounded-xl bg-black/10">
+                  <video
+                    src={message.mediaUrl || message.content}
+                    className="w-full h-auto max-h-[320px] object-cover"
+                    controls
+                  />
+                </div>
+              )}
+
+              {(message.type === 'audio' || (message as any).file_type === 'audio') && (message.mediaUrl || message.content) && (
+                <audio
+                  src={message.mediaUrl || message.content}
+                  className="w-full max-w-[240px] h-10 mt-1"
+                  controls
+                />
+              )}
+            </>
           )}
 
-          {message.type === 'video' && (message.mediaUrl || message.content) && (
-            <div className="relative w-full max-w-[280px] h-fit overflow-hidden rounded-xl bg-black/10">
-              <video
-                src={message.mediaUrl || message.content}
-                className="w-full h-auto max-h-[320px] object-cover"
-                controls
-              />
-            </div>
-          )}
-
-          {(message.type === 'audio' || (message as any).file_type === 'audio') && (message.mediaUrl || message.content) && (
-            <audio
-              src={message.mediaUrl || message.content}
-              className="w-full max-w-[240px] h-10 mt-1"
-              controls
-            />
-          )}
-
-          {(message.type === 'file' || message.type === 'document') && (message.mediaUrl || message.content) && (
+          {!message.isOneTimeView && (message.type === 'file' || message.type === 'document') && (message.mediaUrl || message.content) && (
             <a
               href={message.mediaUrl || message.content}
               target="_blank"
@@ -312,7 +541,7 @@ export function MessageBubble({ message, isOwn, onMessageUpdate, onReply }: Mess
             </a>
           )}
 
-          {((message.type as string) === 'text' || (message.content && !message.content.startsWith('Sent '))) && (
+          {((message.type as string) === 'text' || (message.content && !message.content.startsWith('Sent '))) && !message.isOneTimeView && (
             <p className={cn(
               'text-sm whitespace-pre-wrap break-words',
               isOwn ? 'text-primary-foreground' : 'text-foreground',

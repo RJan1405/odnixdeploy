@@ -43,6 +43,7 @@ export interface Message {
   type: 'text' | 'image' | 'video' | 'file' | 'audio' | 'document';
   timestamp: Date;
   isOneTimeView?: boolean;
+  consumed?: boolean;
   viewed?: boolean;
   mediaUrl?: string;
   mediaFilename?: string;
@@ -534,6 +535,8 @@ export const api = {
         storyReply: m.story_reply,
         sharedScribe: m.shared_scribe,
         sharedOmzo: m.shared_omzo,
+        isOneTimeView: m.one_time || false,
+        consumed: m.consumed || false,
       }));
     } catch (error) {
       console.error('Error fetching messages:', error);
@@ -542,42 +545,61 @@ export const api = {
   },
 
   // Send Message
-  sendMessage: async (chatId: string, content: string, file?: File, replyToId?: string, sharedScribeId?: string, sharedOmzoId?: string): Promise<Message | null> => {
+  sendMessage: async (chatId: string, content: string, file?: File, replyToId?: string, isOneTimeView?: boolean, sharedScribeId?: string, sharedOmzoId?: string): Promise<Message | null> => {
     try {
       const formData = new FormData();
       formData.append('chat_id', chatId);
       if (content) formData.append('content', content);
       if (file) formData.append('media', file);
       if (replyToId) formData.append('reply_to', replyToId);
+      if (isOneTimeView) formData.append('one_time', 'true');
       if (sharedScribeId) formData.append('shared_scribe_id', sharedScribeId);
       if (sharedOmzoId) formData.append('shared_omzo_id', sharedOmzoId);
 
       const response = await apiClient.post<any>('/api/send-message/', formData);
+      // Access message directly as ApiClient returns the parsed JSON
+      const m = response.message || response.data?.message;
 
-      const m = response.message;
       if (!m) {
         if (response.error) throw new Error(response.error);
         return null;
       }
 
       return {
-        id: m.id?.toString() || m.message_id?.toString(),
-        senderId: m.sender?.id?.toString() || m.sender_id?.toString() || '',
-        content: m.content || m.text || '',
-        type: (m.media_type || m.file_type || m.message_type || m.type || 'text') as 'text' | 'image' | 'video' | 'file' | 'audio' | 'document',
-        timestamp: new Date(m.timestamp_iso || m.created_at || m.timestamp || Date.now()),
-        mediaUrl: m.file || m.media_url,
-        mediaFilename: m.media_filename || m.filename,
-        isOwn: m.is_own || false,
+        id: m.id?.toString(),
+        senderId: m.sender_id?.toString(),
+        content: m.content,
+        type: m.media_type || m.message_type || 'text',
+        timestamp: new Date(m.timestamp_iso || m.timestamp),
+        isOneTimeView: m.one_time,
         viewed: m.is_read || false,
-        replyTo: m.reply_to?.id?.toString(),
+        mediaUrl: m.media_url,
+        mediaFilename: m.media_filename,
+        isOwn: m.is_own,
+        replyTo: m.reply_to?.id,
         replyToContent: m.reply_to?.content,
         replyToSender: m.reply_to?.sender_name,
         sharedScribe: m.shared_scribe,
         sharedOmzo: m.shared_omzo,
-      };
+        consumed: m.consumed || false
+      } as Message;
     } catch (error) {
       console.error('Error sending message:', error);
+      return null;
+    }
+  },
+
+  // Consume One-Time Message
+  consumeOneTimeMessage: async (messageId: string): Promise<{ success: boolean; content?: string; media_url?: string; media_type?: string; } | null> => {
+    try {
+      const response = await apiClient.post<any>(`/api/consume-message/${messageId}/`);
+      // ApiClient returns the JSON object directly
+      if (response.success) {
+        return response;
+      }
+      return null;
+    } catch (error) {
+      console.error('Error consuming message:', error);
       return null;
     }
   },

@@ -23,6 +23,7 @@ interface UseChatWebSocketProps {
     onTyping?: (users: Array<{ id: number; name: string }>) => void;
     onMessageRead?: (messageId: string, readBy: number, readAt: string) => void;
     onMessageConsumed?: (messageId: string, consumedBy: number, consumedAt: string) => void;
+    onP2PSignal?: (signal: any, senderId: number) => void;
 }
 
 export function useChatWebSocket({
@@ -31,6 +32,7 @@ export function useChatWebSocket({
     onTyping,
     onMessageRead,
     onMessageConsumed,
+    onP2PSignal,
 }: UseChatWebSocketProps) {
     const { user } = useAuth();
     const wsRef = useRef<WebSocket | null>(null);
@@ -43,6 +45,7 @@ export function useChatWebSocket({
     const onTypingRef = useRef(onTyping);
     const onMessageReadRef = useRef(onMessageRead);
     const onMessageConsumedRef = useRef(onMessageConsumed);
+    const onP2PSignalRef = useRef(onP2PSignal);
 
     // Update refs when callbacks change
     useEffect(() => {
@@ -50,7 +53,8 @@ export function useChatWebSocket({
         onTypingRef.current = onTyping;
         onMessageReadRef.current = onMessageRead;
         onMessageConsumedRef.current = onMessageConsumed;
-    }, [onMessage, onTyping, onMessageRead, onMessageConsumed]);
+        onP2PSignalRef.current = onP2PSignal;
+    }, [onMessage, onTyping, onMessageRead, onMessageConsumed, onP2PSignal]);
 
     const connect = useCallback(() => {
         if (!chatId || !user) {
@@ -92,7 +96,7 @@ export function useChatWebSocket({
             ws.onmessage = (event) => {
                 try {
                     const data: WebSocketMessage = JSON.parse(event.data);
-                    console.log('📨 [WebSocket] Received:', data.type, data);
+                    // console.log('📨 [WebSocket] Received:', data.type); // Reduced log noise
 
                     switch (data.type) {
                         case 'message.new':
@@ -125,7 +129,7 @@ export function useChatWebSocket({
 
                         case 'typing.update':
                             if (data.users && onTypingRef.current) {
-                                console.log('⌨️ [WebSocket] Typing update:', data.users);
+                                // console.log('⌨️ [WebSocket] Typing update:', data.users);
                                 onTypingRef.current(data.users);
                             }
                             break;
@@ -139,6 +143,13 @@ export function useChatWebSocket({
                         case 'message.consumed':
                             if (data.message_id && data.consumed_by && data.consumed_at && onMessageConsumedRef.current) {
                                 onMessageConsumedRef.current(data.message_id, data.consumed_by, data.consumed_at);
+                            }
+                            break;
+
+                        case 'p2p.signal':
+                            if (data.signal && onP2PSignalRef.current) {
+                                console.log('📶 [WebSocket] P2P Signal:', data.signal.type);
+                                onP2PSignalRef.current(data.signal, data.sender_id || 0);
                             }
                             break;
 
@@ -230,6 +241,20 @@ export function useChatWebSocket({
         }
     }, []);
 
+    // Send P2P Signal
+    const sendP2PSignal = useCallback((signal: any, targetUserId?: number) => {
+        if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+            wsRef.current.send(JSON.stringify({
+                type: 'p2p.signal',
+                signal,
+                target_user_id: targetUserId
+            }));
+            return true;
+        }
+        console.warn('[WebSocket] Cannot send P2P signal: WebSocket not connected');
+        return false;
+    }, []);
+
     // Connect on mount, disconnect on unmount
     useEffect(() => {
         connect();
@@ -248,6 +273,7 @@ export function useChatWebSocket({
         sendMessage,
         sendTyping,
         markAsRead,
+        sendP2PSignal,
         isConnected: wsRef.current?.readyState === WebSocket.OPEN,
     };
 }

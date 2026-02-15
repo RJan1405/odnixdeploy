@@ -168,17 +168,19 @@ export default function OmzoPage() {
           omzos.map((omzo, index) => (
             <div
               key={omzo.id}
-              className="h-full snap-start snap-always"
+              className="h-full snap-start snap-always flex items-center justify-center bg-black"
             >
-              <OmzoPlayer
-                omzo={omzo}
-                isActive={index === activeIndex}
-                onUserClick={() => navigate(`/profile/${omzo.user.username}`)}
-                onNavigate={(dir) => {
-                  if (dir === 'next') navigateToIndex(index + 1);
-                  if (dir === 'prev') navigateToIndex(index - 1);
-                }}
-              />
+              <div className="w-full h-full md:w-auto md:h-[85vh] md:aspect-[9/16] md:max-h-[850px] md:rounded-3xl overflow-hidden relative shadow-2xl border border-white/10 bg-black mx-auto">
+                <OmzoPlayer
+                  omzo={omzo}
+                  isActive={index === activeIndex}
+                  onUserClick={() => navigate(`/profile/${omzo.user.username}`)}
+                  onNavigate={(dir) => {
+                    if (dir === 'next') navigateToIndex(index + 1);
+                    if (dir === 'prev') navigateToIndex(index - 1);
+                  }}
+                />
+              </div>
             </div>
           ))
         )}

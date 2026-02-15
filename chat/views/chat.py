@@ -1593,7 +1593,8 @@ def delete_message_for_everyone(request, message_id):
 def consume_one_time_message(request, message_id):
     """Consume a one-time message"""
     try:
-        message = Message.objects.get(
+        # 🚀 OPTIMIZATION: Use select_related to fetch chat and sender in one query
+        message = Message.objects.select_related('chat', 'sender').get(
             id=message_id, chat__participants=request.user, one_time=True)
 
         # 🔥 FIX: Only the RECIPIENT can consume the message, not the sender
@@ -1616,10 +1617,17 @@ def consume_one_time_message(request, message_id):
         # This ensures the sender sees the message was opened without needing to refresh
         broadcast_message_consumed(message.chat, message, request.user)
 
+        # 🚀 OPTIMIZATION: Pre-build absolute URL for media to avoid processing delay
+        media_url = message.media_url
+        if media_url:
+            if not media_url.startswith('http'):
+                media_url = request.build_absolute_uri(media_url)
+        
+        # Return response immediately with pre-built URLs
         return JsonResponse({
             'success': True,
             'content': message.content,
-            'media_url': message.media_url,
+            'media_url': media_url,
             'media_type': message.media_type,
             'media_filename': message.media_filename,
             'consumed_at': message.consumed_at.isoformat()

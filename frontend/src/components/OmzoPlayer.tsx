@@ -33,7 +33,7 @@ export function OmzoPlayer({ omzo, isActive, onUserClick, onNavigate }: OmzoPlay
   const [likes, setLikes] = useState(omzo.likes);
   const [dislikes, setDislikes] = useState(omzo.dislikes);
   const [isPaused, setIsPaused] = useState(false);
-  const [isMuted, setIsMuted] = useState(true);
+  const [isMuted, setIsMuted] = useState(false);
   const [showMuteIcon, setShowMuteIcon] = useState(false);
   const [lastMutedState, setLastMutedState] = useState<boolean | null>(null);
   const muteTimer = useRef<number | null>(null);
@@ -202,40 +202,7 @@ export function OmzoPlayer({ omzo, isActive, onUserClick, onNavigate }: OmzoPlay
         muted={isMuted}
         playsInline
         preload="metadata"
-        onClick={() => {
-          const now = Date.now();
-          const DOUBLE_TAP_MS = 300;
-
-          if (lastTapRef.current && now - lastTapRef.current < DOUBLE_TAP_MS) {
-            // double tap detected -> like
-            if (singleTapTimer.current) {
-              window.clearTimeout(singleTapTimer.current);
-              singleTapTimer.current = null;
-            }
-            handleLike();
-            setShowDoubleHeart(true);
-            if (heartTimer.current) window.clearTimeout(heartTimer.current);
-            // @ts-ignore
-            heartTimer.current = window.setTimeout(() => setShowDoubleHeart(false), 700);
-            lastTapRef.current = null;
-          } else {
-            // schedule single tap (mute toggle)
-            lastTapRef.current = now;
-            if (singleTapTimer.current) window.clearTimeout(singleTapTimer.current);
-            // @ts-ignore
-            singleTapTimer.current = window.setTimeout(() => {
-              const newMuted = !isMuted;
-              setIsMuted(newMuted);
-              setShowMuteIcon(true);
-              setLastMutedState(newMuted);
-              if (muteTimer.current) window.clearTimeout(muteTimer.current);
-              // @ts-ignore window.setTimeout returns number
-              muteTimer.current = window.setTimeout(() => setShowMuteIcon(false), 700);
-              singleTapTimer.current = null;
-              lastTapRef.current = null;
-            }, DOUBLE_TAP_MS);
-          }
-        }}
+        onClick={togglePlay}
       />
 
       {/* Double-tap heart animation */}
@@ -308,6 +275,8 @@ export function OmzoPlayer({ omzo, isActive, onUserClick, onNavigate }: OmzoPlay
           <span className="text-xs text-white font-medium">{formatCount(likes)}</span>
         </motion.button>
 
+
+
         <motion.button
           whileTap={{ scale: 0.9 }}
           onClick={handleDislike}
@@ -349,9 +318,23 @@ export function OmzoPlayer({ omzo, isActive, onUserClick, onNavigate }: OmzoPlay
       </div>
 
       {/* Top right menu */}
-      <button className="absolute top-4 right-4 p-2 glass-button rounded-full">
-        <MoreVertical className="w-5 h-5 text-white" />
-      </button>
+      <div className="absolute top-4 right-4 flex flex-col gap-3 z-30">
+        <button className="p-2 glass-button rounded-full">
+          <MoreVertical className="w-5 h-5 text-white" />
+        </button>
+        {isPaused && (
+          <button
+            onClick={(e) => { e.stopPropagation(); setIsMuted(!isMuted); }}
+            className="p-2 glass-button rounded-full"
+          >
+            {isMuted ? (
+              <VolumeX className="w-5 h-5 text-white" />
+            ) : (
+              <Volume2 className="w-5 h-5 text-white" />
+            )}
+          </button>
+        )}
+      </div>
 
       {/* Bottom overlay */}
       <div className="absolute bottom-4 left-4 right-20">

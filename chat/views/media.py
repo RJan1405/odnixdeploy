@@ -89,7 +89,10 @@ def handle_media_upload(media_file):
         logger.error(f"Error uploading media: {e}")
         return None, None, None, None, str(e)
 
+from django.views.decorators.clickjacking import xframe_options_exempt
+
 # FIXED: Media serving function with path traversal protection
+@xframe_options_exempt
 def serve_media_file(request, file_path):
     """Serve media files with path traversal protection"""
     try:
