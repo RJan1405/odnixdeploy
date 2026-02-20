@@ -22,6 +22,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",  # Alternative React dev server
     "http://127.0.0.1:5173",
     "http://127.0.0.1:8080",
+    "http://192.168.0.104:8080",
     "http://127.0.0.1:3000",
 ]
 CORS_ALLOW_CREDENTIALS = True  # Required for session-based auth
@@ -43,6 +44,7 @@ CSRF_TRUSTED_ORIGINS = [
     "http://localhost:8080",
     "http://localhost:3000",
     "http://127.0.0.1:5173",
+    "http://192.168.0.104:8080",
     "http://127.0.0.1:8080",
     "http://127.0.0.1:3000",
     "https://*.trycloudflare.com",  # Allow all Cloudflare tunnels
