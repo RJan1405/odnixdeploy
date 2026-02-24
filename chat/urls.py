@@ -86,6 +86,7 @@ urlpatterns = [
 
     # Scribe URLs - Enhanced
     path('api/post-scribe/', views.post_scribe, name='post_scribe'),
+    path('api/repost/', views.api_repost, name='api_repost'),
     path('api/toggle-like/', views.toggle_like, name='toggle_like'),
     path('api/toggle-dislike/', views.toggle_dislike, name='toggle_dislike'),
     path('api/toggle-save-post/', views.toggle_save_post, name='toggle_save_post'),

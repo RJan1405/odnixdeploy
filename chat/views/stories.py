@@ -26,22 +26,25 @@ def repost_story(request):
         if not original_story_id:
             return JsonResponse({'success': False, 'error': 'Story ID is required'})
         
-        # Get the original story
+        # Get the original story (could itself be a repost)
         original_story = get_object_or_404(
-            Story, 
+            Story,
             id=original_story_id,
             is_active=True,
             expires_at__gt=timezone.now()
         )
+
+        # If the story is already a repost of another, always repost the root/original story.
+        root_story = original_story.shared_from_story or original_story
         
         # Can't repost your own story
-        if original_story.user == request.user:
+        if root_story.user == request.user:
             return JsonResponse({'success': False, 'error': "You can't repost your own story"})
         
-        # Check if user already reposted this story (prevent duplicates)
+        # Check if user already reposted this root story (prevent duplicates / repost-of-repost)
         existing_repost = Story.objects.filter(
             user=request.user,
-            shared_from_story=original_story,
+            shared_from_story=root_story,
             is_active=True,
             expires_at__gt=timezone.now()
         ).exists()
@@ -49,37 +52,37 @@ def repost_story(request):
         if existing_repost:
             return JsonResponse({'success': False, 'error': 'You already reposted this story'})
         
-        # Create a new story that references the original
+        # Create a new story that references the root/original story
         # The repost inherits the original's media but adds "Reposted from @username" context
         repost_story = Story.objects.create(
             user=request.user,
-            content=original_story.content,  # Copy original content
-            media_file=original_story.media_file.name if original_story.media_file else None,
-            story_type=original_story.story_type,
-            background_color=original_story.background_color,
-            text_color=original_story.text_color,
-            text_position=original_story.text_position,
-            text_size=original_story.text_size,
-            image_transform=original_story.image_transform,
-            shared_from_story=original_story,  # Link to original
+            content=root_story.content,  # Copy original content
+            media_file=root_story.media_file.name if root_story.media_file else None,
+            story_type=root_story.story_type,
+            background_color=root_story.background_color,
+            text_color=root_story.text_color,
+            text_position=root_story.text_position,
+            text_size=root_story.text_size,
+            image_transform=root_story.image_transform,
+            shared_from_story=root_story,  # Link to root original
             # expires_at automatically set to 24 hours from now
         )
         
-        logger.info(f"Story {original_story.id} reposted by {request.user.username} as story {repost_story.id}")
+        logger.info(f"Story {root_story.id} reposted by {request.user.username} as story {repost_story.id}")
         
         # Send chat notification to original story owner
-        if original_story.user != request.user:
+        if root_story.user != request.user:
             # Get or create DM chat between reposter and original story owner
             chat = Chat.objects.filter(
                 chat_type='private',
-                participants=original_story.user
+                participants=root_story.user
             ).filter(
                 participants=request.user
             ).first()
             
             if not chat:
                 chat = Chat.objects.create(chat_type='private')
-                chat.participants.add(request.user, original_story.user)
+                chat.participants.add(request.user, root_story.user)
             
             # Create notification message
             message_content = f"🔄 {request.user.full_name} reposted your story"
@@ -109,10 +112,10 @@ def repost_story(request):
                 'shared_from': {
                     'id': original_story.id,
                     'user': {
-                        'id': original_story.user.id,
-                        'username': original_story.user.username,
-                        'full_name': original_story.user.full_name,
-                        'profile_picture_url': original_story.user.profile_picture_url,
+                        'id': root_story.user.id,
+                        'username': root_story.user.username,
+                        'full_name': root_story.user.full_name,
+                        'profile_picture_url': root_story.user.profile_picture_url,
                     }
                 }
             }

@@ -24,6 +24,7 @@ export default function ProfilePage() {
   // Real data from Django
   const [profileUser, setProfileUser] = useState<User | null>(null);
   const [scribes, setScribes] = useState<Scribe[]>([]);
+  const [reposts, setReposts] = useState<Scribe[]>([]);
   const [omzos, setOmzos] = useState<Omzo[]>([]);
   const [savedItems, setSavedItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -63,6 +64,7 @@ export default function ProfilePage() {
         setProfileUser(fullProfile.user);
         setIsFollowing(!!fullProfile.user.isFollowing);
         setScribes(fullProfile.scribes);
+        setReposts(fullProfile.reposts || []);
         setOmzos(fullProfile.omzos);
 
         // Set stats
@@ -92,6 +94,18 @@ export default function ProfilePage() {
 
   const handleProfileUpdate = () => {
     setRefreshProfile(p => p + 1);
+  };
+
+  const handleRepostToggled = (repostId: string, isReposted: boolean) => {
+    // If repost was undone (isReposted = false), remove it from the reposts list
+    if (!isReposted) {
+      setReposts(prev => prev.filter(repost => repost.id !== repostId));
+      // Optionally update stats
+      setStats(prev => ({
+        ...prev,
+        scribesCount: prev.scribesCount // Keeping the same since it's just original posts
+      }));
+    }
   };
 
   const handleMessage = async () => {
@@ -289,9 +303,23 @@ export default function ProfilePage() {
         );
 
       case 'reposts':
-        return (
+        return reposts.length === 0 ? (
           <div className="text-center py-12 text-muted-foreground">
             <p>No reposts yet</p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {reposts.map((repost) => (
+              <div key={repost.id}>
+                <p className="text-xs text-muted-foreground mb-2 ml-4 flex items-center gap-1">
+                  <Repeat2 className="w-3 h-3" /> Reposted
+                </p>
+                <ScribeCard
+                  scribe={repost}
+                  onRepostToggled={handleRepostToggled}
+                />
+              </div>
+            ))}
           </div>
         );
 

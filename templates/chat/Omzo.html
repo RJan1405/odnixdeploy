@@ -3092,21 +3092,19 @@
 
     function repostPost(type, id) {
         showConfirmationModal('Repost', 'Repost this to your profile?', function() {
-            const formData = new FormData();
-            formData.append('repost_type', type);
-            formData.append('repost_id', id);
-
-            fetch('{% url "post_scribe" %}', {
+            fetch('/api/repost/', {
                 method: 'POST',
                 headers: {
+                    'Content-Type': 'application/json',
                     'X-CSRFToken': '{{ csrf_token }}'
                 },
-                body: formData
+                body: JSON.stringify({ type: type, id: id })
             })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    showOmzoToast('Success', 'Reposted successfully!', 'success');
+                    const msg = data.message || (data.is_reposted ? 'Reposted successfully!' : 'Repost removed from your profile');
+                    showOmzoToast('Success', msg, 'success');
                 } else {
                     showOmzoToast('Error', data.error || 'Failed to repost', 'error');
                 }

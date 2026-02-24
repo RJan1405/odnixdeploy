@@ -8227,22 +8227,20 @@
 
     function repostPost(type, id) {
         showConfirmationModal('Repost Scribe', 'Repost this to your profile?', function() {
-            const formData = new FormData();
-            formData.append('repost_type', type);
-            formData.append('repost_id', id);
-
-            fetch('{% url "post_scribe" %}', {
+            fetch('/api/repost/', {
                 method: 'POST',
                 headers: {
+                    'Content-Type': 'application/json',
                     'X-CSRFToken': getCSRFToken()
                 },
-                body: formData
+                body: JSON.stringify({ type: type, id: id })
             })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    showIGToast('Reposted successfully!', 'success');
-                    setTimeout(() => location.reload(), 1000);
+                    const msg = data.message || (data.is_reposted ? 'Reposted successfully!' : 'Repost removed from your profile');
+                    showIGToast(msg, 'success');
+                    setTimeout(() => location.reload(), 800);
                 } else {
                     showIGToast(data.error || 'Failed to repost', 'error');
                 }

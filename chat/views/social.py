@@ -27,6 +27,179 @@ from chat.forms import ScribeForm, ProfileUpdateForm
 
 logger = logging.getLogger(__name__)
 
+
+def handle_repost_action(user, repost_type, repost_id, content=''):
+    """
+    Shared helper to implement Instagram-like repost behaviour:
+    - Reposting creates a new Scribe that points to the original content
+      (flattening any existing repost chain).
+    - Reposting again the same original by the same user UNDOES the repost
+      by deleting the existing repost scribe (toggle behaviour).
+    - Supports reposting Scribes, Omzos, Stories, and quote posts.
+    """
+    repost_type = (repost_type or '').lower()
+    if not repost_type or not repost_id:
+        raise ValueError('repost_type and repost_id are required')
+
+    # Convert repost_id to int if it's a string
+    try:
+        repost_id = int(repost_id)
+    except (ValueError, TypeError):
+        raise ValueError(f'Invalid repost_id: {repost_id}')
+
+    # Resolve the original object based on type
+    original = None
+    try:
+        if repost_type in ['scribe', 'post']:
+            original = Scribe.objects.get(id=repost_id)
+        elif repost_type == 'omzo':
+            original = Omzo.objects.get(id=repost_id)
+        elif repost_type == 'story':
+            original = Story.objects.get(id=repost_id)
+        elif repost_type == 'quote':
+            original = Scribe.objects.get(id=repost_id)
+        else:
+            raise ValueError('Invalid repost type')
+    except Scribe.DoesNotExist:
+        raise ValueError(f'Scribe with id {repost_id} not found')
+    except Omzo.DoesNotExist:
+        raise ValueError(f'Omzo with id {repost_id} not found')
+    except Story.DoesNotExist:
+        raise ValueError(f'Story with id {repost_id} not found')
+
+    # Quote reposts behave like Instagram's "quote tweet":
+    # always create a new post with reference to the original, no toggle.
+    if repost_type == 'quote':
+        scribe = Scribe.objects.create(
+            user=user,
+            quote_source=original,
+            content=content,
+        )
+        process_scribe_hashtags_mentions(scribe)
+        return {
+            'is_reposted': True,
+            'action': 'quote_created',
+            'scribe_id': scribe.id,
+        }
+
+    # Prevent reposting own content (UI should also normally hide this)
+    owner = getattr(original, 'user', None)
+    if owner and owner == user:
+        raise ValueError("You can't repost your own content")
+
+    # Compute the root/original target to avoid chaining repost-of-repost
+    root_scribe = None
+    root_omzo = None
+    root_story = None
+
+    if isinstance(original, Scribe):
+        # If the scribe is itself a repost of something else, follow that
+        root_scribe = original.original_scribe
+        root_omzo = original.original_omzo
+        root_story = original.original_story
+
+        if not (root_scribe or root_omzo or root_story):
+            # Plain scribe – repost this one
+            root_scribe = original
+    elif isinstance(original, Omzo):
+        root_omzo = original
+    elif isinstance(original, Story):
+        root_story = original
+
+    # Find any existing repost by this user for the same underlying content
+    existing_qs = Scribe.objects.filter(
+        user=user,
+        original_scribe=root_scribe,
+        original_omzo=root_omzo,
+        original_story=root_story,
+        quote_source__isnull=True,
+    )
+
+    if existing_qs.exists():
+        # Toggle OFF: undo repost by deleting existing repost scribe(s)
+        deleted_count, _ = existing_qs.delete()
+        logger.info(
+            f"User {user.id} removed {deleted_count} repost(s) for type={repost_type}, id={repost_id}"
+        )
+        return {
+            'is_reposted': False,
+            'action': 'removed',
+        }
+
+    # Toggle ON: create new repost scribe that points to the root content
+    scribe = Scribe.objects.create(
+        user=user,
+        original_scribe=root_scribe,
+        original_omzo=root_omzo,
+        original_story=root_story,
+        content=content,
+    )
+    process_scribe_hashtags_mentions(scribe)
+
+    logger.info(
+        f"User {user.id} created repost scribe {scribe.id} for type={repost_type}, id={repost_id}"
+    )
+
+    return {
+        'is_reposted': True,
+        'action': 'created',
+        'scribe_id': scribe.id,
+    }
+
+
+@login_required
+@require_POST
+def api_repost(request):
+    """
+    Lightweight JSON API for repost/undo repost from the (React) frontend.
+    Accepts JSON body: {"type": "scribe|omzo|story|quote", "id": <int>, "content": "<optional caption>"}.
+    """
+    try:
+        data = json.loads(request.body or '{}')
+        repost_type = data.get('type')
+        repost_id = data.get('id')
+        content = (data.get('content') or '').strip()
+
+        logger.info(
+            f"api_repost called: type={repost_type}, id={repost_id}, user={request.user.id}")
+
+        if not repost_type or not repost_id:
+            logger.warning(
+                f"Missing required fields: type={repost_type}, id={repost_id}")
+            return JsonResponse(
+                {'success': False, 'error': 'type and id are required'},
+                status=400,
+            )
+
+        result = handle_repost_action(
+            user=request.user,
+            repost_type=repost_type,
+            repost_id=repost_id,
+            content=content,
+        )
+
+        response = {'success': True}
+        response.update(result)
+        # Mirror Instagram-style UX: backend tells if it's now reposted or undone
+        if 'message' not in response:
+            if response.get('is_reposted'):
+                response['message'] = 'Reposted to your profile'
+            else:
+                response['message'] = 'Repost removed from your profile'
+
+        logger.info(f"api_repost success: {response}")
+        return JsonResponse(response)
+    except ValueError as e:
+        logger.warning(f"ValueError in api_repost: {e}")
+        return JsonResponse({'success': False, 'error': str(e)}, status=400)
+    except Exception as e:
+        logger.error(f"Error in api_repost: {e}", exc_info=True)
+        return JsonResponse(
+            {'success': False, 'error': 'Failed to process repost'},
+            status=500,
+        )
+
+
 # Global cache for preventing duplicate scribes
 SCRIBE_CACHE_PREFIX = "prevent_duplicate_scribe_"
 SCRIBE_COOLDOWN = 5  # 5 seconds between identical scribes
@@ -112,7 +285,7 @@ def profile_view(request, username=None):
     reposts = []
     if can_view_profile:
         scribes_queryset = Scribe.objects.filter(user=profile_user).select_related(
-            'user', 
+            'user',
             'original_scribe', 'original_scribe__user',
             'original_omzo', 'original_omzo__user',
             'original_story', 'original_story__user'
@@ -497,37 +670,27 @@ def post_scribe(request):
         code_css = request.POST.get('code_css')
         code_js = request.POST.get('code_js')
         code_bundle = request.POST.get('code_bundle')
-        
+
         repost_type = request.POST.get('repost_type')
         repost_id = request.POST.get('repost_id')
 
-        # Handle Reposts
+        # Handle Reposts (including toggle + repost-of-repost flattening)
         if repost_type and repost_id:
             try:
-                if repost_type == 'scribe':
-                    original = Scribe.objects.get(id=repost_id)
-                    Scribe.objects.create(user=request.user, original_scribe=original, content=content)
-                elif repost_type == 'omzo':
-                    original = Omzo.objects.get(id=repost_id)
-                    Scribe.objects.create(user=request.user, original_omzo=original, content=content)
-                elif repost_type == 'story':
-                    original = Story.objects.get(id=repost_id)
-                    Scribe.objects.create(user=request.user, original_story=original, content=content)
-                elif repost_type == 'quote':
-                    original = Scribe.objects.get(id=repost_id)
-                    # Quote creates a new scribe with content AND a reference to the original
-                    scribe = Scribe.objects.create(
-                        user=request.user, 
-                        quote_source=original, 
-                        content=content
-                    )
-                    # Process hashtags and mentions for the quote text
-                    process_scribe_hashtags_mentions(scribe)
-                    return JsonResponse({'success': True})
-
-                return JsonResponse({'success': True})
+                result = handle_repost_action(
+                    user=request.user,
+                    repost_type=repost_type,
+                    repost_id=repost_id,
+                    content=content,
+                )
+                # Keep backwards-compatible shape: always at least {success: True}
+                response = {'success': True}
+                response.update(result)
+                return JsonResponse(response)
+            except ValueError as e:
+                return JsonResponse({'success': False, 'error': str(e)}, status=400)
             except Exception as e:
-                logger.error(f"Error creating repost: {str(e)}")
+                logger.error(f"Error creating repost: {str(e)}", exc_info=True)
                 return JsonResponse({'success': False, 'error': str(e)}, status=400)
 
         logger.info(
@@ -547,7 +710,7 @@ def post_scribe(request):
         if content and len(content) > 280:
             return JsonResponse({'success': False, 'error': 'Scribe must be 280 characters or less.'})
 
-        # Duplicate prevention
+        # Duplicate prevention (only for brand new posts, not repost toggles)
         scribe_hash = generate_scribe_hash(
             request.user.id, (content or code_bundle or ''), bool(image_file))
         cache_key = f"{SCRIBE_CACHE_PREFIX}{scribe_hash}"
@@ -711,7 +874,8 @@ def post_scribe(request):
 def toggle_like(request):
     try:
         data = json.loads(request.body)
-        scribe_id = data.get('scribe_id') or data.get('tweet_id')  # Support both for backward compatibility
+        scribe_id = data.get('scribe_id') or data.get(
+            'tweet_id')  # Support both for backward compatibility
 
         if not scribe_id:
             return JsonResponse({'success': False, 'error': 'Scribe ID is required'})
@@ -725,7 +889,8 @@ def toggle_like(request):
         Dislike.objects.filter(user=request.user, scribe=scribe).delete()
 
         # Toggle like
-        like_obj = Like.objects.filter(user=request.user, scribe=scribe).first()
+        like_obj = Like.objects.filter(
+            user=request.user, scribe=scribe).first()
 
         if like_obj:
             like_obj.delete()
@@ -736,8 +901,8 @@ def toggle_like(request):
 
             # Send Notification if not self-like
             if request.user.id != scribe.user.id:
-                 channel_layer = get_channel_layer()
-                 async_to_sync(channel_layer.group_send)(
+                channel_layer = get_channel_layer()
+                async_to_sync(channel_layer.group_send)(
                     f'user_notify_{scribe.user.id}',
                     {
                         'type': 'notify.like',
@@ -747,7 +912,7 @@ def toggle_like(request):
                         'user_avatar': request.user.profile_picture.url if request.user.profile_picture else None,
                         'timestamp': timezone.now().isoformat()
                     }
-                 )
+                )
 
         like_count = Like.objects.filter(scribe=scribe).count()
 
@@ -768,7 +933,8 @@ def toggle_dislike(request):
     """Toggle dislike on a scribe"""
     try:
         data = json.loads(request.body)
-        scribe_id = data.get('scribe_id') or data.get('tweet_id')  # Support both for backward compatibility
+        scribe_id = data.get('scribe_id') or data.get(
+            'tweet_id')  # Support both for backward compatibility
 
         if not scribe_id:
             return JsonResponse({'success': False, 'error': 'Scribe ID is required'})
@@ -782,7 +948,8 @@ def toggle_dislike(request):
         Like.objects.filter(user=request.user, scribe=scribe).delete()
 
         # Toggle dislike
-        dislike_obj = Dislike.objects.filter(user=request.user, scribe=scribe).first()
+        dislike_obj = Dislike.objects.filter(
+            user=request.user, scribe=scribe).first()
 
         if dislike_obj:
             dislike_obj.delete()
@@ -810,7 +977,8 @@ def toggle_save_post(request):
     """Toggle save/bookmark a post"""
     try:
         data = json.loads(request.body)
-        scribe_id = data.get('scribe_id') or data.get('tweet_id')  # Support both for backward compatibility
+        scribe_id = data.get('scribe_id') or data.get(
+            'tweet_id')  # Support both for backward compatibility
 
         if not scribe_id:
             return JsonResponse({'success': False, 'error': 'Scribe ID is required'})
@@ -850,7 +1018,8 @@ def delete_post(request):
     """Delete a user's own post"""
     try:
         data = json.loads(request.body)
-        scribe_id = data.get('scribe_id') or data.get('tweet_id')  # Support both for backward compatibility
+        scribe_id = data.get('scribe_id') or data.get(
+            'tweet_id')  # Support both for backward compatibility
 
         if not scribe_id:
             return JsonResponse({'success': False, 'error': 'Scribe ID is required'})
@@ -889,7 +1058,8 @@ def report_post(request):
     """Report a post for inappropriate content"""
     try:
         data = json.loads(request.body)
-        scribe_id = data.get('scribe_id') or data.get('tweet_id')  # Support both for backward compatibility
+        scribe_id = data.get('scribe_id') or data.get(
+            'tweet_id')  # Support both for backward compatibility
         reason = data.get('reason')
         description = data.get('description', '').strip()
         copyright_description = data.get('copyright_description', '').strip()
@@ -938,9 +1108,9 @@ def report_post(request):
         async_to_sync(channel_layer.group_send)(
             f'user_notify_{scribe.user.id}',
             {
-                'type': 'notify.report', # New type
+                'type': 'notify.report',  # New type
                 'scribe_id': scribe.id,
-                'reporter_id': request.user.id, # Often hidden, but backend sends it
+                'reporter_id': request.user.id,  # Often hidden, but backend sends it
                 'reason': reason,
                 'timestamp': timezone.now().isoformat()
             }
@@ -995,7 +1165,8 @@ def copy_post_link(request):
     """Get the shareable link for a post"""
     try:
         data = json.loads(request.body)
-        scribe_id = data.get('scribe_id') or data.get('tweet_id')  # Support both for backward compatibility
+        scribe_id = data.get('scribe_id') or data.get(
+            'tweet_id')  # Support both for backward compatibility
 
         if not scribe_id:
             return JsonResponse({'success': False, 'error': 'Scribe ID is required'})
@@ -1027,7 +1198,8 @@ def add_comment(request):
     """Add a comment to a scribe"""
     try:
         data = json.loads(request.body)
-        scribe_id = data.get('scribe_id') or data.get('tweet_id')  # Support both for backward compatibility
+        scribe_id = data.get('scribe_id') or data.get(
+            'tweet_id')  # Support both for backward compatibility
         content = data.get('content', '').strip()
         parent_id = data.get('parent_id')  # For replies
 
@@ -1045,7 +1217,8 @@ def add_comment(request):
         parent_comment = None
         if parent_id:
             try:
-                parent_comment = Comment.objects.get(id=parent_id, scribe=scribe)
+                parent_comment = Comment.objects.get(
+                    id=parent_id, scribe=scribe)
             except Comment.DoesNotExist:
                 return JsonResponse({'success': False, 'error': 'Parent comment not found'})
 
@@ -1110,7 +1283,8 @@ def toggle_comment_like(request):
             return JsonResponse({'success': False, 'error': 'Comment not found'})
 
         # Toggle like
-        like_obj = CommentLike.objects.filter(user=request.user, comment=comment).first()
+        like_obj = CommentLike.objects.filter(
+            user=request.user, comment=comment).first()
 
         if like_obj:
             like_obj.delete()
@@ -1138,10 +1312,12 @@ def get_scribe(request, scribe_id):
         scribe = get_object_or_404(Scribe, id=scribe_id)
 
         # Check if user has liked this scribe
-        is_liked = Like.objects.filter(user=request.user, scribe=scribe).exists()
-        
+        is_liked = Like.objects.filter(
+            user=request.user, scribe=scribe).exists()
+
         # Check if user has saved this scribe
-        is_saved = SavedPost.objects.filter(user=request.user, scribe=scribe).exists()
+        is_saved = SavedPost.objects.filter(
+            user=request.user, scribe=scribe).exists()
 
         scribe_data = {
             'id': scribe.id,
@@ -1195,10 +1371,11 @@ def get_scribe_comments(request, scribe_id):
             scribe=scribe,
             parent__isnull=True
         ).select_related('user').prefetch_related('replies__user', 'comment_likes', 'replies__comment_likes').order_by('timestamp')
-        
+
         # Get all comment IDs the current user has liked
         user_liked_comment_ids = set(
-            CommentLike.objects.filter(user=request.user).values_list('comment_id', flat=True)
+            CommentLike.objects.filter(user=request.user).values_list(
+                'comment_id', flat=True)
         )
 
         comments_data = []
@@ -1867,10 +2044,10 @@ def search_users_for_mention(request):
         users_data = []
         for user in users:
             is_following = Follow.objects.filter(
-                follower=request.user, 
+                follower=request.user,
                 following=user
             ).exists()
-            
+
             users_data.append({
                 'id': user.id,
                 'username': user.username,
@@ -2419,7 +2596,7 @@ def omzo_view(request):
 
     # Check if a specific omzo_id is requested
     specific_omzo_id = request.GET.get('omzo_id')
-    
+
     # Use Recommendation Engine
     recommender = ContentRecommender(request.user)
     omzos = recommender.get_omzo(limit=50)
@@ -2436,14 +2613,14 @@ def omzo_view(request):
                     specific_omzo = omzo
                 else:
                     remaining_omzos.append(omzo)
-            
+
             # If specific omzo not in recommended list, fetch it separately
             if specific_omzo is None:
                 try:
                     specific_omzo = Omzo.objects.get(id=specific_omzo_id)
                 except Omzo.DoesNotExist:
                     pass
-            
+
             # Put specific omzo first
             if specific_omzo:
                 omzos = [specific_omzo] + remaining_omzos
@@ -2455,6 +2632,9 @@ def omzo_view(request):
     # Process omzo for the frontend
     omzo_data = []
     for omzo in omzos:
+        repost_count = Scribe.objects.filter(original_omzo=omzo).count()
+        is_reposted = Scribe.objects.filter(
+            user=request.user, original_omzo=omzo, quote_source__isnull=True).exists()
         omzo_data.append({
             'id': omzo.id,
             'url': omzo.video_file.url,
@@ -2466,6 +2646,8 @@ def omzo_view(request):
             'views': omzo.views_count,
             'views': omzo.views_count,
             'timestamp': omzo.created_at,
+            'reposts': repost_count,
+            'is_reposted': is_reposted,
             'is_following': Follow.objects.filter(follower=request.user, following=omzo.user).exists(),
         })
 
@@ -2484,7 +2666,8 @@ def view_omzo(request, omzo_id):
         omzo = get_object_or_404(Omzo, id=omzo_id)
 
         # Get comments for this Omzo
-        comments = omzo.comments.select_related('user').order_by('-created_at')[:20]
+        comments = omzo.comments.select_related(
+            'user').order_by('-created_at')[:20]
         comments_data = [{
             'id': comment.id,
             'username': comment.user.username,
@@ -2512,7 +2695,7 @@ def view_omzo(request, omzo_id):
         more_from_user = Omzo.objects.filter(
             user=omzo.user
         ).exclude(id=omzo_id).order_by('-created_at')[:6]
-        
+
         more_from_user_data = [{
             'id': o.id,
             'url': o.video_file.url,
@@ -2529,7 +2712,7 @@ def view_omzo(request, omzo_id):
         ).exclude(
             user=omzo.user
         ).order_by('-views_count', '-created_at')[:12]
-        
+
         explore_data = [{
             'id': o.id,
             'url': o.video_file.url,
@@ -2573,12 +2756,12 @@ def get_omzo_batch(request):
     """
     API endpoint for batch fetching omzos with cursor-based pagination.
     Used for preloading and infinite scroll.
-    
+
     Query params:
         - cursor: ID of the last omzo seen (for pagination)
         - limit: Number of omzos to fetch (default 10, max 20)
         - exclude: Comma-separated list of omzo IDs to exclude (already loaded)
-    
+
     Returns:
         - omzos: List of omzo data
         - next_cursor: ID to use for next batch (null if no more)
@@ -2586,27 +2769,29 @@ def get_omzo_batch(request):
         - total_available: Approximate count of remaining omzos
     """
     from chat.recommendations import ContentRecommender
-    
+
     try:
         cursor = request.GET.get('cursor')
-        limit = min(int(request.GET.get('limit', 10)), 20)  # Max 20 per request
+        limit = min(int(request.GET.get('limit', 10)),
+                    20)  # Max 20 per request
         exclude_ids_str = request.GET.get('exclude', '')
-        
+
         # Parse excluded IDs
         exclude_ids = set()
         if exclude_ids_str:
             try:
-                exclude_ids = set(int(x) for x in exclude_ids_str.split(',') if x.strip())
+                exclude_ids = set(int(x)
+                                  for x in exclude_ids_str.split(',') if x.strip())
             except ValueError:
                 pass
-        
+
         # Use recommendation engine
         recommender = ContentRecommender(request.user)
         all_omzos = list(recommender.get_omzo(limit=100))  # Get larger pool
-        
+
         # Filter out excluded omzos
         filtered_omzos = [o for o in all_omzos if o.id not in exclude_ids]
-        
+
         # Apply cursor pagination
         if cursor:
             try:
@@ -2622,14 +2807,17 @@ def get_omzo_batch(request):
                 filtered_omzos = temp_list if cursor_found else filtered_omzos
             except ValueError:
                 pass
-        
+
         # Get batch with limit
         batch = filtered_omzos[:limit]
         remaining = filtered_omzos[limit:]
-        
+
         # Prepare response data
         omzo_data = []
         for omzo in batch:
+            repost_count = Scribe.objects.filter(original_omzo=omzo).count()
+            is_reposted = Scribe.objects.filter(
+                user=request.user, original_omzo=omzo, quote_source__isnull=True).exists()
             omzo_data.append({
                 'id': omzo.id,
                 'url': omzo.video_file.url,
@@ -2643,12 +2831,14 @@ def get_omzo_batch(request):
                 'views': omzo.views_count,
                 'is_muted': omzo.is_muted,
                 'is_following': Follow.objects.filter(follower=request.user, following=omzo.user).exists(),
+                'reposts': repost_count,
+                'is_reposted': is_reposted,
             })
-        
+
         # Determine next cursor and has_more
         next_cursor = batch[-1].id if batch and remaining else None
         has_more = len(remaining) > 0
-        
+
         return JsonResponse({
             'success': True,
             'omzos': omzo_data,
@@ -2657,11 +2847,11 @@ def get_omzo_batch(request):
             'total_available': len(remaining),
             'batch_size': len(batch)
         })
-        
+
     except Exception as e:
         logger.error(f"Error in get_omzo_batch: {str(e)}")
         return JsonResponse({
-            'success': False, 
+            'success': False,
             'error': 'Failed to fetch omzos',
             'omzos': [],
             'has_more': False
@@ -2729,11 +2919,11 @@ def upload_omzo(request):
 
         # Use new FFmpeg compression utility
         from chat.utils import compress_video
-        
+
         # Compress the video (returns original if fails or is small enough)
         # We target CRF 32 for good balance of size/quality
         compressed_video = compress_video(video_file)
-        
+
         # Create Omzo
         omzo = Omzo.objects.create(
             user=request.user,
@@ -2773,8 +2963,8 @@ def toggle_omzo_like(request):
 
             # Send Notification if not self-like
             if request.user.id != omzo.user.id:
-                 channel_layer = get_channel_layer()
-                 async_to_sync(channel_layer.group_send)(
+                channel_layer = get_channel_layer()
+                async_to_sync(channel_layer.group_send)(
                     f'user_notify_{omzo.user.id}',
                     {
                         'type': 'notify.omzo_like',
@@ -2784,7 +2974,7 @@ def toggle_omzo_like(request):
                         'user_avatar': request.user.profile_picture.url if request.user.profile_picture else None,
                         'timestamp': timezone.now().isoformat()
                     }
-                 )
+                )
 
         return JsonResponse({
             'success': True,
@@ -2808,7 +2998,8 @@ def toggle_omzo_dislike(request):
         # Remove like if exists
         OmzoLike.objects.filter(omzo=omzo, user=request.user).delete()
 
-        dislike = OmzoDislike.objects.filter(omzo=omzo, user=request.user).first()
+        dislike = OmzoDislike.objects.filter(
+            omzo=omzo, user=request.user).first()
         if dislike:
             dislike.delete()
             is_disliked = False
@@ -2980,7 +3171,7 @@ def report_omzo(request):
         async_to_sync(channel_layer.group_send)(
             f'user_notify_{omzo.user.id}',
             {
-                'type': 'notify.report_omzo', # New type
+                'type': 'notify.report_omzo',  # New type
                 'omzo_id': omzo.id,
                 'reporter_id': request.user.id,
                 'reason': reason,
@@ -3020,7 +3211,8 @@ def toggle_save_scribe(request):
             return JsonResponse({'success': False, 'error': 'Scribe not found'})
 
         from chat.models import SavedScribeItem
-        saved_obj = SavedScribeItem.objects.filter(user=request.user, scribe=scribe).first()
+        saved_obj = SavedScribeItem.objects.filter(
+            user=request.user, scribe=scribe).first()
 
         if saved_obj:
             saved_obj.delete()
@@ -3056,7 +3248,8 @@ def toggle_save_omzo(request):
             return JsonResponse({'success': False, 'error': 'Omzo not found'})
 
         from chat.models import SavedOmzoItem
-        saved_obj = SavedOmzoItem.objects.filter(user=request.user, omzo=omzo).first()
+        saved_obj = SavedOmzoItem.objects.filter(
+            user=request.user, omzo=omzo).first()
 
         if saved_obj:
             saved_obj.delete()
@@ -3080,17 +3273,19 @@ def get_saved_items(request):
     """Get all saved items (scribes and omzos) for the current user"""
     try:
         from chat.models import SavedScribeItem, SavedOmzoItem
-        
+
         # Get saved scribes
-        saved_scribes = SavedScribeItem.objects.filter(user=request.user).select_related('scribe__user')
+        saved_scribes = SavedScribeItem.objects.filter(
+            user=request.user).select_related('scribe__user')
         scribes_data = []
-        
+
         for saved in saved_scribes:
             scribe = saved.scribe
             # Detect type correctly
             ctype = scribe.content_type
-            detected_type = 'image' if (scribe.image and (not ctype or ctype == 'text')) else (ctype or 'text')
-            
+            detected_type = 'image' if (scribe.image and (
+                not ctype or ctype == 'text')) else (ctype or 'text')
+
             scribes_data.append({
                 'id': scribe.id,
                 'type': 'scribe',
@@ -3111,13 +3306,17 @@ def get_saved_items(request):
                 'saved_at': saved.saved_at.isoformat(),
                 'created_at': scribe.timestamp.isoformat(),
             })
-        
+
         # Get saved omzos
-        saved_omzos = SavedOmzoItem.objects.filter(user=request.user).select_related('omzo__user')
+        saved_omzos = SavedOmzoItem.objects.filter(
+            user=request.user).select_related('omzo__user')
         omzos_data = []
-        
+
         for saved in saved_omzos:
             omzo = saved.omzo
+            repost_count = Scribe.objects.filter(original_omzo=omzo).count()
+            is_reposted = Scribe.objects.filter(
+                user=request.user, original_omzo=omzo, quote_source__isnull=True).exists()
             omzos_data.append({
                 'id': omzo.id,
                 'type': 'omzo',
@@ -3134,15 +3333,17 @@ def get_saved_items(request):
                 'dislikes': omzo.dislikes.count(),
                 'views': omzo.views_count,
                 'comments': omzo.comments.count(),
-                'shares': 0, # Omzo model doesn't seem to have shares?
+                'shares': 0,  # Omzo model doesn't seem to have shares?
                 'saved_at': saved.saved_at.isoformat(),
+                'reposts': repost_count,
+                'is_reposted': is_reposted,
                 'created_at': omzo.created_at.isoformat(),
             })
-        
+
         # Combine and sort by saved_at
         all_saved = scribes_data + omzos_data
         all_saved.sort(key=lambda x: x['saved_at'], reverse=True)
-        
+
         return JsonResponse({
             'success': True,
             'saved_items': all_saved,
@@ -3152,5 +3353,3 @@ def get_saved_items(request):
     except Exception as e:
         logger.error(f"Error in get_saved_items: {str(e)}")
         return JsonResponse({'success': False, 'error': f'Failed to fetch saved items: {str(e)}'})
-
-

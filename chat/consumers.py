@@ -556,12 +556,19 @@ class CallConsumer(AsyncWebsocketConsumer):
                 pass
 
     async def receive(self, text_data=None, bytes_data=None):
+        # Add comprehensive logging at the start
+        logger.info(f"[CallConsumer] ===== RECEIVE CALLED =====")
+        logger.info(f"[CallConsumer] User: {self.user.id if self.user and hasattr(self.user, 'id') else 'unknown'}")
+        logger.info(f"[CallConsumer] Text data length: {len(text_data) if text_data else 0}")
+        logger.info(f"[CallConsumer] First 200 chars: {text_data[:200] if text_data else 'None'}")
+        
         if text_data:
             try:
                 # Attempt JSON parse for Handshake
                 try:
                     data = json.loads(text_data)
                     is_json = True
+                    logger.info(f"[CallConsumer] ✓ Parsed JSON, type: {data.get('type')}")
                 except json.JSONDecodeError:
                     is_json = False
                     logger.warning(

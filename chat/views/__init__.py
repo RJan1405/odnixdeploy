@@ -33,7 +33,8 @@ from .social import (
     toggle_save_post, delete_post, report_post, get_saved_posts, copy_post_link,
     view_post, view_omzo, omzo_view, get_omzo_batch, upload_omzo, toggle_omzo_like, toggle_omzo_dislike, add_omzo_comment, get_omzo_comments,
     track_omzo_view, report_omzo, toggle_private_chat,
-    toggle_save_scribe, toggle_save_omzo, get_saved_items
+    toggle_save_scribe, toggle_save_omzo, get_saved_items,
+    api_repost,
 )
 from .stories import (
     create_story, view_story, get_user_stories, get_following_stories, mark_story_viewed,

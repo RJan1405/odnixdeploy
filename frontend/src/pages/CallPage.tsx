@@ -373,12 +373,26 @@ export default function CallPage() {
     };
 
     const sendSignal = (data: any) => {
+        console.log('📤 [CallPage] sendSignal called:', {
+            type: data.type,
+            wsState: wsRef.current?.readyState,
+            wsOpen: wsRef.current?.readyState === WebSocket.OPEN,
+            data: data
+        });
+
         if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-            wsRef.current.send(JSON.stringify(data));
+            const jsonStr = JSON.stringify(data);
+            console.log('📤 [CallPage] Sending via WebSocket:', jsonStr.substring(0, 200));
+            wsRef.current.send(jsonStr);
+            console.log('✅ [CallPage] Signal sent via WebSocket');
         } else {
-            console.warn("WS not ready, sending via HTTP");
+            console.warn("⚠️ [CallPage] WS not ready, sending via HTTP", {
+                wsState: wsRef.current?.readyState,
+                wsExists: !!wsRef.current
+            });
             if (chatId) {
                 api.sendP2PSignal(chatId, data);
+                console.log('✅ [CallPage] Signal sent via HTTP API');
             }
         }
     };

@@ -5,6 +5,7 @@ import {
   Heart,
   ThumbsDown,
   Share2,
+  Repeat2,
   MoreVertical,
   Music2,
   Flag,
@@ -32,6 +33,8 @@ export function OmzoPlayer({ omzo, isActive, onUserClick, onNavigate }: OmzoPlay
   const [disliked, setDisliked] = useState(omzo.isDisliked);
   const [likes, setLikes] = useState(omzo.likes);
   const [dislikes, setDislikes] = useState(omzo.dislikes);
+  const [reposted, setReposted] = useState<boolean>(!!omzo.isReposted);
+  const [reposts, setReposts] = useState(omzo.reposts || 0);
   const [isPaused, setIsPaused] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [showMuteIcon, setShowMuteIcon] = useState(false);
@@ -181,6 +184,48 @@ export function OmzoPlayer({ omzo, isActive, onUserClick, onNavigate }: OmzoPlay
     }
   };
 
+  const handleRepost = async () => {
+    console.log('=== REPOST DEBUG ===');
+    console.log('Omzo ID:', omzo.id);
+    console.log('Current reposted state:', reposted);
+    console.log('Current reposts count:', reposts);
+    
+    const prevReposted = reposted;
+    const prevReposts = reposts;
+
+    // Optimistic toggle
+    if (reposted) {
+      setReposted(false);
+      setReposts(r => Math.max(0, r - 1));
+    } else {
+      setReposted(true);
+      setReposts(r => r + 1);
+    }
+
+    try {
+      console.log('Calling api.toggleRepostOmzo...');
+      const res = await api.toggleRepostOmzo(omzo.id);
+      console.log('API Response:', res);
+      
+      if (!res.success) {
+        console.error('Repost failed - response.success is false');
+        // Roll back on failure
+        setReposted(prevReposted);
+        setReposts(prevReposts);
+        alert('Failed to repost. Please try again.');
+      } else {
+        console.log('Repost successful! isReposted:', res.isReposted);
+        // Ensure local state matches backend flag if provided
+        setReposted(res.isReposted);
+      }
+    } catch (error) {
+      console.error('Error toggling omzo repost:', error);
+      alert('Error: ' + (error instanceof Error ? error.message : 'Failed to repost'));
+      setReposted(prevReposted);
+      setReposts(prevReposts);
+    }
+  };
+
   const formatCount = (count: number) => {
     if (count >= 1000000) return (count / 1000000).toFixed(1) + 'M';
     if (count >= 1000) return (count / 1000).toFixed(1) + 'K';
@@ -303,6 +348,23 @@ export function OmzoPlayer({ omzo, isActive, onUserClick, onNavigate }: OmzoPlay
             <MessageSquare className="w-6 h-6 text-white" />
           </div>
           <span className="text-xs text-white font-medium">Comments</span>
+        </motion.button>
+
+        <motion.button
+          whileTap={{ scale: 0.9 }}
+          onClick={handleRepost}
+          className="flex flex-col items-center gap-1"
+        >
+          <div className={cn(
+            'w-12 h-12 rounded-full glass-button flex items-center justify-center',
+            reposted && 'bg-success/20 border-success/50'
+          )}>
+            <Repeat2 className={cn(
+              'w-6 h-6',
+              reposted ? 'text-success fill-success' : 'text-white'
+            )} />
+          </div>
+          <span className="text-xs text-white font-medium">{formatCount(reposts)}</span>
         </motion.button>
 
         <motion.button

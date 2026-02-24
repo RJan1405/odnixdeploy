@@ -107,6 +107,27 @@ export interface Scribe {
   isLiked?: boolean;
   isDisliked?: boolean;
   isSaved?: boolean;
+  // Optional flag if backend starts returning whether current user has reposted
+  isReposted?: boolean;
+  // Feed discriminator (added by explore feed API)
+  feedType?: 'scribe' | 'omzo';
+  // Repost fields
+  isRepost?: boolean;
+  originalType?: 'scribe' | 'omzo' | 'story';
+  originalData?: {
+    id: string;
+    user: User;
+    content?: string;
+    caption?: string;
+    type?: string;
+    mediaUrl?: string;
+    videoUrl?: string;
+    likes: number;
+    comments: number;
+    reposts?: number;
+    views?: number;
+    timestamp: Date;
+  };
 }
 
 export interface Repost {
@@ -127,10 +148,12 @@ export interface Omzo {
   shares: number;
   views: number;
   comments: number;
+  reposts: number;
   createdAt: Date;
   isLiked?: boolean;
   isDisliked?: boolean;
   isSaved?: boolean;
+  isReposted?: boolean;
 }
 
 export interface Notification {
@@ -676,6 +699,7 @@ export const api = {
         isLiked: s.is_liked || false,
         isDisliked: s.is_disliked || false,
         isSaved: s.is_saved || false,
+        isReposted: s.is_reposted || false,
       }));
     } catch (error) {
       console.error('Error fetching scribes:', error);
@@ -710,12 +734,14 @@ export const api = {
             likes: item.likes || 0,
             dislikes: item.dislikes || 0,
             shares: item.shares || 0,
+            reposts: item.reposts || 0,
             views: item.views || item.view_count || 0,
             comments: item.comments || item.comment_count || 0,
             createdAt: new Date(item.createdAt || Date.now()),
             isLiked: item.isLiked || false,
             isDisliked: item.isDisliked || false,
             isSaved: item.isSaved || false,
+            isReposted: item.isReposted || false,
             // Add type discriminator for frontend to distinguish
             feedType: 'omzo'
           } as any; // Cast to avoid strict union issues for now, caller handles it
@@ -735,6 +761,7 @@ export const api = {
             isLiked: item.isLiked || false,
             isDisliked: item.isDisliked || false,
             isSaved: item.isSaved || false,
+            isReposted: item.isReposted || false,
             feedType: 'scribe',
             // Construct HTML content if present
             htmlContent: (item.scribeType === 'code_scribe' || item.type === 'code_scribe' || item.scribeType === 'html') && (item.code_html || item.code_css || item.code_js) ? `
@@ -786,9 +813,11 @@ export const api = {
         views: o.views || o.views_count || 0,
         comments: o.comments || o.comments_count || 0,
         shares: o.shares || o.shares_count || 0,
+        reposts: o.reposts || o.repost_count || 0,
         createdAt: new Date(o.created_at || o.timestamp || Date.now()),
         isLiked: o.is_liked || false,
         isDisliked: o.is_disliked || false,
+        isReposted: o.is_reposted || false,
       }));
     } catch (error) {
       console.error('Error fetching omzos:', error);
@@ -1055,6 +1084,50 @@ export const api = {
     }
   },
 
+  toggleRepostScribe: async (scribeId: string): Promise<{ success: boolean; isReposted: boolean }> => {
+    try {
+      console.log('[API] toggleRepostScribe called with ID:', scribeId, 'Type:', typeof scribeId);
+      const payload = {
+        type: 'scribe',
+        id: parseInt(scribeId), // Ensure ID is a number
+      };
+      console.log('[API] Sending payload:', payload);
+
+      const response = await apiClient.post<any>('/api/repost/', payload);
+      console.log('[API] Response received:', response);
+
+      return {
+        success: !!response?.success,
+        isReposted: !!(response?.is_reposted ?? response?.isReposted),
+      };
+    } catch (error) {
+      console.error('[API] Error toggling repost:', error);
+      throw error;
+    }
+  },
+
+  toggleRepostOmzo: async (omzoId: string): Promise<{ success: boolean; isReposted: boolean }> => {
+    try {
+      console.log('[API] toggleRepostOmzo called with ID:', omzoId, 'Type:', typeof omzoId);
+      const payload = {
+        type: 'omzo',
+        id: parseInt(omzoId), // Ensure ID is a number
+      };
+      console.log('[API] Sending payload:', payload);
+
+      const response = await apiClient.post<any>('/api/repost/', payload);
+      console.log('[API] Response received:', response);
+
+      return {
+        success: !!response?.success,
+        isReposted: !!(response?.is_reposted ?? response?.isReposted),
+      };
+    } catch (error) {
+      console.error('[API] Error toggling omzo repost:', error);
+      throw error;
+    }
+  },
+
   getOmzoComments: async (omzoId: string): Promise<any[]> => {
     try {
       const response = await apiClient.get<any>(`/api/omzo/${omzoId}/comments/`);
@@ -1167,7 +1240,7 @@ export const api = {
   },
 
   // Get User Full Profile (including posts)
-  getUserFullProfile: async (username: string): Promise<{ user: User; scribes: Scribe[]; omzos: Omzo[] } | null> => {
+  getUserFullProfile: async (username: string): Promise<{ user: User; scribes: Scribe[]; reposts: Scribe[]; omzos: Omzo[] } | null> => {
     try {
       const response = await apiClient.get<any>(`/api/profile/${username}/`);
       const u = response.user;
@@ -1228,6 +1301,79 @@ export const api = {
         };
       });
 
+      const reposts = (response.reposts || []).map((s: any) => {
+        let type = (s.type || 'text');
+        if (type === 'code_scribe') type = 'html';
+
+        let htmlContent = undefined;
+        if (type === 'html' && (s.code_html || s.code_css || s.code_js)) {
+          htmlContent = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                  <style>
+                    body { margin: 0; overflow: hidden; }
+                    ${s.code_css || ''}
+                  </style>
+                </head>
+                <body>
+                  ${s.code_html || ''}
+                  <script>
+                    ${s.code_js || ''}
+                  </script>
+                </body>
+                </html>
+             `;
+        }
+
+        // Build original data if available
+        let originalData = undefined;
+        if (s.original_data) {
+          const od = s.original_data;
+          originalData = {
+            id: od.id?.toString(),
+            user: {
+              id: od.user?.id?.toString() || '',
+              username: od.user?.username || '',
+              displayName: od.user?.display_name || od.user?.username || '',
+              avatar: getMediaUrl(od.user?.avatar || ''),
+              isOnline: od.user?.is_online || false,
+              isVerified: od.user?.is_verified || false,
+            },
+            content: od.content || od.caption || '',
+            caption: od.caption,
+            type: od.type,
+            mediaUrl: getMediaUrl(od.media_url || ''),
+            videoUrl: getMediaUrl(od.video_url || ''),
+            likes: od.likes || 0,
+            comments: od.comments || 0,
+            reposts: od.reposts || 0,
+            views: od.views || 0,
+            timestamp: new Date(od.timestamp || Date.now()),
+          };
+        }
+
+        return {
+          id: s.id?.toString(),
+          user: user, // The person who reposted (profile owner)
+          content: s.content || '',
+          type: type as 'text' | 'image' | 'video' | 'html',
+          htmlContent: htmlContent,
+          mediaUrl: getMediaUrl(s.media_url || ''),
+          likes: s.likes || 0,
+          dislikes: s.dislikes || 0,
+          comments: s.comments || 0,
+          reposts: s.reposts || 0,
+          createdAt: new Date(s.timestamp || Date.now()),
+          isLiked: s.is_liked || false,
+          isDisliked: s.is_disliked || false,
+          isSaved: s.is_saved || false,
+          isRepost: s.is_repost || false,
+          originalType: s.original_type,
+          originalData: originalData,
+        };
+      });
+
       const omzos = (response.omzos || []).map((o: any) => ({
         id: o.id?.toString(),
         user: user,
@@ -1244,7 +1390,7 @@ export const api = {
         isSaved: o.is_saved || false,
       }));
 
-      return { user, scribes, omzos };
+      return { user, scribes, reposts, omzos };
     } catch (error) {
       console.error('Error fetching full user profile:', error);
       return null;
