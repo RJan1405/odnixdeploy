@@ -464,46 +464,35 @@ export default function CallPage() {
     const sendSignal = (data: any) => {
         // Use remoteUserIdRef if we have it, otherwise fallback to otherUser.id
         const targetId = remoteUserIdRef.current || otherUser?.id || undefined;
+        
         console.log('📤 [CallPage] sendSignal called:', {
             type: data.type,
             targetId,
             wsState: wsRef.current?.readyState,
             wsOpen: wsRef.current?.readyState === WebSocket.OPEN,
             data_summary: data.type
-        console.log('📤 [CallPage] sendSignal called:', {
-            type: data.type,
-            wsState: wsRef.current?.readyState,
-            wsOpen: wsRef.current?.readyState === WebSocket.OPEN,
-            data: data
         });
 
-        if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-            const jsonStr = JSON.stringify(data);
-            wsRef.current.send(jsonStr);
-            console.log('✅ [CallPage] Signal sent via WebSocket');
-        } else {
-            console.warn("⚠️ [CallPage] WS not ready, sending via HTTP");
-            if (chatId) {
-                api.sendP2PSignal(chatId, targetId ?? '', data);
-                console.log('✅ [CallPage] Signal sent via HTTP API to target:', targetId);
-            }
-        }
+        const jsonStr = JSON.stringify(data);
 
-        // Concurrent fallback for critical signals
-        if (['webrtc.offer', 'webrtc.answer', 'call.end'].includes(data.type)) {
-            if (chatId && wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-                api.sendP2PSignal(chatId, targetId ?? '', data).catch(err => console.warn("HTTP fallback failed", err));
-                console.log('📨 [CallPage] Concurrent HTTP signal also sent for reliability');
-            console.log('📤 [CallPage] Sending via WebSocket:', jsonStr.substring(0, 200));
+        if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
             wsRef.current.send(jsonStr);
             console.log('✅ [CallPage] Signal sent via WebSocket');
+            
+            // Concurrent fallback for critical signals to improve reliability
+            if (['webrtc.offer', 'webrtc.answer', 'call.end'].includes(data.type)) {
+                if (chatId) {
+                    api.sendP2PSignal(chatId, targetId ?? '', data).catch(err => console.warn("HTTP fallback failed", err));
+                    console.log('📨 [CallPage] Concurrent HTTP signal also sent for reliability');
+                }
+            }
         } else {
             console.warn("⚠️ [CallPage] WS not ready, sending via HTTP", {
                 wsState: wsRef.current?.readyState,
                 wsExists: !!wsRef.current
             });
             if (chatId) {
-                api.sendP2PSignal(chatId, data);
+                api.sendP2PSignal(chatId, targetId ?? '', data);
                 console.log('✅ [CallPage] Signal sent via HTTP API');
             }
         }
