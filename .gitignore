@@ -30,9 +30,4 @@ __pycache__/
 
 # Build artifacts
 frontend/dist/
-odnix-mobile/android/app/build/
-odnix-mobile/ios/build/
-
-# Mobile specific
-odnix-mobile/.gradle/
-odnix-mobile/local.properties
+odnix-mobile
