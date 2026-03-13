@@ -253,55 +253,53 @@ export function ScribeCard({ scribe, onUserClick, onRepostToggled }: ScribeCardP
         </div>
       </div>
 
-          {/* Content */}
-          <div className="mb-4">
-            {scribe.type === 'text' && (
-              <p className="text-foreground whitespace-pre-wrap">{scribe.content}</p>
-            )}
+      {/* Content */}
+      <div className="mb-4">
+        {scribe.type === 'text' && (
+          <p className="text-foreground whitespace-pre-wrap">{scribe.content}</p>
+        )}
 
-            {scribe.type === 'image' && (
-              <>
-                <p className="text-foreground mb-3">{scribe.content}</p>
-                <div className="rounded-xl overflow-hidden bg-secondary/30">
-                  <img
-                    src={scribe.mediaUrl}
-                    alt="Post content"
-                    loading="lazy"
-                    className="w-full h-auto max-h-[500px] object-contain"
-                  />
-                </div>
-              </>
-            )}
+        {scribe.type === 'image' && (
+          <>
+            <p className="text-foreground mb-3">{scribe.content}</p>
+            <div className="rounded-xl overflow-hidden bg-secondary/30">
+              <img
+                src={scribe.mediaUrl}
+                alt="Post content"
+                loading="lazy"
+                className="w-full h-auto max-h-[500px] object-contain"
+              />
+            </div>
+          </>
+        )}
 
-            {scribe.type === 'html' && (
-              <>
-                <p className="text-foreground mb-3">{scribe.content}</p>
-                <div className="rounded-xl overflow-hidden border border-border">
-                  <iframe
-                    srcDoc={scribe.htmlContent}
-                    className="w-full h-52 bg-background"
-                    sandbox="allow-scripts"
-                    title="HTML Content"
-                  />
-                </div>
-              </>
-            )}
+        {scribe.type === 'html' && (
+          <>
+            <p className="text-foreground mb-3">{scribe.content}</p>
+            <div className="rounded-xl overflow-hidden border border-border">
+              <iframe
+                srcDoc={scribe.htmlContent}
+                className="w-full h-52 bg-background"
+                sandbox="allow-scripts"
+                title="HTML Content"
+              />
+            </div>
+          </>
+        )}
 
-            {scribe.type === 'video' && (
-              <>
-                <p className="text-foreground mb-3">{scribe.content}</p>
-                <video
-                  src={scribe.mediaUrl}
-                  controls
-                  playsInline
-                  preload="metadata"
-                  className="rounded-xl w-full bg-black max-h-96"
-                />
-              </>
-            )}
-          </div>
-        </>
-      )}
+        {scribe.type === 'video' && (
+          <>
+            <p className="text-foreground mb-3">{scribe.content}</p>
+            <video
+              src={scribe.mediaUrl}
+              controls
+              playsInline
+              preload="metadata"
+              className="rounded-xl w-full bg-black max-h-96"
+            />
+          </>
+        )}
+      </div>
 
       {/* Actions */}
       <div className="flex items-center justify-between pt-3 border-t border-border">
@@ -332,17 +330,6 @@ export function ScribeCard({ scribe, onUserClick, onRepostToggled }: ScribeCardP
         <button onClick={() => setCommentsOpen(c => !c)} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors">
           <MessageCircle className="w-5 h-5" />
           <span>{formatCount(commentsCount)}</span>
-        </button>
-
-        <button
-          onClick={handleRepost}
-          className={cn(
-            'flex items-center gap-1.5 text-sm transition-colors',
-            reposted ? 'text-red-500' : 'text-muted-foreground hover:text-red-500'
-          )}
-        >
-          <Repeat2 className={cn('w-5 h-5', reposted && 'fill-red-500')} />
-          <span>{formatCount(reposts)}</span>
         </button>
 
         <button onClick={() => { setShareOpen(s => !s); setCommentsOpen(false); }} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-accent transition-colors">

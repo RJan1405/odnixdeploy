@@ -308,6 +308,7 @@ export const mockOmzos: Omzo[] = [
     shares: 890,
     views: 50000,
     comments: 145,
+    reposts: 0,
     createdAt: new Date(Date.now() - 3600000),
   },
   {
@@ -321,6 +322,7 @@ export const mockOmzos: Omzo[] = [
     shares: 2300,
     views: 150000,
     comments: 450,
+    reposts: 0,
     createdAt: new Date(Date.now() - 7200000),
     isLiked: true,
   },
@@ -335,6 +337,7 @@ export const mockOmzos: Omzo[] = [
     shares: 5600,
     views: 300000,
     comments: 890,
+    reposts: 0,
     createdAt: new Date(Date.now() - 14400000),
   },
 ];
@@ -794,18 +797,18 @@ export const api = {
   getOmzos: async (): Promise<Omzo[]> => {
     try {
       const response = await apiClient.get<any>('/api/omzo/batch/');
-      const omzos = response.omzos || response || [];
+      const omzos = response.omzos || response.data || response || [];
       return omzos.map((o: any) => ({
         id: o.id?.toString() || o.omzo_id?.toString(),
         user: {
           id: o.user_id?.toString() || o.user?.id?.toString() || '0',
           username: o.username || o.user?.username || '',
-          displayName: o.display_name || o.username || o.user?.full_name || '',
+          displayName: o.display_name || o.username || o.user?.full_name || o.username || '',
           avatar: getMediaUrl(o.user_avatar || o.avatar || o.user?.profile_picture || ''),
-          isOnline: o.user?.is_online || false,
-          isVerified: o.user?.is_verified || false,
+          isOnline: o.is_online || o.user?.is_online || false,
+          isVerified: o.is_verified || o.user?.is_verified || false,
         },
-        videoUrl: getMediaUrl(o.url || o.video || o.video_url || ''),
+        videoUrl: getMediaUrl(o.video_url || o.url || o.video || ''),
         caption: o.caption || '',
         audioName: o.audio_name || 'Original Sound',
         likes: o.likes || o.likes_count || 0,
@@ -950,7 +953,7 @@ export const api = {
       return {
         success: response.success,
         isLiked: response.is_liked,
-        likesCount: response.likes_count
+        likesCount: response.like_count
       };
     } catch (error) {
       console.error('Error toggling omzo like:', error);
@@ -964,7 +967,7 @@ export const api = {
       return {
         success: response.success,
         isDisliked: response.is_disliked,
-        likesCount: response.likes_count
+        likesCount: response.like_count
       };
     } catch (error) {
       console.error('Error toggling omzo dislike:', error);
@@ -1136,9 +1139,9 @@ export const api = {
         id: c.id?.toString(),
         userId: c.user?.id?.toString(),
         username: c.user?.username,
-        avatar: getMediaUrl(c.user?.avatar || ''),
+        avatar: getMediaUrl(c.user?.avatar || c.user?.profile_picture_url || ''),
         text: c.content,
-        createdAt: c.created_at
+        createdAt: c.created_at || c.timestamp
       }));
     } catch (error) {
       console.error('Error fetching omzo comments:', error);
@@ -1395,7 +1398,6 @@ export const api = {
       }
 
       const omzos = omzosData.map((o: any) => ({
-      const omzos = (response.omzos || []).map((o: any) => ({
         id: o.id?.toString(),
         user: user,
         videoUrl: getMediaUrl(o.video_url || ''),
@@ -1635,6 +1637,7 @@ export const api = {
         views: o.views || 0,
         comments: o.comments || 0,
         shares: o.shares || 0,
+        reposts: o.reposts || 0,
         createdAt: new Date(o.createdAt),
         isLiked: o.isLiked || false,
         isDisliked: o.isDisliked || false,

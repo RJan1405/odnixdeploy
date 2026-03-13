@@ -2832,66 +2832,33 @@ def p2p_send_signal(request):
                 f"P2P signal stored: {signal_data.get('type', 'unknown')} from user {request.user.id} to user {target_user_id}")
 
             # Push signal in real-time via the chat WebSocket group so web clients don't need to poll
+            # Push signal in real-time via the chat WebSocket group
             try:
                 from channels.layers import get_channel_layer
                 from asgiref.sync import async_to_sync
                 channel_layer = get_channel_layer()
 
-                # Send as p2p.signal to the chat group — web useChatWebSocket listens for this
-        # CRITICAL FIX: If this is an offer, we MUST trigger the notification via Channels
-        # otherwise the receiver (who listens on base.html) assumes no call is coming.
-        if signal_data.get('type') == 'webrtc.offer':
-            from channels.layers import get_channel_layer
-            from asgiref.sync import async_to_sync
-            channel_layer = get_channel_layer()
-
-            # Construct the exact payload that base.html expects
-            notif_payload = {
-                'type': 'incoming.call',
-                'chat_id': chat.id,
-                'from_user_id': request.user.id,
-                'from_username': request.user.username,
-                'from_full_name': request.user.full_name,
-                'from_avatar': request.user.profile_picture.url if request.user.profile_picture else None,
-                'audioOnly': signal_data.get('audioOnly', False)
-            }
-
-            # Send to chat group so participants receive it via NotifyConsumer
-            # Note: NotifyConsumer listens to 'user_{id}' groups usually, but let's check.
-            # Base.html connects to /ws/notify/ which subscribes to user-specific group.
-            # So we should send to the TARGET users individually.
-
-            targets = []
-            if target_user_id:
-                targets = [target_user]  # Already fetched above
-            else:
-                targets = chat.participants.exclude(id=request.user.id)
-
-            for target in targets:
+                # Always relay the signal to the chat group for real-time signaling
                 async_to_sync(channel_layer.group_send)(
                     f"chat_{chat_id}",
                     {
-                        'type': 'p2p_signal',   # maps to p2p_signal() handler in ChatConsumer
+                        'type': 'p2p_signal',
                         'signal': signal_data,
                         'sender_id': request.user.id,
                         'target_user_id': target_user_id,
                     }
                 )
-                logger.info(f"P2P signal pushed via WebSocket to chat_{chat_id}")
+                logger.info(f"P2P signal ({signal_data.get('type', 'unknown')}) pushed via WebSocket to chat_{chat_id}")
+
             except Exception as ws_err:
                 logger.warning(f"Could not push P2P signal via WebSocket (DB fallback active): {ws_err}")
 
-            # Additionally, for webrtc.offer signals, fire a call notification
+            # Special case: for webrtc.offer, also send a notification to the target user(s)
             if signal_data.get('type') == 'webrtc.offer':
-                from chat.utils import should_send_call_notification
-                if not should_send_call_notification(chat.id, request.user.id):
-                    logger.info("Skipped duplicate HTTP call notification (debounced)")
-                else:
-                    try:
-                        from channels.layers import get_channel_layer
-                        from asgiref.sync import async_to_sync
-                        channel_layer = get_channel_layer()
-
+                try:
+                    from chat.utils import should_send_call_notification
+                    if should_send_call_notification(chat.id, request.user.id):
+                        # Construct notification event
                         notif_event = {
                             'type': 'notify.call',
                             'from_user_id': request.user.id,
@@ -2901,20 +2868,20 @@ def p2p_send_signal(request):
                             'from_avatar': request.user.profile_picture.url if request.user.profile_picture else None,
                         }
 
-                        targets = [target_user] if target_user_id else chat.participants.exclude(id=request.user.id)
-                        for target in targets:
+                        # Determine target users
+                        if target_user_id:
+                            target_users = [target_user]
+                        else:
+                            target_users = chat.participants.exclude(id=request.user.id)
+
+                        for target in target_users:
                             async_to_sync(channel_layer.group_send)(
                                 f"user_notify_{target.id}",
                                 notif_event
                             )
-                        logger.info(f"Broadcasted notify.call for HTTP offer to {len(list(targets))} users")
-                    except Exception as notif_err:
-                        logger.warning(f"Could not send call notification: {notif_err}")
-
-            logger.info(
-                f"Broadcasted incoming.call notification for HTTP relay offer to {len(targets)} users")
-
-        return JsonResponse({'success': True})
+                        logger.info(f"Broadcasted incoming call notification to {len(list(target_users))} users")
+                except Exception as notif_err:
+                    logger.warning(f"Could not send call notification: {notif_err}")
 
     except Exception as e:
         logger.error(f"Error in p2p_send_signal: {str(e)}")
@@ -2967,7 +2934,6 @@ def p2p_get_signals(request, chat_id):
 
             # Determine if this is a call signal or file transfer signal
             is_call_signal = signal_type.startswith('webrtc.') or signal_type == 'call.end' or (
-            is_call_signal = signal_type.startswith('webrtc.') or (
                 signal_type in ('offer', 'answer', 'ice', 'candidate') and
                 has_sdp_at_top and not has_file_info
             )

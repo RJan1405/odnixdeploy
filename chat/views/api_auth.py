@@ -115,6 +115,7 @@ def api_profile(request):
                 names = display_name.split(' ', 1)
                 user.name = names[0]
                 user.lastname = names[1] if len(names) > 1 else ""
+                user.full_name = display_name
             else:
                 # Map web first_name/last_name to name and lastname
                 if first_name:
@@ -152,8 +153,6 @@ def api_profile(request):
                 'following_count': user.following_count,
                 'post_count': user.scribes.count(),
             }
-
-                user.full_name = display_name
 
             user.save()
 
@@ -303,17 +302,13 @@ def api_user_profile(request, username):
                     'user': {
                         'id': str(original.user.id),
                         'username': original.user.username,
-                        'full_name': original.user.full_name,
-                    'likes': original.scribe_likes.count(),
-                    'comments': original.comments.count(),
-                    'reposts': original.reposts.count(),
-                    'user': {
-                        'id': str(original.user.id),
-                        'username': original.user.username,
                         'display_name': original.user.full_name or original.user.username,
                         'avatar': original.user.profile_picture.url if original.user.profile_picture else '',
                         'is_verified': original.user.is_verified,
-                    }
+                    },
+                    'likes': original.scribe_likes.count(),
+                    'comments': original.comments.count(),
+                    'reposts': original.reposts.count(),
                 }
             elif scribe.original_omzo:
                 original = scribe.original_omzo
