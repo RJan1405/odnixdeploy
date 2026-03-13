@@ -3284,6 +3284,7 @@ def toggle_save_omzo(request):
         except Omzo.DoesNotExist:
             return JsonResponse({'success': False, 'error': 'Omzo not found'})
 
+        from chat.models import SavedOmzoItem
         saved_obj = SavedOmzoItem.objects.filter(
             user=request.user, omzo=omzo).first()
 
@@ -3308,6 +3309,8 @@ def toggle_save_omzo(request):
 def get_saved_items(request):
     """Get all saved items (scribes and omzos) for the current user"""
     try:
+        from chat.models import SavedScribeItem, SavedOmzoItem
+
         # Get saved scribes
         saved_scribes = SavedScribeItem.objects.filter(
             user=request.user).select_related('scribe__user')

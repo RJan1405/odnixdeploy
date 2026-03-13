@@ -470,6 +470,11 @@ export default function CallPage() {
             wsState: wsRef.current?.readyState,
             wsOpen: wsRef.current?.readyState === WebSocket.OPEN,
             data_summary: data.type
+        console.log('📤 [CallPage] sendSignal called:', {
+            type: data.type,
+            wsState: wsRef.current?.readyState,
+            wsOpen: wsRef.current?.readyState === WebSocket.OPEN,
+            data: data
         });
 
         if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
@@ -489,6 +494,17 @@ export default function CallPage() {
             if (chatId && wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
                 api.sendP2PSignal(chatId, targetId ?? '', data).catch(err => console.warn("HTTP fallback failed", err));
                 console.log('📨 [CallPage] Concurrent HTTP signal also sent for reliability');
+            console.log('📤 [CallPage] Sending via WebSocket:', jsonStr.substring(0, 200));
+            wsRef.current.send(jsonStr);
+            console.log('✅ [CallPage] Signal sent via WebSocket');
+        } else {
+            console.warn("⚠️ [CallPage] WS not ready, sending via HTTP", {
+                wsState: wsRef.current?.readyState,
+                wsExists: !!wsRef.current
+            });
+            if (chatId) {
+                api.sendP2PSignal(chatId, data);
+                console.log('✅ [CallPage] Signal sent via HTTP API');
             }
         }
     };

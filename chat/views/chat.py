@@ -2791,6 +2791,10 @@ def p2p_send_signal(request):
         if sig_type == 'webrtc.offer' or sig_type == 'file.offer':
             P2PSignal.objects.filter(chat=chat, is_consumed=False).update(is_consumed=True)
             logger.info(f"Cleared all stale signals for chat {chat_id} before new offer ({sig_type})")
+        # For file transfers, check if target user is online
+        signal_type = signal_data.get(
+            'type', '') if isinstance(signal_data, dict) else ''
+        is_file_signal = signal_type.startswith('file.')
 
         # If target_user_id is None, send to all other participants (for calls)
         if target_user_id is None:
@@ -2834,6 +2838,36 @@ def p2p_send_signal(request):
                 channel_layer = get_channel_layer()
 
                 # Send as p2p.signal to the chat group — web useChatWebSocket listens for this
+        # CRITICAL FIX: If this is an offer, we MUST trigger the notification via Channels
+        # otherwise the receiver (who listens on base.html) assumes no call is coming.
+        if signal_data.get('type') == 'webrtc.offer':
+            from channels.layers import get_channel_layer
+            from asgiref.sync import async_to_sync
+            channel_layer = get_channel_layer()
+
+            # Construct the exact payload that base.html expects
+            notif_payload = {
+                'type': 'incoming.call',
+                'chat_id': chat.id,
+                'from_user_id': request.user.id,
+                'from_username': request.user.username,
+                'from_full_name': request.user.full_name,
+                'from_avatar': request.user.profile_picture.url if request.user.profile_picture else None,
+                'audioOnly': signal_data.get('audioOnly', False)
+            }
+
+            # Send to chat group so participants receive it via NotifyConsumer
+            # Note: NotifyConsumer listens to 'user_{id}' groups usually, but let's check.
+            # Base.html connects to /ws/notify/ which subscribes to user-specific group.
+            # So we should send to the TARGET users individually.
+
+            targets = []
+            if target_user_id:
+                targets = [target_user]  # Already fetched above
+            else:
+                targets = chat.participants.exclude(id=request.user.id)
+
+            for target in targets:
                 async_to_sync(channel_layer.group_send)(
                     f"chat_{chat_id}",
                     {
@@ -2876,6 +2910,9 @@ def p2p_send_signal(request):
                         logger.info(f"Broadcasted notify.call for HTTP offer to {len(list(targets))} users")
                     except Exception as notif_err:
                         logger.warning(f"Could not send call notification: {notif_err}")
+
+            logger.info(
+                f"Broadcasted incoming.call notification for HTTP relay offer to {len(targets)} users")
 
         return JsonResponse({'success': True})
 
@@ -2930,6 +2967,7 @@ def p2p_get_signals(request, chat_id):
 
             # Determine if this is a call signal or file transfer signal
             is_call_signal = signal_type.startswith('webrtc.') or signal_type == 'call.end' or (
+            is_call_signal = signal_type.startswith('webrtc.') or (
                 signal_type in ('offer', 'answer', 'ice', 'candidate') and
                 has_sdp_at_top and not has_file_info
             )
@@ -3302,6 +3340,9 @@ def api_explore_feed(request):
         # Use existing helper - works for both authenticated and anonymous users
         content_items = _get_explore_content_batch(
             page=page, per_page=per_page, user=request.user if request.user.is_authenticated else None)
+        # Use existing helper
+        content_items = _get_explore_content_batch(
+            page=page, per_page=per_page, user=request.user)
 
         # Fallback: if personalized explore is empty (or ended), show global content from the same page offset
         if not content_items:
@@ -3392,6 +3433,7 @@ def api_explore_feed(request):
                 video_url = obj.video_file.url if obj.video_file else None
                 result['videoUrl'] = request.build_absolute_uri(
                     video_url) if video_url and not video_url.startswith('http') else video_url
+                result['videoUrl'] = obj.video_file.url if obj.video_file else None
                 result['caption'] = obj.caption
                 result['dislikes'] = obj.dislikes.count()
                 result['shares'] = 0

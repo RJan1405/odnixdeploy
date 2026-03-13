@@ -63,13 +63,8 @@ export function ScribeCard({ scribe, onUserClick, onRepostToggled }: ScribeCardP
     setSaved(scribe.isSaved);
     setLikes(displayData.likes);
     setDislikes(scribe.dislikes);
-    setCommentsCount(displayData.comments);
-    setReposts(displayData.reposts || 0);
-    // Update reposted state: true if it's a repost card, otherwise use isReposted flag
-    setReposted(isRepost ? true : !!scribe.isReposted);
-    // Update follow state from user data
-    setIsFollowing(displayData.user.isFollowing || false);
-  }, [scribe, displayData, isRepost]);
+    setCommentsCount(scribe.comments);
+  }, [scribe]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -168,83 +163,6 @@ export function ScribeCard({ scribe, onUserClick, onRepostToggled }: ScribeCardP
     }
   };
 
-  const handleRepost = async () => {
-    const prevReposted = reposted;
-    const prevReposts = reposts;
-
-    // Optimistic toggle
-    if (reposted) {
-      setReposted(false);
-      setReposts(r => Math.max(0, r - 1));
-    } else {
-      setReposted(true);
-      setReposts(r => r + 1);
-    }
-
-    try {
-      // Determine the content type
-      let contentType: 'scribe' | 'omzo' | 'story' = 'scribe';
-
-      if (isRepost) {
-        // For repost cards, use originalType
-        contentType = scribe.originalType || 'scribe';
-      } else {
-        // For original content, detect type by feedType field (from explore feed API)
-        const feedType = (scribe as any).feedType;
-        if (feedType === 'omzo') {
-          contentType = 'omzo';
-        }
-      }
-
-      // Call the appropriate API function based on content type
-      let res: { success: boolean; isReposted: boolean };
-      if (contentType === 'omzo') {
-        res = await api.toggleRepostOmzo(interactionId);
-      } else {
-        // Default to scribe for both 'scribe' and 'story' types
-        res = await api.toggleRepostScribe(interactionId);
-      }
-
-      if (!res.success) {
-        // Roll back on failure
-        setReposted(prevReposted);
-        setReposts(prevReposts);
-        alert('Failed to repost. Please try again.');
-      } else {
-        // Ensure local state matches backend flag if provided
-        setReposted(res.isReposted);
-
-        // Notify parent component about repost toggle (for removing from reposts tab)
-        if (onRepostToggled) {
-          onRepostToggled(scribe.id, res.isReposted);
-        }
-      }
-    } catch (error) {
-      console.error('Error toggling repost:', error);
-      alert('Error: ' + (error instanceof Error ? error.message : 'Failed to repost'));
-      setReposted(prevReposted);
-      setReposts(prevReposts);
-    }
-  };
-
-  const handleFollow = async () => {
-    if (followLoading) return;
-
-    const prevFollowing = isFollowing;
-    setFollowLoading(true);
-
-    try {
-      const result = await api.toggleFollow(displayData.user.username);
-      if (result.success) {
-        setIsFollowing(result.isFollowing);
-      }
-    } catch (error) {
-      setIsFollowing(prevFollowing);
-      console.error('Failed to toggle follow:', error);
-    } finally {
-      setFollowLoading(false);
-    }
-  };
 
   const menuActions = [
     {
@@ -278,203 +196,62 @@ export function ScribeCard({ scribe, onUserClick, onRepostToggled }: ScribeCardP
       animate={{ opacity: 1, y: 0 }}
       className="glass-card rounded-2xl p-4 mb-4 relative"
     >
-      {/* Repost Header - Show if this is a repost */}
-      {scribe.isRepost && (
-        <div className="flex items-center gap-2 mb-3 text-sm text-muted-foreground">
-          <Repeat2 className="w-4 h-4" />
-          <span>
-            <span className="font-semibold text-foreground">{scribe.user.displayName}</span> reposted
-          </span>
-        </div>
-      )}
-
-      {/* Original Content - Show if this is a repost with original data */}
-      {scribe.isRepost && scribe.originalData ? (
-        <div className="rounded-xl border border-border/50 p-4 bg-background/50">
-          {/* Original Author Header */}
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-3">
-              <Avatar
-                src={scribe.originalData.user.avatar}
-                alt={scribe.originalData.user.username}
-                size="md"
-              />
-              <div>
-                <div className="flex items-center gap-1">
-                  <span className="font-semibold text-foreground">
-                    {scribe.originalData.user.displayName}
-                  </span>
-                  {scribe.originalData.user.isVerified && (
-                    <BadgeCheck className="w-4 h-4 text-primary fill-primary/20" />
-                  )}
-                </div>
-                <span className="text-sm text-muted-foreground">
-                  @{scribe.originalData.user.username} · {formatDistanceToNow(scribe.originalData.timestamp, { addSuffix: false })}
-                </span>
-              </div>
+      {/* Header */}
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-3 cursor-pointer" onClick={onUserClick}>
+          <Avatar
+            src={scribe.user.avatar}
+            alt={scribe.user.username}
+            size="md"
+          />
+          <div>
+            <div className="flex items-center gap-1">
+              <span className="font-semibold text-foreground">
+                {scribe.user.displayName}
+              </span>
+              {scribe.user.isVerified && (
+                <BadgeCheck className="w-4 h-4 text-primary fill-primary/20" />
+              )}
             </div>
-            {/* Follow Button for Original Author */}
-            <motion.button
-              whileTap={{ scale: 0.95 }}
-              onClick={handleFollow}
-              disabled={followLoading}
-              className={cn(
-                'px-3 py-1.5 rounded-xl font-medium text-sm transition-all flex items-center gap-1.5',
-                isFollowing
-                  ? 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
-                  : 'bg-primary text-primary-foreground hover:opacity-90',
-                followLoading && 'opacity-70 cursor-not-allowed'
-              )}
-            >
-              {followLoading ? (
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-              ) : (
-                !isFollowing && <UserPlus className="w-3.5 h-3.5" />
-              )}
-              {followLoading ? (isFollowing ? 'Updating...' : 'Following...') : (isFollowing ? 'Following' : 'Follow')}
-            </motion.button>
-          </div>
-
-          {/* Original Content */}
-          <div className="mb-3">
-            {scribe.originalType === 'scribe' && (
-              <>
-                {scribe.originalData.content && (
-                  <p className="text-foreground whitespace-pre-wrap mb-3">{scribe.originalData.content}</p>
-                )}
-                {scribe.originalData.mediaUrl && (
-                  <div className="rounded-xl overflow-hidden bg-secondary/30">
-                    <img
-                      src={scribe.originalData.mediaUrl}
-                      alt="Original content"
-                      loading="lazy"
-                      className="w-full h-auto max-h-[400px] object-contain"
-                    />
-                  </div>
-                )}
-              </>
-            )}
-
-            {scribe.originalType === 'omzo' && scribe.originalData.videoUrl && (
-              <>
-                {scribe.originalData.caption && (
-                  <p className="text-foreground mb-3">{scribe.originalData.caption}</p>
-                )}
-                <video
-                  src={scribe.originalData.videoUrl}
-                  controls
-                  playsInline
-                  preload="metadata"
-                  className="rounded-xl w-full bg-black max-h-80"
-                />
-              </>
-            )}
-          </div>
-
-          {/* Original Stats */}
-          <div className="flex items-center gap-4 text-xs text-muted-foreground">
-            <span className="flex items-center gap-1">
-              <Heart className="w-3 h-3" />
-              {formatCount(scribe.originalData.likes)}
+            <span className="text-sm text-muted-foreground">
+              @{scribe.user.username} · {formatDistanceToNow(scribe.createdAt, { addSuffix: false })}
             </span>
-            <span className="flex items-center gap-1">
-              <MessageCircle className="w-3 h-3" />
-              {formatCount(scribe.originalData.comments)}
-            </span>
-            {scribe.originalData.reposts !== undefined && (
-              <span className="flex items-center gap-1">
-                <Repeat2 className="w-3 h-3" />
-                {formatCount(scribe.originalData.reposts)}
-              </span>
-            )}
-            {scribe.originalData.views !== undefined && (
-              <span className="flex items-center gap-1">
-                <span>👁</span>
-                {formatCount(scribe.originalData.views)}
-              </span>
-            )}
           </div>
         </div>
-      ) : (
-        <>
-          {/* Header - Show for non-reposts */}
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-3 cursor-pointer" onClick={onUserClick}>
-              <Avatar
-                src={scribe.user.avatar}
-                alt={scribe.user.username}
-                size="md"
-              />
-              <div>
-                <div className="flex items-center gap-1">
-                  <span className="font-semibold text-foreground">
-                    {scribe.user.displayName}
-                  </span>
-                  {scribe.user.isVerified && (
-                    <BadgeCheck className="w-4 h-4 text-primary fill-primary/20" />
-                  )}
-                </div>
-                <span className="text-sm text-muted-foreground">
-                  @{scribe.user.username} · {formatDistanceToNow(scribe.createdAt, { addSuffix: false })}
-                </span>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              {/* Follow Button */}
-              <motion.button
-                whileTap={{ scale: 0.95 }}
-                onClick={handleFollow}
-                disabled={followLoading}
-                className={cn(
-                  'px-3 py-1.5 rounded-xl font-medium text-sm transition-all flex items-center gap-1.5',
-                  isFollowing
-                    ? 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
-                    : 'bg-primary text-primary-foreground hover:opacity-90',
-                  followLoading && 'opacity-70 cursor-not-allowed'
-                )}
+        <div className="relative" ref={menuRef}>
+          <button
+            onClick={() => setMenuOpen(!menuOpen)}
+            className="p-2 hover:bg-secondary rounded-lg transition-colors"
+          >
+            <MoreHorizontal className="w-5 h-5 text-muted-foreground" />
+          </button>
+
+          <AnimatePresence>
+            {menuOpen && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                className="absolute right-0 top-full mt-2 w-48 bg-card border border-border rounded-xl shadow-lg z-50 overflow-hidden"
               >
-                {followLoading ? (
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                ) : (
-                  !isFollowing && <UserPlus className="w-3.5 h-3.5" />
-                )}
-                {followLoading ? (isFollowing ? 'Updating...' : 'Following...') : (isFollowing ? 'Following' : 'Follow')}
-              </motion.button>
-              <div className="relative" ref={menuRef}>
-                <button
-                  onClick={() => setMenuOpen(!menuOpen)}
-                  className="p-2 hover:bg-secondary rounded-lg transition-colors"
-                >
-                  <MoreHorizontal className="w-5 h-5 text-muted-foreground" />
-                </button>
-
-                <AnimatePresence>
-                  {menuOpen && (
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.95, y: 10 }}
-                      animate={{ opacity: 1, scale: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.95, y: 10 }}
-                      className="absolute right-0 top-full mt-2 w-48 bg-card border border-border rounded-xl shadow-lg z-50 overflow-hidden"
-                    >
-                      {menuActions.map((action) => (
-                        <button
-                          key={action.label}
-                          onClick={action.action}
-                          className={cn(
-                            "w-full flex items-center gap-2 px-4 py-3 text-sm transition-colors hover:bg-secondary/50",
-                            action.danger ? "text-destructive hover:bg-destructive/10" : "text-foreground"
-                          )}
-                        >
-                          <action.icon className="w-4 h-4" />
-                          {action.label}
-                        </button>
-                      ))}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            </div>
-          </div>
+                {menuActions.map((action) => (
+                  <button
+                    key={action.label}
+                    onClick={action.action}
+                    className={cn(
+                      "w-full flex items-center gap-2 px-4 py-3 text-sm transition-colors hover:bg-secondary/50",
+                      action.danger ? "text-destructive hover:bg-destructive/10" : "text-foreground"
+                    )}
+                  >
+                    <action.icon className="w-4 h-4" />
+                    {action.label}
+                  </button>
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
 
           {/* Content */}
           <div className="mb-4">

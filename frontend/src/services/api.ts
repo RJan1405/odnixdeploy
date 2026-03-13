@@ -1395,6 +1395,7 @@ export const api = {
       }
 
       const omzos = omzosData.map((o: any) => ({
+      const omzos = (response.omzos || []).map((o: any) => ({
         id: o.id?.toString(),
         user: user,
         videoUrl: getMediaUrl(o.video_url || ''),

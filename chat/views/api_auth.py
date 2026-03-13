@@ -153,6 +153,10 @@ def api_profile(request):
                 'post_count': user.scribes.count(),
             }
 
+                user.full_name = display_name
+
+            user.save()
+
             return JsonResponse({
                 'success': True,
                 'user': user_data,
@@ -300,6 +304,12 @@ def api_user_profile(request, username):
                         'id': str(original.user.id),
                         'username': original.user.username,
                         'full_name': original.user.full_name,
+                    'likes': original.scribe_likes.count(),
+                    'comments': original.comments.count(),
+                    'reposts': original.reposts.count(),
+                    'user': {
+                        'id': str(original.user.id),
+                        'username': original.user.username,
                         'display_name': original.user.full_name or original.user.username,
                         'avatar': original.user.profile_picture.url if original.user.profile_picture else '',
                         'is_verified': original.user.is_verified,
@@ -315,6 +325,8 @@ def api_user_profile(request, username):
                     'timestamp': original.created_at,
                     'like_count': original.likes.count(),
                     'comment_count': original.comments.count(),
+                    'likes': original.likes.count(),
+                    'comments': original.comments.count(),
                     'views': original.views_count,
                     'user': {
                         'id': str(original.user.id),
@@ -374,12 +386,15 @@ def api_user_profile(request, username):
             'timestamp': omzo.created_at,
             'like_count': omzo.likes.count(),
             'dislike_count': omzo.dislikes.count(),
+            'likes': omzo.likes.count(),
+            'dislikes': omzo.dislikes.count(),
             'shares': 0,  # Placeholder
             'views': omzo.views_count,
             'comment_count': omzo.comments.count(),
             'is_liked': is_liked,
             'is_saved': is_saved,
             'repost_count': repost_count,
+            'reposts': repost_count,
             'is_reposted': is_reposted,
         })
 
