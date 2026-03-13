@@ -143,6 +143,28 @@ function savePost(scribeId) { const btn = document.querySelector(`.od-post-actio
 
 function sharePost(scribeId) { window.open(`/post/${scribeId}/share/`, '_blank'); }
 
-function repostPost(type, id) { /* simple wrapper, existing endpoints handle reposting */ fetch('/api/repost/', {method:'POST', headers:{'Content-Type':'application/json','X-CSRFToken':getCSRFToken()}, body: JSON.stringify({ type: type, id: id })}).then(r=>r.json()).then(data=>{ if (data.success) showIGToast('Reposted','success'); else showIGToast(data.error||'Failed to repost','error'); }).catch(()=>showIGToast('Failed to repost','error')); }
+function repostPost(type, id) {
+    // Instagram-style toggle: tap to repost, tap again to undo repost
+    fetch('/api/repost/', {
+        method:'POST',
+        headers:{
+            'Content-Type':'application/json',
+            'X-CSRFToken':getCSRFToken()
+        },
+        body: JSON.stringify({ type: type, id: id })
+    })
+    .then(r=>r.json())
+    .then(data=>{
+        if (data.success) {
+            const msg = data.message || (data.is_reposted ? 'Reposted' : 'Repost removed');
+            showIGToast(msg, 'success');
+        } else {
+            showIGToast(data.error || 'Failed to repost','error');
+        }
+    })
+    .catch(()=>{
+        showIGToast('Failed to repost','error');
+    });
+}
 
 </script>

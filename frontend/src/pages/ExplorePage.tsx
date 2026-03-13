@@ -51,7 +51,9 @@ export default function ExplorePage() {
             createdAt: item.createdAt,
             isLiked: item.isLiked,
             isDisliked: item.isDisliked,
-            isSaved: item.isSaved
+            isSaved: item.isSaved,
+            isReposted: item.isReposted,
+            feedType: 'omzo' // IMPORTANT: Preserve feedType so ScribeCard knows it's an Omzo
           } as Scribe;
         }
         return item as Scribe;

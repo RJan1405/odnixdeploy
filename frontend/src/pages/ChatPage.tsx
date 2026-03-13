@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useLayoutEffect } from 'react';
+import { useState, useEffect, useRef, useLayoutEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
@@ -45,7 +45,15 @@ export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  // Only show typing indicator for other users
   const [typingUsers, setTypingUsers] = useState<Array<{ id: number; name: string }>>([]);
+  useEffect(() => {
+    if (typingUsers.length > 0) {
+      console.log('[ChatPage] Typing users:', typingUsers);
+    } else {
+      console.log('[ChatPage] No one is typing');
+    }
+  }, [typingUsers]);
   const [uploading, setUploading] = useState(false);
   const [replyingTo, setReplyingTo] = useState<Message | null>(null);
 
@@ -86,7 +94,12 @@ export default function ChatPage() {
       }
     },
     onTyping: (users) => {
-      setTypingUsers(users);
+      // Filter out self from typing indicator
+      if (user && Array.isArray(users)) {
+        setTypingUsers(users.filter(u => String(u.id) !== String(user.id)));
+      } else {
+        setTypingUsers(users);
+      }
     },
     onMessageRead: (messageId, readBy, readAt) => {
       console.log('[ChatPage] Message read by:', readBy, 'last message id:', messageId);
@@ -115,12 +128,44 @@ export default function ChatPage() {
         return m;
       }));
     },
+    onMessageDelete: (messageId, deletedForEveryone) => {
+      setMessages(prev => {
+        if (deletedForEveryone) {
+          return prev.map(m => String(m.id) === String(messageId) ? { ...m, content: 'Message deleted', is_deleted: true } as any : m);
+        } else {
+          return prev.filter(m => String(m.id) !== String(messageId));
+        }
+      });
+    },
+    onMessageEdit: (messageId, content, editedAt) => {
+      setMessages(prev => prev.map(m => 
+        String(m.id) === String(messageId) ? { ...m, content, is_edited: true, edited_at: editedAt } as any : m
+      ));
+    },
     onP2PSignal: (signal, senderId) => {
+      // Filter out our own signals echoed back from the server
+      if (String(senderId) === String(user?.id)) return;
       if (handleP2PSignalRef.current) {
         handleP2PSignalRef.current(signal);
       }
     }
   });
+
+  // Create a targeted P2P signal wrapper that always includes the recipient's user ID.
+  // The raw sendP2PSignal from useChatWebSocket has signature (signal, targetUserId?).
+  // Without passing targetUserId, the backend broadcasts to ALL chat members instead of
+  // routing to the specific peer — this was the root cause of P2P file transfers failing.
+  const sendTargetedP2PSignal = useCallback((signal: any, targetUserId?: number) => {
+    // Determine target: explicit arg > chat's other participant
+    let resolvedTargetId = targetUserId;
+    if (!resolvedTargetId && chat) {
+      const otherParticipant = chat.participants?.find(
+        (p: any) => String(p.id) !== String(user?.id)
+      );
+      resolvedTargetId = otherParticipant?.id;
+    }
+    sendP2PSignal(signal, resolvedTargetId);
+  }, [sendP2PSignal, chat, user]);
 
   const {
     status: p2pStatus,
@@ -130,7 +175,7 @@ export default function ChatPage() {
     handleSignal: handleP2PSignal,
     reset: resetP2P
   } = useP2PFileTransfer(
-    sendP2PSignal,
+    sendTargetedP2PSignal,
     chatId || '',
     user?.id ? String(user.id) : '',
     (file, type) => {
@@ -648,19 +693,17 @@ export default function ChatPage() {
             </div>
           </div>
         )}
-
-        {/* Typing Indicator */}
-        {typingUsers.length > 0 && (
-          <div className="flex items-center gap-2 px-4 py-2 text-sm text-muted-foreground">
-            <div className="flex gap-1">
-              <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-              <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-              <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-            </div>
-            <span>{typingUsers.map(u => u.name).join(', ')} {typingUsers.length === 1 ? 'is' : 'are'} typing...</span>
-          </div>
-        )}
       </div>
+      {typingUsers.length > 0 && (
+        <div className="fixed left-0 right-0 bottom-[4rem] z-40 flex items-center justify-center px-4 py-2 bg-primary/90 text-white font-bold rounded-t-xl shadow-lg transition-all" style={{ pointerEvents: 'none' }}>
+          <div className="flex gap-1 mr-2">
+            <span className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+            <span className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+            <span className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+          </div>
+          <span>{typingUsers.map(u => u.name).join(', ')} {typingUsers.length === 1 ? 'is' : 'are'} typing...</span>
+        </div>
+      )}
 
       {/* Message Input */}
       <div

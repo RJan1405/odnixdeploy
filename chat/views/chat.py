@@ -34,31 +34,31 @@ logger = logging.getLogger(__name__)
 def get_gender_balanced_suggestions(user, total_count=5, female_priority=3, male_priority=2):
     """
     Get gender-balanced user suggestions for the dashboard.
-    
+
     Algorithm:
     1. Try to get 3 females and 2 males (priority ratio)
     2. If not enough females, fill remaining slots with males
     3. If not enough males, fill remaining slots with females
     4. If still not enough, fill with any available users
     5. Shuffle the final result for natural appearance
-    
+
     Args:
         user: Current logged-in user
         total_count: Total suggestions to return (default 5)
         female_priority: Number of females to prioritize (default 3)
         male_priority: Number of males to prioritize (default 2)
-    
+
     Returns:
         List of CustomUser objects
     """
     # Get IDs of users already being followed
     following_ids = list(Follow.objects.filter(
         follower=user).values_list('following', flat=True))
-    
+
     # Get IDs of dismissed suggestions
     dismissed_ids = list(DismissedSuggestion.objects.filter(
         user=user).values_list('dismissed_user', flat=True))
-    
+
     # Base queryset: exclude self, followed users, and dismissed users
     candidates = CustomUser.objects.exclude(
         id=user.id
@@ -67,54 +67,55 @@ def get_gender_balanced_suggestions(user, total_count=5, female_priority=3, male
     ).exclude(
         id__in=dismissed_ids
     )
-    
+
     # Get available females and males
     available_females = list(candidates.filter(gender='female').order_by('?'))
     available_males = list(candidates.filter(gender='male').order_by('?'))
-    
+
     suggestions = []
-    
+
     # Step 1: Try to get priority females (3)
     females_to_add = min(female_priority, len(available_females))
     suggestions.extend(available_females[:females_to_add])
     remaining_females = available_females[females_to_add:]
-    
+
     # Step 2: Try to get priority males (2)
     males_to_add = min(male_priority, len(available_males))
     suggestions.extend(available_males[:males_to_add])
     remaining_males = available_males[males_to_add:]
-    
+
     # Step 3: Fill remaining slots if we don't have enough
     slots_remaining = total_count - len(suggestions)
-    
+
     if slots_remaining > 0:
         # Calculate how many we're short of each gender
         female_shortage = female_priority - females_to_add
         male_shortage = male_priority - males_to_add
-        
+
         # If short on females, try to fill with more males first
         if female_shortage > 0 and remaining_males:
             fill_from_males = min(female_shortage, len(remaining_males))
             suggestions.extend(remaining_males[:fill_from_males])
             remaining_males = remaining_males[fill_from_males:]
             slots_remaining -= fill_from_males
-        
+
         # If short on males, try to fill with more females
         if male_shortage > 0 and remaining_females and slots_remaining > 0:
-            fill_from_females = min(male_shortage, len(remaining_females), slots_remaining)
+            fill_from_females = min(male_shortage, len(
+                remaining_females), slots_remaining)
             suggestions.extend(remaining_females[:fill_from_females])
             remaining_females = remaining_females[fill_from_females:]
             slots_remaining -= fill_from_females
-        
+
         # If still need more, use any remaining users
         if slots_remaining > 0:
             remaining_all = remaining_females + remaining_males
             random.shuffle(remaining_all)
             suggestions.extend(remaining_all[:slots_remaining])
-    
+
     # Shuffle final result for natural appearance
     random.shuffle(suggestions)
-    
+
     return suggestions[:total_count]
 
 
@@ -206,8 +207,10 @@ def dashboard(request):
 
         # Get like count and if current user liked it
         like_count = Like.objects.filter(scribe=scribe).count()
-        is_liked = Like.objects.filter(scribe=scribe, user=request.user).exists()
-        is_disliked = Dislike.objects.filter(scribe=scribe, user=request.user).exists()
+        is_liked = Like.objects.filter(
+            scribe=scribe, user=request.user).exists()
+        is_disliked = Dislike.objects.filter(
+            scribe=scribe, user=request.user).exists()
 
         # Check if current user has saved this post
         is_saved = SavedPost.objects.filter(
@@ -221,6 +224,13 @@ def dashboard(request):
             scribe=scribe,
             parent__isnull=True
         ).select_related('user').order_by('-timestamp')[:3]
+
+        # Check if current user has reposted this scribe
+        is_reposted = Scribe.objects.filter(
+            user=request.user,
+            original_scribe=scribe,
+            quote_source__isnull=True
+        ).exists()
 
         # Calculate time ago
         time_diff = timezone.now() - scribe.timestamp
@@ -252,6 +262,7 @@ def dashboard(request):
             'is_liked': is_liked,
             'is_disliked': is_disliked,
             'is_saved': is_saved,
+            'is_reposted': is_reposted,
             'is_own': scribe.user == request.user,
             'image_url': scribe.image_url,
             'has_media': scribe.has_media,
@@ -375,10 +386,11 @@ def chat_view(request, chat_id):
             last_message = 'No messages yet'
         unread_count = chat.messages.filter(
             is_read=False).exclude(sender=request.user).count()
-        
+
         # Check if this chat is a request (not accepted by current user)
-        is_request = (chat.chat_type == 'private' and chat.id not in accepted_chat_ids)
-        
+        is_request = (chat.chat_type ==
+                      'private' and chat.id not in accepted_chat_ids)
+
         chat_dict = {
             'id': chat.id,
             'name': chat.name,
@@ -446,10 +458,11 @@ def chat_view(request, chat_id):
         if other_user:
             target_user_username = other_user.username
             target_user_avatar = other_user.profile_picture_url
-            
+
             # Check if current user has accepted this chat
-            has_accepted = ChatAcceptance.objects.filter(chat=chat, user=request.user).exists()
-            
+            has_accepted = ChatAcceptance.objects.filter(
+                chat=chat, user=request.user).exists()
+
             # It's a request if we haven't accepted yet and they have messaged
             has_they_messaged = chat.messages.exclude(
                 sender=request.user).exclude(message_type='system').exists()
@@ -530,10 +543,11 @@ def messages_page(request):
             last_message = 'No messages yet'
         unread_count = chat.messages.filter(
             is_read=False).exclude(sender=request.user).count()
-        
+
         # Check if this chat is a request (not accepted by current user)
-        is_request = (chat.chat_type == 'private' and chat.id not in accepted_chat_ids)
-        
+        is_request = (chat.chat_type ==
+                      'private' and chat.id not in accepted_chat_ids)
+
         chat_dict = {
             'id': chat.id,
             'name': chat.name,
@@ -585,11 +599,11 @@ def get_chat_messages(request, chat_id):
 
     last_message_time = request.GET.get('last_message_time')
     after_id = request.GET.get('after_id')
-    
+
     # Optimize query with select_related to avoid N+1 problems
     messages_query = chat.messages.select_related(
-        'sender', 
-        'reply_to', 
+        'sender',
+        'reply_to',
         'reply_to__sender',
         'story_reply',
         'story_reply__user',
@@ -744,9 +758,9 @@ def send_message(request):
         notify_sidebar_for_chat(
             chat=chat,
             sender=request.user,
-            last_message_text=message.content
+            last_message_text='🔒 One-time message' if message.one_time else message.content
         )
-        
+
         # 🔥 Broadcast the message to all participants via WebSocket
         broadcast_message_to_chat(chat, message, exclude_sender=True)
 
@@ -802,9 +816,11 @@ def send_message(request):
         return JsonResponse({'success': False, 'error': 'Failed to send message'})
 
 
-@login_required
 def get_chats_api(request):
     """API endpoint to get user's chats for the slide-in panel"""
+    if not request.user.is_authenticated:
+        return JsonResponse({'success': True, 'chats': []})
+
     try:
         user_chats = Chat.objects.filter(
             participants=request.user).select_related('admin')
@@ -813,12 +829,19 @@ def get_chats_api(request):
         for chat in user_chats:
             # Get last message
             last_message = chat.messages.order_by('-timestamp').first()
-            last_msg_content = last_message.content if last_message else 'No messages yet'
-            if last_message and last_message.message_type == 'media':
-                if last_message.media_type == 'image':
-                    last_msg_content = 'Sent an image'
-                elif last_message.media_type == 'audio':
-                    last_msg_content = '🎤 Sent a voice message'
+            last_msg_content = None
+            if last_message:
+                if last_message.message_type == 'media':
+                    if last_message.media_type == 'image':
+                        last_msg_content = 'Sent an image'
+                    elif last_message.media_type == 'audio':
+                        last_msg_content = '🎤 Sent a voice message'
+                    elif last_message.media_type == 'video':
+                        last_msg_content = 'Sent a video'
+                    else:
+                        last_msg_content = 'Sent a file'
+                else:
+                    last_msg_content = last_message.content
 
             # Get unread count - messages not read by current user and not sent by current user
             unread_count = chat.messages.exclude(
@@ -832,7 +855,7 @@ def get_chats_api(request):
             if chat.chat_type == 'private':
                 other_user = chat.participants.exclude(
                     id=request.user.id).first()
-                
+
                 # Calculate actual online status based on last_seen
                 # User is only online if is_online=True AND last_seen is within 2 minutes
                 if other_user:
@@ -841,20 +864,34 @@ def get_chats_api(request):
                         time_since_last_seen = timezone.now() - other_user.last_seen
                         # Consider online if last seen within 2 minutes (120 seconds)
                         is_actually_online = time_since_last_seen.total_seconds() < 120
-                    
+
                     # Update the user's is_online status if it's stale
                     if other_user.is_online and not is_actually_online:
                         other_user.is_online = False
                         other_user.save(update_fields=['is_online'])
+
+            # Build last_message payload — never reveal content for one-time messages
+            last_message_data = None
+            if last_message:
+                is_one_time = bool(last_message.one_time)
+                is_consumed = last_message.consumed_at is not None
+                safe_content = '🔒 One-time message' if is_one_time else last_msg_content
+                last_message_data = {
+                    'id': last_message.id,
+                    'content': safe_content,
+                    'message_type': last_message.message_type,
+                    'one_time': is_one_time,
+                    'consumed_at': last_message.consumed_at.isoformat() if is_consumed else None,
+                    'sender_id': last_message.sender_id,
+                    'sender_name': last_message.sender.full_name if last_message.sender else None,
+                }
 
             chat_info = {
                 'id': chat.id,
                 'name': chat.name if chat.chat_type == 'group' else ((other_user.full_name or other_user.username) if other_user else 'Unknown'),
                 'username': other_user.username if other_user else None,
                 'is_group': chat.chat_type == 'group',
-                'last_message': {
-                    'content': last_msg_content
-                },
+                'last_message': last_message_data,
                 'last_message_time': last_message.timestamp.isoformat() if last_message else None,
                 'unread_count': unread_count,
                 'avatar': other_user.profile_picture_url if other_user else (chat.group_avatar.url if chat.group_avatar else None),
@@ -869,11 +906,12 @@ def get_chats_api(request):
                     'is_verified': other_user.is_verified,
                 } if other_user else None,
             }
-            
+
             # Debug logging
             if other_user:
-                logger.info(f"Chat {chat.id}: other_user.username={other_user.username}, other_user.full_name='{other_user.full_name}', other_user.name='{other_user.name}', other_user.lastname='{other_user.lastname}'")
-            
+                logger.info(
+                    f"Chat {chat.id}: other_user.username={other_user.username}, other_user.full_name='{other_user.full_name}', other_user.name='{other_user.name}', other_user.lastname='{other_user.lastname}'")
+
             chats_data.append(chat_info)
 
         return JsonResponse({'success': True, 'chats': chats_data})
@@ -902,7 +940,8 @@ def create_chat(request):
 
         if existing_chat:
             # Make sure creator has accepted this chat
-            ChatAcceptance.objects.get_or_create(chat=existing_chat, user=request.user)
+            ChatAcceptance.objects.get_or_create(
+                chat=existing_chat, user=request.user)
             return JsonResponse({
                 'success': True,
                 'chat_id': existing_chat.id,
@@ -912,7 +951,7 @@ def create_chat(request):
         # Create new chat
         chat = Chat.objects.create(chat_type='private')
         chat.participants.add(request.user, other_user)
-        
+
         # Auto-accept for the creator (they initiated, so they've accepted)
         ChatAcceptance.objects.get_or_create(chat=chat, user=request.user)
 
@@ -951,7 +990,7 @@ def create_group(request):
 
         name = data.get('name', '').strip()
         description = data.get('description', '').strip()
-        
+
         # Handle max_participants from data (string or int)
         try:
             max_participants = int(data.get('max_participants', 50))
@@ -989,13 +1028,14 @@ def create_group(request):
 
         # Add creator as participant
         chat.participants.add(request.user)
-        
+
         # Add selected participants
         participant_ids = data.get('participants', [])
         if participant_ids and isinstance(participant_ids, list):
             # Ensure identifiers are consistent (strings vs ints)
             try:
-                users_to_add = CustomUser.objects.filter(id__in=participant_ids)
+                users_to_add = CustomUser.objects.filter(
+                    id__in=participant_ids)
                 chat.participants.add(*users_to_add)
             except Exception as e:
                 logger.error(f"Error adding participants: {e}")
@@ -1009,18 +1049,22 @@ def create_group(request):
 
         return JsonResponse({
             'success': True,
-            'group': {
-                'id': chat.id,
-                'name': chat.name,
-                'invite_link': chat.invite_link,
-                'invite_code': chat.invite_code,
-                'groupAvatar': chat.group_avatar.url if chat.group_avatar else None
+            'data': {
+                'group': {
+                    'id': chat.id,
+                    'name': chat.name,
+                    'invite_link': chat.invite_link,
+                    'invite_code': chat.invite_code,
+                    'groupAvatar': chat.group_avatar.url if chat.group_avatar else None
+                }
             }
         })
 
     except Exception as e:
+        import traceback
         logger.error(f"Error in create_group: {str(e)}")
-        return JsonResponse({'success': False, 'error': 'Failed to create group'})
+        logger.error(traceback.format_exc())
+        return JsonResponse({'success': False, 'error': f'Failed to create group: {str(e)}'})
 
 
 @login_required
@@ -1170,8 +1214,13 @@ def _get_explore_content_batch(page=1, per_page=15, user=None):
     if shuffled_ids is None:
         # Cache miss - rebuild the shuffled order
         # Get scribes from users NOT followed (discovery content)
-        scribes_query = Scribe.objects.exclude(user_id__in=following_ids)
-        
+        # Exclude reposts - only show original content in explore
+        scribes_query = Scribe.objects.exclude(user_id__in=following_ids).filter(
+            original_scribe__isnull=True,
+            original_omzo__isnull=True,
+            original_story__isnull=True
+        )
+
         scribes_ids = list(
             scribes_query
             .values_list('id', flat=True)
@@ -1205,15 +1254,15 @@ def _get_explore_content_batch(page=1, per_page=15, user=None):
         try:
             if item_type == 'scribe':
                 obj = Scribe.objects.select_related(
-                    'user', 
-                    'original_scribe', 
+                    'user',
+                    'original_scribe',
                     'original_scribe__user',
                     'original_omzo',
                     'original_omzo__user',
                     'original_story',
                     'original_story__user'
                 ).get(id=item_id)
-                
+
                 # Calculate time ago
                 time_diff = timezone.now() - obj.timestamp
                 if time_diff.days > 0:
@@ -1225,11 +1274,14 @@ def _get_explore_content_batch(page=1, per_page=15, user=None):
 
                 # Get interaction data
                 like_count = Like.objects.filter(scribe=obj).count()
-                is_liked = Like.objects.filter(scribe=obj, user=user).exists() if user else False
-                is_disliked = Dislike.objects.filter(scribe=obj, user=user).exists() if user else False
-                is_saved = SavedScribeItem.objects.filter(scribe=obj, user=user).exists() if user else False
+                is_liked = Like.objects.filter(
+                    scribe=obj, user=user).exists() if user else False
+                is_disliked = Dislike.objects.filter(
+                    scribe=obj, user=user).exists() if user else False
+                is_saved = SavedScribeItem.objects.filter(
+                    scribe=obj, user=user).exists() if user else False
                 comment_count = Comment.objects.filter(scribe=obj).count()
-                
+
                 # Get recent comments
                 recent_comments = Comment.objects.filter(
                     scribe=obj,
@@ -1270,7 +1322,7 @@ def _get_explore_content_batch(page=1, per_page=15, user=None):
                 })
             else:
                 obj = Omzo.objects.select_related('user').get(id=item_id)
-                
+
                 # Calculate time ago for omzo
                 time_diff = timezone.now() - obj.created_at
                 if time_diff.days > 0:
@@ -1279,14 +1331,20 @@ def _get_explore_content_batch(page=1, per_page=15, user=None):
                     time_ago = f"{time_diff.seconds // 3600}h"
                 else:
                     time_ago = f"{time_diff.seconds // 60}m"
-                
+
                 # Get interaction data for omzo
                 like_count = OmzoLike.objects.filter(omzo=obj).count()
-                is_liked = OmzoLike.objects.filter(omzo=obj, user=user).exists() if user else False
-                is_disliked = OmzoDislike.objects.filter(omzo=obj, user=user).exists() if user else False
-                is_saved = SavedOmzoItem.objects.filter(omzo=obj, user=user).exists() if user else False
+                is_liked = OmzoLike.objects.filter(
+                    omzo=obj, user=user).exists() if user else False
+                is_disliked = OmzoDislike.objects.filter(
+                    omzo=obj, user=user).exists() if user else False
+                is_saved = SavedOmzoItem.objects.filter(
+                    omzo=obj, user=user).exists() if user else False
                 comment_count = OmzoComment.objects.filter(omzo=obj).count()
-                
+                # Check if user has reposted this Omzo
+                is_reposted = Scribe.objects.filter(
+                    user=user, original_omzo=obj).exists() if user else False
+
                 paginated.append({
                     'type': item_type,
                     'object': obj,
@@ -1304,6 +1362,7 @@ def _get_explore_content_batch(page=1, per_page=15, user=None):
                     'is_liked': is_liked,
                     'is_disliked': is_disliked,
                     'is_saved': is_saved,
+                    'is_reposted': is_reposted,
                     'is_own': user and obj.user.id == user.id,
                 })
         except (Scribe.DoesNotExist, Omzo.DoesNotExist):
@@ -1317,7 +1376,8 @@ def discover_groups_view(request):
     """Explore page: show scribes and omzo from users NOT followed (discovery feed)."""
 
     # Get first page (15 items) - pass user to exclude followed users
-    mixed_content = _get_explore_content_batch(page=1, per_page=15, user=request.user)
+    mixed_content = _get_explore_content_batch(
+        page=1, per_page=15, user=request.user)
 
     # If the client is a mobile browser (Android/iOS) prefer showing only scribes
     # because some mobile WebViews have trouble with autoplay/video heavy pages.
@@ -1331,7 +1391,8 @@ def discover_groups_view(request):
         is_mobile_ua = False
 
     if is_mobile_ua:
-        mixed_content = [item for item in mixed_content if item.get('type') == 'scribe']
+        mixed_content = [
+            item for item in mixed_content if item.get('type') == 'scribe']
 
     # Get user's chats for the DM panel in navbar
     private_chats = Chat.objects.filter(
@@ -1391,7 +1452,7 @@ def load_more_explore_content(request):
                         'username': comment.user.username,
                         'content': comment.content,
                     })
-                
+
                 item_data.update({
                     'id': item['id'],
                     'content': item['content'],
@@ -1458,30 +1519,41 @@ def explore(request):
     query = request.GET.get('q', '').strip()
 
     # Use the existing explore batch helper to prepare feed items (includes scribe fields)
-    mixed_content = _get_explore_content_batch(page=1, per_page=30, user=request.user)
+    mixed_content = _get_explore_content_batch(
+        page=1, per_page=30, user=request.user)
     # Keep only scribes and map to the same variable name used by dashboard
-    scribes_data = [item for item in mixed_content if item.get('type') == 'scribe']
+    scribes_data = [
+        item for item in mixed_content if item.get('type') == 'scribe']
 
     # Log for debugging: how many scribes were returned for this user
     try:
-        logger.info(f"Explore: returned {len(scribes_data)} scribes for user={request.user.username}")
+        logger.info(
+            f"Explore: returned {len(scribes_data)} scribes for user={request.user.username}")
         if len(scribes_data) > 0:
             # Log keys of first item to verify structure
-            logger.debug(f"Explore sample keys: {list(scribes_data[0].keys())}")
+            logger.debug(
+                f"Explore sample keys: {list(scribes_data[0].keys())}")
     except Exception:
         pass
 
     # Fallback: if personalized explore is empty (user follows everyone), show global scribes
     if not scribes_data:
-        logger.info(f"Explore: personalized feed empty for {request.user.username}, loading global feed")
-        mixed_content = _get_explore_content_batch(page=1, per_page=30, user=None)
-        scribes_data = [item for item in mixed_content if item.get('type') == 'scribe']
+        logger.info(
+            f"Explore: personalized feed empty for {request.user.username}, loading global feed")
+        mixed_content = _get_explore_content_batch(
+            page=1, per_page=30, user=None)
+        scribes_data = [
+            item for item in mixed_content if item.get('type') == 'scribe']
 
     # Navbar/chat context reused from other views
-    private_chats = Chat.objects.filter(participants=request.user, chat_type='private').order_by('-updated_at').distinct()
-    group_chats = Chat.objects.filter(participants=request.user, chat_type='group').order_by('-updated_at').distinct()
-    unread_message_count = Chat.objects.filter(participants=request.user, messages__is_read=False).exclude(messages__sender=request.user).distinct().count()
-    story_inbox_count = StoryReply.objects.filter(story__user=request.user, is_read=False).count()
+    private_chats = Chat.objects.filter(
+        participants=request.user, chat_type='private').order_by('-updated_at').distinct()
+    group_chats = Chat.objects.filter(
+        participants=request.user, chat_type='group').order_by('-updated_at').distinct()
+    unread_message_count = Chat.objects.filter(participants=request.user, messages__is_read=False).exclude(
+        messages__sender=request.user).distinct().count()
+    story_inbox_count = StoryReply.objects.filter(
+        story__user=request.user, is_read=False).count()
 
     context = {
         'scribes': scribes_data,
@@ -1601,7 +1673,7 @@ def consume_one_time_message(request, message_id):
         # The sender should not be able to mark their own view-once message as opened
         if message.sender == request.user:
             return JsonResponse({
-                'success': False, 
+                'success': False,
                 'error': 'Sender cannot consume their own view-once message'
             })
 
@@ -1612,7 +1684,7 @@ def consume_one_time_message(request, message_id):
         # Mark as consumed
         message.consumed_at = timezone.now()
         message.save(update_fields=['consumed_at'])
-        
+
         # 🔥 Broadcast the consumed status to all participants (including sender)
         # This ensures the sender sees the message was opened without needing to refresh
         broadcast_message_consumed(message.chat, message, request.user)
@@ -1622,7 +1694,7 @@ def consume_one_time_message(request, message_id):
         if media_url:
             if not media_url.startswith('http'):
                 media_url = request.build_absolute_uri(media_url)
-        
+
         # Return response immediately with pre-built URLs
         return JsonResponse({
             'success': True,
@@ -1664,7 +1736,7 @@ def mark_message_read(request, message_id):
                 from channels.layers import get_channel_layer
                 from asgiref.sync import async_to_sync
                 channel_layer = get_channel_layer()
-                
+
                 async_to_sync(channel_layer.group_send)(
                     f'chat_{message.chat.id}',
                     {
@@ -1674,7 +1746,7 @@ def mark_message_read(request, message_id):
                         'read_at': timezone.now().isoformat()
                     }
                 )
-                
+
                 # Also notify current user's sidebar to clear the badge
                 from chat.utils import clear_sidebar_unread
                 clear_sidebar_unread(message.chat, request.user)
@@ -2114,7 +2186,8 @@ def mark_messages_read(request, chat_id):
     try:
         chat = get_object_or_404(Chat, id=chat_id, participants=request.user)
 
-        logger.info(f"MARK_READ: User {request.user.username} (ID {request.user.id}) calling mark_reak for chat {chat_id}")
+        logger.info(
+            f"MARK_READ: User {request.user.username} (ID {request.user.id}) calling mark_reak for chat {chat_id}")
 
         # Get all unread messages from other users
         unread_messages = Message.objects.filter(
@@ -2139,12 +2212,13 @@ def mark_messages_read(request, chat_id):
         # Always broadcast the latest read message status to sync clients
         # even if no new receipts were created (e.g., they were already marked as read)
         try:
-            last_msg = chat.messages.exclude(sender=request.user).order_by('-id').first()
+            last_msg = chat.messages.exclude(
+                sender=request.user).order_by('-id').first()
             if last_msg:
                 from channels.layers import get_channel_layer
                 from asgiref.sync import async_to_sync
                 channel_layer = get_channel_layer()
-                
+
                 async_to_sync(channel_layer.group_send)(
                     f'chat_{chat_id}',
                     {
@@ -2154,7 +2228,7 @@ def mark_messages_read(request, chat_id):
                         'read_at': timezone.now().isoformat()
                     }
                 )
-                
+
                 # Also notify current user's sidebar to clear the badge
                 from chat.utils import clear_sidebar_unread
                 clear_sidebar_unread(chat, request.user)
@@ -2691,6 +2765,15 @@ def p2p_send_signal(request):
         if not all([chat_id, signal_data]):
             return JsonResponse({'success': False, 'error': 'Missing required fields'})
 
+        # Determine if this is a file transfer signal
+        signal_type = signal_data.get('type', '') if isinstance(signal_data, dict) else ''
+        has_file_info = signal_data.get('fileInfo', None) if isinstance(signal_data, dict) else None
+        has_sdp_at_top = signal_data.get('sdp', None) if isinstance(signal_data, dict) else None
+        is_file_signal = has_file_info or (
+            signal_type in ('offer', 'answer', 'candidate', 'rejected', 'timeout') and
+            not has_sdp_at_top
+        )
+
         # Verify user is in the chat
         chat = get_object_or_404(Chat, id=chat_id)
         if not chat.participants.filter(id=request.user.id).exists():
@@ -2702,10 +2785,13 @@ def p2p_send_signal(request):
         # Clean up old signals first
         P2PSignal.cleanup_old_signals()
 
-        # For file transfers, check if target user is online
-        signal_type = signal_data.get('type', '') if isinstance(signal_data, dict) else ''
-        is_file_signal = signal_type.startswith('file.')
-        
+        # When sending an offer, clear ALL OLD unconsumed signals for this chat
+        # to prevent "stale" call.end or candidates from messing up the new call.
+        sig_type = signal_data.get('type')
+        if sig_type == 'webrtc.offer' or sig_type == 'file.offer':
+            P2PSignal.objects.filter(chat=chat, is_consumed=False).update(is_consumed=True)
+            logger.info(f"Cleared all stale signals for chat {chat_id} before new offer ({sig_type})")
+
         # If target_user_id is None, send to all other participants (for calls)
         if target_user_id is None:
             others = chat.participants.exclude(id=request.user.id)
@@ -2741,42 +2827,55 @@ def p2p_send_signal(request):
             logger.info(
                 f"P2P signal stored: {signal_data.get('type', 'unknown')} from user {request.user.id} to user {target_user_id}")
 
-        # CRITICAL FIX: If this is an offer, we MUST trigger the notification via Channels
-        # otherwise the receiver (who listens on base.html) assumes no call is coming.
-        if signal_data.get('type') == 'webrtc.offer':
-            from channels.layers import get_channel_layer
-            from asgiref.sync import async_to_sync
-            channel_layer = get_channel_layer()
-            
-            # Construct the exact payload that base.html expects
-            notif_payload = {
-                'type': 'incoming.call',
-                'chat_id': chat.id,
-                'from_user_id': request.user.id,
-                'from_username': request.user.username,
-                'from_full_name': request.user.full_name,
-                'from_avatar': request.user.profile_picture.url if request.user.profile_picture else None,
-                'audioOnly': signal_data.get('audioOnly', False)
-            }
-            
-            # Send to chat group so participants receive it via NotifyConsumer
-            # Note: NotifyConsumer listens to 'user_{id}' groups usually, but let's check.
-            # Base.html connects to /ws/notify/ which subscribes to user-specific group.
-            # So we should send to the TARGET users individually.
-            
-            targets = []
-            if target_user_id:
-                targets = [target_user] # Already fetched above
-            else:
-                targets = chat.participants.exclude(id=request.user.id)
-                
-            for target in targets:
+            # Push signal in real-time via the chat WebSocket group so web clients don't need to poll
+            try:
+                from channels.layers import get_channel_layer
+                from asgiref.sync import async_to_sync
+                channel_layer = get_channel_layer()
+
+                # Send as p2p.signal to the chat group — web useChatWebSocket listens for this
                 async_to_sync(channel_layer.group_send)(
-                    f"user_{target.id}",  # Standard user notification group
-                    notif_payload
+                    f"chat_{chat_id}",
+                    {
+                        'type': 'p2p_signal',   # maps to p2p_signal() handler in ChatConsumer
+                        'signal': signal_data,
+                        'sender_id': request.user.id,
+                        'target_user_id': target_user_id,
+                    }
                 )
-            
-            logger.info(f"Broadcasted incoming.call notification for HTTP relay offer to {len(targets)} users")
+                logger.info(f"P2P signal pushed via WebSocket to chat_{chat_id}")
+            except Exception as ws_err:
+                logger.warning(f"Could not push P2P signal via WebSocket (DB fallback active): {ws_err}")
+
+            # Additionally, for webrtc.offer signals, fire a call notification
+            if signal_data.get('type') == 'webrtc.offer':
+                from chat.utils import should_send_call_notification
+                if not should_send_call_notification(chat.id, request.user.id):
+                    logger.info("Skipped duplicate HTTP call notification (debounced)")
+                else:
+                    try:
+                        from channels.layers import get_channel_layer
+                        from asgiref.sync import async_to_sync
+                        channel_layer = get_channel_layer()
+
+                        notif_event = {
+                            'type': 'notify.call',
+                            'from_user_id': request.user.id,
+                            'chat_id': chat.id,
+                            'audio_only': bool(signal_data.get('audioOnly', False)),
+                            'from_full_name': request.user.full_name,
+                            'from_avatar': request.user.profile_picture.url if request.user.profile_picture else None,
+                        }
+
+                        targets = [target_user] if target_user_id else chat.participants.exclude(id=request.user.id)
+                        for target in targets:
+                            async_to_sync(channel_layer.group_send)(
+                                f"user_notify_{target.id}",
+                                notif_event
+                            )
+                        logger.info(f"Broadcasted notify.call for HTTP offer to {len(list(targets))} users")
+                    except Exception as notif_err:
+                        logger.warning(f"Could not send call notification: {notif_err}")
 
         return JsonResponse({'success': True})
 
@@ -2788,7 +2887,7 @@ def p2p_send_signal(request):
 @login_required
 def p2p_get_signals(request, chat_id):
     """Poll for pending WebRTC signals from database
-    
+
     Query params:
         signal_type: 'call' for webrtc call signals, 'file' for file transfer signals
                      If not specified, returns all signals (legacy behavior)
@@ -2801,7 +2900,8 @@ def p2p_get_signals(request, chat_id):
             return JsonResponse({'success': False, 'error': 'Not a participant of this chat'}, status=403)
 
         # Get signal type filter from query params
-        signal_type_filter = request.GET.get('signal_type', None)  # 'call', 'file', or None
+        signal_type_filter = request.GET.get(
+            'signal_type', None)  # 'call', 'file', or None
 
         # Import P2PSignal model
         from chat.models import P2PSignal
@@ -2823,19 +2923,21 @@ def p2p_get_signals(request, chat_id):
         for signal in signals:
             signal_type = signal.signal_data.get(
                 'type', '') if isinstance(signal.signal_data, dict) else ''
-            has_file_info = signal.signal_data.get('fileInfo') if isinstance(signal.signal_data, dict) else None
-            has_sdp_at_top = signal.signal_data.get('sdp') if isinstance(signal.signal_data, dict) else None
-            
+            has_file_info = signal.signal_data.get(
+                'fileInfo') if isinstance(signal.signal_data, dict) else None
+            has_sdp_at_top = signal.signal_data.get(
+                'sdp') if isinstance(signal.signal_data, dict) else None
+
             # Determine if this is a call signal or file transfer signal
-            is_call_signal = signal_type.startswith('webrtc.') or (
-                signal_type in ('offer', 'answer', 'ice', 'candidate') and 
+            is_call_signal = signal_type.startswith('webrtc.') or signal_type == 'call.end' or (
+                signal_type in ('offer', 'answer', 'ice', 'candidate') and
                 has_sdp_at_top and not has_file_info
             )
             is_file_signal = has_file_info or (
                 signal_type in ('offer', 'answer', 'candidate', 'rejected', 'timeout') and
                 not has_sdp_at_top
             )
-            
+
             # Filter based on signal_type_filter
             if signal_type_filter == 'call' and not is_call_signal:
                 continue  # Skip non-call signals when requesting call signals
@@ -2894,28 +2996,29 @@ def p2p_clear_signals(request):
     """Clear all P2P signals for a user when they go offline - frees server load"""
     try:
         from chat.models import P2PSignal
-        
+
         # Delete all unconsumed signals where this user is sender or target
         deleted_as_sender = P2PSignal.objects.filter(
             sender=request.user,
             is_consumed=False
         ).delete()[0]
-        
+
         deleted_as_target = P2PSignal.objects.filter(
             target_user=request.user,
             is_consumed=False
         ).delete()[0]
-        
+
         total_deleted = deleted_as_sender + deleted_as_target
-        
+
         if total_deleted > 0:
-            logger.info(f"P2P signals cleared for user {request.user.id}: {total_deleted} signals removed")
-        
+            logger.info(
+                f"P2P signals cleared for user {request.user.id}: {total_deleted} signals removed")
+
         return JsonResponse({
             'success': True,
             'cleared': total_deleted
         })
-        
+
     except Exception as e:
         logger.error(f"Error in p2p_clear_signals: {str(e)}")
         return JsonResponse({'success': False, 'error': 'Failed to clear signals'})
@@ -3021,12 +3124,12 @@ def get_dm_requests(request):
     3. There are messages from the other person
     """
     user = request.user
-    
+
     # Get all private chats where user is a participant but hasn't accepted
     accepted_chat_ids = ChatAcceptance.objects.filter(
         user=user
     ).values_list('chat_id', flat=True)
-    
+
     # Get private chats not accepted by user
     pending_chats = Chat.objects.filter(
         participants=user,
@@ -3034,19 +3137,19 @@ def get_dm_requests(request):
     ).exclude(
         id__in=accepted_chat_ids
     ).prefetch_related('participants', 'messages').order_by('-updated_at')
-    
+
     requests_data = []
     for chat in pending_chats:
         # Get the other participant
         other_user = chat.participants.exclude(id=user.id).first()
         if not other_user:
             continue
-            
+
         # Check if there are messages from the other person
         has_their_messages = chat.messages.filter(sender=other_user).exists()
         if not has_their_messages:
             continue  # No messages from them, not a request
-            
+
         # Get last message info
         last_msg = chat.messages.order_by('-timestamp').first()
         last_message = ''
@@ -3056,10 +3159,12 @@ def get_dm_requests(request):
             elif last_msg.message_type == 'system':
                 last_message = '[System]'
             else:
-                last_message = last_msg.content[:50] + ('...' if len(last_msg.content) > 50 else '')
-        
-        unread_count = chat.messages.filter(is_read=False).exclude(sender=user).count()
-        
+                last_message = last_msg.content[:50] + \
+                    ('...' if len(last_msg.content) > 50 else '')
+
+        unread_count = chat.messages.filter(
+            is_read=False).exclude(sender=user).count()
+
         requests_data.append({
             'chat_id': chat.id,
             'sender': {
@@ -3073,7 +3178,7 @@ def get_dm_requests(request):
             'unread_count': unread_count,
             'timestamp': chat.updated_at.isoformat(),
         })
-    
+
     return JsonResponse({
         'success': True,
         'requests': requests_data,
@@ -3085,11 +3190,11 @@ def get_dm_requests(request):
 def get_dm_requests_count(request):
     """Get count of pending DM requests for badge"""
     user = request.user
-    
+
     accepted_chat_ids = ChatAcceptance.objects.filter(
         user=user
     ).values_list('chat_id', flat=True)
-    
+
     # Count private chats not accepted that have messages from others
     count = Chat.objects.filter(
         participants=user,
@@ -3102,19 +3207,19 @@ def get_dm_requests_count(request):
             chat_type='private'
         ).exclude(id__in=accepted_chat_ids).values('participants').exclude(participants=user)
     ).distinct().count()
-    
+
     # Simpler count - just count non-accepted private chats with any messages
     pending_chats = Chat.objects.filter(
         participants=user,
         chat_type='private'
     ).exclude(id__in=accepted_chat_ids)
-    
+
     count = 0
     for chat in pending_chats:
         other_user = chat.participants.exclude(id=user.id).first()
         if other_user and chat.messages.filter(sender=other_user).exists():
             count += 1
-    
+
     return JsonResponse({'success': True, 'count': count})
 
 
@@ -3123,11 +3228,12 @@ def get_dm_requests_count(request):
 def accept_dm_request(request, chat_id):
     """Accept a DM request - moves chat from Requests to All tab"""
     user = request.user
-    chat = get_object_or_404(Chat, id=chat_id, participants=user, chat_type='private')
-    
+    chat = get_object_or_404(
+        Chat, id=chat_id, participants=user, chat_type='private')
+
     # Create acceptance record
     ChatAcceptance.objects.get_or_create(chat=chat, user=user)
-    
+
     # Notify frontend via WebSocket
     channel_layer = get_channel_layer()
     async_to_sync(channel_layer.group_send)(
@@ -3137,7 +3243,7 @@ def accept_dm_request(request, chat_id):
             "chat_id": chat_id,
         }
     )
-    
+
     return JsonResponse({'success': True, 'message': 'Chat accepted'})
 
 
@@ -3146,15 +3252,16 @@ def accept_dm_request(request, chat_id):
 def decline_dm_request(request, chat_id):
     """Decline a DM request - removes the chat"""
     user = request.user
-    chat = get_object_or_404(Chat, id=chat_id, participants=user, chat_type='private')
-    
+    chat = get_object_or_404(
+        Chat, id=chat_id, participants=user, chat_type='private')
+
     # Delete the user from the chat (or delete the chat entirely)
     chat.participants.remove(user)
-    
+
     # If no participants left, delete the chat
     if chat.participants.count() == 0:
         chat.delete()
-    
+
     return JsonResponse({'success': True, 'message': 'Request declined'})
 
 
@@ -3162,11 +3269,12 @@ def decline_dm_request(request, chat_id):
 def check_dm_request(request, chat_id):
     """Check if a chat is a DM request for the current user"""
     user = request.user
-    chat = get_object_or_404(Chat, id=chat_id, participants=user, chat_type='private')
-    
+    chat = get_object_or_404(
+        Chat, id=chat_id, participants=user, chat_type='private')
+
     # Check if user has accepted this chat
     is_accepted = ChatAcceptance.objects.filter(chat=chat, user=user).exists()
-    
+
     return JsonResponse({
         'success': True,
         'is_request': not is_accepted,
@@ -3183,41 +3291,54 @@ def auto_accept_chat_for_sender(chat, sender):
         ChatAcceptance.objects.get_or_create(chat=chat, user=sender)
 
 
-@login_required
 def api_explore_feed(request):
     """API endpoint to get paginated explore content (scribes & omzos)"""
+    print(
+        f"========== API_EXPLORE_FEED CALLED!  Method: {request.method}, Path: {request.path}, User: {request.user} ==========")
     try:
         page = int(request.GET.get('page', 1))
         per_page = int(request.GET.get('per_page', 10))
-        
-        # Use existing helper
-        content_items = _get_explore_content_batch(page=page, per_page=per_page, user=request.user)
-        
+
+        # Use existing helper - works for both authenticated and anonymous users
+        content_items = _get_explore_content_batch(
+            page=page, per_page=per_page, user=request.user if request.user.is_authenticated else None)
+
         # Fallback: if personalized explore is empty (or ended), show global content from the same page offset
         if not content_items:
-            content_items = _get_explore_content_batch(page=page, per_page=per_page, user=None)
-            
+            content_items = _get_explore_content_batch(
+                page=page, per_page=per_page, user=None)
+
             # Re-check likes/dislikes for authenticated user since we fetched generic content
             if request.user.is_authenticated and content_items:
                 for item in content_items:
                     obj = item['object']
                     if item['type'] == 'scribe':
-                        item['is_liked'] = Like.objects.filter(scribe=obj, user=request.user).exists()
-                        item['is_disliked'] = Dislike.objects.filter(scribe=obj, user=request.user).exists()
-                        item['is_saved'] = SavedScribeItem.objects.filter(scribe=obj, user=request.user).exists()
+                        item['is_liked'] = Like.objects.filter(
+                            scribe=obj, user=request.user).exists()
+                        item['is_disliked'] = Dislike.objects.filter(
+                            scribe=obj, user=request.user).exists()
+                        item['is_saved'] = SavedScribeItem.objects.filter(
+                            scribe=obj, user=request.user).exists()
+                        item['is_reposted'] = Scribe.objects.filter(
+                            user=request.user, original_scribe=obj).exists()
                     elif item['type'] == 'omzo':
-                        item['is_liked'] = OmzoLike.objects.filter(omzo=obj, user=request.user).exists()
-                        item['is_disliked'] = OmzoDislike.objects.filter(omzo=obj, user=request.user).exists()
-                        item['is_saved'] = SavedOmzoItem.objects.filter(omzo=obj, user=request.user).exists()
-            
+                        item['is_liked'] = OmzoLike.objects.filter(
+                            omzo=obj, user=request.user).exists()
+                        item['is_disliked'] = OmzoDislike.objects.filter(
+                            omzo=obj, user=request.user).exists()
+                        item['is_saved'] = SavedOmzoItem.objects.filter(
+                            omzo=obj, user=request.user).exists()
+                        item['is_reposted'] = Scribe.objects.filter(
+                            user=request.user, original_omzo=obj).exists()
+
         serialized_results = []
         for item in content_items:
             obj = item['object']
             result_type = item['type']
-            
+
             result = {
                 'id': str(obj.id),
-                'type': result_type, # scribe or omzo
+                'type': result_type,  # scribe or omzo
                 'isLiked': item['is_liked'],
                 'isDisliked': item['is_disliked'],
                 'isSaved': item.get('is_saved', False),
@@ -3227,39 +3348,58 @@ def api_explore_feed(request):
                     'id': str(obj.user.id),
                     'username': obj.user.username,
                     'displayName': obj.user.full_name or obj.user.username,
-                    'avatar': obj.user.profile_picture_url,
+                    'avatar': request.build_absolute_uri(obj.user.profile_picture_url) if obj.user.profile_picture_url and not obj.user.profile_picture_url.startswith('http') else obj.user.profile_picture_url,
                     'isVerified': obj.user.is_verified,
                 }
             }
-            
+
             if result_type == 'scribe':
-                result['createdAt'] = obj.timestamp.isoformat() if obj.timestamp else None
+                result['createdAt'] = obj.timestamp.isoformat(
+                ) if obj.timestamp else None
                 result['content'] = obj.content
-                result['mediaUrl'] = obj.image_url
+                result['mediaUrl'] = request.build_absolute_uri(
+                    obj.image_url) if obj.image_url and not obj.image_url.startswith('http') else obj.image_url
                 # Reuse simplified type logic
                 ctype = getattr(obj, 'content_type', 'text')
-                
+
                 # Let's put Scribe-specific type inside
-                result['scribeType'] = 'image' if (obj.image and (not ctype or ctype == 'text')) else (ctype or 'text')
-                
+                result['scribeType'] = 'image' if (obj.image and (
+                    not ctype or ctype == 'text')) else (ctype or 'text')
+
                 # Add counters
                 result['dislikes'] = obj.scribe_dislikes.count()
                 result['reposts'] = obj.reposts.count()
-                
+
+                # Check if current user has reposted this scribe
+                if request.user.is_authenticated:
+                    result['isReposted'] = Scribe.objects.filter(
+                        user=request.user,
+                        original_scribe=obj,
+                        quote_source__isnull=True
+                    ).exists()
+                else:
+                    result['isReposted'] = False
+
                 # Code content
                 result['code_html'] = getattr(obj, 'code_html', '')
                 result['code_css'] = getattr(obj, 'code_css', '')
                 result['code_js'] = getattr(obj, 'code_js', '')
-                
+
             elif result_type == 'omzo':
-                result['createdAt'] = obj.created_at.isoformat() if obj.created_at else None
-                result['videoUrl'] = obj.video_file.url if obj.video_file else None
+                result['createdAt'] = obj.created_at.isoformat(
+                ) if obj.created_at else None
+                # Convert relative video URL to absolute URL
+                video_url = obj.video_file.url if obj.video_file else None
+                result['videoUrl'] = request.build_absolute_uri(
+                    video_url) if video_url and not video_url.startswith('http') else video_url
                 result['caption'] = obj.caption
                 result['dislikes'] = obj.dislikes.count()
                 result['shares'] = 0
-                
+                # Check if current user has reposted this omzo
+                result['isReposted'] = item.get('is_reposted', False)
+
             serialized_results.append(result)
-            
+
         return JsonResponse({
             'success': True,
             'results': serialized_results,
@@ -3270,4 +3410,3 @@ def api_explore_feed(request):
     except Exception as e:
         logger.error(f"Error in api_explore_feed: {str(e)}")
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
-

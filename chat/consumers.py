@@ -114,6 +114,24 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
             "consumed_at": event["consumed_at"]
         })
 
+    async def message_deleted(self, event):
+        # Notify clients that a message was deleted
+        await self.send_json({
+            "type": "message.deleted",
+            "message_id": event["message_id"],
+            "deleted_for_everyone": event.get("deleted_for_everyone", True),
+            "deleted_by": event.get("deleted_by")
+        })
+
+    async def message_edited(self, event):
+        # Notify clients that a message was edited
+        await self.send_json({
+            "type": "message.edited",
+            "message_id": event["message_id"],
+            "new_content": event["new_content"],
+            "edited_at": event.get("edited_at")
+        })
+
     async def typing_update(self, event):
         # Filter out current user from typing users (don't show own typing indicator)
         users = [u for u in event.get("users", []) if u.get("id") != self.user.id]
@@ -134,8 +152,13 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
             return
         
         # If there's a specific target, only send to that user
-        if target_user_id is not None and target_user_id != self.user.id:
-            return
+        if target_user_id is not None:
+            try:
+                if int(target_user_id) != self.user.id:
+                    return
+            except (ValueError, TypeError):
+                if target_user_id != self.user.id:
+                    return
         
         logger.info(f"P2P signal delivered via WS: {event.get('signal', {}).get('type', 'unknown')} to user {self.user.id}")
         
@@ -143,7 +166,7 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
             "type": "p2p.signal",
             "signal": event["signal"],
             "sender_id": sender_id,
-            "sender_name": event["sender_name"],
+            "sender_name": event.get("sender_name", ""),    # Optional: may not be set from HTTP view
             "sender_avatar": event.get("sender_avatar"),
             "target_user_id": target_user_id
         })
@@ -242,7 +265,11 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
         )
 
     async def handle_p2p_signal(self, data):
-        """Handle P2P signaling for file transfers via WebSocket"""
+        """Handle P2P signaling for file transfers via WebSocket.
+        
+        IMPORTANT: Also saves signal to DB so HTTP-polling clients (mobile)
+        can pick it up via getP2PSignals API.
+        """
         signal_data = data.get("signal")
         target_user_id = data.get("target_user_id")
         
@@ -254,8 +281,7 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
         if hasattr(self.user, 'profile_picture_url'):
             sender_avatar = self.user.profile_picture_url
         
-        # Broadcast P2P signal to all in the chat group
-        # The frontend will filter by target_user_id
+        # 1. Broadcast in real-time to WebSocket clients in this chat group
         await self.channel_layer.group_send(
             self.group_name,
             {
@@ -267,6 +293,41 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
                 "target_user_id": target_user_id
             }
         )
+        
+        # 2. ALSO persist to DB so HTTP-polling clients (mobile) can receive it
+        await self.save_p2p_signal_to_db(signal_data, target_user_id)
+
+    @database_sync_to_async
+    def save_p2p_signal_to_db(self, signal_data, target_user_id):
+        """Save a P2P signal to the database for HTTP-polling clients (e.g. mobile)."""
+        try:
+            from chat.models import P2PSignal
+            chat = Chat.objects.get(id=self.chat_id)
+            
+            if target_user_id:
+                target_user = chat.participants.filter(id=target_user_id).first()
+                if target_user:
+                    P2PSignal.objects.create(
+                        chat=chat,
+                        sender=self.user,
+                        target_user=target_user,
+                        signal_data=signal_data
+                    )
+                    logger.info(
+                        f"P2P signal saved to DB for polling: {signal_data.get('type', '?')} "
+                        f"from {self.user.id} to {target_user_id}"
+                    )
+            else:
+                # Broadcast to all other participants
+                for participant in chat.participants.exclude(id=self.user.id):
+                    P2PSignal.objects.create(
+                        chat=chat,
+                        sender=self.user,
+                        target_user=participant,
+                        signal_data=signal_data
+                    )
+        except Exception as e:
+            logger.warning(f"Could not save P2P signal to DB: {e}")
 
     # ---------------- DATABASE ----------------
     @database_sync_to_async
@@ -556,12 +617,19 @@ class CallConsumer(AsyncWebsocketConsumer):
                 pass
 
     async def receive(self, text_data=None, bytes_data=None):
+        # Add comprehensive logging at the start
+        logger.info(f"[CallConsumer] ===== RECEIVE CALLED =====")
+        logger.info(f"[CallConsumer] User: {self.user.id if self.user and hasattr(self.user, 'id') else 'unknown'}")
+        logger.info(f"[CallConsumer] Text data length: {len(text_data) if text_data else 0}")
+        logger.info(f"[CallConsumer] First 200 chars: {text_data[:200] if text_data else 'None'}")
+        
         if text_data:
             try:
                 # Attempt JSON parse for Handshake
                 try:
                     data = json.loads(text_data)
                     is_json = True
+                    logger.info(f"[CallConsumer] ✓ Parsed JSON, type: {data.get('type')}")
                 except json.JSONDecodeError:
                     is_json = False
                     logger.warning(
@@ -748,9 +816,18 @@ class CallConsumer(AsyncWebsocketConsumer):
         logger.info(
             f"[CallConsumer] ✓ Forwarded {message_type} to group {self.room_group_name} (chat {self.chat_id})")
 
+    @database_sync_to_async
+    def check_should_notify(self):
+        from chat.utils import should_send_call_notification
+        return should_send_call_notification(self.chat_id, self.user.id)
+
     async def send_call_notification(self, payload):
         """Send call notification to other participants immediately"""
         try:
+            if not await self.check_should_notify():
+                logger.info(f"[CallConsumer] Skipped duplicate notify.call (debounced) for chat {self.chat_id}")
+                return
+
             chat_id = self.chat_id
             # Get caller details
             caller_name = getattr(self.user, 'full_name', self.user.username)
@@ -762,7 +839,8 @@ class CallConsumer(AsyncWebsocketConsumer):
                     pass
 
             # Get others
-            others = await self.get_other_participants(chat_id)
+            others = await self.get_other_participants()
+            logger.info(f"[CallConsumer] Found {len(others)} other participants to notify: {others}")
             for uid in others:
                 await self.channel_layer.group_send(
                     f'user_notify_{uid}',
@@ -776,7 +854,7 @@ class CallConsumer(AsyncWebsocketConsumer):
                     }
                 )
             logger.info(
-                f"[CallConsumer] ✓ Sent call notifications to {len(others)} user(s) for chat {chat_id}")
+                f"[CallConsumer] ✓ Sent 'notify.call' events to {[f'user_notify_{uid}' for uid in others]} for chat {chat_id}")
         except Exception as e:
             logger.error(
                 f"[CallConsumer] Error sending call notification: {e}", exc_info=True)
@@ -793,8 +871,13 @@ class CallConsumer(AsyncWebsocketConsumer):
             signal_type = payload.get('type', 'unknown') if isinstance(
                 payload, dict) else 'unknown'
 
+            # If it's an offer, clear ALL OLD unconsumed signals for this chat
+            if signal_type == 'webrtc.offer':
+                P2PSignal.objects.filter(chat=chat, is_consumed=False).update(is_consumed=True)
+                logger.info(f"[CallConsumer] Cleared stale signals for chat {self.chat_id} before new offer")
+
             for target_user_id in others:
-                # Clean up old consumed signals for this chat/user pair first
+                # Clean up old consumed signals first
                 P2PSignal.cleanup_old_signals()
 
                 # Create new signal
@@ -858,11 +941,15 @@ class CallConsumer(AsyncWebsocketConsumer):
             return None
 
     @database_sync_to_async
-    def get_other_participants(self, chat_id):
+    def get_other_participants(self, chat_id=None):
+        target_chat_id = chat_id or self.chat_id
         try:
-            chat = Chat.objects.get(id=chat_id)
-            return list(chat.participants.exclude(id=self.user.id).values_list('id', flat=True))
+            chat = Chat.objects.get(id=target_chat_id)
+            participants = list(chat.participants.exclude(id=self.user.id).values_list('id', flat=True))
+            logger.info(f"[CallConsumer] get_other_participants for chat {target_chat_id} (user {self.user.id}): {participants}")
+            return participants
         except Chat.DoesNotExist:
+            logger.warning(f"[CallConsumer] get_other_participants: Chat {target_chat_id} does not exist")
             return []
 
 
@@ -878,9 +965,11 @@ class NotifyConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         self.user = self.scope['user']
         if not self.user.is_authenticated:
+            logger.warning("[NotifyConsumer] Unauthenticated user attempted to connect")
             await self.close()
             return
         self.group_name = f'user_notify_{self.user.id}'
+        logger.info(f"[NotifyConsumer] User {self.user.id} ({self.user.username}) connected to group {self.group_name}")
         await self.channel_layer.group_add(self.group_name, self.channel_name)
         await self.accept()
 
@@ -897,6 +986,7 @@ class NotifyConsumer(AsyncWebsocketConsumer):
 
     async def notify_call(self, event):
         """Handle incoming call notification"""
+        logger.info(f"[NotifyConsumer] Received notify_call event for user {self.user.id} from {event.get('from_user_id')}")
         await self.send(text_data=json.dumps({
             'type': 'incoming.call',
             'from_user_id': event.get('from_user_id'),
@@ -905,6 +995,7 @@ class NotifyConsumer(AsyncWebsocketConsumer):
             'from_full_name': event.get('from_full_name'),
             'from_avatar': event.get('from_avatar'),
         }))
+        logger.info(f"[NotifyConsumer] Sent 'incoming.call' to UI for user {self.user.id}")
 
     async def notify_message(self, event):
         """Handle new message notification"""

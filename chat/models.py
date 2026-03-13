@@ -72,6 +72,9 @@ class CustomUser(AbstractUser):
         max_length=20, choices=THEME_CHOICES, default='ocean')  # Theme preference
     gender = models.CharField(
         max_length=10, choices=GENDER_CHOICES, default='male')  # Gender preference
+    bio = models.TextField(max_length=500, blank=True, null=True)
+    cover_image = models.ImageField(
+        upload_to='cover_pics/', blank=True, null=True)
 
     def __str__(self):
         return f"{self.name} {self.lastname} (@{self.username})"
@@ -128,7 +131,8 @@ class Chat(models.Model):
         max_length=10, choices=CHAT_TYPE_CHOICES, default='private')
     name = models.CharField(max_length=100, blank=True, null=True)
     description = models.TextField(blank=True, null=True)
-    group_avatar = models.ImageField(upload_to='group_avatars/', blank=True, null=True)
+    group_avatar = models.ImageField(
+        upload_to='group_avatars/', blank=True, null=True)
     admin = models.ForeignKey(CustomUser, on_delete=models.CASCADE,
                               related_name='admin_chats', null=True, blank=True)
     invite_code = models.CharField(
@@ -184,7 +188,7 @@ class Chat(models.Model):
 class ChatAcceptance(models.Model):
     """
     Tracks whether a user has accepted a chat (like Instagram DM requests).
-    
+
     When a new user sends a DM:
     1. Chat is created with both participants
     2. ChatAcceptance is created ONLY for the sender (they auto-accept by initiating)
@@ -197,11 +201,11 @@ class ChatAcceptance(models.Model):
     user = models.ForeignKey(
         CustomUser, on_delete=models.CASCADE, related_name='chat_acceptances')
     accepted_at = models.DateTimeField(auto_now_add=True)
-    
+
     class Meta:
         unique_together = ['chat', 'user']
         ordering = ['-accepted_at']
-    
+
     def __str__(self):
         return f"{self.user.username} accepted chat {self.chat.id}"
 
@@ -280,7 +284,7 @@ class Message(models.Model):
     pinned_at = models.DateTimeField(null=True, blank=True)
     pinned_by = models.ForeignKey(
         CustomUser, on_delete=models.SET_NULL, null=True, blank=True, related_name='pinned_messages')
-    
+
     # Story Reply - Reference to story if this message is a reply to a story
     story_reply = models.ForeignKey(
         'Story', on_delete=models.SET_NULL, null=True, blank=True, related_name='chat_replies',
@@ -300,8 +304,10 @@ class Message(models.Model):
     class Meta:
         ordering = ['timestamp']
         indexes = [
-            models.Index(fields=['one_time', 'consumed_at'], name='msg_onetime_idx'),
-            models.Index(fields=['chat', 'one_time'], name='msg_chat_onetime_idx'),
+            models.Index(fields=['one_time', 'consumed_at'],
+                         name='msg_onetime_idx'),
+            models.Index(fields=['chat', 'one_time'],
+                         name='msg_chat_onetime_idx'),
         ]
 
     def __str__(self):
@@ -373,13 +379,14 @@ class Story(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     expires_at = models.DateTimeField()  # Stories expire after 24 hours
     is_active = models.BooleanField(default=True)
-    image_transform = models.JSONField(default=dict, blank=True)  # Store scale, x, y, rotation
+    image_transform = models.JSONField(
+        default=dict, blank=True)  # Store scale, x, y, rotation
     text_size = models.FloatField(default=22.0)  # Text font size
     # Removed old views ManyToManyField - now using StoryView model
-    
+
     # Story Repost - For sharing someone's story to your own story (Instagram-style)
     shared_from_story = models.ForeignKey(
-        'self', on_delete=models.SET_NULL, null=True, blank=True, 
+        'self', on_delete=models.SET_NULL, null=True, blank=True,
         related_name='story_reposts', help_text="Original story if this is a repost"
     )
 
@@ -499,10 +506,14 @@ class Scribe(models.Model):
     code_bundle = models.TextField(blank=True, null=True)
 
     # REPOST FIELDS
-    original_scribe = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='reposts')
-    original_omzo = models.ForeignKey('Omzo', on_delete=models.SET_NULL, null=True, blank=True, related_name='reposts')
-    original_story = models.ForeignKey('Story', on_delete=models.SET_NULL, null=True, blank=True, related_name='reposts')
-    quote_source = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='quotes')
+    original_scribe = models.ForeignKey(
+        'self', on_delete=models.SET_NULL, null=True, blank=True, related_name='reposts')
+    original_omzo = models.ForeignKey(
+        'Omzo', on_delete=models.SET_NULL, null=True, blank=True, related_name='reposts')
+    original_story = models.ForeignKey(
+        'Story', on_delete=models.SET_NULL, null=True, blank=True, related_name='reposts')
+    quote_source = models.ForeignKey(
+        'self', on_delete=models.SET_NULL, null=True, blank=True, related_name='quotes')
 
     class Meta:
         ordering = ['-timestamp']
@@ -565,7 +576,7 @@ class Comment(models.Model):
     def reply_count(self):
         """Get the count of replies to this comment"""
         return self.replies.count()
-    
+
     @property
     def like_count(self):
         """Get the count of likes on this comment"""
@@ -763,7 +774,8 @@ class EmailVerificationToken(models.Model):
     """Model for email verification tokens (OTP)"""
     user = models.ForeignKey(
         CustomUser, on_delete=models.CASCADE, related_name='verification_tokens')
-    token = models.CharField(max_length=6)  # Changed to 6 chars for OTP, removed unique=True
+    # Changed to 6 chars for OTP, removed unique=True
+    token = models.CharField(max_length=6)
     created_at = models.DateTimeField(auto_now_add=True)
     expires_at = models.DateTimeField()
     is_used = models.BooleanField(default=False)
@@ -1043,6 +1055,10 @@ class Omzo(models.Model):
         return self.likes.count()
 
     @property
+    def dislike_count(self):
+        return self.dislikes.count()
+
+    @property
     def comment_count(self):
         return self.comments.count()
 
@@ -1148,7 +1164,8 @@ class ProfileView(models.Model):
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='profile_views_made')
     viewed_user = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='profile_views_received')
-    viewed_at = models.DateTimeField(auto_now=True)  # Update timestamp on each view
+    # Update timestamp on each view
+    viewed_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         unique_together = ('viewer', 'viewed_user')
@@ -1160,11 +1177,11 @@ class ProfileView(models.Model):
 
 class ChatRequest(models.Model):
     """Model for pending chat/message requests.
-    
+
     When a user shares content to someone they don't have an existing chat with,
     it creates a request that the recipient must accept before the message
     appears in their regular chat inbox.
-    
+
     Flow:
     1. User A shares Scribe/Omzo/Story to User B (no existing chat)
     2. ChatRequest is created with status='pending'
@@ -1172,27 +1189,27 @@ class ChatRequest(models.Model):
     4. User B accepts -> Chat created, message sent, status='accepted'
        OR User B declines -> status='declined'
     """
-    
+
     STATUS_CHOICES = [
         ('pending', 'Pending'),
         ('accepted', 'Accepted'),
         ('declined', 'Declined'),
     ]
-    
+
     CONTENT_TYPE_CHOICES = [
         ('scribe', 'Scribe'),
         ('omzo', 'Omzo'),
         ('story', 'Story'),
         ('text', 'Text Message'),
     ]
-    
+
     sender = models.ForeignKey(
         CustomUser, on_delete=models.CASCADE, related_name='sent_chat_requests',
         help_text="User who initiated the share")
     recipient = models.ForeignKey(
         CustomUser, on_delete=models.CASCADE, related_name='received_chat_requests',
         help_text="User receiving the shared content")
-    
+
     # Shared content - only ONE of these should be set based on content_type
     shared_scribe = models.ForeignKey(
         'Scribe', on_delete=models.SET_NULL, null=True, blank=True,
@@ -1203,7 +1220,7 @@ class ChatRequest(models.Model):
     shared_story = models.ForeignKey(
         'Story', on_delete=models.SET_NULL, null=True, blank=True,
         related_name='share_requests', help_text="Shared story if content_type='story'")
-    
+
     # Request metadata
     message = models.TextField(
         max_length=500, blank=True, default='',
@@ -1213,17 +1230,17 @@ class ChatRequest(models.Model):
     status = models.CharField(
         max_length=10, choices=STATUS_CHOICES, default='pending',
         db_index=True)
-    
+
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
     responded_at = models.DateTimeField(
         null=True, blank=True, help_text="When request was accepted/declined")
-    
+
     # Chat created after acceptance (for reference)
     created_chat = models.ForeignKey(
         'Chat', on_delete=models.SET_NULL, null=True, blank=True,
         related_name='origin_request', help_text="Chat created when request was accepted")
-    
+
     class Meta:
         ordering = ['-created_at']
         indexes = [
@@ -1234,21 +1251,24 @@ class ChatRequest(models.Model):
         constraints = [
             models.UniqueConstraint(
                 fields=['sender', 'recipient', 'shared_scribe'],
-                condition=models.Q(status='pending') & ~models.Q(shared_scribe=None),
+                condition=models.Q(status='pending') & ~models.Q(
+                    shared_scribe=None),
                 name='unique_pending_scribe_share_request'
             ),
             models.UniqueConstraint(
                 fields=['sender', 'recipient', 'shared_omzo'],
-                condition=models.Q(status='pending') & ~models.Q(shared_omzo=None),
+                condition=models.Q(status='pending') & ~models.Q(
+                    shared_omzo=None),
                 name='unique_pending_omzo_share_request'
             ),
             models.UniqueConstraint(
                 fields=['sender', 'recipient', 'shared_story'],
-                condition=models.Q(status='pending') & ~models.Q(shared_story=None),
+                condition=models.Q(status='pending') & ~models.Q(
+                    shared_story=None),
                 name='unique_pending_story_share_request'
             ),
         ]
-    
+
     def __str__(self):
         content_preview = ''
         if self.shared_scribe:
@@ -1258,12 +1278,12 @@ class ChatRequest(models.Model):
         elif self.shared_story:
             content_preview = f"Story #{self.shared_story_id}"
         return f"{self.sender.username} → {self.recipient.username}: {content_preview} ({self.status})"
-    
+
     @property
     def shared_content(self):
         """Get the actual shared content object"""
         return self.shared_scribe or self.shared_omzo or self.shared_story
-    
+
     @property
     def shared_content_preview(self):
         """Get a preview of the shared content for UI display"""
@@ -1302,30 +1322,30 @@ class ChatRequest(models.Model):
                 'author_avatar': story.user.profile_picture_url,
             }
         return None
-    
+
     def accept(self):
         """Accept the request and create/return the chat"""
         from django.utils import timezone
-        
+
         if self.status != 'pending':
             return self.created_chat
-        
+
         # Find or create private chat between sender and recipient
         existing_chat = Chat.objects.filter(
             chat_type='private',
             participants=self.sender
         ).filter(participants=self.recipient).first()
-        
+
         if existing_chat:
             chat = existing_chat
         else:
             chat = Chat.objects.create(chat_type='private')
             chat.participants.add(self.sender, self.recipient)
-        
+
         # Create message with shared content
         from chat.models import Message
         message_content = self.message if self.message else "Shared content"
-        
+
         # Build shared content reference in message
         shared_data = {
             'type': self.content_type,
@@ -1336,30 +1356,31 @@ class ChatRequest(models.Model):
             shared_data['omzo_id'] = self.shared_omzo_id
         elif self.shared_story:
             shared_data['story_id'] = self.shared_story_id
-        
+
         Message.objects.create(
             chat=chat,
             sender=self.sender,
             content=message_content,
             message_type='text',
-            reactions={'shared_content': shared_data}  # Store shared ref in reactions JSON
+            # Store shared ref in reactions JSON
+            reactions={'shared_content': shared_data}
         )
-        
+
         # Update request status
         self.status = 'accepted'
         self.responded_at = timezone.now()
         self.created_chat = chat
         self.save(update_fields=['status', 'responded_at', 'created_chat'])
-        
+
         return chat
-    
+
     def decline(self):
         """Decline the request"""
         from django.utils import timezone
-        
+
         if self.status != 'pending':
             return
-        
+
         self.status = 'declined'
         self.responded_at = timezone.now()
         self.save(update_fields=['status', 'responded_at'])
@@ -1385,10 +1406,12 @@ class Notification(models.Model):
     sender = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='sent_notifications',
         null=True, blank=True)
-    notification_type = models.CharField(max_length=20, choices=NOTIFICATION_TYPES)
+    notification_type = models.CharField(
+        max_length=20, choices=NOTIFICATION_TYPES)
     title = models.CharField(max_length=100)
     message = models.TextField(max_length=500)
-    data = models.JSONField(default=dict, blank=True)  # Extra data (chat_id, post_id, etc.)
+    # Extra data (chat_id, post_id, etc.)
+    data = models.JSONField(default=dict, blank=True)
     is_read = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -1409,13 +1432,13 @@ class Notification(models.Model):
 class SavedScribeItem(models.Model):
     """Model for saved scribes (posts)"""
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, 
-        on_delete=models.CASCADE, 
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
         related_name='saved_scribe_items'
     )
     scribe = models.ForeignKey(
-        'Scribe', 
-        on_delete=models.CASCADE, 
+        'Scribe',
+        on_delete=models.CASCADE,
         related_name='saved_by_users'
     )
     saved_at = models.DateTimeField(auto_now_add=True)
@@ -1434,13 +1457,13 @@ class SavedScribeItem(models.Model):
 class SavedOmzoItem(models.Model):
     """Model for saved omzos (videos)"""
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, 
-        on_delete=models.CASCADE, 
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
         related_name='saved_omzo_items'
     )
     omzo = models.ForeignKey(
-        'Omzo', 
-        on_delete=models.CASCADE, 
+        'Omzo',
+        on_delete=models.CASCADE,
         related_name='saved_by_users'
     )
     saved_at = models.DateTimeField(auto_now_add=True)
@@ -1454,5 +1477,3 @@ class SavedOmzoItem(models.Model):
 
     def __str__(self):
         return f"{self.user.username} saved omzo {self.omzo.id}"
-
-

@@ -1,9 +1,11 @@
 from django.contrib.auth import login, logout, authenticate
 from django.http import JsonResponse
-from django.views.decorators.csrf import ensure_csrf_cookie
+from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
 from django.views.decorators.http import require_http_methods
 import json
 
+
+@csrf_exempt
 @require_http_methods(["POST"])
 def api_login(request):
     """API endpoint for React frontend login"""
@@ -11,29 +13,49 @@ def api_login(request):
         data = json.loads(request.body)
         username = data.get('username')
         password = data.get('password')
-        
+
         if not username or not password:
             return JsonResponse({
                 'success': False,
                 'error': 'Username and password are required'
             }, status=400)
-        
+
         user = authenticate(request, username=username, password=password)
-        
+
         if user is not None:
             login(request, user)
             user.mark_online()
-            
+
+            # Get or create a DRF token for WebSocket authentication (mobile clients)
+            try:
+                from rest_framework.authtoken.models import Token
+                token_obj, _ = Token.objects.get_or_create(user=user)
+                auth_token = token_obj.key
+            except Exception:
+                auth_token = None
+
             return JsonResponse({
                 'success': True,
+                'auth_token': auth_token,  # Used by mobile for WS auth via ?token=xxx
                 'user': {
                     'id': user.id,
                     'username': user.username,
-                    'display_name': user.full_name or user.username,
                     'email': user.email,
-                    'avatar': user.profile_picture.url if user.profile_picture else '',
+                    'name': user.name,
+                    'lastname': user.lastname,
+                    'full_name': user.full_name,
+                    'profile_picture': user.profile_picture.url if user.profile_picture else '',
+                    'profile_picture_url': user.profile_picture_url,
+                    'bio': getattr(user, 'bio', ''),
                     'is_verified': user.is_verified,
+                    'is_private': user.is_private,
                     'is_online': True,
+                    'last_seen': user.last_seen.isoformat() if user.last_seen else '',
+                    'theme': user.theme,
+                    'gender': user.gender,
+                    'follower_count': user.follower_count,
+                    'following_count': user.following_count,
+                    'post_count': user.scribes.count(),
                 }
             })
         else:
@@ -41,7 +63,7 @@ def api_login(request):
                 'success': False,
                 'error': 'Invalid username or password'
             }, status=401)
-            
+
     except json.JSONDecodeError:
         return JsonResponse({
             'success': False,
@@ -54,6 +76,7 @@ def api_login(request):
         }, status=500)
 
 
+@csrf_exempt
 @require_http_methods(["POST"])
 def api_logout(request):
     """API endpoint for React frontend logout"""
@@ -70,49 +93,99 @@ def api_profile(request):
         return JsonResponse({
             'error': 'Not authenticated'
         }, status=401)
-    
+
     user = request.user
-    
+
     if request.method == 'POST':
         try:
-            # Handle file upload
+            # Handle file uploads
             if 'avatar' in request.FILES:
                 user.profile_picture = request.FILES['avatar']
-            
+
+            if 'cover_image' in request.FILES:
+                user.cover_image = request.FILES['cover_image']
+
             # Handle text fields
             display_name = request.POST.get('displayName')
+            first_name = request.POST.get('first_name')
+            last_name = request.POST.get('last_name')
+
             if display_name:
-                user.full_name = display_name
-                
+                # Map mobile displayName to name and lastname
+                names = display_name.split(' ', 1)
+                user.name = names[0]
+                user.lastname = names[1] if len(names) > 1 else ""
+            else:
+                # Map web first_name/last_name to name and lastname
+                if first_name:
+                    user.name = first_name
+                if last_name:
+                    user.lastname = last_name
+
+            username = request.POST.get('username')
+            if username:
+                user.username = username
+
+            bio = request.POST.get('bio')
+            if bio is not None:
+                user.bio = bio
+
             user.save()
-            
+
+            user_data = {
+                'id': user.id,
+                'username': user.username,
+                'email': user.email,
+                'name': user.name,
+                'lastname': user.lastname,
+                'full_name': user.full_name,
+                'profile_picture': user.profile_picture.url if user.profile_picture else '',
+                'profile_picture_url': user.profile_picture_url,
+                'bio': getattr(user, 'bio', ''),
+                'is_verified': user.is_verified,
+                'is_private': user.is_private,
+                'is_online': user.is_online,
+                'last_seen': user.last_seen.isoformat() if user.last_seen else '',
+                'theme': user.theme,
+                'gender': user.gender,
+                'follower_count': user.follower_count,
+                'following_count': user.following_count,
+                'post_count': user.scribes.count(),
+            }
+
             return JsonResponse({
                 'success': True,
-                'user': {
-                    'id': user.id,
-                    'username': user.username,
-                    'display_name': user.full_name or user.username,
-                    'email': user.email,
-                    'avatar': user.profile_picture.url if user.profile_picture else '',
-                    'is_verified': user.is_verified,
-                    'is_online': user.is_online,
-                    'is_private': user.is_private,
-                }
+                'user': user_data,
+                'data': user_data
             })
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)}, status=500)
-    
+
+    user_response = {
+        'id': user.id,
+        'username': user.username,
+        'email': user.email,
+        'name': user.name,
+        'lastname': user.lastname,
+        'full_name': user.full_name,
+        'profile_picture': user.profile_picture.url if user.profile_picture else '',
+        'profile_picture_url': user.profile_picture_url,
+        'bio': getattr(user, 'bio', ''),
+        'is_verified': user.is_verified,
+        'is_private': user.is_private,
+        'is_online': user.is_online,
+        'last_seen': user.last_seen.isoformat() if user.last_seen else '',
+        'theme': user.theme,
+        'gender': user.gender,
+        'follower_count': user.follower_count,
+        'following_count': user.following_count,
+        'post_count': user.scribes.count(),
+    }
+
     return JsonResponse({
-        'user': {
-            'id': user.id,
-            'username': user.username,
-            'display_name': user.full_name or user.username,
-            'email': user.email,
-            'avatar': user.profile_picture.url if user.profile_picture else '',
-            'is_verified': user.is_verified,
-            'is_online': user.is_online,
-            'is_private': user.is_private,
-        }
+        'success': True,
+        'user': user_response,
+        'data': user_response
     })
 
 
@@ -128,7 +201,7 @@ def api_user_profile(request, username):
     """API endpoint to get user profile by username"""
     from django.shortcuts import get_object_or_404
     from ..models import CustomUser, Follow
-    
+
     # Get the user by username or 'me' for current user
     if username == 'me':
         if not request.user.is_authenticated:
@@ -138,77 +211,202 @@ def api_user_profile(request, username):
         user = request.user
     else:
         user = get_object_or_404(CustomUser, username=username)
-    
+
     # Get user's scribes
-    from ..models import Scribe, Omzo, Like, Dislike, Comment, SavedScribeItem, SavedOmzoItem
-    
-    scribes_queryset = Scribe.objects.filter(user=user).order_by('-timestamp')
+    from ..models import Scribe, Omzo, Like, Dislike, SavedScribeItem, SavedOmzoItem
+
+    scribes_queryset = Scribe.objects.filter(user=user).select_related(
+        'user',
+        'original_scribe', 'original_scribe__user',
+        'original_omzo', 'original_omzo__user',
+        'original_story', 'original_story__user'
+    ).order_by('-timestamp')
+
     scribes_data = []
-    
+    reposts_data = []
+
     for scribe in scribes_queryset:
-        is_liked = Like.objects.filter(scribe=scribe, user=request.user).exists() if request.user.is_authenticated else False
-        is_disliked = Dislike.objects.filter(scribe=scribe, user=request.user).exists() if request.user.is_authenticated else False
-        is_saved = SavedScribeItem.objects.filter(scribe=scribe, user=request.user).exists() if request.user.is_authenticated else False
-        
+        is_liked = Like.objects.filter(scribe=scribe, user=request.user).exists(
+        ) if request.user.is_authenticated else False
+        is_disliked = Dislike.objects.filter(scribe=scribe, user=request.user).exists(
+        ) if request.user.is_authenticated else False
+        is_saved = SavedScribeItem.objects.filter(scribe=scribe, user=request.user).exists(
+        ) if request.user.is_authenticated else False
+
         # Determine type correctly: if it has an image and type is text (default), it's an image scribe
         scribe_type = getattr(scribe, 'content_type', 'text')
         if scribe.image and (not scribe_type or scribe_type == 'text'):
             scribe_type = 'image'
-            
-        scribes_data.append({
+
+        # Check if this is a repost
+        is_repost = bool(
+            scribe.original_scribe or scribe.original_omzo or scribe.original_story)
+
+        # Build scribe data
+        scribe_obj = {
             'id': scribe.id,
             'content': scribe.content,
             'timestamp': scribe.timestamp,
             'type': scribe_type,
             'media_url': scribe.image.url if scribe.image else None,
-            'likes': scribe.scribe_likes.count(),
-            'dislikes': scribe.scribe_dislikes.count(),
-            'comments': scribe.comments.count(),
-            'reposts': scribe.reposts.count(),
+            'like_count': scribe.scribe_likes.count(),
+            'dislike_count': scribe.scribe_dislikes.count(),
+            'comment_count': scribe.comments.count(),
+            'repost_count': scribe.reposts.count(),
             'is_liked': is_liked,
             'is_disliked': is_disliked,
             'is_saved': is_saved,
             'code_html': getattr(scribe, 'code_html', ''),
             'code_css': getattr(scribe, 'code_css', ''),
-            'code_js': getattr(scribe, 'code_js', '')
-        })
+            'code_js': getattr(scribe, 'code_js', ''),
+            'is_repost': is_repost,
+            'user': {
+                'id': scribe.user.id,
+                'username': scribe.user.username,
+                'full_name': scribe.user.full_name,
+                'profile_picture': scribe.user.profile_picture.url if scribe.user.profile_picture else '',
+                'profile_picture_url': scribe.user.profile_picture_url,
+                'is_verified': scribe.user.is_verified,
+            },
+        }
+
+        # If it's a repost, add original content information
+        if is_repost:
+            original_data = None
+            original_type = None
+
+            if scribe.original_scribe:
+                original = scribe.original_scribe
+                original_type = 'scribe'
+                
+                # Copy code fields from original to top level for better visibility in feeds
+                scribe_obj['code_html'] = getattr(original, 'code_html', '')
+                scribe_obj['code_css'] = getattr(original, 'code_css', '')
+                scribe_obj['code_js'] = getattr(original, 'code_js', '')
+                
+                original_data = {
+                    'id': original.id,
+                    'content': original.content,
+                    'timestamp': original.timestamp,
+                    'type': getattr(original, 'content_type', 'text'),
+                    'media_url': original.image.url if original.image else None,
+                    'like_count': original.scribe_likes.count(),
+                    'comment_count': original.comments.count(),
+                    'repost_count': original.reposts.count(),
+                    'code_html': getattr(original, 'code_html', ''),
+                    'code_css': getattr(original, 'code_css', ''),
+                    'code_js': getattr(original, 'code_js', ''),
+                    'user': {
+                        'id': str(original.user.id),
+                        'username': original.user.username,
+                        'full_name': original.user.full_name,
+                        'display_name': original.user.full_name or original.user.username,
+                        'avatar': original.user.profile_picture.url if original.user.profile_picture else '',
+                        'is_verified': original.user.is_verified,
+                    }
+                }
+            elif scribe.original_omzo:
+                original = scribe.original_omzo
+                original_type = 'omzo'
+                original_data = {
+                    'id': original.id,
+                    'caption': original.caption,
+                    'video_url': original.video_file.url if original.video_file else None,
+                    'timestamp': original.created_at,
+                    'like_count': original.likes.count(),
+                    'comment_count': original.comments.count(),
+                    'views': original.views_count,
+                    'user': {
+                        'id': str(original.user.id),
+                        'username': original.user.username,
+                        'display_name': original.user.full_name or original.user.username,
+                        'avatar': original.user.profile_picture.url if original.user.profile_picture else '',
+                        'is_verified': original.user.is_verified,
+                    }
+                }
+            elif scribe.original_story:
+                original = scribe.original_story
+                original_type = 'story'
+                original_data = {
+                    'id': original.id,
+                    'timestamp': original.created_at,
+                    'user': {
+                        'id': str(original.user.id),
+                        'username': original.user.username,
+                        'display_name': original.user.full_name or original.user.username,
+                        'avatar': original.user.profile_picture.url if original.user.profile_picture else '',
+                        'is_verified': original.user.is_verified,
+                    }
+                }
+
+            scribe_obj['original_type'] = original_type
+            scribe_obj['original_data'] = original_data
+
+            # Add to reposts list
+            reposts_data.append(scribe_obj)
+        else:
+            # Add to regular scribes list
+            scribes_data.append(scribe_obj)
 
     # Get user's omzos
     omzos_queryset = Omzo.objects.filter(user=user).order_by('-created_at')
     omzos_data = []
 
     for omzo in omzos_queryset:
-        is_liked = omzo.is_liked_by(request.user) if request.user.is_authenticated else False
-        is_saved = SavedOmzoItem.objects.filter(omzo=omzo, user=request.user).exists() if request.user.is_authenticated else False
-        
+        is_liked = omzo.is_liked_by(
+            request.user) if request.user.is_authenticated else False
+        is_saved = SavedOmzoItem.objects.filter(omzo=omzo, user=request.user).exists(
+        ) if request.user.is_authenticated else False
+        repost_count = Scribe.objects.filter(original_omzo=omzo).count()
+        is_reposted = Scribe.objects.filter(user=request.user, original_omzo=omzo, quote_source__isnull=True).exists(
+        ) if request.user.is_authenticated else False
+
+        # Build absolute URL for video
+        video_url = None
+        if omzo.video_file:
+            video_url = request.build_absolute_uri(omzo.video_file.url)
+
         omzos_data.append({
             'id': omzo.id,
             'caption': omzo.caption,
-            'video_url': omzo.video_file.url if omzo.video_file else None,
+            'video_url': video_url,
+            'thumbnail_url': video_url,  # Use video URL as thumbnail
             'timestamp': omzo.created_at,
-            'likes': omzo.likes.count(),
-            'dislikes': omzo.dislikes.count(),
-            'shares': 0, # Placeholder
+            'like_count': omzo.likes.count(),
+            'dislike_count': omzo.dislikes.count(),
+            'shares': 0,  # Placeholder
             'views': omzo.views_count,
-            'comments': omzo.comments.count(),
+            'comment_count': omzo.comments.count(),
             'is_liked': is_liked,
-            'is_saved': is_saved
+            'is_saved': is_saved,
+            'repost_count': repost_count,
+            'is_reposted': is_reposted,
         })
 
     return JsonResponse({
+        'success': True,
         'user': {
-            'id': str(user.id),
+            'id': user.id,
             'username': user.username,
-            'display_name': user.full_name or user.username,
             'email': user.email,
-            'avatar': user.profile_picture.url if user.profile_picture else '',
+            'name': user.name,
+            'lastname': user.lastname,
+            'full_name': user.full_name,
+            'profile_picture': user.profile_picture.url if user.profile_picture else '',
+            'profile_picture_url': user.profile_picture_url,
+            'bio': getattr(user, 'bio', ''),
             'is_verified': user.is_verified,
-            'is_online': user.is_online,
             'is_private': user.is_private,
-            'followers_count': user.follower_count,
+            'is_online': user.is_online,
+            'last_seen': user.last_seen.isoformat() if user.last_seen else '',
+            'theme': user.theme,
+            'gender': user.gender,
+            'follower_count': user.follower_count,
             'following_count': user.following_count,
+            'post_count': user.scribes.count(),
             'is_following': Follow.objects.filter(follower=request.user, following=user).exists() if request.user.is_authenticated and username != 'me' and user != request.user else False,
         },
         'scribes': scribes_data,
+        'reposts': reposts_data,
         'omzos': omzos_data
     })

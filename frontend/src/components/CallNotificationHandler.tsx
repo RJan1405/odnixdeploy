@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { notificationWS } from '@/services/websocket';
+import { useAuth } from '@/contexts/AuthContext';
 import { Avatar } from '@/components/Avatar';
 import { Phone, PhoneOff, Video } from 'lucide-react';
 
@@ -16,11 +17,18 @@ interface CallNotification {
 
 export const CallNotificationHandler: React.FC = () => {
     const [incomingCall, setIncomingCall] = useState<CallNotification | null>(null);
+    const { user } = useAuth();
     const navigate = useNavigate();
 
     useEffect(() => {
-        // Ensure the socket is connected (idempotent)
-        notificationWS.connect();
+        // Only connect if we have a user
+        if (user) {
+            console.log("Connecting to notification WS for user:", user.id);
+            notificationWS.connect();
+        } else {
+            console.log("No user, disconnecting notification WS if connected");
+            notificationWS.disconnect();
+        }
 
         const handleMessage = (data: any) => {
             if (data.type === 'incoming.call') {
@@ -43,13 +51,16 @@ export const CallNotificationHandler: React.FC = () => {
         return () => {
             notificationWS.removeMessageHandler(handleMessage);
         };
-    }, []);
+    }, [user]);
 
     const handleAccept = () => {
         if (!incomingCall) return;
-        // Determine if audio only context needed
-        const audioParam = incomingCall.audioOnly ? '?audio=true' : '';
-        navigate(`/call/${incomingCall.chat_id}${audioParam}`);
+        // Web is always the receiver/answerer when mobile initiates
+        // Do NOT pass initiator=true — mobile already sent the offer
+        const params = new URLSearchParams();
+        if (incomingCall.audioOnly) params.set('audio', 'true');
+        // initiator is NOT set, so isInitiator=false on CallPage → web will answer
+        navigate(`/call/${incomingCall.chat_id}?${params.toString()}`);
         setIncomingCall(null);
     };
 

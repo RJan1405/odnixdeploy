@@ -74,11 +74,14 @@ export class ApiClient {
     }
 
     async post<T>(endpoint: string, data?: any): Promise<T> {
+        console.log(`[ApiClient] POST ${endpoint}`, data);
         const body = data instanceof FormData ? data : JSON.stringify(data);
-        return this.request<T>(endpoint, {
+        const result = await this.request<T>(endpoint, {
             method: 'POST',
             body,
         });
+        console.log(`[ApiClient] POST ${endpoint} - Response:`, result);
+        return result;
     }
 
     async put<T>(endpoint: string, data?: any): Promise<T> {

@@ -4,22 +4,22 @@
 
     // Expose handleIncomingCall globally for the notification system
     window.OdnixCall = window.OdnixCall || {};
-    window.OdnixCall.handleIncomingCall = function(data) {
+    window.OdnixCall.handleIncomingCall = function (data) {
         console.log('[CallJS] handleIncomingCall triggered externally:', data);
-        
+
         // Defensive check: don't interrupt active calls
         if (callActive) {
             console.log('[CallJS] Call already active, ignoring wake-up signal');
             return;
         }
-        
+
         if (inboundPromptVisible) {
-             console.log('[CallJS] Incoming prompt already visible, ignoring duplicate wake-up');
-             return;
+            console.log('[CallJS] Incoming prompt already visible, ignoring duplicate wake-up');
+            return;
         }
 
         ensureUI();
-        
+
         // Store caller info from the wake-up signal to populate UI early
         if (data.callerName || data.callerAvatar) {
             remotePeerInfo = {
@@ -28,9 +28,9 @@
             };
             updateRemotePlaceholder();
         }
-        
+
         audioOnlyMode = !!data.audioOnly; // Set mode early
-        
+
         // Show the receiving UI immediately
         const incoming = document.getElementById('incomingCallModal');
         const callerNameEl = document.getElementById('incomingCallerName');
@@ -46,7 +46,7 @@
                 callerAvatarEl.textContent = data.callerName.charAt(0).toUpperCase();
             }
         }
-        
+
         if (modeLabel) modeLabel.textContent = data.audioOnly ? 'Incoming Audio Call' : 'Incoming Video Call';
 
         if (incoming) {
@@ -55,7 +55,7 @@
             document.body.style.overflow = 'hidden'; // Lock scroll on body
             startTone('ring');
         }
-        
+
         // Ensure WebSocket is open so we're ready for the encrypted offer
         openWS();
     };
@@ -78,7 +78,7 @@
                 window.showToast(message, { type: 'error' });
                 return;
             }
-        } catch (e) {}
+        } catch (e) { }
         alert(message);
     }
 
@@ -103,28 +103,28 @@
         POLL_INTERVAL_HEALTHY: 10000,    // When WebSocket is healthy (10 seconds)
         POLL_INTERVAL_DEGRADED: 2000,    // When WebSocket is connecting (2 seconds)
         POLL_INTERVAL_FAILED: 3000,      // When WebSocket failed (3 seconds)
-        
+
         // ICE candidate batching
         ICE_BATCH_DELAY: 100,            // Batch ICE candidates for 100ms before sending
         ICE_MAX_BATCH_SIZE: 10,          // Maximum candidates per batch
-        
+
         // WebSocket reconnection
         WS_RECONNECT_MIN_DELAY: 1000,    // Minimum 1 second between reconnection attempts
         WS_RECONNECT_MAX_DELAY: 30000,   // Maximum 30 seconds backoff
         WS_RECONNECT_BACKOFF_FACTOR: 2,  // Exponential backoff multiplier
-        
+
         // Offer resend
         OFFER_RESEND_INTERVAL: 3000,     // Resend offers every 3 seconds (was 2)
         OFFER_RESEND_MAX_COUNT: 5,       // Maximum resend attempts (was 8)
-        
+
         // Call cooldowns
         SUPPRESS_OFFERS_DURATION: 20000, // Ignore offers for 20s after decline
         TEARDOWN_COOLDOWN: 5000,         // 5s cooldown after teardown
-        
+
         // HTTP request throttling
         MIN_REQUEST_INTERVAL: 500,       // Minimum 500ms between same-type requests
     };
-    
+
     // Rate limiting state
     let lastRequestTimes = {};           // Track last request time by type
     let wsReconnectAttempts = 0;         // Track reconnection attempts for backoff
@@ -152,7 +152,7 @@
     let suppressOffersUntil = 0; // ms timestamp to ignore offers temporarily
     let remoteIceQueue = []; // Queue for early arrival ICE candidates
     let remotePeerInfo = null; // Store remote peer's name/avatar for placeholder
-    
+
     // Rate limiting helper functions
     function canMakeRequest(requestType) {
         const now = Date.now();
@@ -163,7 +163,7 @@
         lastRequestTimes[requestType] = now;
         return true;
     }
-    
+
     function getWsReconnectDelay() {
         const baseDelay = RATE_LIMITS.WS_RECONNECT_MIN_DELAY;
         const delay = Math.min(
@@ -172,7 +172,7 @@
         );
         return delay;
     }
-    
+
     function resetWsReconnectState() {
         wsReconnectAttempts = 0;
         lastWsReconnectTime = 0;
@@ -580,16 +580,16 @@
                 </div>`;
             document.body.appendChild(incoming);
         }
-        
+
         // Populate local user placeholder with actual profile info
         updateLocalPlaceholder();
     }
-    
+
     // Update local placeholder with current user's profile picture
     function updateLocalPlaceholder() {
         const localPlaceholderAvatar = document.getElementById('localPlaceholderAvatar');
         const localPlaceholderName = document.getElementById('localPlaceholderName');
-        
+
         if (localPlaceholderAvatar) {
             if (currentUserAvatar) {
                 localPlaceholderAvatar.innerHTML = `<img src="${currentUserAvatar}" style="width:100%;height:100%;object-fit:cover;">`;
@@ -603,16 +603,16 @@
             localPlaceholderName.textContent = 'Camera off';
         }
     }
-    
+
     // Update remote placeholder with peer info
     function updateRemotePlaceholder() {
         const remotePlaceholderAvatar = document.getElementById('remotePlaceholderAvatar');
         const remotePlaceholderName = document.getElementById('remotePlaceholderName');
-        
+
         // Use remotePeerInfo if available, otherwise fall back to config peerName/peerAvatar
         const displayName = remotePeerInfo?.name || peerName || 'Peer';
         const displayAvatar = remotePeerInfo?.avatar || peerAvatar;
-        
+
         if (remotePlaceholderName) {
             remotePlaceholderName.textContent = displayName;
         }
@@ -625,88 +625,88 @@
             }
         }
     }
-    
+
     // Show placeholders for audio-only calls (no video streams)
     function showAudioOnlyPlaceholders() {
         const remoteVideo = document.getElementById('remoteVideo');
         const remotePlaceholder = document.getElementById('remoteVideoPlaceholder');
         const localVideo = document.getElementById('localVideo');
         const localPlaceholder = document.getElementById('localVideoPlaceholder');
-        
+
         // Hide video elements, show placeholders
         if (remoteVideo) remoteVideo.style.display = 'none';
         if (remotePlaceholder) {
             updateRemotePlaceholder();
             remotePlaceholder.style.display = 'flex';
         }
-        
+
         if (localVideo) localVideo.style.display = 'none';
         if (localPlaceholder) {
             updateLocalPlaceholder();
             localPlaceholder.style.display = 'flex';
         }
-        
+
         console.log('[CallJS] Audio-only call - showing placeholders');
     }
-    
+
     // Show "Calling..." state for caller - hide camera, show placeholders until connected
     function showCallingPlaceholders() {
         const remoteVideo = document.getElementById('remoteVideo');
         const remotePlaceholder = document.getElementById('remoteVideoPlaceholder');
         const localVideo = document.getElementById('localVideo');
         const localPlaceholder = document.getElementById('localVideoPlaceholder');
-        
+
         // Hide video elements, show placeholders while waiting
         if (remoteVideo) remoteVideo.style.display = 'none';
         if (remotePlaceholder) {
             updateRemotePlaceholder();
             remotePlaceholder.style.display = 'flex';
         }
-        
+
         if (localVideo) localVideo.style.display = 'none';
         if (localPlaceholder) {
             updateLocalPlaceholder();
             localPlaceholder.style.display = 'flex';
         }
-        
+
         console.log('[CallJS] Showing calling placeholders while waiting for answer');
     }
-    
+
     // Show video feeds when call is connected (only for video calls)
     function showVideoFeeds() {
         if (audioOnlyMode) return; // Don't show video for audio calls
-        
+
         const remoteVideo = document.getElementById('remoteVideo');
         const remotePlaceholder = document.getElementById('remoteVideoPlaceholder');
         const localVideo = document.getElementById('localVideo');
         const localPlaceholder = document.getElementById('localVideoPlaceholder');
-        
+
         // Show video elements, hide placeholders
         if (remoteVideo) remoteVideo.style.display = 'block';
         if (remotePlaceholder) remotePlaceholder.style.display = 'none';
-        
+
         if (localVideo) {
             localVideo.srcObject = localStream;
             localVideo.style.display = 'block';
         }
         if (localPlaceholder) localPlaceholder.style.display = 'none';
-        
+
         console.log('[CallJS] Call connected - showing video feeds');
     }
 
     // Toggle mute state - properly release microphone hardware
     let isMuted = false;
     let savedAudioTrack = null; // Store track info for re-enabling
-    
+
     async function toggleMute() {
         if (!localStream && !savedAudioTrack) return;
-        
+
         const muteBtn = document.getElementById('muteBtn');
         const muteIcon = document.getElementById('muteIcon');
         const muteIconOff = document.getElementById('muteIconOff');
-        
+
         isMuted = !isMuted;
-        
+
         if (isMuted) {
             // Stop audio tracks to release microphone hardware
             const audioTracks = localStream.getAudioTracks();
@@ -730,12 +730,12 @@
                 const newAudioStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
                 const newAudioTrack = newAudioStream.getAudioTracks()[0];
                 localStream.addTrack(newAudioTrack);
-                
+
                 // Update the peer connection with new track
                 if (pc) {
                     const senders = pc.getSenders();
-                    const audioSender = senders.find(s => s.track && s.track.kind === 'audio') || 
-                                       senders.find(s => !s.track || s.track.kind === 'audio');
+                    const audioSender = senders.find(s => s.track && s.track.kind === 'audio') ||
+                        senders.find(s => !s.track || s.track.kind === 'audio');
                     if (audioSender) {
                         await audioSender.replaceTrack(newAudioTrack);
                     } else {
@@ -759,23 +759,23 @@
 
     // Toggle camera state - properly release camera hardware
     let isCameraOff = false;
-    
+
     async function toggleCamera() {
         if (!localStream) return;
-        
+
         // Check if this is an audio-only call
         if (audioOnlyMode) {
             console.log('[CallJS] Cannot toggle camera in audio-only call');
             return;
         }
-        
+
         const cameraBtn = document.getElementById('cameraBtn');
         const cameraIcon = document.getElementById('cameraIcon');
         const cameraIconOff = document.getElementById('cameraIconOff');
         const localVideo = document.getElementById('localVideo');
-        
+
         isCameraOff = !isCameraOff;
-        
+
         if (isCameraOff) {
             // Stop video tracks to release camera hardware
             const videoTracks = localStream.getVideoTracks();
@@ -795,7 +795,7 @@
             // Show local placeholder
             const localPlaceholder = document.getElementById('localVideoPlaceholder');
             if (localPlaceholder) localPlaceholder.style.display = 'flex';
-            
+
             // Notify peer that camera is off
             send('webrtc.camera_status', { cameraOn: false });
             console.log('[CallJS] Camera turned off and hardware released');
@@ -806,25 +806,25 @@
                     showCallError("Could not start camera: getUserMedia is unavailable. Use HTTPS or localhost.");
                     throw new Error('getUserMedia unavailable');
                 }
-                const newVideoStream = await navigator.mediaDevices.getUserMedia({ 
-                    audio: false, 
-                    video: { width: { ideal: 1280 }, height: { ideal: 720 } } 
+                const newVideoStream = await navigator.mediaDevices.getUserMedia({
+                    audio: false,
+                    video: { width: { ideal: 1280 }, height: { ideal: 720 } }
                 });
                 const newVideoTrack = newVideoStream.getVideoTracks()[0];
                 localStream.addTrack(newVideoTrack);
-                
+
                 // Update the peer connection with new track
                 if (pc) {
                     const senders = pc.getSenders();
                     const videoSender = senders.find(s => s.track && s.track.kind === 'video') ||
-                                       senders.find(s => !s.track || s.track.kind === 'video');
+                        senders.find(s => !s.track || s.track.kind === 'video');
                     if (videoSender) {
                         await videoSender.replaceTrack(newVideoTrack);
                     } else {
                         pc.addTrack(newVideoTrack, localStream);
                     }
                 }
-                
+
                 // Update local video preview
                 if (localVideo) {
                     localVideo.srcObject = localStream;
@@ -833,10 +833,10 @@
                 // Hide local placeholder
                 const localPlaceholder = document.getElementById('localVideoPlaceholder');
                 if (localPlaceholder) localPlaceholder.style.display = 'none';
-                
+
                 // Notify peer that camera is on
                 send('webrtc.camera_status', { cameraOn: true });
-                
+
                 cameraBtn.style.background = '#374151';
                 cameraIcon.style.display = 'block';
                 cameraIconOff.style.display = 'none';
@@ -856,9 +856,9 @@
     function handleRemoteCameraStatus(cameraOn) {
         const remoteVideo = document.getElementById('remoteVideo');
         const remotePlaceholder = document.getElementById('remoteVideoPlaceholder');
-        
+
         if (!remotePlaceholder) return;
-        
+
         if (cameraOn) {
             // Show video, hide placeholder
             if (remoteVideo) remoteVideo.style.display = 'block';
@@ -867,10 +867,10 @@
         } else {
             // Hide video, show placeholder with peer info
             if (remoteVideo) remoteVideo.style.display = 'none';
-            
+
             // Use the centralized update function
             updateRemotePlaceholder();
-            
+
             remotePlaceholder.style.display = 'flex';
             console.log('[CallJS] Remote peer turned camera OFF, showing placeholder');
         }
@@ -897,19 +897,19 @@
                 const now = Date.now();
                 const reconnectDelay = getWsReconnectDelay();
                 const timeSinceLastReconnect = now - lastWsReconnectTime;
-                
+
                 if (timeSinceLastReconnect < reconnectDelay) {
                     const waitTime = reconnectDelay - timeSinceLastReconnect;
                     updateDebugStatus(`Rate limited: waiting ${waitTime}ms before reconnect (attempt ${wsReconnectAttempts + 1})`, 'orange');
                     return null; // Return null to signal caller should use fallback
                 }
-                
+
                 updateDebugStatus(`WebSocket is ${state}, creating new connection (attempt ${wsReconnectAttempts + 1})`, 'orange');
                 try { ws.close(); } catch (e) { }
                 ws = null;
                 handshakeStep = 0; // Reset handshake on new connection
                 resolveHandshakeWaiters(new Error('WebSocket reconnecting'));
-                
+
                 // Track reconnection attempt
                 wsReconnectAttempts++;
                 lastWsReconnectTime = now;
@@ -1119,44 +1119,44 @@
             if (!signalPollInterval && !window.useWebSocket) startSignalPolling();
         }
     }
-    
+
     // =====================================================
     // ICE CANDIDATE BATCHING
     // =====================================================
     function queueIceCandidate(candidate) {
         iceBatchQueue.push(candidate);
-        
+
         // If we've reached max batch size, send immediately
         if (iceBatchQueue.length >= RATE_LIMITS.ICE_MAX_BATCH_SIZE) {
             flushIceBatch();
             return;
         }
-        
+
         // Otherwise, wait for batch delay before sending
         if (!iceBatchTimeout) {
             iceBatchTimeout = setTimeout(flushIceBatch, RATE_LIMITS.ICE_BATCH_DELAY);
         }
     }
-    
+
     function flushIceBatch() {
         if (iceBatchTimeout) {
             clearTimeout(iceBatchTimeout);
             iceBatchTimeout = null;
         }
-        
+
         if (iceBatchQueue.length === 0) return;
-        
+
         // Send candidates one by one but with batched timing
         // This maintains compatibility while reducing burst requests
         const candidates = [...iceBatchQueue];
         iceBatchQueue = [];
-        
+
         console.log(`[CallJS] Sending ${candidates.length} batched ICE candidates`);
         candidates.forEach(candidate => {
             send('webrtc.ice', { candidate });
         });
     }
-    
+
     function clearIceBatch() {
         if (iceBatchTimeout) {
             clearTimeout(iceBatchTimeout);
@@ -1169,7 +1169,7 @@
     async function setupPeer() {
         pc = new RTCPeerConnection(rtcConfig);
         remoteStream = new MediaStream();
-        
+
         // Use ICE candidate batching to reduce request frequency
         pc.onicecandidate = (e) => {
             if (e.candidate) {
@@ -1187,7 +1187,7 @@
         pc.onconnectionstatechange = () => {
             const state = pc.connectionState;
             console.log(`[CallJS] Connection state changed to: ${state}`);
-            
+
             if (state === 'connected') {
                 // Connection established - reset backoff
                 pollBackoffMultiplier = 1;
@@ -1300,7 +1300,7 @@
         // Fast polling only during active call establishment.
         if (signalPollInterval) return;
         updateDebugStatus('Starting signal polling (rate-limited)', 'orange');
-        
+
         let consecutiveEmptyPolls = 0;  // Track empty poll responses for backoff
         const MAX_BACKOFF_MULTIPLIER = 4; // Maximum 4x the base interval
 
@@ -1384,7 +1384,7 @@
             // Use longer intervals when WebSocket is healthy
             const isWsHealthy = ws && ws.readyState === WebSocket.OPEN && handshakeStep === 2;
             const isCallEstablishing = callActive && pc && pc.connectionState !== 'connected';
-            
+
             let baseDelay;
             if (isWsHealthy) {
                 // WebSocket healthy - use long interval, polling is just a fallback
@@ -1396,10 +1396,10 @@
                 // WebSocket down but no active call - moderate polling
                 baseDelay = RATE_LIMITS.POLL_INTERVAL_FAILED;
             }
-            
+
             // Apply backoff multiplier
             const nextDelay = Math.round(baseDelay * pollBackoffMultiplier);
-            
+
             // Schedule next loop if not stopped
             if (signalPollInterval) {
                 signalPollInterval = setTimeout(pollLoop, nextDelay);
@@ -1426,7 +1426,7 @@
             document.getElementById('callModal').style.display = 'flex';
             isCaller = true;
             callActive = true;
-            
+
             // Set peer info from config when caller initiates (we know who we're calling)
             remotePeerInfo = { name: peerName, avatar: peerAvatar };
             updateRemotePlaceholder();
@@ -1437,18 +1437,18 @@
             await getMedia({ audioOnly });
             openWS();
             await setupPeer();
-            
+
             // Show "Calling" state with placeholders for both audio and video calls
             // Don't show camera feed until the call is connected
             showCallingPlaceholders();
 
             const offer = await pc.createOffer();
             await pc.setLocalDescription(offer);
-            
+
             // Include caller info in the offer so the receiver knows who's calling
-            const offerPayload = { 
-                sdp: offer.sdp, 
-                type: offer.type, 
+            const offerPayload = {
+                sdp: offer.sdp,
+                type: offer.type,
                 audioOnly,
                 callerName: currentUserName,
                 callerAvatar: currentUserAvatar
@@ -1482,7 +1482,7 @@
             let resendCount = 0;
             offerResendInterval = setInterval(() => {
                 if (!pc || !pc.localDescription) return;
-                
+
                 // Check if call was answered (remote description set)
                 if (pc.remoteDescription) {
                     console.log('[CallJS] Call answered, stopping offer resends');
@@ -1490,7 +1490,7 @@
                     offerResendInterval = null;
                     return;
                 }
-                
+
                 resendCount += 1;
                 if (resendCount > RATE_LIMITS.OFFER_RESEND_MAX_COUNT) {
                     console.log('[CallJS] Max offer resends reached, stopping');
@@ -1498,11 +1498,11 @@
                     offerResendInterval = null;
                     return;
                 }
-                
+
                 console.log(`[CallJS] Resending offer (attempt ${resendCount}/${RATE_LIMITS.OFFER_RESEND_MAX_COUNT})`);
-                send('webrtc.offer', { 
-                    sdp: pc.localDescription.sdp, 
-                    type: pc.localDescription.type, 
+                send('webrtc.offer', {
+                    sdp: pc.localDescription.sdp,
+                    type: pc.localDescription.type,
                     audioOnly,
                     callerName: currentUserName,
                     callerAvatar: currentUserAvatar
@@ -1521,11 +1521,11 @@
     async function onOffer({ sdp, type, audioOnly, callerName, callerAvatar }) {
         if (isCaller) return; // ignore if we are calling
         audioOnlyMode = !!audioOnly;
-        
+
         // Use caller info from offer, or fall back to config peer info
         const receivedCallerName = callerName || peerName;
         const receivedCallerAvatar = callerAvatar || peerAvatar;
-        
+
         pendingCallerInfo = { name: receivedCallerName, avatar: receivedCallerAvatar };
         remotePeerInfo = { name: receivedCallerName, avatar: receivedCallerAvatar }; // Store for placeholder
         ensureUI();
@@ -1589,7 +1589,7 @@
                 document.getElementById('callModal').style.display = 'flex';
                 callActive = true;
                 inboundPromptVisible = false;
-                
+
                 // For audio-only calls, show placeholders; for video calls, show video feeds
                 if (audioOnlyMode) {
                     showAudioOnlyPlaceholders();
@@ -1624,11 +1624,40 @@
 
     async function onAnswer({ sdp, type }) {
         if (!pc) return;
-        await pc.setRemoteDescription(new RTCSessionDescription({ sdp, type }));
+
+        // Handle both flat format {sdp: string, type: string} 
+        // and nested format from mobile {sdp: {type: 'answer', sdp: '...'}, type: 'webrtc.answer'}
+        let answerSdp, answerType;
+        if (sdp && typeof sdp === 'object' && sdp.sdp) {
+            // Nested format from mobile
+            answerSdp = sdp.sdp;
+            answerType = sdp.type || 'answer';
+        } else {
+            // Flat format
+            answerSdp = sdp;
+            answerType = type === 'webrtc.answer' ? 'answer' : type;
+        }
+
+        try {
+            await pc.setRemoteDescription(new RTCSessionDescription({
+                sdp: answerSdp,
+                type: answerType
+            }));
+        } catch (e) {
+            console.error('[CallJS] Error setting remote description:', e);
+            return;
+        }
+
         await flushIceQueue();
         stopTone();
         if (offerResendInterval) { clearInterval(offerResendInterval); offerResendInterval = null; }
-        
+
+        // Update UI to show connected
+        const callModeLabel = document.getElementById('callModeLabel');
+        if (callModeLabel) {
+            callModeLabel.textContent = audioOnlyMode ? '(Audio) - Connected' : '(Video) - Connected';
+        }
+
         // Call connected - show video feeds for video calls
         showVideoFeeds();
     }
@@ -1653,18 +1682,18 @@
     async function endCall() {
         // Send termination signal via multiple channels to ensure delivery
         console.log('[CallJS] Ending call - sending termination signals');
-        
+
         try {
             // 1. Try WebSocket
             send('webrtc.end', {});
-            
+
             // 2. Also force a server relay backup for reliability
             // This ensures that even if WS is in a weird state, the end signal gets through
             sendViaServerRelay('webrtc.end', {});
         } catch (e) {
             console.error('Failed to send end signals', e);
         }
-        
+
         // Give a small moment for network requests to initiate before tearing down local state
         setTimeout(() => {
             teardown('Call ended');
@@ -1684,13 +1713,13 @@
         if (rv) { rv.srcObject = null; rv.style.display = 'block'; }
         const lv = document.getElementById('localVideo');
         if (lv) { lv.srcObject = null; lv.style.display = 'block'; }
-        
+
         // Reset placeholders
         const remotePlaceholder = document.getElementById('remoteVideoPlaceholder');
         if (remotePlaceholder) remotePlaceholder.style.display = 'none';
         const localPlaceholder = document.getElementById('localVideoPlaceholder');
         if (localPlaceholder) localPlaceholder.style.display = 'none';
-        
+
         callActive = false;
         inboundPromptVisible = false;
         pendingOffer = null;
@@ -1699,11 +1728,11 @@
         remotePeerInfo = null;
         suppressOffersUntil = Date.now() + RATE_LIMITS.TEARDOWN_COOLDOWN;
         useServerRelay = false;
-        
+
         // Reset rate limiting state
         pollBackoffMultiplier = 1;
         lastRequestTimes = {};
-        
+
         // Reset mute/camera state
         isMuted = false;
         isCameraOff = false;
@@ -1719,7 +1748,7 @@
         if (cameraBtn) cameraBtn.style.background = '#374151';
         if (cameraIcon) cameraIcon.style.display = 'block';
         if (cameraIconOff) cameraIconOff.style.display = 'none';
-        
+
         console.log('[CallJS] Call teardown complete');
     }
 

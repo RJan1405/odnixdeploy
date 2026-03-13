@@ -486,7 +486,7 @@ export function MessageBubble({ message, isOwn, onMessageUpdate, onReply }: Mess
             </div>
           ) : (
             <>
-              {message.type === 'image' && (message.mediaUrl || message.content) && (
+              {message.type === 'image' && (message.mediaUrl || message.content) && !(message as any).is_deleted && (
                 <div className="relative w-full max-w-[280px] h-fit overflow-hidden rounded-xl">
                   <img
                     src={message.mediaUrl || message.content}
@@ -497,7 +497,7 @@ export function MessageBubble({ message, isOwn, onMessageUpdate, onReply }: Mess
                 </div>
               )}
 
-              {message.type === 'video' && (message.mediaUrl || message.content) && (
+              {message.type === 'video' && (message.mediaUrl || message.content) && !(message as any).is_deleted && (
                 <div className="relative w-full max-w-[280px] h-fit overflow-hidden rounded-xl bg-black/10">
                   <video
                     src={message.mediaUrl || message.content}
@@ -507,7 +507,7 @@ export function MessageBubble({ message, isOwn, onMessageUpdate, onReply }: Mess
                 </div>
               )}
 
-              {(message.type === 'audio' || (message as any).file_type === 'audio') && (message.mediaUrl || message.content) && (
+              {(message.type === 'audio' || (message as any).file_type === 'audio') && (message.mediaUrl || message.content) && !(message as any).is_deleted && (
                 <audio
                   src={message.mediaUrl || message.content}
                   className="w-full max-w-[240px] h-10 mt-1"
@@ -517,7 +517,7 @@ export function MessageBubble({ message, isOwn, onMessageUpdate, onReply }: Mess
             </>
           )}
 
-          {!message.isOneTimeView && (message.type === 'file' || message.type === 'document') && (message.mediaUrl || message.content) && (
+          {!message.isOneTimeView && (message.type === 'file' || message.type === 'document') && (message.mediaUrl || message.content) && !(message as any).is_deleted && (
             <a
               href={message.mediaUrl || message.content}
               target="_blank"
@@ -548,7 +548,9 @@ export function MessageBubble({ message, isOwn, onMessageUpdate, onReply }: Mess
               (message.type as string) !== 'text' && 'mt-2 opacity-90',
               isShared && 'px-2 mt-2 mb-1'
             )}>
-              {message.content}
+              <span className={cn((message as any).is_deleted && 'italic opacity-60')}>
+                 {(message as any).is_deleted ? 'Message deleted' : message.content}
+               </span>
             </p>
           )}
 

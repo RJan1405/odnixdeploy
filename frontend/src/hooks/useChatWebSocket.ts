@@ -1,5 +1,6 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { API_CONFIG } from '@/config/api.config';
 
 export interface WebSocketMessage {
     type: string;
@@ -15,6 +16,9 @@ export interface WebSocketMessage {
     sender_name?: string;
     sender_avatar?: string;
     target_user_id?: number;
+    new_content?: string;
+    edited_at?: string;
+    deleted_for_everyone?: boolean;
 }
 
 interface UseChatWebSocketProps {
@@ -23,6 +27,8 @@ interface UseChatWebSocketProps {
     onTyping?: (users: Array<{ id: number; name: string }>) => void;
     onMessageRead?: (messageId: string, readBy: number, readAt: string) => void;
     onMessageConsumed?: (messageId: string, consumedBy: number, consumedAt: string) => void;
+    onMessageDelete?: (messageId: string, deletedForEveryone: boolean) => void;
+    onMessageEdit?: (messageId: string, content: string, editedAt: string) => void;
     onP2PSignal?: (signal: any, senderId: number) => void;
 }
 
@@ -32,6 +38,8 @@ export function useChatWebSocket({
     onTyping,
     onMessageRead,
     onMessageConsumed,
+    onMessageDelete,
+    onMessageEdit,
     onP2PSignal,
 }: UseChatWebSocketProps) {
     const { user } = useAuth();
@@ -45,6 +53,8 @@ export function useChatWebSocket({
     const onTypingRef = useRef(onTyping);
     const onMessageReadRef = useRef(onMessageRead);
     const onMessageConsumedRef = useRef(onMessageConsumed);
+    const onMessageDeleteRef = useRef(onMessageDelete);
+    const onMessageEditRef = useRef(onMessageEdit);
     const onP2PSignalRef = useRef(onP2PSignal);
 
     // Update refs when callbacks change
@@ -53,8 +63,10 @@ export function useChatWebSocket({
         onTypingRef.current = onTyping;
         onMessageReadRef.current = onMessageRead;
         onMessageConsumedRef.current = onMessageConsumed;
+        onMessageDeleteRef.current = onMessageDelete;
+        onMessageEditRef.current = onMessageEdit;
         onP2PSignalRef.current = onP2PSignal;
-    }, [onMessage, onTyping, onMessageRead, onMessageConsumed, onP2PSignal]);
+    }, [onMessage, onTyping, onMessageRead, onMessageConsumed, onMessageDelete, onMessageEdit, onP2PSignal]);
 
     const connect = useCallback(() => {
         if (!chatId || !user) {
@@ -68,15 +80,14 @@ export function useChatWebSocket({
             wsRef.current.close();
         }
 
-        // WebSocket URL (ws:// for local, wss:// for production)
-        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        const wsUrl = `${protocol}//${window.location.hostname}:8000/ws/chat/${chatId}/`;
+        // WebSocket URL (from centralized config)
+        const wsUrl = `${API_CONFIG.wsURL}/ws/chat/${chatId}/`;
 
         console.log('[WebSocket] Attempting connection...', {
             url: wsUrl,
             chatId,
             userId: user.id,
-            protocol,
+            protocol: window.location.protocol,
             hostname: window.location.hostname,
         });
 
@@ -96,14 +107,14 @@ export function useChatWebSocket({
             ws.onmessage = (event) => {
                 try {
                     const data: WebSocketMessage = JSON.parse(event.data);
-                    // console.log('📨 [WebSocket] Received:', data.type); // Reduced log noise
-
+                    // Debug log for typing.update
+                    if (data.type === 'typing.update') {
+                        console.log('[useChatWebSocket] typing.update received:', data.users);
+                    }
                     switch (data.type) {
                         case 'message.new':
                             if (data.message && onMessageRef.current) {
                                 console.log('📬 [WebSocket] New message received:', data.message);
-
-                                // Transform WebSocket message format to match frontend Message type
                                 const normalizedMessage = {
                                     id: data.message.id,
                                     content: data.message.content,
@@ -122,37 +133,46 @@ export function useChatWebSocket({
                                     replyToSender: data.message.reply_to?.sender_name,
                                     storyReply: data.message.story_reply,
                                 };
-
                                 onMessageRef.current(normalizedMessage);
                             }
                             break;
-
                         case 'typing.update':
                             if (data.users && onTypingRef.current) {
-                                // console.log('⌨️ [WebSocket] Typing update:', data.users);
                                 onTypingRef.current(data.users);
                             }
                             break;
-
                         case 'message.read':
                             if (data.message_id && data.read_by && data.read_at && onMessageReadRef.current) {
                                 onMessageReadRef.current(data.message_id, data.read_by, data.read_at);
                             }
                             break;
-
                         case 'message.consumed':
                             if (data.message_id && data.consumed_by && data.consumed_at && onMessageConsumedRef.current) {
                                 onMessageConsumedRef.current(data.message_id, data.consumed_by, data.consumed_at);
                             }
                             break;
-
+                        case 'message.delete':
+                        case 'message.deleted':
+                            if (data.message_id && onMessageDeleteRef.current) {
+                                console.log('🗑️ [WebSocket] Message deleted:', data.message_id);
+                                onMessageDeleteRef.current(
+                                    data.message_id, 
+                                    data.deleted_for_everyone !== undefined ? data.deleted_for_everyone : true
+                                );
+                            }
+                            break;
+                        case 'message.edited':
+                            if (data.message_id && data.new_content && onMessageEditRef.current) {
+                                console.log('✍️ [WebSocket] Message edited:', data.message_id);
+                                onMessageEditRef.current(data.message_id, data.new_content, data.edited_at || new Date().toISOString());
+                            }
+                            break;
                         case 'p2p.signal':
                             if (data.signal && onP2PSignalRef.current) {
                                 console.log('📶 [WebSocket] P2P Signal:', data.signal.type);
                                 onP2PSignalRef.current(data.signal, data.sender_id || 0);
                             }
                             break;
-
                         default:
                             console.log('[WebSocket] Unhandled message type:', data.type);
                     }

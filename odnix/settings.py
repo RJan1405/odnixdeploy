@@ -13,7 +13,7 @@ DEBUG = True
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', '*']
 
 # FIXED: Site domain for clean invite links
-SITE_DOMAIN = 'http://127.0.0.1:8000'
+SITE_DOMAIN = 'http://192.168.104.187:8000'
 
 # CORS settings for React frontend
 CORS_ALLOWED_ORIGINS = [
@@ -22,6 +22,8 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",  # Alternative React dev server
     "http://127.0.0.1:5173",
     "http://127.0.0.1:8080",
+    "http://192.168.104.187:8080",
+    "http://192.168.104.187:8000",
     "http://192.168.0.104:8080",
     "http://127.0.0.1:3000",
 ]
@@ -44,6 +46,8 @@ CSRF_TRUSTED_ORIGINS = [
     "http://localhost:8080",
     "http://localhost:3000",
     "http://127.0.0.1:5173",
+    "http://192.168.104.187:8080",
+    "http://192.168.104.187:8000",
     "http://192.168.0.104:8080",
     "http://127.0.0.1:8080",
     "http://127.0.0.1:3000",
@@ -61,8 +65,17 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'channels',
     'corsheaders',  # Enable CORS for React frontend
+    'rest_framework',
+    'rest_framework.authtoken',
     'chat',
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    ],
+}
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',  # Must be at the top
@@ -221,7 +234,7 @@ LOGGING = {
     'disable_existing_loggers': False,
     'handlers': {
         'file': {
-            'level': 'ERROR',
+            'level': 'INFO',
             'class': 'logging.FileHandler',
             'filename': BASE_DIR / 'django_errors.log',
         },

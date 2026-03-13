@@ -9,6 +9,20 @@ from .models import Message
 
 logger = logging.getLogger(__name__)
 
+from django.core.cache import cache
+
+def should_send_call_notification(chat_id, sender_id):
+    """
+    Debounce call notifications to prevent duplicates when both WS and HTTP 
+    fallback trigger the notification simultaneously.
+    """
+    cache_key = f"call_notify_debounced_{chat_id}_{sender_id}"
+    if cache.get(cache_key):
+        return False
+    # Set timeout for 10 seconds to prevent dual-notification
+    cache.set(cache_key, True, timeout=10)
+    return True
+
 def notify_sidebar_for_chat(chat, sender, last_message_text):
     channel_layer = get_channel_layer()
 

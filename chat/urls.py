@@ -14,9 +14,8 @@ from .views import api_auth
 # Import chat API views
 from .views import chat_api
 from .views.react_serve import serve_react
-
-# AJAX unread counts endpoint
-path('api/unread_counts/', unread_counts, name='unread_counts'),
+# Import read receipt views
+from .views import read_receipts
 
 
 urlpatterns = [
@@ -24,11 +23,23 @@ urlpatterns = [
     path('api/login/', api_auth.api_login, name='api_login'),
     path('api/logout/', api_auth.api_logout, name='api_logout'),
     path('api/profile/', api_auth.api_profile, name='api_profile'),
-    path('api/profile/<str:username>/', api_auth.api_user_profile, name='api_user_profile'),
+    path('api/profile/<str:username>/',
+         api_auth.api_user_profile, name='api_user_profile'),
     path('api/csrf/', api_auth.get_csrf_token, name='api_csrf'),
-    
+
     # API endpoints for React Chat
-    path('api/chat/<int:chat_id>/details/', chat_api.get_chat_details_api, name='api_chat_details'),
+    path('api/chat/<int:chat_id>/details/',
+         chat_api.get_chat_details_api, name='api_chat_details'),
+
+    # Read Receipt and Unread Count APIs
+    path('api/messages/mark-read/', read_receipts.mark_messages_read,
+         name='api_mark_messages_read'),
+    path('api/chat/<int:chat_id>/mark-read/',
+         read_receipts.mark_chat_read, name='api_mark_chat_read'),
+    path('api/unread-counts/', read_receipts.get_unread_counts,
+         name='api_unread_counts'),
+    # Legacy unread counts endpoint (keeping for compatibility)
+    path('api/unread_counts/', unread_counts, name='unread_counts'),
 
     # AJAX chat content endpoint
     # path('ajax/chat/<int:chat_id>/',
@@ -48,7 +59,7 @@ urlpatterns = [
 
     # Main application URLs (Commented out for React)
     # path('dashboard/', views.dashboard, name='dashboard'),
-     path('explore/', views.explore, name='explore'),
+    path('explore/', views.explore, name='explore'),
     # path('profile/', views.profile_view, name='profile'),
     # path('profile/update/', views.update_profile, name='update_profile'),
     # path('profile/<str:username>/', views.profile_view, name='user_profile'),
@@ -86,6 +97,7 @@ urlpatterns = [
 
     # Scribe URLs - Enhanced
     path('api/post-scribe/', views.post_scribe, name='post_scribe'),
+    path('api/repost/', views.api_repost, name='api_repost'),
     path('api/toggle-like/', views.toggle_like, name='toggle_like'),
     path('api/toggle-dislike/', views.toggle_dislike, name='toggle_dislike'),
     path('api/toggle-save-post/', views.toggle_save_post, name='toggle_save_post'),
@@ -99,13 +111,15 @@ urlpatterns = [
 
     # Comment URLs
     path('api/add-comment/', views.add_comment, name='add_comment'),
-    path('api/toggle-comment-like/', views.toggle_comment_like, name='toggle_comment_like'),
+    path('api/toggle-comment-like/', views.toggle_comment_like,
+         name='toggle_comment_like'),
     path('api/scribe/<int:scribe_id>/', views.get_scribe, name='get_scribe'),
     path('api/scribe/<int:scribe_id>/comments/',
          views.get_scribe_comments, name='get_scribe_comments'),
 
     # Chat API endpoints - FIXED
-    path('api/chat/<int:chat_id>/details/', views.get_chat_details_api, name='get_chat_details_api'),
+    path('api/chat/<int:chat_id>/details/',
+         views.get_chat_details_api, name='get_chat_details_api'),
     path('api/chats/', views.get_chats_api, name='get_chats_api'),
     path('api/send-message/', views.send_message, name='send_message'),
     path('api/chat/<int:chat_id>/messages/',
@@ -126,18 +140,19 @@ urlpatterns = [
          views.update_typing_status, name='update_typing'),
     path('api/chat/<int:chat_id>/typing-status/',
          views.get_typing_status, name='get_typing_status'),
-    
+
     # Message Context Menu
     path('api/message/<int:message_id>/context-menu/',
          views.get_message_context_menu, name='get_message_context_menu'),
     path('api/message/context-action/',
          views.message_context_action, name='message_context_action'),
-    
+
     # Follow system
     path('api/toggle-follow/', views.toggle_follow, name='toggle_follow'),
     path('api/follow-states/', views.follow_states, name='follow_states'),
     path('api/toggle-block/', views.toggle_block, name='toggle_block'),
-    path('api/dismiss-suggestion/', views.dismiss_suggestion, name='dismiss_suggestion'),
+    path('api/dismiss-suggestion/', views.dismiss_suggestion,
+         name='dismiss_suggestion'),
     path('api/manage-follow-request/', views.manage_follow_request,
          name='manage_follow_request'),
     path('api/follow-requests/', views.get_follow_requests,
@@ -155,7 +170,8 @@ urlpatterns = [
     path('api/story/toggle-like/', views.toggle_story_like,
          name='toggle_story_like'),
     path('api/story/add-reply/', views.add_story_reply, name='add_story_reply'),
-    path('api/story/repost/', views.repost_story, name='repost_story'),  # NEW: Repost story to your story
+    # NEW: Repost story to your story
+    path('api/story/repost/', views.repost_story, name='repost_story'),
     path('api/story/<int:story_id>/replies/',
          views.get_story_replies, name='get_story_replies'),
     path('api/story/<int:story_id>/viewers/',
@@ -243,7 +259,8 @@ urlpatterns = [
          views.p2p_get_signals, name='p2p_get_signals'),
     path('api/p2p/<int:chat_id>/participants/',
          views.get_chat_participants_for_p2p, name='p2p_participants'),
-    path('api/p2p/clear-signals/', views.p2p_clear_signals, name='p2p_clear_signals'),
+    path('api/p2p/clear-signals/', views.p2p_clear_signals,
+         name='p2p_clear_signals'),
 
     # Call Notifications (HTTP fallback)
     path('api/call/notify/', views.send_call_notification,
@@ -251,32 +268,44 @@ urlpatterns = [
 
     # Omzo
     path('omzo/', views.omzo_view, name='omzo'),
-    path('omzo/<int:omzo_id>/', views.view_omzo, name='view_omzo'),  # Single Omzo view for sharing
+    path('omzo/<int:omzo_id>/', views.view_omzo,
+         name='view_omzo'),  # Single Omzo view for sharing
     path('api/omzo/upload/', views.upload_omzo, name='upload_omzo'),
     path('api/omzo/batch/', views.get_omzo_batch, name='get_omzo_batch'),
     path('api/omzo/like/', views.toggle_omzo_like, name='toggle_omzo_like'),
-    path('api/omzo/dislike/', views.toggle_omzo_dislike, name='toggle_omzo_dislike'),
+    path('api/omzo/dislike/', views.toggle_omzo_dislike,
+         name='toggle_omzo_dislike'),
     path('api/omzo/track-view/', views.track_omzo_view, name='track_omzo_view'),
     path('api/omzo/<int:omzo_id>/comments/',
          views.get_omzo_comments, name='get_omzo_comments'),
     path('api/omzo/comment/', views.add_omzo_comment, name='add_omzo_comment'),
     path('api/omzo/report/', views.report_omzo, name='report_omzo'),
-    path('api/omzo/<int:omzo_id>/details/', views.get_omzo_detail, name='get_omzo_detail'),
+    path('api/omzo/<int:omzo_id>/details/',
+         views.get_omzo_detail, name='get_omzo_detail'),
 
     # Share API & Chat Requests
-    path('api/share/send/', views.share_content_to_user, name='share_content_to_user'),
-    path('api/share/search-users/', views.search_users_for_share, name='search_users_for_share'),
+    path('api/share/send/', views.share_content_to_user,
+         name='share_content_to_user'),
+    path('api/share/search-users/', views.search_users_for_share,
+         name='search_users_for_share'),
     path('api/chat-requests/', views.get_chat_requests, name='get_chat_requests'),
-    path('api/chat-requests/count/', views.get_chat_requests_count, name='get_chat_requests_count'),
-    path('api/chat-requests/<int:request_id>/accept/', views.accept_chat_request, name='accept_chat_request'),
-    path('api/chat-requests/<int:request_id>/decline/', views.decline_chat_request, name='decline_chat_request'),
-    
+    path('api/chat-requests/count/', views.get_chat_requests_count,
+         name='get_chat_requests_count'),
+    path('api/chat-requests/<int:request_id>/accept/',
+         views.accept_chat_request, name='accept_chat_request'),
+    path('api/chat-requests/<int:request_id>/decline/',
+         views.decline_chat_request, name='decline_chat_request'),
+
     # DM Request System (Instagram-style)
     path('api/dm-requests/', views.get_dm_requests, name='get_dm_requests'),
-    path('api/dm-requests/count/', views.get_dm_requests_count, name='get_dm_requests_count'),
-    path('api/dm-requests/<int:chat_id>/check/', views.check_dm_request, name='check_dm_request'),
-    path('api/dm-requests/<int:chat_id>/accept/', views.accept_dm_request, name='accept_dm_request'),
-    path('api/dm-requests/<int:chat_id>/decline/', views.decline_dm_request, name='decline_dm_request'),
+    path('api/dm-requests/count/', views.get_dm_requests_count,
+         name='get_dm_requests_count'),
+    path('api/dm-requests/<int:chat_id>/check/',
+         views.check_dm_request, name='check_dm_request'),
+    path('api/dm-requests/<int:chat_id>/accept/',
+         views.accept_dm_request, name='accept_dm_request'),
+    path('api/dm-requests/<int:chat_id>/decline/',
+         views.decline_dm_request, name='decline_dm_request'),
 
     # Catch-all for React SPA (MUST BE LAST)
     re_path(r'^(?P<path>.*)$', serve_react, name='react_catch_all'),

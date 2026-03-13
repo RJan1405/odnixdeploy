@@ -33,6 +33,7 @@ export default function CallPage() {
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [micEnabled, setMicEnabled] = useState(true);
     const [videoEnabled, setVideoEnabled] = useState(!isAudioOnly);
+    const [mediaReady, setMediaReady] = useState(false);
 
     const localVideoRef = useRef<HTMLVideoElement>(null);
     const remoteVideoRef = useRef<HTMLVideoElement>(null);
@@ -40,6 +41,9 @@ export default function CallPage() {
     const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
     const localStreamRef = useRef<MediaStream | null>(null);
     const hasProcessedOfferRef = useRef<boolean>(false);
+    const remoteUserIdRef = useRef<number | string | null>(null);
+    const startTimeRef = useRef<number>(Date.now());
+    const processedSignalIdsRef = useRef<Set<string>>(new Set());
 
     const iceServers = {
         iceServers: [
@@ -90,6 +94,7 @@ export default function CallPage() {
 
             // Always connect to WS to allow signaling (View-Only if media failed)
             connectWebSocket(stream);
+            setMediaReady(true);
         };
 
         startCall();
@@ -108,11 +113,26 @@ export default function CallPage() {
         };
     }, [chatId, user]);
 
-    // Sync local video
+    // Sync local tracks and video preview
     useEffect(() => {
-        if (localStream && localVideoRef.current) {
-            console.log("Setting local video srcObject");
-            localVideoRef.current.srcObject = localStream;
+        if (localStream) {
+            // Update UI
+            if (localVideoRef.current) {
+                console.log("Setting local video srcObject");
+                localVideoRef.current.srcObject = localStream;
+            }
+
+            // Update PeerConnection
+            if (peerConnectionRef.current) {
+                console.log("Syncing local tracks to PeerConnection");
+                const pc = peerConnectionRef.current;
+                localStream.getTracks().forEach(track => {
+                    const alreadyAdded = pc.getSenders().some(s => s.track === track);
+                    if (!alreadyAdded) {
+                        pc.addTrack(track, localStream);
+                    }
+                });
+            }
         }
     }, [localStream]);
 
@@ -144,6 +164,8 @@ export default function CallPage() {
                 await createOffer();
             } else {
                 console.log("I am NOT the initiator, waiting for offer...");
+                // Tell the caller we are ready to receive the offer
+                sendSignal({ type: 'webrtc.ready' });
             }
             // Always poll initially
             checkPendingSignals();
@@ -174,7 +196,11 @@ export default function CallPage() {
         if (activeStream) {
             console.log("Adding tracks to PeerConnection from local stream");
             activeStream.getTracks().forEach(track => {
-                pc.addTrack(track, activeStream);
+                // Prevent duplicate tracks
+                const alreadyAdded = pc.getSenders().some(s => s.track === track);
+                if (!alreadyAdded) {
+                    pc.addTrack(track, activeStream);
+                }
             });
         } else {
             console.warn("No local stream available when creating PeerConnection");
@@ -195,16 +221,18 @@ export default function CallPage() {
         pc.ontrack = (event) => {
             console.log("Received remote track:", event.track.kind, event.streams[0]?.id);
 
-            // Prefer streams[0] if available
             if (event.streams && event.streams[0]) {
+                // Use the first stream provided
                 setRemoteStream(event.streams[0]);
             } else {
-                // Fallback: create a new MediaStream from the solitary track
-                console.log("No stream in ontrack, creating one from track");
+                // Fallback: add track to existing stream or create new one
+                console.log("No stream in ontrack, creating/updating one from track");
                 setRemoteStream(prev => {
                     if (prev) {
-                        prev.addTrack(event.track);
-                        return prev;
+                        // Create a new stream object to ensure React detects the change
+                        const next = new MediaStream(prev.getTracks());
+                        next.addTrack(event.track);
+                        return next;
                     }
                     return new MediaStream([event.track]);
                 });
@@ -240,6 +268,7 @@ export default function CallPage() {
         try {
             const offer = await pc.createOffer();
             await pc.setLocalDescription(offer);
+            console.log("Offer created and set as local description");
             sendSignal({
                 type: 'webrtc.offer',
                 sdp: offer,
@@ -247,6 +276,26 @@ export default function CallPage() {
             });
         } catch (err) {
             console.error("Error creating offer:", err);
+        }
+    };
+
+    const resendOffer = async () => {
+        const pc = peerConnectionRef.current;
+        if (!pc && localStreamRef.current) {
+            createPeerConnection(localStreamRef.current);
+        }
+
+        const currentPc = peerConnectionRef.current;
+        if (currentPc?.localDescription) {
+            console.log("Resending local offer to ready peer...");
+            sendSignal({
+                type: 'webrtc.offer',
+                sdp: currentPc.localDescription,
+                audioOnly: isAudioOnly
+            });
+        } else {
+            console.log("No local description to resend, creating new offer...");
+            await createOffer();
         }
     };
 
@@ -269,7 +318,15 @@ export default function CallPage() {
     const candidateQueueRef = useRef<any[]>([]);
 
     const handleSignalMessage = async (data: any) => {
-        if (data.sender_id === user?.id) return;
+        // Type-safe self-filter: skip signals sent by us
+        if (data.sender_id !== undefined && data.sender_id !== null &&
+            String(data.sender_id) === String(user?.id)) return;
+
+        // Record remote user ID from the first signal we get from them
+        if (data.sender_id && !remoteUserIdRef.current) {
+            console.log("Setting remote user ID for signaling:", data.sender_id);
+            remoteUserIdRef.current = data.sender_id;
+        }
 
         const signal = data.payload || data;
         const type = signal.type || data.type;
@@ -293,25 +350,40 @@ export default function CallPage() {
             await createAnswer();
 
         } else if (type === 'webrtc.answer') {
-            console.log("Processing Answer");
-            await pc.setRemoteDescription(new RTCSessionDescription(signal.sdp));
-
-            // Process queued candidates
-            while (candidateQueueRef.current.length > 0) {
-                const candidate = candidateQueueRef.current.shift();
-                console.log("Processing queued candidate");
-                await pc.addIceCandidate(new RTCIceCandidate(candidate));
+            if (pc.signalingState !== 'have-local-offer') {
+                console.log("Skipping Answer because signaling state is", pc.signalingState);
+                return;
             }
-
+            console.log("Processing Answer");
+            try {
+                await pc.setRemoteDescription(new RTCSessionDescription(signal.sdp));
+                // Process queued candidates
+                while (candidateQueueRef.current.length > 0) {
+                    const candidate = candidateQueueRef.current.shift();
+                    console.log("Processing queued candidate");
+                    await pc.addIceCandidate(new RTCIceCandidate(candidate));
+                }
+            } catch (err) {
+                console.warn("Failed to set remote answer:", err);
+            }
         } else if (type === 'webrtc.ice') {
             if (signal.candidate) {
                 if (pc.remoteDescription) {
-                    console.log("Adding ICE candidate now");
-                    await pc.addIceCandidate(new RTCIceCandidate(signal.candidate));
+                    try {
+                        console.log("Adding ICE candidate now");
+                        await pc.addIceCandidate(new RTCIceCandidate(signal.candidate));
+                    } catch (e) {
+                        console.warn("Error adding incoming ICE candidate", e);
+                    }
                 } else {
                     console.log("Queueing ICE candidate (RemoteDesc not set)");
                     candidateQueueRef.current.push(signal.candidate);
                 }
+            }
+        } else if (type === 'webrtc.ready') {
+            console.log("Peer reported ready, checking if we need to send offer");
+            if (isInitiator) {
+                await resendOffer();
             }
         } else if (type === 'call.end') {
             endCall();
@@ -323,7 +395,7 @@ export default function CallPage() {
         let isConnecting = connectionStatus === 'connecting';
         let pollInterval: NodeJS.Timeout | null = null;
 
-        if (isConnecting && chatId) {
+        if (isConnecting && chatId && mediaReady) {
             console.log("Starting signal polling...");
             pollInterval = setInterval(checkPendingSignals, 3000);
         }
@@ -334,38 +406,55 @@ export default function CallPage() {
                 console.log("Stopped signal polling.");
             }
         };
-    }, [connectionStatus, chatId]);
+    }, [connectionStatus, chatId, mediaReady]);
 
     const checkPendingSignals = async () => {
         if (!chatId) return;
         try {
             const signals = await api.getP2PSignals(chatId);
-            console.log("Pending signals received:", signals);
 
-            // Debug: Log all signals and parse if string
-            signals.forEach(s => {
-                if (typeof s.signal === 'string') {
-                    try { s.signal = JSON.parse(s.signal); } catch (e) { console.error("Parse error", e); }
-                }
-                console.log("Signal in DB:", s.signal?.type, s);
+            // Filter out signals that are older than our page load (stale test data)
+            // We allow a 10s buffer in case the offer was sent just as we were joining
+            const freshSignals = signals.filter((s: any) => {
+                const signalTime = new Date(s.timestamp).getTime();
+                return signalTime > (startTimeRef.current - 10000);
             });
 
-            // Fix: Backend returns 'signal' key, not 'signal_data'
-            const offer = signals.find(s => (s.signal?.type === 'webrtc.offer') || (s.signal_data?.type === 'webrtc.offer'));
-            if (offer && !hasProcessedOfferRef.current) {
-                console.log("Found pending offer:", offer);
-                await handleSignalMessage(offer.signal || offer.signal_data);
+            if (freshSignals.length === 0 && signals.length > 0) {
+                console.log(`Skipped ${signals.length} stale signals from previous sessions`);
+                return;
             }
 
-            // Fallback: check type OR presence of 'candidate' property
-            const candidates = signals.filter(s =>
-                (s.signal?.type === 'webrtc.ice') ||
-                (s.signal_data?.type === 'webrtc.ice') ||
-                (s.signal?.candidate)
-            );
-            console.log(`Found ${candidates.length} pending candidates`);
-            for (const c of candidates) {
-                await handleSignalMessage(c.signal || c.signal_data);
+            for (const signalObj of freshSignals) {
+                // Build a stable ID to deduplicate across poll cycles
+                const signalId = `${signalObj.id}_${signalObj.timestamp}`;
+                if (processedSignalIdsRef.current.has(signalId)) continue;
+                processedSignalIdsRef.current.add(signalId);
+
+                // Determine the inner signal type
+                const inner = signalObj.signal || signalObj.signal_data || {};
+                const sigType = inner.type;
+
+                // Build a wrapper that preserves sender_id for self-filtering
+                const wrapper = {
+                    ...inner,
+                    sender_id: signalObj.sender_id,
+                };
+
+                if (sigType === 'webrtc.offer' && !hasProcessedOfferRef.current) {
+                    console.log("Found pending offer from sender:", signalObj.sender_id);
+                    await handleSignalMessage(wrapper);
+                } else if (sigType === 'webrtc.answer') {
+                    console.log("Found pending answer from sender:", signalObj.sender_id);
+                    await handleSignalMessage(wrapper);
+                } else if (sigType === 'webrtc.ice') {
+                    await handleSignalMessage(wrapper);
+                } else if (sigType === 'call.end') {
+                    console.log("Found pending call.end");
+                    await handleSignalMessage(wrapper);
+                } else if (sigType === 'webrtc.ready') {
+                    await handleSignalMessage(wrapper);
+                }
             }
         } catch (e) {
             console.error("Error checking pending signals:", e);
@@ -373,12 +462,33 @@ export default function CallPage() {
     };
 
     const sendSignal = (data: any) => {
+        // Use remoteUserIdRef if we have it, otherwise fallback to otherUser.id
+        const targetId = remoteUserIdRef.current || otherUser?.id || undefined;
+        console.log('📤 [CallPage] sendSignal called:', {
+            type: data.type,
+            targetId,
+            wsState: wsRef.current?.readyState,
+            wsOpen: wsRef.current?.readyState === WebSocket.OPEN,
+            data_summary: data.type
+        });
+
         if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-            wsRef.current.send(JSON.stringify(data));
+            const jsonStr = JSON.stringify(data);
+            wsRef.current.send(jsonStr);
+            console.log('✅ [CallPage] Signal sent via WebSocket');
         } else {
-            console.warn("WS not ready, sending via HTTP");
+            console.warn("⚠️ [CallPage] WS not ready, sending via HTTP");
             if (chatId) {
-                api.sendP2PSignal(chatId, data);
+                api.sendP2PSignal(chatId, targetId ?? '', data);
+                console.log('✅ [CallPage] Signal sent via HTTP API to target:', targetId);
+            }
+        }
+
+        // Concurrent fallback for critical signals
+        if (['webrtc.offer', 'webrtc.answer', 'call.end'].includes(data.type)) {
+            if (chatId && wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+                api.sendP2PSignal(chatId, targetId ?? '', data).catch(err => console.warn("HTTP fallback failed", err));
+                console.log('📨 [CallPage] Concurrent HTTP signal also sent for reliability');
             }
         }
     };

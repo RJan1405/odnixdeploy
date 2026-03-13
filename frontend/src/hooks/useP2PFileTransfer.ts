@@ -31,6 +31,8 @@ export function useP2PFileTransfer(
     const dataChannelRef = useRef<RTCDataChannel | null>(null);
     const receivedBufferRef = useRef<ArrayBuffer[]>([]);
     const receivedSizeRef = useRef(0);
+    const signalQueueRef = useRef<any[]>([]);
+    const isProcessingOfferRef = useRef(false);
 
     const { toast } = useToast();
 
@@ -65,32 +67,37 @@ export function useP2PFileTransfer(
         if (typeof data === 'string') {
             try {
                 const message = JSON.parse(data);
-                if (message.type === 'file-start') {
-                    console.log('Receiving file:', message.metadata);
 
-                    // Update Refs
-                    incomingFileRef.current = message.metadata;
+                // Support both web format (file-start) and mobile format (meta)
+                if (message.type === 'file-start' || message.type === 'meta') {
+                    const metadata = message.metadata || {
+                        name: message.name,
+                        size: message.size,
+                        type: message.mimeType || message.type_,  // mobile uses 'mimeType'
+                    };
+                    console.log('Receiving file:', metadata);
+
+                    incomingFileRef.current = metadata;
                     receivedBufferRef.current = [];
                     receivedSizeRef.current = 0;
 
-                    // Update UI State
-                    setCurrentFile({ ...message.metadata, isIncoming: true });
+                    setCurrentFile({ ...metadata, isIncoming: true });
                     setStatus('transferring');
                     setProgress(0);
 
                     toast({
                         title: 'Incoming File Transfer',
-                        description: `Receiving ${message.metadata.name}...`
+                        description: `Receiving ${metadata.name}...`
                     });
-                } else if (message.type === 'file-end') {
+                }
+                // Support both web format (file-end) and mobile format (done)
+                else if (message.type === 'file-end' || message.type === 'done') {
                     console.log('File transfer complete');
 
-                    // Use Ref for robust access to metadata
                     const meta = incomingFileRef.current;
                     const blob = new Blob(receivedBufferRef.current, { type: meta?.type });
                     const url = URL.createObjectURL(blob);
 
-                    // Trigger download
                     const a = document.createElement('a');
                     a.href = url;
                     a.download = meta?.name || 'downloaded_file';
@@ -109,7 +116,6 @@ export function useP2PFileTransfer(
                         onCompleteRef.current(meta, 'received');
                     }
 
-                    // Reset after short delay
                     setTimeout(reset, 2000);
                 }
             } catch (e) {
@@ -144,16 +150,22 @@ export function useP2PFileTransfer(
             iceServers: [
                 { urls: 'stun:stun.l.google.com:19302' },
                 { urls: 'stun:stun1.l.google.com:19302' }
-            ]
+            ],
+            bundlePolicy: 'balanced',
         });
 
         pc.onicecandidate = (event) => {
             if (event.candidate) {
+                console.log(`[P2P] Generated ICE: ${event.candidate.candidate.substring(0, 40)}... type: ${event.candidate.type || 'unknown'}`);
                 sendSignal({
-                    type: 'webrtc.ice',
+                    type: 'file.ice',
                     candidate: event.candidate.toJSON()
                 });
             }
+        };
+
+        pc.oniceconnectionstatechange = () => {
+            console.log('[P2P] ICE Connection State:', pc.iceConnectionState);
         };
 
         pc.onconnectionstatechange = () => {
@@ -179,30 +191,73 @@ export function useP2PFileTransfer(
     }, [sendSignal, toast, setupDataChannel, reset]);
 
     // Handle incoming signals from WebSocket
-    const handleSignal = useCallback(async (signal: P2PSignal) => {
-        if (!pcRef.current) {
-            createPeerConnection();
+    // Supports both web format (webrtc.*) and mobile format (file.*)
+    const handleSignal = useCallback(async (signal: any) => {
+        const pc = pcRef.current;
+
+        // If we don't have a PC yet or are currently busy setting up the offer, queue it
+        if (!pc || isProcessingOfferRef.current || (signal.type === 'webrtc.ice' && !pc.remoteDescription)) {
+            console.log(`[P2P] Queuing signal ${signal.type} (Ready: ${!!pc}, Desc: ${!!pc?.remoteDescription})`);
+            signalQueueRef.current.push(signal);
+
+            // If we don't even have a PC, create it (handles incoming signals when idle)
+            if (!pc && (signal.type === 'webrtc.offer' || signal.type === 'file.offer')) {
+                createPeerConnection();
+                // handleSignal will be re-called via the queue flush later
+            }
+            return;
         }
-        const pc = pcRef.current!;
 
         try {
-            if (signal.type === 'webrtc.offer') {
+            if (signal.type === 'webrtc.offer' || signal.type === 'file.offer') {
+                if (pc.signalingState !== 'stable') {
+                    console.log('[P2P] Already processing description, ignoring duplicate offer');
+                    return;
+                }
+                isProcessingOfferRef.current = true;
+                console.log('[P2P] Processing offer...');
                 await pc.setRemoteDescription(new RTCSessionDescription(signal.sdp!));
                 const answer = await pc.createAnswer();
                 await pc.setLocalDescription(answer);
                 sendSignal({
-                    type: 'webrtc.answer',
+                    type: 'file.answer',
                     sdp: answer
-                });
-            } else if (signal.type === 'webrtc.answer') {
+                } as any);
+                isProcessingOfferRef.current = false;
+
+                // Flush queue now that remote description is set
+                const queue = [...signalQueueRef.current];
+                signalQueueRef.current = [];
+                console.log(`[P2P] Flushing ${queue.length} signals after offer`);
+                for (const queuedSig of queue) {
+                    await handleSignal(queuedSig);
+                }
+            }
+            else if (signal.type === 'webrtc.answer' || signal.type === 'file.answer') {
+                if (pc.signalingState === 'stable') {
+                    console.log('[P2P] Already stable, ignoring duplicate answer');
+                    return;
+                }
+                console.log('[P2P] Processing answer...');
                 await pc.setRemoteDescription(new RTCSessionDescription(signal.sdp!));
-            } else if (signal.type === 'webrtc.ice') {
+
+                // Flush queue now that remote description is set
+                const queue = [...signalQueueRef.current];
+                signalQueueRef.current = [];
+                console.log(`[P2P] Flushing ${queue.length} signals after answer`);
+                for (const queuedSig of queue) {
+                    await handleSignal(queuedSig);
+                }
+            }
+            else if (signal.type === 'webrtc.ice' || signal.type === 'file.ice') {
                 if (signal.candidate) {
+                    console.log('[P2P] Adding ICE candidate');
                     await pc.addIceCandidate(new RTCIceCandidate(signal.candidate));
                 }
             }
         } catch (err) {
             console.error('Error handling P2P signal:', err);
+            isProcessingOfferRef.current = false;
         }
     }, [createPeerConnection, sendSignal]);
 
@@ -225,10 +280,13 @@ export function useP2PFileTransfer(
         setupDataChannel(channel);
 
         // Create Offer
-        const offer = await pc.createOffer();
+        const offer = await pc.createOffer({
+            offerToReceiveAudio: false,
+            offerToReceiveVideo: false,
+        });
         await pc.setLocalDescription(offer);
         sendSignal({
-            type: 'webrtc.offer',
+            type: 'file.offer',
             sdp: offer
         });
 
