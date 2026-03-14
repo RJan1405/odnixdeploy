@@ -4,7 +4,8 @@ from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
 from django.views.decorators.http import require_http_methods
 import json
 
-
+from ..models import CustomUser
+from django.db import transaction
 @csrf_exempt
 @require_http_methods(["POST"])
 def api_login(request):
@@ -84,6 +85,82 @@ def api_logout(request):
         request.user.mark_offline()
         logout(request)
     return JsonResponse({'success': True})
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def api_register(request):
+    """API endpoint for user registration (mobile/frontend)"""
+    try:
+        data = json.loads(request.body)
+        username = data.get('username')
+        email = data.get('email')
+        password = data.get('password')
+        name = data.get('name', '')
+        lastname = data.get('lastname', '')
+        
+        if not username or not email or not password:
+            return JsonResponse({
+                'success': False,
+                'error': 'Username, email, and password are required'
+            }, status=400)
+            
+        if CustomUser.objects.filter(username=username).exists():
+            return JsonResponse({'success': False, 'error': 'Username already exists'}, status=400)
+            
+        if CustomUser.objects.filter(email=email).exists():
+            return JsonResponse({'success': False, 'error': 'Email already exists'}, status=400)
+            
+        with transaction.atomic():
+            user = CustomUser(
+                username=username,
+                email=email,
+                name=name,
+                lastname=lastname,
+                is_email_verified=True # Auto-verify for simplicity via API
+            )
+            user.set_password(password)
+            user.save()
+            
+            # Log the user in immediately
+            user = authenticate(request, username=username, password=password)
+            if user is not None:
+                login(request, user)
+                user.mark_online()
+                
+                try:
+                    from rest_framework.authtoken.models import Token
+                    token_obj, _ = Token.objects.get_or_create(user=user)
+                    auth_token = token_obj.key
+                except Exception:
+                    auth_token = None
+                    
+                return JsonResponse({
+                    'success': True,
+                    'auth_token': auth_token,
+                    'user': {
+                        'id': user.id,
+                        'username': user.username,
+                        'email': user.email,
+                        'name': user.name,
+                        'lastname': user.lastname,
+                        'full_name': user.full_name,
+                        'profile_picture': user.profile_picture.url if user.profile_picture else '',
+                        'profile_picture_url': user.profile_picture_url,
+                        'is_verified': user.is_verified,
+                        'is_private': user.is_private,
+                        'is_online': True,
+                    }
+                })
+            else:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Failed to authenticate after registration'
+                }, status=500)
+                
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'error': 'Invalid JSON data'}, status=400)
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 
 @require_http_methods(["GET", "POST"])
