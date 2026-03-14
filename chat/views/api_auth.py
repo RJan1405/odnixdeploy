@@ -192,7 +192,6 @@ def api_profile(request):
                 names = display_name.split(' ', 1)
                 user.name = names[0]
                 user.lastname = names[1] if len(names) > 1 else ""
-                user.full_name = display_name
             else:
                 # Map web first_name/last_name to name and lastname
                 if first_name:
