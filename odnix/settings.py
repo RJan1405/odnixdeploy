@@ -4,13 +4,19 @@ Django settings for odnix project.
 
 import os
 from pathlib import Path
+import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-change-this-key-in-production-123456789'
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-change-this-key-in-production-123456789')
 
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', '*']
+
+# Render specific
+RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
 
 # FIXED: Site domain for clean invite links
 SITE_DOMAIN = 'http://192.168.104.187:8000'
@@ -137,6 +143,10 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
+db_from_env = dj_database_url.config(conn_max_age=500)
+if db_from_env:
+    DATABASES['default'].update(db_from_env)
 
 AUTH_PASSWORD_VALIDATORS = [
     {
