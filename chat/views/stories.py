@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
+from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
 from django.utils.timesince import timesince
 import json
@@ -12,6 +13,7 @@ from chat.models import CustomUser, Story, StoryView, StoryLike, StoryReply, Cha
 logger = logging.getLogger(__name__)
 
 
+@csrf_exempt
 @login_required
 @require_POST
 def repost_story(request):
@@ -128,6 +130,7 @@ def repost_story(request):
         return JsonResponse({'success': False, 'error': str(e)})
 
 
+@csrf_exempt
 @login_required
 @require_POST
 def create_story(request):
@@ -470,6 +473,7 @@ def get_following_stories(request):
         logger.error(f"Error getting following stories: {e}")
         return JsonResponse({'success': False, 'error': str(e)})
 
+@csrf_exempt
 @login_required
 @require_POST
 def mark_story_viewed(request):
@@ -504,6 +508,7 @@ def mark_story_viewed(request):
         logger.error(f"Error in mark_story_viewed: {str(e)}")
         return JsonResponse({'success': False, 'error': 'Failed to mark story as viewed'})
 
+@csrf_exempt
 @login_required
 @require_POST
 def toggle_story_like(request):
@@ -579,6 +584,7 @@ def toggle_story_like(request):
         print(f"DEBUG ERROR in toggle_story_like: {str(e)}") # Force print to console
         return JsonResponse({'success': False, 'error': f'Failed to toggle story like: {str(e)}'})
 
+@csrf_exempt
 @login_required
 @require_POST
 def add_story_reply(request):
@@ -757,6 +763,7 @@ def get_story_viewers(request, story_id):
         logger.error(f"Error in get_story_viewers: {str(e)}")
         return JsonResponse({'success': False, 'error': 'Failed to get story viewers'})
 
+@csrf_exempt
 @login_required
 @require_POST
 def delete_reply(request, reply_id):

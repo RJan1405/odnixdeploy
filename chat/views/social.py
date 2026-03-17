@@ -3,6 +3,7 @@ from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
+from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
 from django.utils import timezone
 from django.db.models import Count, Q, Max
@@ -147,6 +148,7 @@ def handle_repost_action(user, repost_type, repost_id, content=''):
     }
 
 
+@csrf_exempt
 @login_required
 @require_POST
 def api_repost(request):
@@ -507,6 +509,7 @@ def profile_view(request, username=None):
     return render(request, 'chat/profile.html', context)
 
 
+@csrf_exempt
 @login_required
 @require_POST
 def toggle_private_chat(request):
@@ -655,6 +658,7 @@ def update_profile(request):
     return render(request, 'chat/update_profile.html', context)
 
 
+@csrf_exempt
 @login_required
 @require_POST
 def post_scribe(request):
@@ -869,6 +873,7 @@ def post_scribe(request):
         return JsonResponse({'success': False, 'error': 'An unexpected error occurred. Please try again.'})
 
 
+@csrf_exempt
 @login_required
 @require_POST
 def toggle_like(request):
@@ -930,6 +935,7 @@ def toggle_like(request):
         return JsonResponse({'success': False, 'error': 'Failed to toggle like'})
 
 
+@csrf_exempt
 @login_required
 @require_POST
 def toggle_dislike(request):
@@ -977,6 +983,7 @@ def toggle_dislike(request):
         return JsonResponse({'success': False, 'error': 'Failed to toggle dislike'})
 
 
+@csrf_exempt
 @login_required
 @require_POST
 def toggle_save_post(request):
@@ -1165,6 +1172,7 @@ def get_saved_posts(request):
         return JsonResponse({'success': False, 'error': 'Failed to get saved posts'})
 
 
+@csrf_exempt
 @login_required
 @require_POST
 def copy_post_link(request):
@@ -1198,6 +1206,7 @@ def copy_post_link(request):
         return JsonResponse({'success': False, 'error': 'Failed to get post link'})
 
 
+@csrf_exempt
 @login_required
 @require_POST
 def add_comment(request):
@@ -1272,6 +1281,7 @@ def add_comment(request):
         return JsonResponse({'success': False, 'error': 'Failed to add comment'})
 
 
+@csrf_exempt
 @login_required
 @require_POST
 def toggle_comment_like(request):
@@ -1432,6 +1442,7 @@ def get_scribe_comments(request, scribe_id):
         return JsonResponse({'success': False, 'error': 'Failed to load comments'})
 
 
+@csrf_exempt
 @login_required
 @require_POST
 def toggle_follow(request):
@@ -1535,6 +1546,7 @@ def toggle_follow(request):
         return JsonResponse({'success': False, 'error': 'Failed to toggle follow'})
 
 
+@csrf_exempt
 @login_required
 @require_POST
 def dismiss_suggestion(request):
@@ -1570,6 +1582,7 @@ def dismiss_suggestion(request):
         return JsonResponse({'success': False, 'error': 'Failed to dismiss suggestion'})
 
 
+@csrf_exempt
 @login_required
 @require_POST
 def toggle_block(request):
@@ -1648,6 +1661,7 @@ def toggle_block(request):
         return JsonResponse({'success': False, 'error': 'Failed to toggle block'})
 
 
+@csrf_exempt
 @login_required
 @require_POST
 def manage_follow_request(request):
@@ -1717,6 +1731,7 @@ def manage_follow_request(request):
         return JsonResponse({'success': False, 'error': 'Failed to manage follow request'})
 
 
+@csrf_exempt
 @login_required
 @require_POST
 def toggle_account_privacy(request):
@@ -1785,6 +1800,7 @@ def get_follow_requests(request):
         return JsonResponse({'success': False, 'error': 'Failed to get follow requests'})
 
 
+@csrf_exempt
 @login_required
 @require_POST
 def follow_states(request):
@@ -2218,6 +2234,7 @@ def global_search(request):
         return JsonResponse({'success': False, 'error': 'Search failed'})
 
 
+@csrf_exempt
 @login_required
 @require_POST
 def update_theme(request):
@@ -2891,6 +2908,7 @@ def get_omzo_batch(request):
         })
 
 
+@csrf_exempt
 @login_required
 @require_POST
 def track_omzo_view(request):
@@ -2918,6 +2936,7 @@ def track_omzo_view(request):
         return JsonResponse({'error': str(e)}, status=500)
 
 
+@csrf_exempt
 @login_required
 @require_POST
 def upload_omzo(request):
@@ -2974,6 +2993,7 @@ def upload_omzo(request):
         return JsonResponse({'success': False, 'error': f'Failed to upload omzo: {str(e)}'})
 
 
+@csrf_exempt
 @login_required
 @require_POST
 def toggle_omzo_like(request):
@@ -3021,6 +3041,7 @@ def toggle_omzo_like(request):
         return JsonResponse({'success': False, 'error': 'Action failed'})
 
 
+@csrf_exempt
 @login_required
 @require_POST
 def toggle_omzo_dislike(request):
@@ -3090,6 +3111,7 @@ def get_omzo_comments(request, omzo_id):
         return JsonResponse({'success': False, 'error': 'Failed to load comments'})
 
 
+@csrf_exempt
 @login_required
 @require_POST
 def add_omzo_comment(request):
@@ -3150,6 +3172,7 @@ def add_omzo_comment(request):
         return JsonResponse({'success': False, 'error': 'Failed to add comment'})
 
 
+@csrf_exempt
 @login_required
 @require_POST
 def report_omzo(request):
@@ -3231,6 +3254,7 @@ def report_omzo(request):
         return JsonResponse({'success': False, 'error': 'Failed to report omzo'})
 
 
+@csrf_exempt
 @login_required
 @require_POST
 def toggle_save_scribe(request):
@@ -3268,6 +3292,7 @@ def toggle_save_scribe(request):
         return JsonResponse({'success': False, 'error': 'Failed to toggle save'})
 
 
+@csrf_exempt
 @login_required
 @require_POST
 def toggle_save_omzo(request):

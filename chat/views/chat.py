@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST, require_http_methods
+from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
 from django.utils import timezone
 from django.db.models import Count, Q
@@ -693,6 +694,7 @@ def get_chat_messages(request, chat_id):
     })
 
 
+@csrf_exempt
 @login_required
 @require_POST
 def send_message(request):
@@ -920,6 +922,7 @@ def get_chats_api(request):
         return JsonResponse({'success': False, 'error': 'Failed to load chats'})
 
 
+@csrf_exempt
 @login_required
 @require_POST
 def create_chat(request):
@@ -1617,6 +1620,7 @@ def manage_join_request(request):
         return JsonResponse({'success': False, 'error': 'Failed to manage join request'})
 
 
+@csrf_exempt
 @login_required
 @require_POST
 def delete_message_for_me(request, message_id):
@@ -1637,6 +1641,7 @@ def delete_message_for_me(request, message_id):
         return JsonResponse({'status': 'error', 'message': 'Message not found'}, status=404)
 
 
+@csrf_exempt
 @login_required
 @require_POST
 def delete_message_for_everyone(request, message_id):
@@ -1867,6 +1872,7 @@ def get_typing_status(request, chat_id):
         return JsonResponse({'typing_users': []})
 
 
+@csrf_exempt
 @login_required
 @require_POST
 def edit_message(request, message_id):

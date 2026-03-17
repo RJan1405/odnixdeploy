@@ -163,6 +163,7 @@ def api_register(request):
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 
+@csrf_exempt
 @require_http_methods(["GET", "POST"])
 def api_profile(request):
     """API endpoint to get or update current user profile"""
