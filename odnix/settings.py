@@ -19,7 +19,7 @@ if RENDER_EXTERNAL_HOSTNAME:
     ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
 
 # FIXED: Site domain for clean invite links
-SITE_DOMAIN = 'http://192.168.104.187:8000'
+SITE_DOMAIN = 'https://odnixdeploy.onrender.com'
 
 # CORS settings for React frontend
 CORS_ALLOWED_ORIGINS = [
@@ -32,6 +32,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://192.168.104.187:8000",
     "http://192.168.0.104:8080",
     "http://127.0.0.1:3000",
+    "https://odnixdeploy.onrender.com",
 ]
 CORS_ALLOW_CREDENTIALS = True  # Required for session-based auth
 CORS_ALLOW_HEADERS = [
@@ -58,6 +59,7 @@ CSRF_TRUSTED_ORIGINS = [
     "http://127.0.0.1:8080",
     "http://127.0.0.1:3000",
     "https://*.trycloudflare.com",  # Allow all Cloudflare tunnels
+    "https://odnixdeploy.onrender.com",
 ]
 
 INSTALLED_APPS = [
