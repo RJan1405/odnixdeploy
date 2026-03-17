@@ -1,10 +1,3 @@
-databases:
-  - name: odnix-db
-    databaseName: odnix
-    user: odnix
-    plan: free
-    postgresMajorVersion: "18"
-
 services:
   - type: web
     name: odnix-backend
@@ -15,9 +8,7 @@ services:
       - key: PYTHON_VERSION
         value: 3.12.0
       - key: DATABASE_URL
-        fromDatabase:
-          name: odnix-db
-          property: connectionString
+        sync: false
       - key: SECRET_KEY
         generateValue: true
       - key: DEBUG
