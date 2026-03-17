@@ -3,6 +3,8 @@ asgiref==3.7.2
 sqlparse==0.4.4
 tzdata==2024.1
 django-jazzmin==3.0.1
+django-cors-headers==4.3.1
+djangorestframework==3.15.1
 
 # Production dependencies
 # Pillow 10.x fails on Python 3.13; use 11.x
