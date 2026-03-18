@@ -39,7 +39,8 @@ def api_login(request):
 
             return JsonResponse({
                 'success': True,
-                'auth_token': auth_token,  # Used by mobile for WS auth via ?token=xxx
+                'token': auth_token,        # ← Standard key (send this in Authorization: Token <token>)
+                'auth_token': auth_token,   # ← Legacy key kept for backward compatibility
                 'user': {
                     'id': user.id,
                     'username': user.username,
@@ -137,7 +138,8 @@ def api_register(request):
                     
                 return JsonResponse({
                     'success': True,
-                    'auth_token': auth_token,
+                    'token': auth_token,       # ← Standard key
+                    'auth_token': auth_token,  # ← Legacy key
                     'user': {
                         'id': user.id,
                         'username': user.username,
@@ -281,6 +283,20 @@ def get_csrf_token(request):
     return JsonResponse({
         'success': True,
         'note': 'CSRF not required for token authentication. Use Authorization: Token <key> header instead.'
+    })
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def api_verify_token(request):
+    """Simple endpoint to verify if the token in the header is valid"""
+    return JsonResponse({
+        'success': True,
+        'message': 'Token is valid',
+        'user': {
+            'id': request.user.id,
+            'username': request.user.username
+        }
     })
 
 
