@@ -2,7 +2,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST, require_http_methods
-from django.views.decorators.csrf import csrf_exempt
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
 from django.contrib import messages
 from django.utils import timezone
 from django.db.models import Count, Q
@@ -694,9 +695,8 @@ def get_chat_messages(request, chat_id):
     })
 
 
-@csrf_exempt
-@login_required
-@require_POST
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
 def send_message(request):
     try:
         chat_id = request.POST.get('chat_id')
@@ -922,9 +922,8 @@ def get_chats_api(request):
         return JsonResponse({'success': False, 'error': 'Failed to load chats'})
 
 
-@csrf_exempt
-@login_required
-@require_POST
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
 def create_chat(request):
     try:
         data = json.loads(request.body)
@@ -1620,9 +1619,8 @@ def manage_join_request(request):
         return JsonResponse({'success': False, 'error': 'Failed to manage join request'})
 
 
-@csrf_exempt
-@login_required
-@require_POST
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
 def delete_message_for_me(request, message_id):
     """Delete message for current user only (hide it)"""
     try:
@@ -1641,9 +1639,8 @@ def delete_message_for_me(request, message_id):
         return JsonResponse({'status': 'error', 'message': 'Message not found'}, status=404)
 
 
-@csrf_exempt
-@login_required
-@require_POST
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
 def delete_message_for_everyone(request, message_id):
     """Delete message for everyone (only sender can do this)"""
     try:
@@ -1872,9 +1869,8 @@ def get_typing_status(request, chat_id):
         return JsonResponse({'typing_users': []})
 
 
-@csrf_exempt
-@login_required
-@require_POST
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
 def edit_message(request, message_id):
     """Edit a message (within 15 minute window)"""
     try:

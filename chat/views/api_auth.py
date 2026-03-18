@@ -1,13 +1,16 @@
 from django.contrib.auth import login, logout, authenticate
 from django.http import JsonResponse
-from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
 from django.views.decorators.http import require_http_methods
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.response import Response
+from rest_framework import status
 import json
 
 from ..models import CustomUser
 from django.db import transaction
-@csrf_exempt
-@require_http_methods(["POST"])
+@api_view(["POST"])
+@permission_classes([AllowAny])
 def api_login(request):
     """API endpoint for React frontend login"""
     try:
@@ -24,7 +27,6 @@ def api_login(request):
         user = authenticate(request, username=username, password=password)
 
         if user is not None:
-            login(request, user)
             user.mark_online()
 
             # Get or create a DRF token for WebSocket authentication (mobile clients)
@@ -77,8 +79,8 @@ def api_login(request):
         }, status=500)
 
 
-@csrf_exempt
-@require_http_methods(["POST"])
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
 def api_logout(request):
     """API endpoint for React frontend logout"""
     if request.user.is_authenticated:
@@ -86,8 +88,8 @@ def api_logout(request):
         logout(request)
     return JsonResponse({'success': True})
 
-@csrf_exempt
-@require_http_methods(["POST"])
+@api_view(["POST"])
+@permission_classes([AllowAny])
 def api_register(request):
     """API endpoint for user registration (mobile/frontend)"""
     try:
@@ -124,7 +126,6 @@ def api_register(request):
             # Log the user in immediately
             user = authenticate(request, username=username, password=password)
             if user is not None:
-                login(request, user)
                 user.mark_online()
                 
                 try:
@@ -163,8 +164,8 @@ def api_register(request):
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 
-@csrf_exempt
-@require_http_methods(["GET", "POST"])
+@api_view(["GET", "POST"])
+@permission_classes([IsAuthenticated])
 def api_profile(request):
     """API endpoint to get or update current user profile"""
     if not request.user.is_authenticated:
@@ -269,14 +270,22 @@ def api_profile(request):
     })
 
 
-@ensure_csrf_cookie
-@require_http_methods(["GET"])
 def get_csrf_token(request):
-    """Get CSRF token for API requests"""
-    return JsonResponse({'success': True})
+    """
+    CSRF tokens are NOT needed for token-authenticated API clients (Android/mobile).
+    Token authentication bypasses CSRF entirely in DRF.
+    This endpoint exists only for legacy browser-based flows.
+    DO NOT call this from Android — it will set a csrftoken cookie that causes 403s
+    on POST requests due to Django's Referer checking on HTTPS.
+    """
+    return JsonResponse({
+        'success': True,
+        'note': 'CSRF not required for token authentication. Use Authorization: Token <key> header instead.'
+    })
 
 
-@require_http_methods(["GET"])
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
 def api_user_profile(request, username):
     """API endpoint to get user profile by username"""
     from django.shortcuts import get_object_or_404

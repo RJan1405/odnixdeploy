@@ -5,6 +5,8 @@ from django.views.decorators.http import require_POST
 from django.utils import timezone
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
 import json
 import logging
 
@@ -13,7 +15,8 @@ from chat.models import Message, StarredMessage, MessageDeletion, MessageRead
 logger = logging.getLogger(__name__)
 
 
-@login_required
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
 def get_message_context_menu(request, message_id):
     """Get context menu options for a specific message"""
     try:
@@ -139,8 +142,8 @@ def get_message_context_menu(request, message_id):
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 
-@login_required
-@require_POST
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
 def message_context_action(request):
     """Handle context menu actions on messages"""
     try:

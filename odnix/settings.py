@@ -78,10 +78,19 @@ INSTALLED_APPS = [
     'chat',
 ]
 
+# ============================================================================
+# DJANGO REST FRAMEWORK - Token Authentication Only
+# NO SessionAuthentication → NO CSRF enforcement on API endpoints
+# Android/mobile clients must send: Authorization: Token <key>
+# ============================================================================
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
-        'rest_framework.authentication.SessionAuthentication',
+        # ⚠️  SessionAuthentication is intentionally EXCLUDED.
+        # Including it would force CSRF checks on POST requests from Android.
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
     ],
 }
 
@@ -235,6 +244,19 @@ DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 SESSION_COOKIE_AGE = 86400  # 1 day
 SESSION_SAVE_EVERY_REQUEST = True
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+# 'Lax' prevents session cookie from being sent on cross-site API requests
+# (e.g., from an Android app hitting the server over HTTPS, no Referer header)
+SESSION_COOKIE_SAMESITE = 'Lax'
+
+# ============================================================================
+# CSRF - Safe for browser admin, transparent to Android API clients
+# ============================================================================
+# Android HTTP clients (OkHttp) store ALL cookies including csrftoken.
+# If Android calls /api/csrf/, it gets a csrftoken cookie. Django then
+# enforces Referer checking on subsequent POSTs → 403 "Referer checking failed".
+# Fix: CSRF cookie won't be sent cross-site thanks to SameSite.
+CSRF_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_HTTPONLY = False  # Must stay False so JS admin can read it
 
 # Security settings for media files
 SECURE_CROSS_ORIGIN_OPENER_POLICY = None

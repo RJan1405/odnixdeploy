@@ -2,14 +2,16 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_GET
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
 from chat.models import Chat, Message, MessageRead, CustomUser
 from django.db.models import Prefetch
 import logging
 
 logger = logging.getLogger(__name__)
 
-@login_required
-@require_GET
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
 def get_chat_details_api(request, chat_id):
     """
     API to get full details of a chat including messages and metadata.

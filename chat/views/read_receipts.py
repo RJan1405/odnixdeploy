@@ -7,6 +7,8 @@ from django.views.decorators.http import require_POST, require_GET
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 from chat.models import Chat, Message, MessageRead
@@ -16,8 +18,8 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-@login_required
-@require_POST
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
 def mark_messages_read(request):
     """
     Mark multiple messages as read for the current user.
@@ -114,8 +116,8 @@ def mark_messages_read(request):
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 
-@login_required
-@require_GET
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
 def get_unread_counts(request):
     """
     Get unread message counts for all chats the user participates in.
@@ -153,8 +155,8 @@ def get_unread_counts(request):
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 
-@login_required
-@require_POST
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
 def mark_chat_read(request, chat_id):
     """
     Mark all messages in a chat as read for the current user.

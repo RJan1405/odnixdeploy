@@ -1,12 +1,15 @@
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
 import logging
 from chat.models import Omzo, OmzoLike, OmzoDislike, SavedOmzoItem
 
 logger = logging.getLogger(__name__)
 
-@login_required
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
 def get_omzo_detail(request, omzo_id):
     """Get a single Omzo by ID (API)"""
     try:

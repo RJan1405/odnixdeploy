@@ -1,9 +1,9 @@
 from django.shortcuts import render, get_object_or_404
-from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
-from django.views.decorators.http import require_POST
 from django.db.models import Q, Case, When, Value, IntegerField, Count
 from django.utils import timezone
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
 import json
 import logging
 
@@ -13,7 +13,8 @@ from chat.models import (
 
 logger = logging.getLogger(__name__)
 
-@login_required
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
 def search_users_for_share(request):
     """
     Search users for sharing content.
@@ -100,8 +101,8 @@ def search_users_for_share(request):
         'has_more': len(data) == per_page
     })
 
-@login_required
-@require_POST
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
 def share_content_to_user(request):
     """
     Share content to a list of users.
@@ -206,7 +207,8 @@ def share_content_to_user(request):
         logger.error(f"Share API Error: {str(e)}")
         return JsonResponse({'success': False, 'error': str(e)})
 
-@login_required
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
 def get_chat_requests(request):
     """Get pending chat requests received by current user"""
     requests = ChatRequest.objects.filter(
@@ -232,7 +234,8 @@ def get_chat_requests(request):
         
     return JsonResponse({'success': True, 'requests': data})
 
-@login_required
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
 def get_chat_requests_count(request):
     """Get count of pending requests for badge"""
     count = ChatRequest.objects.filter(
@@ -241,8 +244,8 @@ def get_chat_requests_count(request):
     ).count()
     return JsonResponse({'success': True, 'count': count})
 
-@login_required
-@require_POST
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
 def accept_chat_request(request, request_id):
     """Accept a chat request"""
     chat_request = get_object_or_404(ChatRequest, id=request_id, recipient=request.user)
@@ -258,8 +261,8 @@ def accept_chat_request(request, request_id):
         logger.error(f"Error accepting request: {str(e)}")
         return JsonResponse({'success': False, 'error': str(e)})
 
-@login_required
-@require_POST
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
 def decline_chat_request(request, request_id):
     """Decline a chat request"""
     chat_request = get_object_or_404(ChatRequest, id=request_id, recipient=request.user)

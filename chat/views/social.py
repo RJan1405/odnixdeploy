@@ -3,13 +3,14 @@ from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
-from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
 from django.utils import timezone
 from django.db.models import Count, Q, Max
 from django.core.cache import cache
 from django.core.files.base import ContentFile
 from django.core.exceptions import ValidationError
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
 import json
 import hashlib
 import logging
@@ -148,9 +149,8 @@ def handle_repost_action(user, repost_type, repost_id, content=''):
     }
 
 
-@csrf_exempt
-@login_required
-@require_POST
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
 def api_repost(request):
     """
     Lightweight JSON API for repost/undo repost from the (React) frontend.
@@ -509,9 +509,8 @@ def profile_view(request, username=None):
     return render(request, 'chat/profile.html', context)
 
 
-@csrf_exempt
-@login_required
-@require_POST
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
 def toggle_private_chat(request):
     """Toggle whether a chat is in the user's manual 'Private' list (using PinnedChat model)"""
     try:
@@ -658,25 +657,24 @@ def update_profile(request):
     return render(request, 'chat/update_profile.html', context)
 
 
-@csrf_exempt
-@login_required
-@require_POST
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def post_scribe(request):
     """Post a scribe with proper duplicate prevention and validation"""
     logger.info(f"Scribe post attempt by user {request.user.id}")
 
     try:
         # Parse form data properly
-        content = request.POST.get('content', '').strip()
-        image_file = request.FILES.get('image')
-        content_type = request.POST.get('content_type', 'text')
-        code_html = request.POST.get('code_html')
-        code_css = request.POST.get('code_css')
-        code_js = request.POST.get('code_js')
-        code_bundle = request.POST.get('code_bundle')
+        content = request.data.get('content', '').strip()
+        image_file = request.FILES.get('image') or request.data.get('image')
+        content_type = request.data.get('content_type', 'text')
+        code_html = request.data.get('code_html')
+        code_css = request.data.get('code_css')
+        code_js = request.data.get('code_js')
+        code_bundle = request.data.get('code_bundle')
 
-        repost_type = request.POST.get('repost_type')
-        repost_id = request.POST.get('repost_id')
+        repost_type = request.data.get('repost_type')
+        repost_id = request.data.get('repost_id')
 
         # Handle Reposts (including toggle + repost-of-repost flattening)
         if repost_type and repost_id:
@@ -873,9 +871,8 @@ def post_scribe(request):
         return JsonResponse({'success': False, 'error': 'An unexpected error occurred. Please try again.'})
 
 
-@csrf_exempt
-@login_required
-@require_POST
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
 def toggle_like(request):
     try:
         data = json.loads(request.body)
@@ -935,9 +932,8 @@ def toggle_like(request):
         return JsonResponse({'success': False, 'error': 'Failed to toggle like'})
 
 
-@csrf_exempt
-@login_required
-@require_POST
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
 def toggle_dislike(request):
     """Toggle dislike on a scribe"""
     try:
@@ -983,9 +979,8 @@ def toggle_dislike(request):
         return JsonResponse({'success': False, 'error': 'Failed to toggle dislike'})
 
 
-@csrf_exempt
-@login_required
-@require_POST
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
 def toggle_save_post(request):
     """Toggle save/bookmark a post"""
     try:
@@ -1172,9 +1167,8 @@ def get_saved_posts(request):
         return JsonResponse({'success': False, 'error': 'Failed to get saved posts'})
 
 
-@csrf_exempt
-@login_required
-@require_POST
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
 def copy_post_link(request):
     """Get the shareable link for a post"""
     try:
@@ -1206,9 +1200,8 @@ def copy_post_link(request):
         return JsonResponse({'success': False, 'error': 'Failed to get post link'})
 
 
-@csrf_exempt
-@login_required
-@require_POST
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
 def add_comment(request):
     """Add a comment to a scribe"""
     try:
@@ -1281,9 +1274,8 @@ def add_comment(request):
         return JsonResponse({'success': False, 'error': 'Failed to add comment'})
 
 
-@csrf_exempt
-@login_required
-@require_POST
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
 def toggle_comment_like(request):
     """Toggle like on a comment"""
     try:
@@ -1442,9 +1434,8 @@ def get_scribe_comments(request, scribe_id):
         return JsonResponse({'success': False, 'error': 'Failed to load comments'})
 
 
-@csrf_exempt
-@login_required
-@require_POST
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
 def toggle_follow(request):
     try:
         data = json.loads(request.body)
@@ -1546,9 +1537,8 @@ def toggle_follow(request):
         return JsonResponse({'success': False, 'error': 'Failed to toggle follow'})
 
 
-@csrf_exempt
-@login_required
-@require_POST
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
 def dismiss_suggestion(request):
     """Dismiss a user suggestion so they don't appear again"""
     try:
@@ -1582,9 +1572,8 @@ def dismiss_suggestion(request):
         return JsonResponse({'success': False, 'error': 'Failed to dismiss suggestion'})
 
 
-@csrf_exempt
-@login_required
-@require_POST
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
 def toggle_block(request):
     """Block or unblock a user"""
     try:
@@ -1661,9 +1650,8 @@ def toggle_block(request):
         return JsonResponse({'success': False, 'error': 'Failed to toggle block'})
 
 
-@csrf_exempt
-@login_required
-@require_POST
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
 def manage_follow_request(request):
     """Accept or decline a follow request"""
     try:
@@ -1731,9 +1719,8 @@ def manage_follow_request(request):
         return JsonResponse({'success': False, 'error': 'Failed to manage follow request'})
 
 
-@csrf_exempt
-@login_required
-@require_POST
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
 def toggle_account_privacy(request):
     """Toggle account privacy setting"""
     try:
@@ -1800,9 +1787,8 @@ def get_follow_requests(request):
         return JsonResponse({'success': False, 'error': 'Failed to get follow requests'})
 
 
-@csrf_exempt
-@login_required
-@require_POST
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
 def follow_states(request):
     try:
         data = json.loads(request.body)
@@ -2234,9 +2220,8 @@ def global_search(request):
         return JsonResponse({'success': False, 'error': 'Search failed'})
 
 
-@csrf_exempt
-@login_required
-@require_POST
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
 def update_theme(request):
     """Update user theme preference"""
     try:
@@ -2908,9 +2893,8 @@ def get_omzo_batch(request):
         })
 
 
-@csrf_exempt
-@login_required
-@require_POST
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
 def track_omzo_view(request):
     """API endpoint to track when a user watches a specific omzo"""
     try:
@@ -2936,9 +2920,8 @@ def track_omzo_view(request):
         return JsonResponse({'error': str(e)}, status=500)
 
 
-@csrf_exempt
-@login_required
-@require_POST
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
 def upload_omzo(request):
     """API to upload a new omzo with compression"""
     # CHECK DAILY LIMIT (5 Omzo per day)
@@ -2993,9 +2976,8 @@ def upload_omzo(request):
         return JsonResponse({'success': False, 'error': f'Failed to upload omzo: {str(e)}'})
 
 
-@csrf_exempt
-@login_required
-@require_POST
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
 def toggle_omzo_like(request):
     """API to like/unlike a omzo"""
     try:
@@ -3041,9 +3023,8 @@ def toggle_omzo_like(request):
         return JsonResponse({'success': False, 'error': 'Action failed'})
 
 
-@csrf_exempt
-@login_required
-@require_POST
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
 def toggle_omzo_dislike(request):
     """API to dislike/undislike a omzo"""
     try:
@@ -3111,9 +3092,8 @@ def get_omzo_comments(request, omzo_id):
         return JsonResponse({'success': False, 'error': 'Failed to load comments'})
 
 
-@csrf_exempt
-@login_required
-@require_POST
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
 def add_omzo_comment(request):
     """Add a comment to a omzo."""
     try:
@@ -3172,9 +3152,8 @@ def add_omzo_comment(request):
         return JsonResponse({'success': False, 'error': 'Failed to add comment'})
 
 
-@csrf_exempt
-@login_required
-@require_POST
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
 def report_omzo(request):
     """Report a omzo for inappropriate content"""
     try:
@@ -3254,9 +3233,8 @@ def report_omzo(request):
         return JsonResponse({'success': False, 'error': 'Failed to report omzo'})
 
 
-@csrf_exempt
-@login_required
-@require_POST
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
 def toggle_save_scribe(request):
     """Toggle save status for a scribe"""
     try:
@@ -3292,9 +3270,8 @@ def toggle_save_scribe(request):
         return JsonResponse({'success': False, 'error': 'Failed to toggle save'})
 
 
-@csrf_exempt
-@login_required
-@require_POST
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
 def toggle_save_omzo(request):
     """Toggle save status for an omzo"""
     try:

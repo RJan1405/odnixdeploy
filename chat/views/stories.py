@@ -1,10 +1,13 @@
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
-from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
 from django.utils.timesince import timesince
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
 import json
 import os
 import logging
@@ -13,9 +16,8 @@ from chat.models import CustomUser, Story, StoryView, StoryLike, StoryReply, Cha
 logger = logging.getLogger(__name__)
 
 
-@csrf_exempt
-@login_required
-@require_POST
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
 def repost_story(request):
     """
     Repost someone else's story to your own story (Instagram-style).
@@ -130,9 +132,8 @@ def repost_story(request):
         return JsonResponse({'success': False, 'error': str(e)})
 
 
-@csrf_exempt
-@login_required
-@require_POST
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
 def create_story(request):
     """FIXED - Create a new story - NOW SUPPORTS MULTIPLE STORIES PER USER AND IMAGE+TEXT COMBO"""
     try:
@@ -473,9 +474,8 @@ def get_following_stories(request):
         logger.error(f"Error getting following stories: {e}")
         return JsonResponse({'success': False, 'error': str(e)})
 
-@csrf_exempt
-@login_required
-@require_POST
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
 def mark_story_viewed(request):
     """Mark a story as viewed by the current user"""
     try:
@@ -508,9 +508,8 @@ def mark_story_viewed(request):
         logger.error(f"Error in mark_story_viewed: {str(e)}")
         return JsonResponse({'success': False, 'error': 'Failed to mark story as viewed'})
 
-@csrf_exempt
-@login_required
-@require_POST
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
 def toggle_story_like(request):
     """Toggle like on a story"""
     try:
@@ -584,9 +583,8 @@ def toggle_story_like(request):
         print(f"DEBUG ERROR in toggle_story_like: {str(e)}") # Force print to console
         return JsonResponse({'success': False, 'error': f'Failed to toggle story like: {str(e)}'})
 
-@csrf_exempt
-@login_required
-@require_POST
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
 def add_story_reply(request):
     """Add a reply to a story (only visible to story poster)"""
     try:
@@ -763,9 +761,8 @@ def get_story_viewers(request, story_id):
         logger.error(f"Error in get_story_viewers: {str(e)}")
         return JsonResponse({'success': False, 'error': 'Failed to get story viewers'})
 
-@csrf_exempt
-@login_required
-@require_POST
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
 def delete_reply(request, reply_id):
     """Delete a story reply (only by reply author)"""
     try:
